@@ -10,6 +10,13 @@ export interface MenuCategory {
   updated_at?: string;
 }
 
+export interface MenuItemAllergens {
+  isVegetarian?: boolean;
+  isVegan?: boolean;
+  isGlutenFree?: boolean;
+  items?: string[];
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -21,7 +28,7 @@ export interface MenuItem {
   is_available?: boolean;
   is_featured?: boolean;
   ingredients?: any;
-  allergens?: any;
+  allergens?: MenuItemAllergens;
   nutritional_info?: any;
   preparation_time?: number;
   restaurant_id?: string;

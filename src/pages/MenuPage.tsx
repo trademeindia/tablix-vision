@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -22,7 +21,7 @@ import {
   updateMenuItem,
   deleteMenuItem
 } from '@/services/menuService';
-import { MenuCategory, MenuItem } from '@/types/menu';
+import { MenuCategory, MenuItem, MenuItemAllergens } from '@/types/menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,7 +46,6 @@ const MenuPage = () => {
   const [isDeleteItemOpen, setIsDeleteItemOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   
-  // Fetch categories
   const { 
     data: categories = [], 
     isLoading: isCategoriesLoading, 
@@ -57,7 +55,6 @@ const MenuPage = () => {
     queryFn: () => fetchMenuCategories(),
   });
   
-  // Fetch items
   const { 
     data: menuItems = [], 
     isLoading: isItemsLoading, 
@@ -67,7 +64,6 @@ const MenuPage = () => {
     queryFn: () => fetchMenuItems(),
   });
   
-  // Category mutations
   const createCategoryMutation = useMutation({
     mutationFn: createMenuCategory,
     onSuccess: () => {
@@ -128,7 +124,6 @@ const MenuPage = () => {
     }
   });
   
-  // Item mutations
   const createItemMutation = useMutation({
     mutationFn: createMenuItem,
     onSuccess: () => {
@@ -189,7 +184,6 @@ const MenuPage = () => {
     }
   });
   
-  // Handlers for categories
   const handleAddCategory = async (data: Partial<MenuCategory>) => {
     createCategoryMutation.mutate(data);
   };
@@ -216,7 +210,6 @@ const MenuPage = () => {
     }
   };
   
-  // Handlers for menu items
   const handleAddItem = async (data: Partial<MenuItem>) => {
     createItemMutation.mutate(data);
   };
@@ -294,24 +287,28 @@ const MenuPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {menuItems.map((item) => (
-                <MenuItemCard 
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  price={item.price}
-                  category={
-                    categories.find(cat => cat.id === item.category_id)?.name || 'Uncategorized'
-                  }
-                  image={item.image_url || ''}
-                  isVegetarian={item.allergens?.isVegetarian}
-                  isVegan={item.allergens?.isVegan}
-                  isGlutenFree={item.allergens?.isGlutenFree}
-                  onView={() => handleViewItem(item.id)}
-                  onEdit={() => handleEditItem(item)}
-                  onDelete={() => handleDeleteItemClick(item)}
-                />
-              ))}
+              {menuItems.map((item) => {
+                const allergens = item.allergens as MenuItemAllergens || {};
+                
+                return (
+                  <MenuItemCard 
+                    key={item.id}
+                    id={item.id}
+                    name={item.name}
+                    price={item.price}
+                    category={
+                      categories.find(cat => cat.id === item.category_id)?.name || 'Uncategorized'
+                    }
+                    image={item.image_url || ''}
+                    isVegetarian={allergens?.isVegetarian}
+                    isVegan={allergens?.isVegan}
+                    isGlutenFree={allergens?.isGlutenFree}
+                    onView={() => handleViewItem(item.id)}
+                    onEdit={() => handleEditItem(item)}
+                    onDelete={() => handleDeleteItemClick(item)}
+                  />
+                );
+              })}
             </div>
           )}
         </TabsContent>
@@ -347,7 +344,6 @@ const MenuPage = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Category Dialogs */}
       <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
         <DialogContent>
           <DialogHeader>
@@ -401,7 +397,6 @@ const MenuPage = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Item Dialogs */}
       <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

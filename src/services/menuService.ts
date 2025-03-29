@@ -24,9 +24,19 @@ export const fetchMenuCategories = async (restaurant_id?: string) => {
 };
 
 export const createMenuCategory = async (category: Partial<MenuCategory>) => {
+  // Ensure required fields are present
+  if (!category.name) {
+    throw new Error("Category name is required");
+  }
+  
   const { data, error } = await supabase
     .from('menu_categories')
-    .insert(category)
+    .insert({
+      name: category.name,
+      description: category.description,
+      display_order: category.display_order,
+      restaurant_id: category.restaurant_id
+    })
     .select();
     
   if (error) {
@@ -91,9 +101,32 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
 };
 
 export const createMenuItem = async (item: Partial<MenuItem>) => {
+  // Ensure required fields are present
+  if (!item.name) {
+    throw new Error("Item name is required");
+  }
+  
+  if (item.price === undefined || item.price === null) {
+    throw new Error("Item price is required");
+  }
+  
   const { data, error } = await supabase
     .from('menu_items')
-    .insert(item)
+    .insert({
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category_id: item.category_id,
+      image_url: item.image_url,
+      model_url: item.model_url,
+      is_available: item.is_available,
+      is_featured: item.is_featured,
+      ingredients: item.ingredients,
+      allergens: item.allergens,
+      nutritional_info: item.nutritional_info,
+      preparation_time: item.preparation_time,
+      restaurant_id: item.restaurant_id
+    })
     .select();
     
   if (error) {
