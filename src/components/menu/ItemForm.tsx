@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -25,6 +25,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { MenuItem, MenuCategory } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
+import ModelUploader from './ModelUploader';
+import { ExternalLink } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -46,6 +48,7 @@ const formSchema = z.object({
   preparation_time: z.coerce.number().min(0).optional(),
   is_available: z.boolean().default(true),
   is_featured: z.boolean().default(false),
+  restaurant_id: z.string().optional(),
 });
 
 interface ItemFormProps {
@@ -61,6 +64,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
   onSubmit,
   isSubmitting
 }) => {
+  const [mediaReference, setMediaReference] = useState(initialData?.media_reference || '');
+  const [mediaUrl, setMediaUrl] = useState(initialData?.model_url || '');
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,8 +83,15 @@ const ItemForm: React.FC<ItemFormProps> = ({
       preparation_time: initialData?.preparation_time || 0,
       is_available: initialData?.is_available !== false,
       is_featured: initialData?.is_featured || false,
+      restaurant_id: initialData?.restaurant_id || "",
     },
   });
+
+  const handleModelUploadComplete = (fileId: string, fileUrl: string) => {
+    setMediaReference(fileId);
+    setMediaUrl(fileUrl);
+    form.setValue('model_url', fileUrl);
+  };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -90,7 +103,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
           isVegan: values.is_vegan,
           isGlutenFree: values.is_gluten_free,
           items: values.allergens ? values.allergens.split(',').map(item => item.trim()) : []
-        }
+        },
+        // Add model reference data if available
+        ...(mediaReference && {
+          media_reference: mediaReference,
+          media_type: '3d'
+        })
       };
       
       // Remove individual dietary flags as they're now in the allergens object
@@ -106,6 +124,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
       
       if (!initialData) {
         form.reset();
+        setMediaReference('');
+        setMediaUrl('');
       }
     } catch (error) {
       toast({
@@ -191,7 +211,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
           />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <FormField
             control={form.control}
             name="image_url"
@@ -211,15 +231,42 @@ const ItemForm: React.FC<ItemFormProps> = ({
             name="model_url"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>3D Model URL (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://..." {...field} />
-                </FormControl>
+                <FormLabel>3D Model URL</FormLabel>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input placeholder="https://..." {...field} readOnly={!!mediaReference} />
+                  </FormControl>
+                  {field.value && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => window.open(field.value, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <FormDescription>
+                  {mediaReference 
+                    ? "A 3D model has been uploaded to Google Drive" 
+                    : "Enter a URL or upload a 3D model below"}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+        
+        {/* 3D Model Uploader */}
+        {initialData?.id && (
+          <ModelUploader
+            menuItemId={initialData.id}
+            restaurantId={initialData.restaurant_id || form.getValues('restaurant_id')}
+            onUploadComplete={handleModelUploadComplete}
+            className="pt-2"
+          />
+        )}
         
         <FormField
           control={form.control}

@@ -27,6 +27,8 @@ export interface MenuItem {
   category_id?: string;
   image_url?: string;
   model_url?: string;
+  media_type?: string;       // New field for 3D or image
+  media_reference?: string;  // New field for Google Drive File ID
   is_available?: boolean;
   is_featured?: boolean;
   ingredients?: any;

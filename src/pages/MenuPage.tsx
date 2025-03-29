@@ -46,13 +46,15 @@ const MenuPage = () => {
   const [isDeleteItemOpen, setIsDeleteItemOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   
+  const restaurantId = "00000000-0000-0000-0000-000000000000";
+  
   const { 
     data: categories = [], 
     isLoading: isCategoriesLoading, 
     error: categoriesError 
   } = useQuery({
     queryKey: ['menuCategories'],
-    queryFn: () => fetchMenuCategories(),
+    queryFn: () => fetchMenuCategories(restaurantId),
   });
   
   const { 
@@ -61,7 +63,7 @@ const MenuPage = () => {
     error: itemsError 
   } = useQuery({
     queryKey: ['menuItems'],
-    queryFn: () => fetchMenuItems(),
+    queryFn: () => fetchMenuItems(undefined, restaurantId),
   });
   
   const createCategoryMutation = useMutation({
@@ -185,7 +187,10 @@ const MenuPage = () => {
   });
   
   const handleAddCategory = async (data: Partial<MenuCategory>) => {
-    createCategoryMutation.mutate(data);
+    createCategoryMutation.mutate({
+      ...data,
+      restaurant_id: restaurantId
+    });
   };
   
   const handleEditCategory = (category: MenuCategory) => {
@@ -211,7 +216,10 @@ const MenuPage = () => {
   };
   
   const handleAddItem = async (data: Partial<MenuItem>) => {
-    createItemMutation.mutate(data);
+    createItemMutation.mutate({
+      ...data,
+      restaurant_id: restaurantId
+    });
   };
   
   const handleEditItem = (item: MenuItem) => {
@@ -424,7 +432,10 @@ const MenuPage = () => {
           {selectedItem && (
             <ItemForm 
               categories={categories}
-              initialData={selectedItem}
+              initialData={{
+                ...selectedItem,
+                restaurant_id: restaurantId
+              }}
               onSubmit={handleUpdateItem}
               isSubmitting={updateItemMutation.isPending}
             />

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCategory, MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 
@@ -119,6 +120,8 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
     category_id: item.category_id,
     image_url: item.image_url,
     model_url: item.model_url,
+    media_type: item.media_type,
+    media_reference: item.media_reference,
     is_available: item.is_available,
     is_featured: item.is_featured,
     ingredients: item.ingredients,
