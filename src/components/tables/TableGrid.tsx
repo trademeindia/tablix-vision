@@ -16,10 +16,35 @@ interface Table {
 
 interface TableGridProps {
   tables: Table[];
-  onTableClick: (tableId: string) => void;
+  onStatusChange: (tableId: string, newStatus: 'available' | 'occupied' | 'reserved') => void;
 }
 
-const TableGrid: React.FC<TableGridProps> = ({ tables, onTableClick }) => {
+const TableGrid: React.FC<TableGridProps> = ({ tables, onStatusChange }) => {
+  const handleTableClick = (tableId: string) => {
+    // Get the current table
+    const table = tables.find(t => t.id === tableId);
+    if (!table) return;
+    
+    // Cycle through statuses: available -> occupied -> reserved -> available
+    let newStatus: 'available' | 'occupied' | 'reserved';
+    
+    switch (table.status) {
+      case 'available':
+        newStatus = 'occupied';
+        break;
+      case 'occupied':
+        newStatus = 'reserved';
+        break;
+      case 'reserved':
+        newStatus = 'available';
+        break;
+      default:
+        newStatus = 'available';
+    }
+    
+    onStatusChange(tableId, newStatus);
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {tables.map((table) => (
@@ -31,7 +56,7 @@ const TableGrid: React.FC<TableGridProps> = ({ tables, onTableClick }) => {
             table.status === 'occupied' && "border-red-200",
             table.status === 'reserved' && "border-yellow-200"
           )}
-          onClick={() => onTableClick(table.id)}
+          onClick={() => handleTableClick(table.id)}
         >
           <CardContent className="p-4">
             <div className="flex justify-between items-start">
