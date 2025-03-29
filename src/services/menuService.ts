@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { MenuCategory, MenuItem } from "@/types/menu";
+import { MenuCategory, MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 
 // Menu Categories
 export const fetchMenuCategories = async (restaurant_id?: string) => {
@@ -97,7 +96,10 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
     throw error;
   }
   
-  return data;
+  return data.map(item => ({
+    ...item,
+    allergens: parseAllergens(item.allergens)
+  }));
 };
 
 export const createMenuItem = async (item: Partial<MenuItem>) => {
@@ -110,23 +112,25 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
     throw new Error("Item price is required");
   }
   
+  const dbItem = {
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    category_id: item.category_id,
+    image_url: item.image_url,
+    model_url: item.model_url,
+    is_available: item.is_available,
+    is_featured: item.is_featured,
+    ingredients: item.ingredients,
+    allergens: stringifyAllergens(item.allergens),
+    nutritional_info: item.nutritional_info,
+    preparation_time: item.preparation_time,
+    restaurant_id: item.restaurant_id
+  };
+  
   const { data, error } = await supabase
     .from('menu_items')
-    .insert({
-      name: item.name,
-      description: item.description,
-      price: item.price,
-      category_id: item.category_id,
-      image_url: item.image_url,
-      model_url: item.model_url,
-      is_available: item.is_available,
-      is_featured: item.is_featured,
-      ingredients: item.ingredients,
-      allergens: item.allergens,
-      nutritional_info: item.nutritional_info,
-      preparation_time: item.preparation_time,
-      restaurant_id: item.restaurant_id
-    })
+    .insert(dbItem)
     .select();
     
   if (error) {
@@ -134,13 +138,21 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
     throw error;
   }
   
-  return data[0];
+  return {
+    ...data[0],
+    allergens: parseAllergens(data[0].allergens)
+  };
 };
 
 export const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => {
+  const dbUpdates = {
+    ...updates,
+    allergens: updates.allergens ? stringifyAllergens(updates.allergens) : undefined
+  };
+  
   const { data, error } = await supabase
     .from('menu_items')
-    .update(updates)
+    .update(dbUpdates)
     .eq('id', id)
     .select();
     
@@ -149,7 +161,10 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => 
     throw error;
   }
   
-  return data[0];
+  return {
+    ...data[0],
+    allergens: parseAllergens(data[0].allergens)
+  };
 };
 
 export const deleteMenuItem = async (id: string) => {

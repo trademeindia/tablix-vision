@@ -21,7 +21,7 @@ import {
   updateMenuItem,
   deleteMenuItem
 } from '@/services/menuService';
-import { MenuCategory, MenuItem, MenuItemAllergens } from '@/types/menu';
+import { MenuCategory, MenuItem, MenuItemAllergens, parseAllergens } from '@/types/menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -288,7 +288,7 @@ const MenuPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuItems.map((item) => {
-                const allergens = item.allergens as MenuItemAllergens || {};
+                const allergens = item.allergens || {};
                 
                 return (
                   <MenuItemCard 
@@ -300,9 +300,9 @@ const MenuPage = () => {
                       categories.find(cat => cat.id === item.category_id)?.name || 'Uncategorized'
                     }
                     image={item.image_url || ''}
-                    isVegetarian={allergens?.isVegetarian}
-                    isVegan={allergens?.isVegan}
-                    isGlutenFree={allergens?.isGlutenFree}
+                    isVegetarian={allergens.isVegetarian}
+                    isVegan={allergens.isVegan}
+                    isGlutenFree={allergens.isGlutenFree}
                     onView={() => handleViewItem(item.id)}
                     onEdit={() => handleEditItem(item)}
                     onDelete={() => handleDeleteItemClick(item)}
