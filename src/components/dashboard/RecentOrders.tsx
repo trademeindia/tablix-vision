@@ -29,14 +29,14 @@ const statusStyles = {
 
 const RecentOrders = () => {
   return (
-    <Card>
+    <Card className="shadow-soft">
       <CardHeader className="pb-2">
         <CardTitle>Recent Orders</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {dummyOrders.map((order) => (
-            <div key={order.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+            <div key={order.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
               <div>
                 <p className="font-medium">{order.id}</p>
                 <div className="flex items-center mt-1">

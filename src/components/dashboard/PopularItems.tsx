@@ -4,17 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 
 const data = [
-  { name: 'Pizza (40%)', value: 40, color: '#F97316' },
-  { name: 'Dessert (20%)', value: 20, color: '#8B5CF6' },
-  { name: 'Juice (25%)', value: 25, color: '#22C55E' },
+  { name: 'Pizza (40%)', value: 40, color: '#6366F1' },
+  { name: 'Dessert (20%)', value: 20, color: '#EC4899' },
+  { name: 'Juice (25%)', value: 25, color: '#10B981' },
   { name: 'Burger (15%)', value: 15, color: '#3B82F6' },
 ];
 
-const COLORS = ['#F97316', '#8B5CF6', '#22C55E', '#3B82F6'];
+const COLORS = ['#6366F1', '#EC4899', '#10B981', '#3B82F6'];
 
 const PopularItems = () => {
   return (
-    <Card className="h-full">
+    <Card className="h-full shadow-soft">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-lg font-medium">Popular Items</CardTitle>
         <div className="text-sm text-slate-500 flex items-center">

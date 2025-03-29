@@ -32,7 +32,7 @@ const OrderChart = () => {
               <Tooltip />
               <Bar 
                 dataKey="value" 
-                fill="#F97316" 
+                fill="#6366F1" 
                 radius={[4, 4, 0, 0]}
                 background={{ fill: '#F0F0F0', radius: [4, 4, 0, 0] }}
               />

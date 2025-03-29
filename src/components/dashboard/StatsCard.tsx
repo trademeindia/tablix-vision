@@ -25,13 +25,14 @@ const StatsCard: React.FC<StatsCardProps> = ({
   trend,
   className,
   bgColor = "bg-white",
-  iconBgColor = "bg-slate-100",
+  iconBgColor = "bg-indigo-100",
 }) => {
   return (
-    <Card className={cn("overflow-hidden border", bgColor, className)}>
+    <Card className={cn("overflow-hidden border shadow-soft transition-all duration-200 hover:shadow-md", bgColor, className)}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
+            <p className="text-sm text-slate-500 mb-1">{title}</p>
             <h3 className="text-2xl font-bold">{value}</h3>
             <p className="text-sm text-slate-500 mt-1">{subtext}</p>
             
@@ -40,7 +41,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
                 <span 
                   className={cn(
                     "text-xs font-medium",
-                    trend.isPositive ? "text-green-600" : "text-red-600"
+                    trend.isPositive ? "text-emerald-600" : "text-rose-600"
                   )}
                 >
                   {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%
