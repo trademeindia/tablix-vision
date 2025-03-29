@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import MenuPage from "./pages/MenuPage";
 import QRCodePage from "./pages/QRCodePage";
 import TablesPage from "./pages/TablesPage";
+import StaffPage from "./pages/StaffPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/qr-codes" element={<QRCodePage />} />
           <Route path="/tables" element={<TablesPage />} />
+          <Route path="/staff" element={<StaffPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
