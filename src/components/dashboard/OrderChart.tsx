@@ -33,8 +33,8 @@ const OrderChart = () => {
               <Bar 
                 dataKey="value" 
                 fill="#6366F1" 
-                radius={[4, 4, 0, 0]}
-                background={{ fill: '#F0F0F0', radius: [4, 4, 0, 0] }}
+                radius={4}
+                background={{ fill: '#F0F0F0', radius: 4 }}
               />
             </BarChart>
           </ResponsiveContainer>
