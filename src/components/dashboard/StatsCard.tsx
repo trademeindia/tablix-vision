@@ -6,42 +6,35 @@ import { Card, CardContent } from '@/components/ui/card';
 interface StatsCardProps {
   title: string;
   value: string | number;
-  subtext: string;
   icon: React.ReactNode;
   trend?: {
     value: number;
     isPositive: boolean;
   };
   className?: string;
-  bgColor?: string;
-  iconBgColor?: string;
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({
   title,
   value,
-  subtext,
   icon,
   trend,
   className,
-  bgColor = "bg-white",
-  iconBgColor = "bg-indigo-100",
 }) => {
   return (
-    <Card className={cn("overflow-hidden border shadow-soft transition-all duration-200 hover:shadow-md", bgColor, className)}>
+    <Card className={cn("overflow-hidden", className)}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-500 mb-1">{title}</p>
-            <h3 className="text-2xl font-bold">{value}</h3>
-            <p className="text-sm text-slate-500 mt-1">{subtext}</p>
+            <p className="text-sm font-medium text-slate-500">{title}</p>
+            <h3 className="text-2xl font-bold mt-1">{value}</h3>
             
             {trend && (
               <div className="flex items-center mt-1">
                 <span 
                   className={cn(
                     "text-xs font-medium",
-                    trend.isPositive ? "text-emerald-600" : "text-rose-600"
+                    trend.isPositive ? "text-green-600" : "text-red-600"
                   )}
                 >
                   {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%
@@ -51,7 +44,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             )}
           </div>
           
-          <div className={cn("p-3 rounded-full", iconBgColor)}>
+          <div className="p-2 rounded-md bg-slate-100">
             {icon}
           </div>
         </div>
