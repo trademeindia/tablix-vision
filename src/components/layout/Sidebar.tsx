@@ -59,6 +59,12 @@ const navItems: NavItem[] = [
     section: "management"
   },
   {
+    title: "Staff Dashboard",
+    href: "/staff-dashboard",
+    icon: <Users className="h-5 w-5" />,
+    section: "management"
+  },
+  {
     title: "Analytics",
     href: "/analytics",
     icon: <BarChart className="h-5 w-5" />,
