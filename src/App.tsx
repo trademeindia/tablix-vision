@@ -13,6 +13,12 @@ import StaffDashboardPage from "./pages/StaffDashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
+// Import placeholder pages for staff dashboard sections
+import OrdersPage from "./pages/staff/OrdersPage";
+import KitchenPage from "./pages/staff/KitchenPage";
+import InventoryPage from "./pages/staff/InventoryPage";
+import ReportsPage from "./pages/staff/ReportsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -27,7 +33,14 @@ const App = () => (
           <Route path="/qr-codes" element={<QRCodePage />} />
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/staff" element={<StaffPage />} />
+          
+          {/* Staff Dashboard Routes */}
           <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
+          <Route path="/staff-dashboard/orders" element={<OrdersPage />} />
+          <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
+          <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
+          <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
+          
           <Route path="/analytics" element={<AnalyticsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

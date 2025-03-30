@@ -9,7 +9,9 @@ import {
   ClipboardList,
   BarChart,
   Menu as MenuIcon,
+  X
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type StaffRole = 'Waiter' | 'Chef' | 'Manager';
 
@@ -56,7 +58,11 @@ const navItems: NavItem[] = [
   },
 ];
 
-const StaffSidebar = () => {
+interface StaffSidebarProps {
+  onCloseSidebar?: () => void;
+}
+
+const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
@@ -69,22 +75,39 @@ const StaffSidebar = () => {
 
   return (
     <div className={cn(
-      "h-screen bg-slate-800 text-white flex flex-col transition-all duration-300 ease-in-out border-r border-slate-700",
+      "h-full bg-slate-800 text-white flex flex-col transition-all duration-300 ease-in-out border-r border-slate-700",
       collapsed ? "w-20" : "w-64"
     )}>
       <div className="p-4 flex items-center justify-between border-b border-slate-700">
         {!collapsed && (
           <h1 className="text-xl font-bold">StaffPortal</h1>
         )}
-        <button 
-          onClick={toggleSidebar} 
-          className={cn(
-            "p-2 rounded-md hover:bg-slate-700",
-            collapsed && "mx-auto"
+        
+        <div className="flex items-center">
+          {/* Close button - only shown on mobile */}
+          {onCloseSidebar && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={onCloseSidebar}
+              className="text-white hover:bg-slate-700 lg:hidden mr-2"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           )}
-        >
-          <MenuIcon className="h-5 w-5" />
-        </button>
+          
+          {/* Collapse button - only shown on desktop */}
+          <button 
+            onClick={toggleSidebar} 
+            className={cn(
+              "p-2 rounded-md hover:bg-slate-700 hidden lg:block",
+              collapsed && "mx-auto"
+            )}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <MenuIcon className="h-5 w-5" />
+          </button>
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto py-4">
@@ -100,6 +123,7 @@ const StaffSidebar = () => {
                   : "text-slate-300 hover:bg-slate-700 hover:text-white",
                 collapsed ? "justify-center" : "justify-start"
               )}
+              onClick={onCloseSidebar}
             >
               {item.icon}
               {!collapsed && <span className="ml-3">{item.title}</span>}
