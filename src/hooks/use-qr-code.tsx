@@ -17,14 +17,21 @@ export function useQRCode() {
 
   const handleScan = useCallback((data: string) => {
     if (data) {
+      console.log('QR data received:', data);
       setQrData(data);
       setIsScanning(false);
     }
   }, []);
 
   const handleError = useCallback((err: Error) => {
+    console.error('QR Scanning Error:', err);
     setError(err);
     setIsScanning(false);
+  }, []);
+
+  // Reset QR data
+  const resetQrData = useCallback(() => {
+    setQrData(null);
   }, []);
 
   return {
@@ -34,6 +41,7 @@ export function useQRCode() {
     startScanning,
     stopScanning,
     handleScan,
-    handleError
+    handleError,
+    resetQrData
   };
 }

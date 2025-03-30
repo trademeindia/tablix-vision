@@ -11,6 +11,7 @@ import { useMenuData } from '@/hooks/use-menu-data';
 import { Loader2 } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
 const CustomerMenuPage = () => {
   const location = useLocation();
@@ -21,7 +22,7 @@ const CustomerMenuPage = () => {
   const [orderItems, setOrderItems] = useState<Array<{item: MenuItem, quantity: number}>>([]);
   
   // Get QR code data from URL or localStorage
-  const { isScanning, startScanning, qrData } = useQRCode();
+  const { isScanning, startScanning, qrData, handleScan } = useQRCode();
   
   // Parse restaurant and table from QR data or URL params
   useEffect(() => {
@@ -42,19 +43,58 @@ const CustomerMenuPage = () => {
     // Next check if we have QR data
     if (qrData) {
       try {
-        // Assuming QR format is: https://restaurant.app/menu/{restaurantId}?table={tableId}
-        const url = new URL(qrData);
-        const pathParts = url.pathname.split('/');
-        const qrRestaurantId = pathParts[pathParts.length - 1];
-        const qrTableId = url.searchParams.get('table');
+        // Try different QR code formats
         
-        if (qrRestaurantId && qrTableId) {
+        // Format 1: https://restaurant.app/menu/{restaurantId}?table={tableId}
+        try {
+          const url = new URL(qrData);
+          const pathParts = url.pathname.split('/');
+          const qrRestaurantId = pathParts[pathParts.length - 1];
+          const qrTableId = url.searchParams.get('table');
+          
+          if (qrRestaurantId && qrTableId) {
+            setRestaurantId(qrRestaurantId);
+            setTableId(qrTableId);
+            localStorage.setItem('tableId', qrTableId);
+            localStorage.setItem('restaurantId', qrRestaurantId);
+            return;
+          }
+        } catch (e) {
+          // Not a URL format, try other formats
+        }
+        
+        // Format 2: JSON string {"restaurantId": "xxx", "tableId": "yyy"}
+        try {
+          const jsonData = JSON.parse(qrData);
+          if (jsonData.restaurantId && jsonData.tableId) {
+            setRestaurantId(jsonData.restaurantId);
+            setTableId(jsonData.tableId);
+            localStorage.setItem('tableId', jsonData.tableId);
+            localStorage.setItem('restaurantId', jsonData.restaurantId);
+            return;
+          }
+        } catch (e) {
+          // Not JSON format, try other formats
+        }
+        
+        // Format 3: Simple text format "restaurantId:tableId"
+        const parts = qrData.split(':');
+        if (parts.length === 2) {
+          const [qrRestaurantId, qrTableId] = parts;
           setRestaurantId(qrRestaurantId);
           setTableId(qrTableId);
           localStorage.setItem('tableId', qrTableId);
           localStorage.setItem('restaurantId', qrRestaurantId);
           return;
         }
+        
+        // If all format parsing failed
+        toast({
+          title: "Invalid QR Code",
+          description: "The QR code format is not recognized. Please try again.",
+          variant: "destructive",
+        });
+        
       } catch (error) {
         console.error('Error parsing QR data:', error);
       }
@@ -69,6 +109,25 @@ const CustomerMenuPage = () => {
       setRestaurantId(storedRestaurantId);
     }
   }, [location.search, qrData]);
+  
+  // Try to load stored order from localStorage
+  useEffect(() => {
+    const storedOrder = localStorage.getItem('orderItems');
+    if (storedOrder) {
+      try {
+        setOrderItems(JSON.parse(storedOrder));
+      } catch (error) {
+        console.error('Error parsing stored order:', error);
+      }
+    }
+  }, []);
+  
+  // Persist order changes to localStorage
+  useEffect(() => {
+    if (orderItems.length > 0) {
+      localStorage.setItem('orderItems', JSON.stringify(orderItems));
+    }
+  }, [orderItems]);
   
   // Fetch menu data using the hook
   const { categories, items, isLoading, error } = useMenuData(restaurantId);
@@ -98,6 +157,11 @@ const CustomerMenuPage = () => {
         // Item doesn't exist, add it with quantity 1
         return [...prev, { item, quantity: 1 }];
       }
+    });
+    
+    toast({
+      title: "Added to Order",
+      description: `${item.name} added to your order.`,
     });
   };
   
@@ -137,12 +201,15 @@ const CustomerMenuPage = () => {
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-2xl font-bold mb-6">Scan Table QR Code</h1>
         {isScanning ? (
-          <QRScanner onScan={(data) => {
-            if (data) {
-              console.log('QR Code scanned:', data);
-              // Will be handled by the useEffect above
-            }
-          }} />
+          <QRScanner 
+            onScan={(data) => {
+              if (data) {
+                console.log('QR Code scanned:', data);
+                handleScan(data);
+              }
+            }}
+            onClose={() => navigate('/')}
+          />
         ) : (
           <Button onClick={startScanning} size="lg">
             Scan QR Code
