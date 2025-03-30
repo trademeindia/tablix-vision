@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MenuCategories from '@/components/customer/menu/MenuCategories';
 import MenuItems from '@/components/customer/menu/MenuItems';
 import OrderSummary from '@/components/customer/menu/OrderSummary';
-import { MenuItem } from '@/types/menu';
-import { Gift, Button } from '@/components';
+import { Button } from '@/components/ui/button';
+import { Gift } from 'lucide-react';
 import { useLoyalty } from '@/hooks/use-loyalty';
 
 interface MenuContentProps {

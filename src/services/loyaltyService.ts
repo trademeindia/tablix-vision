@@ -2,72 +2,15 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Calculate loyalty points based on order total
- * @param amount Order total amount
- * @returns Number of points earned
- */
-export const calculateLoyaltyPoints = (amount: number): number => {
-  // Award 1 point for every 50 spent
-  return Math.floor(amount / 50);
-};
-
-/**
- * Add loyalty points to a customer
- * @param customerId Customer ID
- * @param points Points to add
- * @returns Updated customer with new points total
- */
-export const addLoyaltyPoints = async (customerId: string, points: number) => {
-  if (!customerId || points <= 0) return null;
-
-  try {
-    // Get current points
-    const { data: customer, error: getError } = await supabase
-      .from('customers')
-      .select('loyalty_points')
-      .eq('id', customerId)
-      .single();
-
-    if (getError) {
-      console.error('Error fetching customer points:', getError);
-      return null;
-    }
-
-    const currentPoints = customer?.loyalty_points || 0;
-    const newTotal = currentPoints + points;
-
-    // Update customer with new points total
-    const { data, error } = await supabase
-      .from('customers')
-      .update({ loyalty_points: newTotal })
-      .eq('id', customerId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating loyalty points:', error);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in addLoyaltyPoints:', error);
-    return null;
-  }
-};
-
-/**
- * Get customer's loyalty points
- * @param customerId Customer ID
- * @returns Current loyalty points
+ * Get loyalty points for a customer
+ * @param customerId The customer's ID
+ * @returns The number of loyalty points or 0 if not found
  */
 export const getLoyaltyPoints = async (customerId: string): Promise<number> => {
-  if (!customerId) return 0;
-
   try {
     const { data, error } = await supabase
       .from('customers')
-      .select('loyalty_points')
+      .select('total_expenditure')
       .eq('id', customerId)
       .single();
 
@@ -76,7 +19,12 @@ export const getLoyaltyPoints = async (customerId: string): Promise<number> => {
       return 0;
     }
 
-    return data?.loyalty_points || 0;
+    // Calculate loyalty points based on expenditure
+    // 1 point for every $50 spent
+    const totalExpenditure = data.total_expenditure || 0;
+    const loyaltyPoints = Math.floor(totalExpenditure / 50);
+    
+    return loyaltyPoints;
   } catch (error) {
     console.error('Error in getLoyaltyPoints:', error);
     return 0;
@@ -84,55 +32,104 @@ export const getLoyaltyPoints = async (customerId: string): Promise<number> => {
 };
 
 /**
- * Redeem loyalty points for a discount
- * @param customerId Customer ID
- * @param pointsToRedeem Points to redeem
- * @returns Discount amount and updated points
+ * Update loyalty points for a customer after an order
+ * @param customerId The customer's ID
+ * @param orderAmount The amount spent in the order
  */
-export const redeemLoyaltyPoints = async (
-  customerId: string,
-  pointsToRedeem: number
-): Promise<{ discountAmount: number; remainingPoints: number } | null> => {
-  if (!customerId || pointsToRedeem <= 0) return null;
-
+export const updateLoyaltyPoints = async (customerId: string, orderAmount: number): Promise<void> => {
   try {
-    // Get current points
-    const { data: customer, error: getError } = await supabase
+    // Get current customer data
+    const { data: customer, error: fetchError } = await supabase
       .from('customers')
-      .select('loyalty_points')
+      .select('total_expenditure')
       .eq('id', customerId)
       .single();
 
-    if (getError) {
-      console.error('Error fetching customer points:', getError);
-      return null;
+    if (fetchError) {
+      console.error('Error fetching customer:', fetchError);
+      return;
     }
 
-    const currentPoints = customer?.loyalty_points || 0;
+    // Update the total expenditure
+    const currentExpenditure = customer.total_expenditure || 0;
+    const newExpenditure = currentExpenditure + orderAmount;
 
-    // Ensure customer has enough points
-    if (currentPoints < pointsToRedeem) {
-      return null;
-    }
-
-    // Calculate discount amount (1 point = Rs. 5 discount)
-    const discountAmount = pointsToRedeem * 5;
-    const remainingPoints = currentPoints - pointsToRedeem;
-
-    // Update customer with new points total
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from('customers')
-      .update({ loyalty_points: remainingPoints })
+      .update({ 
+        total_expenditure: newExpenditure,
+        last_visit: new Date().toISOString()
+      })
       .eq('id', customerId);
 
-    if (error) {
-      console.error('Error updating loyalty points after redemption:', error);
-      return null;
+    if (updateError) {
+      console.error('Error updating expenditure:', updateError);
+    }
+  } catch (error) {
+    console.error('Error in updateLoyaltyPoints:', error);
+  }
+};
+
+/**
+ * Redeem loyalty points for a customer
+ * @param customerId The customer's ID
+ * @param pointsToRedeem The number of points to redeem
+ * @returns Boolean indicating success or failure
+ */
+export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: number): Promise<boolean> => {
+  try {
+    // Get current loyalty points
+    const currentPoints = await getLoyaltyPoints(customerId);
+    
+    // Check if customer has enough points
+    if (currentPoints < pointsToRedeem) {
+      return false;
+    }
+    
+    // Get current customer data
+    const { data: customer, error: fetchError } = await supabase
+      .from('customers')
+      .select('total_expenditure')
+      .eq('id', customerId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching customer:', fetchError);
+      return false;
     }
 
-    return { discountAmount, remainingPoints };
+    // Calculate new expenditure after redeeming points
+    // (Reducing expenditure is how we track point usage)
+    const currentExpenditure = customer.total_expenditure || 0;
+    const pointsValue = pointsToRedeem * 50; // Each point is worth $50 in expenditure
+    const newExpenditure = Math.max(0, currentExpenditure - pointsValue);
+
+    // Update the customer record
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ 
+        total_expenditure: newExpenditure
+      })
+      .eq('id', customerId);
+
+    if (updateError) {
+      console.error('Error redeeming points:', updateError);
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error('Error in redeemLoyaltyPoints:', error);
-    return null;
+    return false;
   }
+};
+
+/**
+ * Calculate discount amount based on loyalty points
+ * @param points Number of points to redeem
+ * @returns The discount amount
+ */
+export const calculateLoyaltyDiscount = (points: number): number => {
+  // Each point is worth $5 in discount
+  return points * 5;
 };

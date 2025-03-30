@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { getLoyaltyPoints } from '@/services/loyaltyService';
+import { getLoyaltyPoints, redeemLoyaltyPoints } from '@/services/loyaltyService';
 import { useCustomerInfoStorage } from './use-checkout-storage';
 import { findCustomer } from '@/services/customerService';
 
@@ -40,6 +40,22 @@ export function useLoyalty() {
     }
   }, [customerInfo.phone, customerInfo.email]);
 
+  // Redeem points and return success status
+  const redeemPoints = useCallback(async (pointsToRedeem: number): Promise<boolean> => {
+    if (!customerId) return false;
+    
+    try {
+      const success = await redeemLoyaltyPoints(customerId, pointsToRedeem);
+      if (success) {
+        setPoints(prev => Math.max(0, prev - pointsToRedeem));
+      }
+      return success;
+    } catch (error) {
+      console.error('Error redeeming points:', error);
+      return false;
+    }
+  }, [customerId]);
+
   // Update points from redemption
   const updatePoints = useCallback((newPoints: number) => {
     setPoints(newPoints);
@@ -54,6 +70,7 @@ export function useLoyalty() {
     customerId,
     isLoading,
     updatePoints,
+    redeemPoints,
     refreshPoints: fetchCustomerLoyaltyPoints
   };
 }
