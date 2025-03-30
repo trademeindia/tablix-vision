@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 type StaffRole = 'Waiter' | 'Chef' | 'Manager';
 
 // In a real app, you would get the staff role from authentication
-const currentRole: StaffRole = 'Waiter';
+const currentRole: StaffRole = 'Manager'; // Changed to Manager to show all menu items
 
 type NavItem = {
   title: string;
@@ -64,7 +64,19 @@ interface StaffSidebarProps {
 
 const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
+  const [mounted, setMounted] = useState(false);
+  
+  // Handle location errors gracefully
+  let pathname = '/';
+  try {
+    pathname = useLocation().pathname;
+  } catch (error) {
+    console.error("Router error:", error);
+  }
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -72,6 +84,10 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
 
   // Filter nav items based on current role
   const filteredNavItems = navItems.filter(item => item.roles.includes(currentRole));
+
+  if (!mounted) {
+    return <div className="h-full bg-slate-800 w-64"></div>;
+  }
 
   return (
     <div className={cn(
@@ -118,7 +134,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
               to={item.href}
               className={cn(
                 "flex items-center px-3 py-3 text-sm rounded-md transition-colors",
-                location.pathname === item.href
+                pathname === item.href
                   ? "bg-slate-700 text-white"
                   : "text-slate-300 hover:bg-slate-700 hover:text-white",
                 collapsed ? "justify-center" : "justify-start"

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StaffSidebar from './StaffSidebar';
 import StaffHeader from './StaffHeader';
 import { useLocation } from 'react-router-dom';
@@ -11,22 +11,45 @@ interface StaffDashboardLayoutProps {
 
 const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const isMobile = useIsMobile();
-  // This will throw the same error if rendered outside a Router,
-  // but ensures the component only renders when Router is available
-  useLocation();
+  
+  // Use try-catch to handle any potential errors in useLocation
+  let location;
+  try {
+    location = useLocation();
+  } catch (error) {
+    console.error("Error using router:", error);
+    // Render a fallback UI
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+  
+  useEffect(() => {
+    // Ensure the component is mounted before showing content
+    setIsLoaded(true);
+  }, []);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
   
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col h-screen bg-slate-50 lg:flex-row">
       {/* Mobile sidebar - shown conditionally */}
-      {!isMobile && (
-        <div className={`fixed inset-0 z-40 transition-opacity duration-300 lg:hidden ${
-          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}>
+      {sidebarOpen && !isMobile && (
+        <div className="fixed inset-0 z-40 transition-opacity duration-300 lg:hidden">
           <div 
             className="absolute inset-0 bg-slate-900/50" 
             onClick={() => setSidebarOpen(false)}
