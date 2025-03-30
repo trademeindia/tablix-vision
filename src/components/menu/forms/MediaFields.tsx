@@ -3,7 +3,7 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Upload3d } from 'lucide-react';
+import { ExternalLink, Upload } from 'lucide-react';
 import { UseFormReturn } from "react-hook-form";
 import ModelUploader from '../ModelUploader';
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +54,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
                 <FormLabel className="mt-0">3D Model URL</FormLabel>
                 {mediaReference && (
                   <Badge variant="outline" className="bg-green-50">
-                    <Upload3d className="h-3 w-3 mr-1" />
+                    <Upload className="h-3 w-3 mr-1" />
                     Uploaded to Drive
                   </Badge>
                 )}
@@ -90,7 +90,11 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         control={form.control}
         name="media_type"
         render={({ field }) => (
-          <input type="hidden" {...field} value={mediaReference ? '3d' : field.value || ''} />
+          <input 
+            type="hidden" 
+            {...field} 
+            value={mediaReference ? '3d' : (field.value as "image" | "3d" | undefined || '')} 
+          />
         )}
       />
       
