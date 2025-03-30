@@ -93,7 +93,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
           <input 
             type="hidden" 
             {...field} 
-            value={mediaReference ? '3d' : (field.value as "image" | "3d" | undefined || '')} 
           />
         )}
       />
@@ -102,7 +101,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         control={form.control}
         name="media_reference"
         render={({ field }) => (
-          <input type="hidden" {...field} value={mediaReference || ''} />
+          <input type="hidden" {...field} />
         )}
       />
       

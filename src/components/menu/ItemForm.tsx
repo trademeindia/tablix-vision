@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,7 +45,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       is_available: initialData?.is_available !== false,
       is_featured: initialData?.is_featured || false,
       restaurant_id: initialData?.restaurant_id || "",
-      media_type: initialData?.media_type || "",
+      media_type: initialData?.media_type as "image" | "3d" | undefined || "",
       media_reference: initialData?.media_reference || "",
     },
   });
