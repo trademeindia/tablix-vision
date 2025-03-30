@@ -19,6 +19,9 @@ import KitchenPage from "./pages/staff/KitchenPage";
 import InventoryPage from "./pages/staff/InventoryPage";
 import ReportsPage from "./pages/staff/ReportsPage";
 
+// Import customer facing pages
+import CustomerMenuPage from "./pages/customer/MenuPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -40,6 +43,9 @@ const App = () => (
           <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
           <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
           <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
+          
+          {/* Customer Facing Routes */}
+          <Route path="/customer-menu" element={<CustomerMenuPage />} />
           
           <Route path="/analytics" element={<AnalyticsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
