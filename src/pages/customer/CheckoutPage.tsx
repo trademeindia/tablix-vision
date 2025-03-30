@@ -10,6 +10,8 @@ import { Loader2, ChevronLeft, CreditCard, Check } from 'lucide-react';
 import CustomerMenuLayout from '@/components/layout/CustomerMenuLayout';
 import { MenuItem } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
+import { createOrUpdateCustomer, Customer } from '@/services/customerService';
+import { createOrder, convertCartToOrderItems } from '@/services/orderService';
 
 interface OrderItem {
   item: MenuItem;
@@ -24,9 +26,11 @@ const CheckoutPage = () => {
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
   
   // Calculate total price
   const totalPrice = orderItems.reduce(
@@ -64,6 +68,19 @@ const CheckoutPage = () => {
         console.error('Error parsing order items:', error);
       }
     }
+
+    // Get customer info from localStorage if available
+    const storedCustomer = localStorage.getItem('customerInfo');
+    if (storedCustomer) {
+      try {
+        const customerInfo = JSON.parse(storedCustomer);
+        setName(customerInfo.name || '');
+        setEmail(customerInfo.email || '');
+        setPhone(customerInfo.phone || '');
+      } catch (error) {
+        console.error('Error parsing customer info:', error);
+      }
+    }
   }, [location.search]);
   
   const handleSubmitOrder = async () => {
@@ -93,13 +110,55 @@ const CheckoutPage = () => {
       });
       return;
     }
+
+    if (!phone.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter your phone number",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
-      // Here we would normally submit to Supabase
-      // For now, we'll simulate a successful order
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create or update customer
+      const customerData: Customer = {
+        name,
+        email: email || undefined,
+        phone: phone || undefined,
+      };
+      
+      const customer = await createOrUpdateCustomer(customerData);
+      
+      if (!customer) {
+        throw new Error("Could not create or update customer");
+      }
+
+      // Save customer info to localStorage for future visits
+      localStorage.setItem('customerInfo', JSON.stringify(customerData));
+      
+      // Convert cart items to order items
+      const orderItemsData = convertCartToOrderItems(orderItems);
+      
+      // Create the order
+      const order = await createOrder({
+        customer_id: customer.id,
+        customer_name: name,
+        customer_email: email || undefined,
+        restaurant_id: restaurantId,
+        table_id: tableId,
+        special_instructions: notes || undefined,
+        payment_method: 'cash', // Default payment method
+      }, orderItemsData);
+      
+      if (!order) {
+        throw new Error("Could not create order");
+      }
+      
+      // Save order ID
+      setOrderId(order.id || null);
       
       // Clear order items from localStorage
       localStorage.removeItem('orderItems');
@@ -181,7 +240,12 @@ const CheckoutPage = () => {
           <p className="text-muted-foreground text-center mb-6">
             Your order has been received and is being prepared.
           </p>
-          <p className="font-medium mb-6">Thank you, {name}!</p>
+          <p className="font-medium mb-2">Thank you, {name}!</p>
+          {orderId && (
+            <p className="text-sm text-muted-foreground mb-6">
+              Order ID: {orderId}
+            </p>
+          )}
           <Button onClick={() => navigate(`/customer-menu?table=${tableId}&restaurant=${restaurantId}`)}>
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Menu
@@ -233,6 +297,18 @@ const CheckoutPage = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter your phone number"
                   required
                 />
               </div>

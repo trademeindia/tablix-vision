@@ -12,6 +12,7 @@ interface UseOrderItemsResult {
   orderItems: OrderItem[];
   addToOrder: (item: MenuItem) => void;
   removeFromOrder: (itemId: string) => void;
+  clearOrder: () => void;
   totalItems: number;
 }
 
@@ -32,9 +33,7 @@ export function useOrderItems(): UseOrderItemsResult {
   
   // Persist order changes to localStorage
   useEffect(() => {
-    if (orderItems.length > 0) {
-      localStorage.setItem('orderItems', JSON.stringify(orderItems));
-    }
+    localStorage.setItem('orderItems', JSON.stringify(orderItems));
   }, [orderItems]);
   
   // Add item to order
@@ -86,11 +85,17 @@ export function useOrderItems(): UseOrderItemsResult {
     });
   };
   
+  // Clear the entire order
+  const clearOrder = () => {
+    setOrderItems([]);
+    localStorage.removeItem('orderItems');
+  };
+  
   // Calculate total items
   const totalItems = orderItems.reduce(
     (total, { quantity }) => total + quantity, 
     0
   );
   
-  return { orderItems, addToOrder, removeFromOrder, totalItems };
+  return { orderItems, addToOrder, removeFromOrder, clearOrder, totalItems };
 }
