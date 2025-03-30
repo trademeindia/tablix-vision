@@ -12,7 +12,7 @@ import StaffPage from "./pages/StaffPage";
 import StaffDashboardPage from "./pages/StaffDashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
-import OrdersPage from "./pages/OrdersPage"; // Import from the correct location
+import OrdersPage from "./pages/OrdersPage";
 
 // Import placeholder pages for staff dashboard sections
 import StaffOrdersPage from "./pages/staff/OrdersPage";
@@ -26,42 +26,55 @@ import CheckoutPage from "./pages/customer/CheckoutPage";
 import CallWaiterPage from "./pages/customer/CallWaiterPage";
 import CustomerProfilePage from './pages/customer/ProfilePage';
 
-const queryClient = new QueryClient();
+// Create a new query client instance with error handling
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 30000
+    }
+  }
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/menu" element={<MenuPage />} />
-          <Route path="/qr-codes" element={<QRCodePage />} />
-          <Route path="/tables" element={<TablesPage />} />
-          <Route path="/staff" element={<StaffPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          
-          {/* Staff Dashboard Routes */}
-          <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
-          <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
-          <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
-          <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
-          <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
-          
-          {/* Customer Facing Routes */}
-          <Route path="/customer-menu" element={<CustomerMenuPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/call-waiter" element={<CallWaiterPage />} />
-          <Route path="/profile" element={<CustomerProfilePage />} />
-          
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log("Rendering App component");
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/menu" element={<MenuPage />} />
+            <Route path="/qr-codes" element={<QRCodePage />} />
+            <Route path="/tables" element={<TablesPage />} />
+            <Route path="/staff" element={<StaffPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            
+            {/* Staff Dashboard Routes */}
+            <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
+            <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
+            <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
+            <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
+            <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
+            
+            {/* Customer Facing Routes */}
+            <Route path="/customer-menu" element={<CustomerMenuPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/call-waiter" element={<CallWaiterPage />} />
+            <Route path="/profile" element={<CustomerProfilePage />} />
+            
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

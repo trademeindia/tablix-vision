@@ -3,24 +3,25 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
-interface SpinnerProps {
-  className?: string;
+type SpinnerProps = {
   size?: 'sm' | 'md' | 'lg';
-}
+  className?: string;
+};
 
-const Spinner: React.FC<SpinnerProps> = ({ 
-  className,
-  size = 'md'
-}) => {
+const Spinner = ({ size = 'md', className }: SpinnerProps) => {
   const sizeClasses = {
-    sm: 'h-3 w-3',
-    md: 'h-4 w-4',
-    lg: 'h-6 w-6'
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8'
   };
 
   return (
     <Loader2 
-      className={cn(`animate-spin ${sizeClasses[size]}`, className)} 
+      className={cn(
+        'animate-spin text-primary', 
+        sizeClasses[size],
+        className
+      )} 
     />
   );
 };

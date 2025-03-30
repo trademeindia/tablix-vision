@@ -17,13 +17,11 @@ const MenuPage = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('items');
   
-  // Category state
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null);
   
-  // Menu item state
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [isEditItemOpen, setIsEditItemOpen] = useState(false);
   const [isDeleteItemOpen, setIsDeleteItemOpen] = useState(false);
@@ -31,7 +29,6 @@ const MenuPage = () => {
   
   const restaurantId = "00000000-0000-0000-0000-000000000000";
   
-  // Fetch data with retry and error handling
   const { 
     data: categories = [], 
     isLoading: isCategoriesLoading, 
@@ -56,7 +53,6 @@ const MenuPage = () => {
     staleTime: 30000 // 30 seconds
   });
 
-  // Retry logic if there are errors
   useEffect(() => {
     if (categoriesError) {
       console.error("Error fetching categories:", categoriesError);
@@ -77,7 +73,6 @@ const MenuPage = () => {
     }
   }, [itemsError, refetchItems]);
   
-  // Category handlers
   const handleEditCategory = (category: MenuCategory) => {
     setSelectedCategory(category);
     setIsEditCategoryOpen(true);
@@ -88,7 +83,6 @@ const MenuPage = () => {
     setIsDeleteCategoryOpen(true);
   };
   
-  // Menu item handlers
   const handleEditItem = (item: MenuItem) => {
     setSelectedItem(item);
     setIsEditItemOpen(true);
@@ -175,7 +169,6 @@ const MenuPage = () => {
       
       {renderContent()}
       
-      {/* Category-related dialogs */}
       <CategoryDialogs 
         isAddOpen={isAddCategoryOpen}
         setIsAddOpen={setIsAddCategoryOpen}
@@ -188,7 +181,6 @@ const MenuPage = () => {
         restaurantId={restaurantId}
       />
       
-      {/* Menu item-related dialogs */}
       <ItemDialogs 
         isAddOpen={isAddItemOpen}
         setIsAddOpen={setIsAddItemOpen}
