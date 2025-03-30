@@ -13,6 +13,7 @@ import StaffDashboardPage from "./pages/StaffDashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import OrdersPage from "./pages/OrdersPage";
+import GoogleDriveTestPage from "./pages/GoogleDriveTestPage";
 
 // Import placeholder pages for staff dashboard sections
 import StaffOrdersPage from "./pages/staff/OrdersPage";
@@ -53,6 +54,7 @@ const App = () => {
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/staff" element={<StaffPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
             
             {/* Staff Dashboard Routes */}
             <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
