@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +12,7 @@ import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
+import { Spinner } from '@/components/ui/spinner';
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
@@ -31,24 +32,51 @@ const MenuPage = () => {
   
   const restaurantId = "00000000-0000-0000-0000-000000000000";
   
-  // Fetch data
+  // Fetch data with retry and error handling
   const { 
     data: categories = [], 
     isLoading: isCategoriesLoading, 
-    error: categoriesError 
+    error: categoriesError,
+    refetch: refetchCategories
   } = useQuery({
     queryKey: ['menuCategories'],
     queryFn: () => fetchMenuCategories(restaurantId),
+    retry: 2,
+    staleTime: 30000 // 30 seconds
   });
   
   const { 
     data: menuItems = [], 
     isLoading: isItemsLoading, 
-    error: itemsError 
+    error: itemsError,
+    refetch: refetchItems
   } = useQuery({
     queryKey: ['menuItems'],
     queryFn: () => fetchMenuItems(undefined, restaurantId),
+    retry: 2,
+    staleTime: 30000 // 30 seconds
   });
+
+  // Retry logic if there are errors
+  useEffect(() => {
+    if (categoriesError) {
+      console.error("Error fetching categories:", categoriesError);
+      const timer = setTimeout(() => {
+        refetchCategories();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [categoriesError, refetchCategories]);
+
+  useEffect(() => {
+    if (itemsError) {
+      console.error("Error fetching items:", itemsError);
+      const timer = setTimeout(() => {
+        refetchItems();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [itemsError, refetchItems]);
   
   // Category handlers
   const handleEditCategory = (category: MenuCategory) => {
@@ -80,30 +108,16 @@ const MenuPage = () => {
     }
   };
 
-  return (
-    <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Menu Management</h1>
-          <p className="text-slate-500">Manage your restaurant's menu items and categories</p>
+  const renderContent = () => {
+    if (isCategoriesLoading || isItemsLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <Spinner size="lg" />
         </div>
-        
-        <Button onClick={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {activeTab === 'categories' ? 'Add Category' : 'Add Menu Item'}
-        </Button>
-      </div>
-      
-      {(categoriesError || itemsError) && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {categoriesError ? 'Failed to load categories' : 'Failed to load menu items'}. Please try again.
-          </AlertDescription>
-        </Alert>
-      )}
-      
+      );
+    }
+
+    return (
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="items">Menu Items</TabsTrigger>
@@ -133,6 +147,34 @@ const MenuPage = () => {
           />
         </TabsContent>
       </Tabs>
+    );
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Menu Management</h1>
+          <p className="text-slate-500">Manage your restaurant's menu items and categories</p>
+        </div>
+        
+        <Button onClick={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          {activeTab === 'categories' ? 'Add Category' : 'Add Menu Item'}
+        </Button>
+      </div>
+      
+      {(categoriesError || itemsError) && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {categoriesError ? 'Failed to load categories' : 'Failed to load menu items'}. The application will automatically retry.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {renderContent()}
       
       {/* Category-related dialogs */}
       <CategoryDialogs 

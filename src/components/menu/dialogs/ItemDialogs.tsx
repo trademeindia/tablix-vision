@@ -55,9 +55,10 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
       });
     },
     onError: (error) => {
+      console.error("Create item error:", error);
       toast({
         title: "Failed to create item",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     }
@@ -76,9 +77,10 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
       });
     },
     onError: (error) => {
+      console.error("Update item error:", error);
       toast({
         title: "Failed to update item",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     }
@@ -96,9 +98,10 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
       });
     },
     onError: (error) => {
+      console.error("Delete item error:", error);
       toast({
         title: "Failed to delete item",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     }
@@ -133,15 +136,21 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
               Create a new item for your menu.
             </DialogDescription>
           </DialogHeader>
-          <ItemForm 
-            categories={categories}
-            onSubmit={handleAddItem}
-            isSubmitting={createItemMutation.isPending}
-          />
+          {/* Wrap the form in a div with `position: relative` to create a new stacking context */}
+          <div className="relative">
+            <ItemForm 
+              categories={categories}
+              onSubmit={handleAddItem}
+              isSubmitting={createItemMutation.isPending}
+            />
+          </div>
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      <Dialog open={isEditOpen} onOpenChange={(open) => {
+        setIsEditOpen(open);
+        if (!open) setSelectedItem(null);
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Menu Item</DialogTitle>
@@ -150,15 +159,17 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
             </DialogDescription>
           </DialogHeader>
           {selectedItem && (
-            <ItemForm 
-              categories={categories}
-              initialData={{
-                ...selectedItem,
-                restaurant_id: restaurantId
-              }}
-              onSubmit={handleUpdateItem}
-              isSubmitting={updateItemMutation.isPending}
-            />
+            <div className="relative">
+              <ItemForm 
+                categories={categories}
+                initialData={{
+                  ...selectedItem,
+                  restaurant_id: restaurantId
+                }}
+                onSubmit={handleUpdateItem}
+                isSubmitting={updateItemMutation.isPending}
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>
@@ -173,7 +184,7 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteItem}>
+            <AlertDialogAction onClick={handleDeleteItem} disabled={deleteItemMutation.isPending}>
               {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>

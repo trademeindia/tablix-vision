@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,21 @@ const ItemForm: React.FC<ItemFormProps> = ({
       media_reference: initialData?.media_reference || "",
     },
   });
+
+  // Update field if categories change and current category_id isn't valid
+  useEffect(() => {
+    const currentCategoryId = form.getValues('category_id');
+    if (categories?.length > 0 && currentCategoryId) {
+      const categoryExists = categories.some(cat => cat.id === currentCategoryId);
+      if (!categoryExists) {
+        // Set to first available category if current one doesn't exist
+        form.setValue('category_id', categories[0].id);
+      }
+    } else if (categories?.length > 0 && !currentCategoryId) {
+      // Set default category if none selected
+      form.setValue('category_id', categories[0].id);
+    }
+  }, [categories, form]);
 
   const handleModelUploadComplete = (fileId: string, fileUrl: string) => {
     setMediaReference(fileId);

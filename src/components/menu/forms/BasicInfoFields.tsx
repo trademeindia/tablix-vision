@@ -68,23 +68,30 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) =
           control={form.control}
           name="category_id"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="relative">
               <FormLabel>Category</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
+                value={field.value || ''}
                 defaultValue={field.value}
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
+                <SelectContent position="popper" className="z-[100] w-full bg-background">
+                  {categories && categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-categories" disabled>
+                      No categories available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
