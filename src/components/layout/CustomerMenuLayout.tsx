@@ -2,7 +2,7 @@
 import React from 'react';
 import { ShoppingCart, ArrowLeft, User, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -20,7 +20,14 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
   orderItemsCount
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
+  
+  // Determine active tab
+  const isMenuActive = location.pathname.includes('customer-menu');
+  const isProfileActive = location.pathname.includes('profile');
+  const isCallWaiterActive = location.pathname.includes('call-waiter');
+  const isOrderActive = location.pathname.includes('checkout');
   
   return (
     <div className="min-h-screen flex flex-col pb-24">
@@ -36,7 +43,12 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
             <p className="text-xs text-muted-foreground">Table #{tableId}</p>
           </div>
           
-          <Button variant="ghost" size={isMobile ? "sm" : "icon"} onClick={() => navigate('/profile')}>
+          <Button 
+            variant={isProfileActive ? "default" : "ghost"} 
+            size={isMobile ? "sm" : "icon"} 
+            onClick={() => navigate(`/profile?table=${tableId}&restaurant=${restaurantId}`)}
+            className={isProfileActive ? "bg-primary text-primary-foreground" : ""}
+          >
             <User className="h-5 w-5" />
           </Button>
         </div>
@@ -51,8 +63,10 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
       <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border py-2 z-40">
         <div className="container flex justify-around">
           <Button 
-            variant="ghost" 
-            className="flex flex-col items-center text-xs py-1 touch-action-manipulation"
+            variant={isMenuActive ? "default" : "ghost"} 
+            className={`flex flex-col items-center text-xs py-1 touch-action-manipulation ${
+              isMenuActive ? "bg-primary/10 text-primary" : ""
+            }`}
             onClick={() => navigate(`/customer-menu?table=${tableId}&restaurant=${restaurantId}`)}
           >
             <span className="text-base mb-1">🍔</span>
@@ -60,8 +74,10 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
           </Button>
           
           <Button 
-            variant="ghost" 
-            className="flex flex-col items-center text-xs py-1 relative touch-action-manipulation" 
+            variant={isOrderActive ? "default" : "ghost"} 
+            className={`flex flex-col items-center text-xs py-1 relative touch-action-manipulation ${
+              isOrderActive ? "bg-primary/10 text-primary" : ""
+            }`}
             onClick={() => navigate('/checkout')}
           >
             <span className="text-base mb-1">
@@ -76,8 +92,10 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
           </Button>
           
           <Button 
-            variant="ghost" 
-            className="flex flex-col items-center text-xs py-1 touch-action-manipulation" 
+            variant={isCallWaiterActive ? "default" : "ghost"} 
+            className={`flex flex-col items-center text-xs py-1 touch-action-manipulation ${
+              isCallWaiterActive ? "bg-primary/10 text-primary" : ""
+            }`} 
             onClick={() => navigate(`/call-waiter?table=${tableId}&restaurant=${restaurantId}`)}
           >
             <span className="text-base mb-1">

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +21,8 @@ import ReportsPage from "./pages/staff/ReportsPage";
 // Import customer facing pages
 import CustomerMenuPage from "./pages/customer/MenuPage";
 import CheckoutPage from "./pages/customer/CheckoutPage";
-import CallWaiterPage from "./pages/customer/CallWaiterPage"; // New import
+import CallWaiterPage from "./pages/customer/CallWaiterPage";
+import CustomerProfilePage from './pages/customer/ProfilePage';
 
 const queryClient = new QueryClient();
 
@@ -49,7 +49,8 @@ const App = () => (
           {/* Customer Facing Routes */}
           <Route path="/customer-menu" element={<CustomerMenuPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/call-waiter" element={<CallWaiterPage />} /> {/* New route */}
+          <Route path="/call-waiter" element={<CallWaiterPage />} />
+          <Route path="/profile" element={<CustomerProfilePage />} />
           
           <Route path="/analytics" element={<AnalyticsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

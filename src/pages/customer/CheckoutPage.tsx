@@ -32,6 +32,12 @@ const CheckoutPage = () => {
     handleSubmitOrder
   } = useCheckout();
 
+  // Calculate total amount
+  const totalAmount = orderItems.reduce(
+    (total, { item, quantity }) => total + item.price * quantity, 
+    0
+  );
+
   // Missing table or restaurant info
   if (!tableId || !restaurantId) {
     return <MissingInfoView />;
@@ -62,7 +68,8 @@ const CheckoutPage = () => {
           name={name} 
           orderId={orderId} 
           tableId={tableId} 
-          restaurantId={restaurantId} 
+          restaurantId={restaurantId}
+          totalAmount={totalAmount}
         />
       </CustomerMenuLayout>
     );

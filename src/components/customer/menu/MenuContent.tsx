@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MenuCategories from '@/components/customer/menu/MenuCategories';
 import MenuItems from '@/components/customer/menu/MenuItems';
 import OrderSummary from '@/components/customer/menu/OrderSummary';
 import { MenuItem } from '@/types/menu';
+import { Gift, Button } from '@/components';
+import { useLoyalty } from '@/hooks/use-loyalty';
 
 interface MenuContentProps {
   categories: any[];
@@ -27,35 +28,46 @@ const MenuContent: React.FC<MenuContentProps> = ({
 }) => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  
-  // Set first category as selected by default when categories load
+  const { points } = useLoyalty();
+
   useEffect(() => {
     if (categories && categories.length > 0 && !selectedCategory) {
       setSelectedCategory(categories[0].id);
     }
   }, [categories, selectedCategory]);
-  
-  // Memoize filtered items to prevent recalculation on each render
+
   const filteredItems = useMemo(() => {
     if (!items) return [];
     return selectedCategory 
       ? items.filter(item => item.category_id === selectedCategory)
       : items;
   }, [items, selectedCategory]);
-  
-  // Handle checkout navigation with optimizations
+
   const handleCheckout = () => {
-    // Store order items in localStorage for the checkout page
     localStorage.setItem('orderItems', JSON.stringify(orderItems));
-    
-    // Use state parameter for smooth transition
     navigate(`/checkout?table=${tableId}&restaurant=${restaurantId}`, { 
       state: { fromMenu: true } 
     });
   };
-  
+
   return (
     <>
+      {points > 0 && (
+        <div className="mb-4 flex items-center justify-between bg-primary/10 rounded-lg p-3">
+          <div className="flex items-center">
+            <Gift className="h-5 w-5 text-primary mr-2" />
+            <span className="font-medium">You have {points} loyalty points</span>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate(`/profile?table=${tableId}&restaurant=${restaurantId}`)}
+          >
+            View
+          </Button>
+        </div>
+      )}
+      
       <div className="mb-4 sticky top-16 bg-background z-10 pb-2 pt-4">
         <MenuCategories 
           categories={categories || []} 
@@ -83,5 +95,4 @@ const MenuContent: React.FC<MenuContentProps> = ({
   );
 };
 
-// Memoize the component to prevent unnecessary re-renders
 export default memo(MenuContent);
