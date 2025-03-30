@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { WaiterRequest } from './types';
+import { WaiterRequest, WaiterCallResponse } from './types';
 import { asWaiterRequest } from './utils';
 
 /**
@@ -10,7 +10,7 @@ export const callWaiter = async (
   restaurantId: string,
   tableNumber: string,
   customerId?: string
-): Promise<WaiterRequest | null> => {
+): Promise<WaiterCallResponse> => {
   try {
     const waiterRequest = {
       restaurant_id: restaurantId,
@@ -20,22 +20,31 @@ export const callWaiter = async (
       request_time: new Date().toISOString(),
     };
 
-    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
+    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests')
+      .from('waiter_requests' as any)
       .insert(waiterRequest)
       .select()
       .single();
 
     if (error) {
       console.error('Error calling waiter:', error);
-      return null;
+      return {
+        success: false,
+        error: error.message
+      };
     }
 
-    return asWaiterRequest(data);
+    return {
+      success: true,
+      data: asWaiterRequest(data)
+    };
   } catch (error) {
     console.error('Error in callWaiter:', error);
-    return null;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
 };
 
@@ -45,7 +54,7 @@ export const callWaiter = async (
 export const updateWaiterRequestStatus = async (
   requestId: string,
   status: WaiterRequest['status']
-): Promise<WaiterRequest | null> => {
+): Promise<WaiterCallResponse> => {
   try {
     const updates: any = {
       status,
@@ -58,9 +67,9 @@ export const updateWaiterRequestStatus = async (
       updates.completion_time = new Date().toISOString();
     }
 
-    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
+    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests')
+      .from('waiter_requests' as any)
       .update(updates)
       .eq('id', requestId)
       .select()
@@ -68,12 +77,21 @@ export const updateWaiterRequestStatus = async (
 
     if (error) {
       console.error('Error updating waiter request:', error);
-      return null;
+      return {
+        success: false,
+        error: error.message
+      };
     }
 
-    return asWaiterRequest(data);
+    return {
+      success: true,
+      data: asWaiterRequest(data)
+    };
   } catch (error) {
     console.error('Error in updateWaiterRequestStatus:', error);
-    return null;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
 };

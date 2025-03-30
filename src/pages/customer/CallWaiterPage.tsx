@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { callWaiter, getTableWaiterRequests, WaiterRequest } from '@/services/waiterService';
+import { callWaiter, getTableWaiterRequests, WaiterRequest } from '@/services/waiter';
 import CustomerMenuLayout from '@/components/layout/CustomerMenuLayout';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { BellRing, CheckCircle, Clock } from 'lucide-react';
 import { useOrderItems } from '@/hooks/use-order-items';
 import { Card, CardContent } from '@/components/ui/card';

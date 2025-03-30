@@ -9,3 +9,10 @@ export interface WaiterRequest {
   acknowledgement_time?: string | null;
   completion_time?: string | null;
 }
+
+// Response structure for callWaiter function
+export interface WaiterCallResponse {
+  success: boolean;
+  data?: WaiterRequest | null;
+  error?: string;
+}
