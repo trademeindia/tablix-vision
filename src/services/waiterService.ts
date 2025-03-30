@@ -21,6 +21,24 @@ export const callWaiter = async (
   customerId?: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
+    // First check if there's already a pending request for this table
+    const { data: existingRequests, error: checkError } = await supabase
+      .from('waiter_requests')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_number', tableNumber)
+      .eq('status', 'pending');
+      
+    if (checkError) {
+      console.error('Error checking existing waiter requests:', checkError);
+      return { success: false, error: checkError.message };
+    }
+    
+    // If there's already a pending request, don't create a new one
+    if (existingRequests && existingRequests.length > 0) {
+      return { success: true }; // Return success but don't create duplicate
+    }
+
     const { data, error } = await supabase
       .from('waiter_requests')
       .insert({
@@ -30,8 +48,7 @@ export const callWaiter = async (
         status: 'pending',
         request_time: new Date().toISOString()
       })
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error('Error calling waiter:', error);
@@ -44,7 +61,7 @@ export const callWaiter = async (
       type: 'broadcast',
       event: 'waiter-request',
       payload: { 
-        requestId: data.id,
+        requestId: data[0]?.id,
         restaurantId,
         tableNumber,
         status: 'pending' 
@@ -68,7 +85,7 @@ export const getTableWaiterRequests = async (
   try {
     const { data, error } = await supabase
       .from('waiter_requests')
-      .select('*')
+      .select()
       .eq('restaurant_id', restaurantId)
       .eq('table_number', tableNumber)
       .order('request_time', { ascending: false });
