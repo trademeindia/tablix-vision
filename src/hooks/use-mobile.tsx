@@ -1,7 +1,10 @@
 
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+// Breakpoints
+const MOBILE_BREAKPOINT = 640  // Reduced from 768 to 640 for better mobile experience
+const TABLET_BREAKPOINT = 768
+const DESKTOP_BREAKPOINT = 1024
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean>(false)
@@ -28,7 +31,7 @@ export function useIsTablet() {
   React.useEffect(() => {
     const checkTablet = () => {
       const width = window.innerWidth
-      setIsTablet(width >= 768 && width < 1024)
+      setIsTablet(width >= MOBILE_BREAKPOINT && width < DESKTOP_BREAKPOINT)
     }
     
     checkTablet()
@@ -43,11 +46,20 @@ export function useIsDesktop() {
   const [isDesktop, setIsDesktop] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024)
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT)
     checkDesktop()
     window.addEventListener("resize", checkDesktop)
     return () => window.removeEventListener("resize", checkDesktop)
   }, [])
 
   return isDesktop
+}
+
+// New hook for determining screen size category
+export function useScreenSize() {
+  const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
+  const isDesktop = useIsDesktop()
+  
+  return { isMobile, isTablet, isDesktop }
 }

@@ -27,52 +27,53 @@ const Header = () => {
   ];
 
   return (
-    <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-6 bg-white">
+    <div className="h-14 md:h-16 border-b border-slate-200 flex items-center justify-between px-3 md:px-6 bg-white shadow-sm">
       {isMobile ? (
         // Mobile header
         <div className="flex items-center justify-between w-full">
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="ghost" size="sm" className="mr-2">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="h-[80vh]">
-              <div className="p-4 pt-0">
-                <div className="flex justify-between items-center mb-4 mt-8 border-b pb-4">
-                  <h2 className="text-xl font-bold">RestaurantDash</h2>
+          <div className="flex items-center">
+            <Drawer>
+              <DrawerTrigger asChild>
+                <Button variant="ghost" size="sm" className="mr-1 p-1">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="h-[80vh]">
+                <div className="p-4 pt-0">
+                  <div className="flex justify-between items-center mb-4 mt-8 border-b pb-4">
+                    <h2 className="text-xl font-bold">RestaurantDash</h2>
+                  </div>
+                  <nav className="flex flex-col space-y-1">
+                    {navItems.map((item) => (
+                      <Button 
+                        key={item.path}
+                        variant="ghost" 
+                        className="justify-start h-10 text-base" 
+                        onClick={() => navigate(item.path)}
+                      >
+                        {item.label}
+                      </Button>
+                    ))}
+                  </nav>
                 </div>
-                <nav className="flex flex-col space-y-2">
-                  {navItems.map((item) => (
-                    <Button 
-                      key={item.path}
-                      variant="ghost" 
-                      className="justify-start h-12 text-base" 
-                      onClick={() => navigate(item.path)}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </nav>
-              </div>
-            </DrawerContent>
-          </Drawer>
-
-          <h1 className="text-lg font-bold">RestaurantDash</h1>
+              </DrawerContent>
+            </Drawer>
+            <h1 className="text-base font-bold ml-1">RestaurantDash</h1>
+          </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {isSearchOpen ? (
-              <div className="absolute inset-0 h-16 bg-white flex items-center px-4 z-20">
+              <div className="absolute inset-0 h-14 bg-white flex items-center px-4 z-20">
                 <Input 
                   type="text" 
                   placeholder="Search..." 
-                  className="flex-1"
+                  className="flex-1 h-8"
                   autoFocus
                 />
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="ml-2"
+                  className="ml-1 p-1"
                   onClick={() => setIsSearchOpen(false)}
                 >
                   <X className="h-5 w-5" />
@@ -81,20 +82,21 @@ const Header = () => {
             ) : (
               <Button 
                 variant="ghost" 
-                size="sm" 
+                size="sm"
+                className="p-1" 
                 onClick={() => setIsSearchOpen(true)}
               >
                 <Search className="h-5 w-5" />
               </Button>
             )}
             
-            <button className="relative p-2">
+            <button className="relative p-1" aria-label="Notifications">
               <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+              <span className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full"></span>
             </button>
             
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-orange-500 text-white">JD</AvatarFallback>
+            <Avatar className="h-7 w-7 ml-1">
+              <AvatarFallback className="bg-orange-500 text-white text-xs">JD</AvatarFallback>
             </Avatar>
           </div>
         </div>
