@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -12,7 +11,7 @@ import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
-import { Spinner } from '@/components/ui/spinner';
+import Spinner from '@/components/ui/spinner';
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
