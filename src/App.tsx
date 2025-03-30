@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,9 +12,10 @@ import StaffPage from "./pages/StaffPage";
 import StaffDashboardPage from "./pages/StaffDashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
+import OrdersPage from "./pages/OrdersPage"; // Import from the correct location
 
 // Import placeholder pages for staff dashboard sections
-import OrdersPage from "./pages/staff/OrdersPage";
+import StaffOrdersPage from "./pages/staff/OrdersPage";
 import KitchenPage from "./pages/staff/KitchenPage";
 import InventoryPage from "./pages/staff/InventoryPage";
 import ReportsPage from "./pages/staff/ReportsPage";
@@ -38,10 +40,11 @@ const App = () => (
           <Route path="/qr-codes" element={<QRCodePage />} />
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/staff" element={<StaffPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
           
           {/* Staff Dashboard Routes */}
           <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
-          <Route path="/staff-dashboard/orders" element={<OrdersPage />} />
+          <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
           <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
           <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
           <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
