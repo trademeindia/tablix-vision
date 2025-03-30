@@ -1,33 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { WaiterRequest } from './types';
+import { asWaiterRequest } from './utils';
 
 /**
- * Create a new waiter request
+ * Call a waiter for assistance
  */
 export const callWaiter = async (
   restaurantId: string,
   tableNumber: string,
   customerId?: string
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<WaiterRequest | null> => {
   try {
-    // First check if there's already a pending request for this table
-    const { data: existingRequests, error: checkError } = await supabase
-      .from('waiter_requests')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .eq('table_number', tableNumber)
-      .eq('status', 'pending');
-      
-    if (checkError) {
-      console.error('Error checking existing waiter requests:', checkError);
-      return { success: false, error: checkError.message };
-    }
-    
-    // If there's already a pending request, don't create a new one
-    if (existingRequests && existingRequests.length > 0) {
-      return { success: true }; // Return success but don't create duplicate
-    }
-
+    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
     const { data, error } = await supabase
       .from('waiter_requests')
       .insert({
@@ -37,29 +22,52 @@ export const callWaiter = async (
         status: 'pending',
         request_time: new Date().toISOString()
       })
-      .select();
+      .select()
+      .single();
 
     if (error) {
       console.error('Error calling waiter:', error);
-      return { success: false, error: error.message };
+      return null;
     }
 
-    // Use Supabase Realtime to notify staff
-    const channel = supabase.channel('waiter-requests');
-    await channel.send({
-      type: 'broadcast',
-      event: 'waiter-request',
-      payload: { 
-        requestId: data[0]?.id,
-        restaurantId,
-        tableNumber,
-        status: 'pending' 
-      }
-    });
+    return asWaiterRequest(data);
+  } catch (error) {
+    console.error('Error in callWaiter:', error);
+    return null;
+  }
+};
 
-    return { success: true };
-  } catch (error: any) {
-    console.error('Error calling waiter:', error);
-    return { success: false, error: error.message };
+/**
+ * Update a waiter request status
+ */
+export const updateWaiterRequestStatus = async (
+  requestId: string,
+  status: WaiterRequest['status']
+): Promise<boolean> => {
+  try {
+    const updateData: Record<string, any> = { status };
+    
+    // Add timestamp based on status
+    if (status === 'acknowledged') {
+      updateData.acknowledgement_time = new Date().toISOString();
+    } else if (status === 'completed') {
+      updateData.completion_time = new Date().toISOString();
+    }
+    
+    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
+    const { error } = await supabase
+      .from('waiter_requests')
+      .update(updateData)
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('Error updating waiter request status:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateWaiterRequestStatus:', error);
+    return false;
   }
 };

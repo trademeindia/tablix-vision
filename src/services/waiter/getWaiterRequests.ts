@@ -1,20 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { WaiterRequest } from './types';
+import { asWaiterRequests } from './utils';
 
 /**
- * Get all waiter requests for a specific table
+ * Get all waiter requests for a restaurant
  */
-export const getTableWaiterRequests = async (
-  restaurantId: string,
-  tableNumber: string
+export const getWaiterRequests = async (
+  restaurantId: string
 ): Promise<WaiterRequest[]> => {
   try {
+    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
     const { data, error } = await supabase
       .from('waiter_requests')
-      .select()
+      .select('*')
       .eq('restaurant_id', restaurantId)
-      .eq('table_number', tableNumber)
       .order('request_time', { ascending: false });
 
     if (error) {
@@ -22,9 +22,35 @@ export const getTableWaiterRequests = async (
       return [];
     }
 
-    return data as WaiterRequest[];
+    return asWaiterRequests(data || []);
   } catch (error) {
-    console.error('Error fetching waiter requests:', error);
+    console.error('Error in getWaiterRequests:', error);
     return [];
+  }
+};
+
+/**
+ * Get a waiter request by ID
+ */
+export const getWaiterRequestById = async (
+  requestId: string
+): Promise<WaiterRequest | null> => {
+  try {
+    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
+    const { data, error } = await supabase
+      .from('waiter_requests')
+      .select('*')
+      .eq('id', requestId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching waiter request:', error);
+      return null;
+    }
+
+    return asWaiterRequests([data])[0];
+  } catch (error) {
+    console.error('Error in getWaiterRequestById:', error);
+    return null;
   }
 };
