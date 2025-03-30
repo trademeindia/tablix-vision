@@ -114,6 +114,9 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
           restaurantId={restaurantId || form.getValues('restaurant_id')}
           onUploadComplete={onUploadComplete}
         />
+        <p className="text-xs text-muted-foreground mt-3">
+          Models will be securely stored in your restaurant's Google Drive folder
+        </p>
       </div>
     </div>
   );

@@ -161,14 +161,21 @@ async function getRestaurantFolderId(supabase, restaurantId) {
   }
 }
 
-async function updateMenuItem(supabase, menuItemId, fileId) {
+async function updateMenuItem(supabase, menuItemId, fileId, fileUrl) {
   console.log(`Updating menu item ${menuItemId} with file ID ${fileId}`);
   try {
+    // Skip updating for new items (they'll be created with this info)
+    if (menuItemId === 'new-item') {
+      console.log('Skipping database update for new item');
+      return { success: true };
+    }
+    
     const { error } = await supabase
       .from('menu_items')
       .update({
         media_type: '3d',
-        media_reference: fileId
+        media_reference: fileId,
+        model_url: fileUrl
       })
       .eq('id', menuItemId);
 
@@ -255,12 +262,12 @@ serve(async (req) => {
     
     const fileId = await uploadToGoogleDrive(arrayBuffer, fileName, mimeType, folderId);
 
-    // Update menu item with file reference
-    await updateMenuItem(supabase, menuItemId, fileId);
-
     // Generate a Google Drive view URL
     const fileViewUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
     console.log(`File view URL: ${fileViewUrl}`);
+
+    // Update menu item with file reference if not a new item
+    await updateMenuItem(supabase, menuItemId, fileId, fileViewUrl);
 
     console.log('Upload process completed successfully');
     return new Response(JSON.stringify({ 

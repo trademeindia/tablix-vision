@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
@@ -74,8 +75,8 @@ export const useModelUpload = ({ menuItemId, restaurantId, onUploadComplete }: U
         throw new Error(error.message || 'Upload failed');
       }
       
-      if (!data.success) {
-        throw new Error(data.error || 'Unknown error occurred');
+      if (!data || !data.success) {
+        throw new Error((data && data.error) || 'Unknown error occurred');
       }
       
       setUploadProgress(100);

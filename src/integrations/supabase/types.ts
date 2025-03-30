@@ -156,6 +156,8 @@ export type Database = {
           ingredients: Json | null
           is_available: boolean | null
           is_featured: boolean | null
+          media_reference: string | null
+          media_type: string | null
           model_url: string | null
           name: string
           nutritional_info: Json | null
@@ -175,6 +177,8 @@ export type Database = {
           ingredients?: Json | null
           is_available?: boolean | null
           is_featured?: boolean | null
+          media_reference?: string | null
+          media_type?: string | null
           model_url?: string | null
           name: string
           nutritional_info?: Json | null
@@ -194,6 +198,8 @@ export type Database = {
           ingredients?: Json | null
           is_available?: boolean | null
           is_featured?: boolean | null
+          media_reference?: string | null
+          media_type?: string | null
           model_url?: string | null
           name?: string
           nutritional_info?: Json | null
@@ -446,6 +452,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           email: string | null
+          google_drive_folder_id: string | null
           id: string
           logo_url: string | null
           name: string
@@ -458,6 +465,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           email?: string | null
+          google_drive_folder_id?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -470,6 +478,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           email?: string | null
+          google_drive_folder_id?: string | null
           id?: string
           logo_url?: string | null
           name?: string
