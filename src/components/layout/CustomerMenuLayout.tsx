@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ShoppingCart, ArrowLeft, User } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, User, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -48,12 +48,12 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
       {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border py-2 z-40">
         <div className="container flex justify-around">
-          <Button variant="ghost" className="flex flex-col items-center text-xs py-1" onClick={() => navigate(`/menu?table=${tableId}&restaurant=${restaurantId}`)}>
+          <Button variant="ghost" className="flex flex-col items-center text-xs py-1" onClick={() => navigate(`/customer-menu?table=${tableId}&restaurant=${restaurantId}`)}>
             <span className="text-base mb-1">🍔</span>
             Menu
           </Button>
           
-          <Button variant="ghost" className="flex flex-col items-center text-xs py-1 relative" onClick={() => navigate('/cart')}>
+          <Button variant="ghost" className="flex flex-col items-center text-xs py-1 relative" onClick={() => navigate('/checkout')}>
             <span className="text-base mb-1">
               <ShoppingCart className="h-5 w-5" />
               {orderItemsCount > 0 && (
@@ -65,8 +65,14 @@ const CustomerMenuLayout: React.FC<CustomerMenuLayoutProps> = ({
             Order
           </Button>
           
-          <Button variant="ghost" className="flex flex-col items-center text-xs py-1" onClick={() => navigate('/help')}>
-            <span className="text-base mb-1">🔔</span>
+          <Button 
+            variant="ghost" 
+            className="flex flex-col items-center text-xs py-1" 
+            onClick={() => navigate(`/call-waiter?table=${tableId}&restaurant=${restaurantId}`)}
+          >
+            <span className="text-base mb-1">
+              <BellRing className="h-5 w-5" />
+            </span>
             Call Staff
           </Button>
         </div>
