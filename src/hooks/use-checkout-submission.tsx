@@ -4,6 +4,7 @@ import { createOrUpdateCustomer } from '@/services/customerService';
 import { createOrder, convertCartItemsToOrderItems } from '@/services/order';
 import { toast } from '@/hooks/use-toast';
 import { CartItem } from './use-checkout-storage';
+import { useSaveCustomerInfo } from './use-checkout-storage';
 
 interface SubmitOrderOptions {
   restaurantId: string | null;
@@ -34,6 +35,7 @@ export function useCheckoutSubmission({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const { saveCustomerInfo } = useSaveCustomerInfo();
   
   const submitOrder = async () => {
     // Validation checks
@@ -90,7 +92,7 @@ export function useCheckoutSubmission({
       }
 
       // Save customer info for future orders
-      localStorage.setItem('customerInfo', JSON.stringify(customerData));
+      saveCustomerInfo(customerData);
       
       // Convert cart items to order items
       const orderItemsData = convertCartItemsToOrderItems(orderItems);
@@ -121,6 +123,11 @@ export function useCheckoutSubmission({
       localStorage.removeItem('orderItems');
       
       setIsSuccess(true);
+      
+      toast({
+        title: "Order Placed",
+        description: "Your order has been successfully placed.",
+      });
       
     } catch (error) {
       console.error('Error submitting order:', error);

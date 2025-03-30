@@ -54,3 +54,31 @@ export const getWaiterRequestById = async (
     return null;
   }
 };
+
+/**
+ * Get waiter requests for a specific table
+ */
+export const getTableWaiterRequests = async (
+  restaurantId: string,
+  tableNumber: string
+): Promise<WaiterRequest[]> => {
+  try {
+    // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
+    const { data, error } = await supabase
+      .from('waiter_requests')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_number', tableNumber)
+      .order('request_time', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching table waiter requests:', error);
+      return [];
+    }
+
+    return asWaiterRequests(data || []);
+  } catch (error) {
+    console.error('Error in getTableWaiterRequests:', error);
+    return [];
+  }
+};

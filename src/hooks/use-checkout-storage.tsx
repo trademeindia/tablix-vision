@@ -14,6 +14,9 @@ export interface CheckoutStorageState {
   orderItems: CartItem[];
 }
 
+/**
+ * Hook to manage checkout data from URL parameters and localStorage
+ */
 export function useCheckoutStorage(): CheckoutStorageState {
   const location = useLocation();
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
@@ -53,11 +56,6 @@ export function useCheckoutStorage(): CheckoutStorageState {
         console.error('Error parsing order items:', error);
       }
     }
-
-    // Get customer info from localStorage
-    return () => {
-      // This is a cleanup function - nothing needed here
-    };
   }, [location.search]);
   
   return {
@@ -67,6 +65,9 @@ export function useCheckoutStorage(): CheckoutStorageState {
   };
 }
 
+/**
+ * Hook to get and store customer information in localStorage
+ */
 export function useCustomerInfoStorage() {
   const [storedCustomerInfo, setStoredCustomerInfo] = useState<{
     name?: string;
@@ -87,4 +88,15 @@ export function useCustomerInfoStorage() {
   }, []);
   
   return storedCustomerInfo;
+}
+
+/**
+ * Hook to save customer info to localStorage
+ */
+export function useSaveCustomerInfo() {
+  const saveCustomerInfo = (customerData: { name: string; email?: string; phone?: string }) => {
+    localStorage.setItem('customerInfo', JSON.stringify(customerData));
+  };
+  
+  return { saveCustomerInfo };
 }

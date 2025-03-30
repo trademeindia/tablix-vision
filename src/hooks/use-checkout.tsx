@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { useCheckoutState } from './use-checkout-state';
 import { useCheckoutStorage, useCustomerInfoStorage, CartItem } from './use-checkout-storage';
 import { useCheckoutSubmission } from './use-checkout-submission';
@@ -26,6 +27,9 @@ export interface CheckoutData {
   handleSubmitOrder: () => Promise<void>;
 }
 
+/**
+ * Main checkout hook that composes other checkout-related hooks
+ */
 export function useCheckout(): CheckoutData {
   // Get form state management
   const {
@@ -45,17 +49,19 @@ export function useCheckout(): CheckoutData {
   const storedCustomerInfo = useCustomerInfoStorage();
   
   // Initialize form with stored customer info if available
-  if (storedCustomerInfo.name && name === '') {
-    setName(storedCustomerInfo.name);
-  }
-  
-  if (storedCustomerInfo.email && email === '') {
-    setEmail(storedCustomerInfo.email);
-  }
-  
-  if (storedCustomerInfo.phone && phone === '') {
-    setPhone(storedCustomerInfo.phone);
-  }
+  useEffect(() => {
+    if (storedCustomerInfo.name && name === '') {
+      setName(storedCustomerInfo.name);
+    }
+    
+    if (storedCustomerInfo.email && email === '') {
+      setEmail(storedCustomerInfo.email);
+    }
+    
+    if (storedCustomerInfo.phone && phone === '') {
+      setPhone(storedCustomerInfo.phone);
+    }
+  }, [storedCustomerInfo, name, email, phone, setName, setEmail, setPhone]);
   
   // Handle order submission
   const { submitOrder } = useCheckoutSubmission({

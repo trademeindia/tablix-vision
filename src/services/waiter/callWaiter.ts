@@ -12,16 +12,18 @@ export const callWaiter = async (
   customerId?: string
 ): Promise<WaiterRequest | null> => {
   try {
+    const waiterRequest = {
+      restaurant_id: restaurantId,
+      table_number: tableNumber,
+      customer_id: customerId,
+      status: 'pending',
+      request_time: new Date().toISOString(),
+    };
+
     // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
     const { data, error } = await supabase
       .from('waiter_requests')
-      .insert({
-        restaurant_id: restaurantId,
-        table_number: tableNumber,
-        customer_id: customerId || null,
-        status: 'pending',
-        request_time: new Date().toISOString()
-      })
+      .insert(waiterRequest)
       .select()
       .single();
 
@@ -38,36 +40,40 @@ export const callWaiter = async (
 };
 
 /**
- * Update a waiter request status
+ * Update waiter request status
  */
 export const updateWaiterRequestStatus = async (
   requestId: string,
   status: WaiterRequest['status']
-): Promise<boolean> => {
+): Promise<WaiterRequest | null> => {
   try {
-    const updateData: Record<string, any> = { status };
-    
+    const updates: any = {
+      status,
+    };
+
     // Add timestamp based on status
     if (status === 'acknowledged') {
-      updateData.acknowledgement_time = new Date().toISOString();
+      updates.acknowledgement_time = new Date().toISOString();
     } else if (status === 'completed') {
-      updateData.completion_time = new Date().toISOString();
+      updates.completion_time = new Date().toISOString();
     }
-    
+
     // @ts-ignore - The waiter_requests table is not in the TypeScript definitions yet
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('waiter_requests')
-      .update(updateData)
-      .eq('id', requestId);
+      .update(updates)
+      .eq('id', requestId)
+      .select()
+      .single();
 
     if (error) {
-      console.error('Error updating waiter request status:', error);
-      return false;
+      console.error('Error updating waiter request:', error);
+      return null;
     }
 
-    return true;
+    return asWaiterRequest(data);
   } catch (error) {
     console.error('Error in updateWaiterRequestStatus:', error);
-    return false;
+    return null;
   }
 };

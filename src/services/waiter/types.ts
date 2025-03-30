@@ -1,11 +1,11 @@
 
 export interface WaiterRequest {
-  id?: string;
+  id: string;
   restaurant_id: string;
   table_number: string;
   customer_id?: string | null;
-  status: 'pending' | 'acknowledged' | 'completed';
-  request_time?: string;
+  status: 'pending' | 'acknowledged' | 'completed' | 'cancelled';
+  request_time: string;
   acknowledgement_time?: string | null;
   completion_time?: string | null;
 }
