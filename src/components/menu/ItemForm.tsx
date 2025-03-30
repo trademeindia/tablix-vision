@@ -28,6 +28,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
   const [mediaReference, setMediaReference] = useState(initialData?.media_reference || '');
   const [mediaUrl, setMediaUrl] = useState(initialData?.model_url || '');
   
+  // Check if initialData.media_type is a valid value ('image' or '3d')
+  const initialMediaType = initialData?.media_type === 'image' || initialData?.media_type === '3d' 
+    ? initialData.media_type 
+    : undefined;
+  
   const form = useForm<ItemFormValues>({
     resolver: zodResolver(itemFormSchema),
     defaultValues: {
@@ -45,7 +50,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       is_available: initialData?.is_available !== false,
       is_featured: initialData?.is_featured || false,
       restaurant_id: initialData?.restaurant_id || "",
-      media_type: (initialData?.media_type as "image" | "3d" | undefined) || undefined,
+      media_type: initialMediaType,
       media_reference: initialData?.media_reference || "",
     },
   });
