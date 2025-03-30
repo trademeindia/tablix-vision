@@ -20,6 +20,7 @@ export const fetchMenuCategories = async (restaurant_id?: string) => {
     throw error;
   }
   
+  console.log('Menu categories fetched:', data);
   return data;
 };
 

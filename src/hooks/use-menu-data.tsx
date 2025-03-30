@@ -24,6 +24,7 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
         .order('display_order', { ascending: true });
       
       if (error) throw new Error(`Error fetching categories: ${error.message}`);
+      console.log("Categories fetched:", data);
       return data as MenuCategory[];
     },
     enabled: !!restaurantId,

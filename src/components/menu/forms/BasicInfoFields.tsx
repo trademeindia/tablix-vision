@@ -19,6 +19,9 @@ interface BasicInfoFieldsProps {
 }
 
 const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) => {
+  // Log categories to help with debugging
+  console.log("Categories in BasicInfoFields:", categories);
+  
   return (
     <>
       <FormField
@@ -80,7 +83,8 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) =
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent position="popper" className="z-[100] w-full bg-background">
+                {/* Force the SelectContent to remain in the DOM with position="popper" */}
+                <SelectContent position="popper" className="z-[100] w-full bg-background border shadow">
                   {categories && categories.length > 0 ? (
                     categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
