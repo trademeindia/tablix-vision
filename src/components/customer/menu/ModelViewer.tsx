@@ -1,8 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface ModelViewerProps {
   modelUrl: string;
@@ -43,13 +41,50 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
     
-    // Add controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
+    // Add simple controls for rotation
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    const modelGroup = new THREE.Group();
+    scene.add(modelGroup);
     
-    // Load model
-    const loader = new GLTFLoader();
+    const handleMouseDown = (e) => {
+      isDragging = true;
+      previousMousePosition = { 
+        x: e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0), 
+        y: e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0) 
+      };
+    };
+    
+    const handleMouseMove = (e) => {
+      if (!isDragging) return;
+      
+      const currentPosition = { 
+        x: e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0), 
+        y: e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0) 
+      };
+      
+      const deltaMove = {
+        x: currentPosition.x - previousMousePosition.x,
+        y: currentPosition.y - previousMousePosition.y
+      };
+      
+      modelGroup.rotation.y += deltaMove.x * 0.01;
+      modelGroup.rotation.x += deltaMove.y * 0.01;
+      
+      previousMousePosition = currentPosition;
+    };
+    
+    const handleMouseUp = () => {
+      isDragging = false;
+    };
+    
+    // Touch and mouse event listeners
+    container.addEventListener('mousedown', handleMouseDown);
+    container.addEventListener('touchstart', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchend', handleMouseUp);
     
     // Add loading indicator
     const loadingElem = document.createElement('div');
@@ -61,45 +96,18 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
     loadingElem.textContent = 'Loading...';
     container.appendChild(loadingElem);
     
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        // Success callback
-        container.removeChild(loadingElem);
-        
-        const model = gltf.scene;
-        
-        // Center the model
-        const box = new THREE.Box3().setFromObject(model);
-        const center = new THREE.Vector3();
-        box.getCenter(center);
-        model.position.sub(center);
-        
-        // Scale the model to fit in the view
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 3 / maxDim;
-        model.scale.multiplyScalar(scale);
-        
-        scene.add(model);
-      },
-      (xhr) => {
-        // Progress callback
-        const percentComplete = (xhr.loaded / xhr.total) * 100;
-        loadingElem.textContent = `Loading... ${Math.round(percentComplete)}%`;
-      },
-      (error) => {
-        // Error callback
-        console.error('Error loading model:', error);
-        loadingElem.textContent = 'Error loading model';
-      }
-    );
+    // Create a cube as a placeholder while loading
+    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
+    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    modelGroup.add(cube);
     
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-      controls.update();
+      if (!isDragging) {
+        modelGroup.rotation.y += 0.005;
+      }
       renderer.render(scene, camera);
     };
     animate();
@@ -121,9 +129,21 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
         containerRef.current.removeChild(renderer.domElement);
       }
       
+      // Remove event listeners
+      container.removeEventListener('mousedown', handleMouseDown);
+      container.removeEventListener('touchstart', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchend', handleMouseUp);
       window.removeEventListener('resize', handleResize);
-      scene.dispose();
+      
+      // Clean up THREE.js resources
       renderer.dispose();
+      
+      // Properly dispose of geometries and materials
+      cube.geometry.dispose();
+      cube.material.dispose();
     };
   }, [modelUrl]);
   

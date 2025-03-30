@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { MenuCategory } from '@/types/menu';
@@ -39,4 +39,4 @@ const MenuCategories: React.FC<MenuCategoriesProps> = ({
   );
 };
 
-export default MenuCategories;
+export default memo(MenuCategories);

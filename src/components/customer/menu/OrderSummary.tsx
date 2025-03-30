@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
 
 interface OrderSummaryProps {
@@ -50,4 +50,4 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   );
 };
 
-export default OrderSummary;
+export default memo(OrderSummary);

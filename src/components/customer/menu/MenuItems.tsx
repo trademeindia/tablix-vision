@@ -4,7 +4,7 @@ import { MenuItem } from '@/types/menu';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Eye3d } from 'lucide-react';
+import { Plus, Eye3d, Eye, Cube } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ModelViewer from '@/components/customer/menu/ModelViewer';
 
@@ -49,7 +49,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
                         setShowModelViewer(true);
                       }}
                     >
-                      <Eye3d className="h-8 w-8 text-slate-400" />
+                      <Cube className="h-8 w-8 text-slate-400" />
                       <span className="absolute bottom-1 right-1 bg-slate-800/70 text-white text-xs px-1 rounded">
                         3D
                       </span>
