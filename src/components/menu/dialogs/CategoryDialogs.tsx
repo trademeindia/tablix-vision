@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import CategoryForm from '@/components/menu/CategoryForm';
-import { MenuCategory } from '@/types/menu';
+import { MenuCategory, MenuItem } from '@/types/menu';
 import { createMenuCategory, updateMenuCategory, deleteMenuCategory } from '@/services/menuService';
 
 interface CategoryDialogsProps {
