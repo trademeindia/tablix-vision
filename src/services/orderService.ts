@@ -1,5 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { MenuItem } from '@/types/menu';
+import { Json } from '@/integrations/supabase/types';
 
 export interface OrderItem {
   id?: string;
@@ -29,6 +31,11 @@ export interface Order {
   actual_ready_time?: string;
   user_id?: string;
 }
+
+// Type guard to check if the status is a valid Order status
+const isValidOrderStatus = (status: string): status is Order['status'] => {
+  return ['pending', 'preparing', 'ready', 'served', 'completed', 'cancelled'].includes(status as Order['status']);
+};
 
 /**
  * Create a new order
@@ -92,10 +99,14 @@ export const createOrder = async (
       return null;
     }
 
+    // Ensure status is properly typed
+    const status = orderData.status as Order['status'];
+
     return {
       ...orderData,
+      table_number: orderData.table_number || '',
       items: itemsData,
-      status: orderData.status as 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled'
+      status: status,
     };
   } catch (error) {
     console.error('Error in createOrder:', error);
@@ -131,11 +142,15 @@ export const getOrderById = async (orderId: string): Promise<Order | null> => {
       return null;
     }
 
+    // Ensure status is properly typed
+    const status = orderData.status as Order['status'];
+
     // Combine the data
     return {
       ...orderData,
+      table_number: orderData.table_number || '',
       items: itemsData,
-      status: orderData.status as 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled'
+      status: status,
     };
   } catch (error) {
     console.error('Error in getOrderById:', error);
@@ -173,11 +188,15 @@ export const getCustomerOrders = async (customerId: string): Promise<Order[]> =>
           return null;
         }
 
+        // Ensure the status is typed correctly
+        const status = order.status as Order['status'];
+
         return {
           ...order,
+          table_number: order.table_number || '',
           items: itemsData,
-          status: order.status as 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled'
-        };
+          status: status,
+        } as Order;
       })
     );
 
@@ -218,11 +237,15 @@ export const getRestaurantOrders = async (restaurantId: string): Promise<Order[]
           return null;
         }
 
+        // Ensure the status is typed correctly
+        const status = order.status as Order['status'];
+
         return {
           ...order,
+          table_number: order.table_number || '',
           items: itemsData,
-          status: order.status as 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled'
-        };
+          status: status,
+        } as Order;
       })
     );
 
