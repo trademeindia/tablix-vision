@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MenuCategories from '@/components/customer/menu/MenuCategories';
 import MenuItems from '@/components/customer/menu/MenuItems';
@@ -35,11 +35,23 @@ const MenuContent: React.FC<MenuContentProps> = ({
     }
   }, [categories, selectedCategory]);
   
-  // Handle checkout navigation
+  // Memoize filtered items to prevent recalculation on each render
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    return selectedCategory 
+      ? items.filter(item => item.category_id === selectedCategory)
+      : items;
+  }, [items, selectedCategory]);
+  
+  // Handle checkout navigation with optimizations
   const handleCheckout = () => {
     // Store order items in localStorage for the checkout page
     localStorage.setItem('orderItems', JSON.stringify(orderItems));
-    navigate(`/checkout?table=${tableId}&restaurant=${restaurantId}`);
+    
+    // Use state parameter for smooth transition
+    navigate(`/checkout?table=${tableId}&restaurant=${restaurantId}`, { 
+      state: { fromMenu: true } 
+    });
   };
   
   return (
@@ -53,9 +65,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
       </div>
       
       <MenuItems 
-        items={items?.filter(item => 
-          selectedCategory ? item.category_id === selectedCategory : true
-        ) || []} 
+        items={filteredItems} 
         onAddToOrder={onAddToOrder} 
       />
       
@@ -72,4 +82,5 @@ const MenuContent: React.FC<MenuContentProps> = ({
   );
 };
 
-export default MenuContent;
+// Memoize the component to prevent unnecessary re-renders
+export default memo(MenuContent);

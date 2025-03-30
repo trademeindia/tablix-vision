@@ -1,17 +1,24 @@
 
-import React, { useState } from 'react';
+import React, { useState, memo, lazy, Suspense } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Eye, Box } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import ModelViewer from '@/components/customer/menu/ModelViewer';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load the ModelViewer component
+const ModelViewer = lazy(() => import('@/components/customer/menu/ModelViewer'));
 
 interface MenuItemsProps {
   items: MenuItem[];
   onAddToOrder: (item: MenuItem) => void;
 }
+
+const MenuItemSkeleton = () => (
+  <div className="h-40 w-full bg-slate-100 animate-pulse rounded-md"></div>
+);
 
 const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
@@ -39,6 +46,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
                     <img 
                       src={item.image_url} 
                       alt={item.name}
+                      loading="lazy"
                       className="w-full h-full object-cover aspect-square"
                     />
                   ) : item.media_type === '3d' && item.model_url ? (
@@ -118,7 +126,9 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
           </DialogHeader>
           {selectedItem && selectedItem.model_url && (
             <div className="w-full aspect-square bg-slate-100 relative">
-              <ModelViewer modelUrl={selectedItem.model_url} />
+              <Suspense fallback={<MenuItemSkeleton />}>
+                <ModelViewer modelUrl={selectedItem.model_url} />
+              </Suspense>
             </div>
           )}
           <div className="flex justify-between items-center">
@@ -137,4 +147,5 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
   );
 };
 
-export default MenuItems;
+// Memoize the component to prevent unnecessary re-renders
+export default memo(MenuItems);

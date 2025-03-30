@@ -10,9 +10,10 @@ export const getWaiterRequests = async (
   restaurantId: string
 ): Promise<WaiterRequest[]> => {
   try {
+    // Optimize query with fewer columns for better performance
     const { data, error } = await supabase
       .from('waiter_requests')
-      .select('*')
+      .select('id, restaurant_id, table_number, customer_id, status, request_time, acknowledgement_time, completion_time')
       .eq('restaurant_id', restaurantId)
       .order('request_time', { ascending: false });
 
@@ -37,7 +38,7 @@ export const getWaiterRequestById = async (
   try {
     const { data, error } = await supabase
       .from('waiter_requests')
-      .select('*')
+      .select('id, restaurant_id, table_number, customer_id, status, request_time, acknowledgement_time, completion_time')
       .eq('id', requestId)
       .single();
 
@@ -61,12 +62,18 @@ export const getTableWaiterRequests = async (
   tableNumber: string
 ): Promise<WaiterRequest[]> => {
   try {
+    // Get only recent requests (last 24 hours) to improve performance
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    
     const { data, error } = await supabase
       .from('waiter_requests')
-      .select('*')
+      .select('id, restaurant_id, table_number, customer_id, status, request_time, acknowledgement_time, completion_time')
       .eq('restaurant_id', restaurantId)
       .eq('table_number', tableNumber)
-      .order('request_time', { ascending: false });
+      .gte('request_time', oneDayAgo.toISOString())
+      .order('request_time', { ascending: false })
+      .limit(5); // Limit results to improve performance
 
     if (error) {
       console.error('Error fetching table waiter requests:', error);
