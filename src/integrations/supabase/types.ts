@@ -535,6 +535,54 @@ export type Database = {
           },
         ]
       }
+      waiter_requests: {
+        Row: {
+          acknowledgement_time: string | null
+          completion_time: string | null
+          customer_id: string | null
+          id: string
+          request_time: string
+          restaurant_id: string | null
+          status: string
+          table_number: string
+        }
+        Insert: {
+          acknowledgement_time?: string | null
+          completion_time?: string | null
+          customer_id?: string | null
+          id?: string
+          request_time?: string
+          restaurant_id?: string | null
+          status?: string
+          table_number: string
+        }
+        Update: {
+          acknowledgement_time?: string | null
+          completion_time?: string | null
+          customer_id?: string | null
+          id?: string
+          request_time?: string
+          restaurant_id?: string | null
+          status?: string
+          table_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiter_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiter_requests_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
