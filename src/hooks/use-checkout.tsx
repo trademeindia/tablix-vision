@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { OrderItem } from '@/services/orderService';
+import { OrderItem, createOrder, convertCartItemsToOrderItems } from '@/services/order';
 import { MenuItem } from '@/types/menu';
 import { createOrUpdateCustomer } from '@/services/customerService';
-import { createOrder, convertCartItemsToOrderItems } from '@/services/orderService';
 import { toast } from '@/hooks/use-toast';
 
 interface CartItem {
@@ -45,9 +43,7 @@ export function useCheckout(): CheckoutData {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   
-  // Load data from localStorage or URL params
   useEffect(() => {
-    // Get table and restaurant IDs from URL params
     const params = new URLSearchParams(location.search);
     const tableParam = params.get('table');
     const restaurantParam = params.get('restaurant');
@@ -56,7 +52,6 @@ export function useCheckout(): CheckoutData {
       setTableId(tableParam);
       setRestaurantId(restaurantParam);
     } else {
-      // Try to get from localStorage
       const storedTableId = localStorage.getItem('tableId');
       const storedRestaurantId = localStorage.getItem('restaurantId');
       
@@ -66,7 +61,6 @@ export function useCheckout(): CheckoutData {
       }
     }
     
-    // Get order items from localStorage
     const storedOrderItems = localStorage.getItem('orderItems');
     if (storedOrderItems) {
       try {
@@ -76,7 +70,6 @@ export function useCheckout(): CheckoutData {
       }
     }
 
-    // Get customer info from localStorage if available
     const storedCustomer = localStorage.getItem('customerInfo');
     if (storedCustomer) {
       try {
@@ -130,7 +123,6 @@ export function useCheckout(): CheckoutData {
     setIsSubmitting(true);
     
     try {
-      // Create or update customer
       const customerData = {
         name,
         email: email || undefined,
@@ -143,13 +135,10 @@ export function useCheckout(): CheckoutData {
         throw new Error("Could not create or update customer");
       }
 
-      // Save customer info to localStorage for future visits
       localStorage.setItem('customerInfo', JSON.stringify(customerData));
       
-      // Convert cart items to order items
       const orderItemsData = convertCartItemsToOrderItems(orderItems);
       
-      // Create the order
       const order = await createOrder({
         customer_id: customer.id,
         restaurant_id: restaurantId,
@@ -166,13 +155,10 @@ export function useCheckout(): CheckoutData {
         throw new Error("Could not create order");
       }
       
-      // Save order ID
       setOrderId(order.id || null);
       
-      // Clear order items from localStorage
       localStorage.removeItem('orderItems');
       
-      // Show success state
       setIsSuccess(true);
       
     } catch (error) {

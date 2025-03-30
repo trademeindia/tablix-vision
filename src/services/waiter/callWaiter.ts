@@ -1,15 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
 
-export interface WaiterRequest {
-  id?: string;
-  restaurant_id: string;
-  table_number: string;
-  customer_id?: string | null;
-  status: 'pending' | 'acknowledged' | 'completed';
-  request_time?: string;
-  acknowledgement_time?: string | null;
-  completion_time?: string | null;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Create a new waiter request
@@ -71,32 +61,5 @@ export const callWaiter = async (
   } catch (error: any) {
     console.error('Error calling waiter:', error);
     return { success: false, error: error.message };
-  }
-};
-
-/**
- * Get all waiter requests for a specific table
- */
-export const getTableWaiterRequests = async (
-  restaurantId: string,
-  tableNumber: string
-): Promise<WaiterRequest[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('waiter_requests')
-      .select()
-      .eq('restaurant_id', restaurantId)
-      .eq('table_number', tableNumber)
-      .order('request_time', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching waiter requests:', error);
-      return [];
-    }
-
-    return data as WaiterRequest[];
-  } catch (error) {
-    console.error('Error fetching waiter requests:', error);
-    return [];
   }
 };
