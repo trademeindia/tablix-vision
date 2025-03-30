@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,15 +12,30 @@ import {
 } from "@/components/ui/select";
 import { MenuCategory } from '@/types/menu';
 import { UseFormReturn } from "react-hook-form";
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<any>;
   categories: MenuCategory[];
+  onRefreshCategories?: () => void;
 }
 
-const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) => {
+const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ 
+  form, 
+  categories,
+  onRefreshCategories 
+}) => {
   // Log categories to help with debugging
   console.log("Categories in BasicInfoFields:", categories);
+  
+  // If there's no category selected and we have categories, select the first one
+  useEffect(() => {
+    const currentCategoryId = form.getValues('category_id');
+    if (categories?.length > 0 && !currentCategoryId) {
+      form.setValue('category_id', categories[0].id);
+    }
+  }, [categories, form]);
   
   return (
     <>
@@ -72,7 +87,21 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) =
           name="category_id"
           render={({ field }) => (
             <FormItem className="relative">
-              <FormLabel>Category</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Category</FormLabel>
+                {onRefreshCategories && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={onRefreshCategories}
+                    className="h-8 px-2"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Refresh
+                  </Button>
+                )}
+              </div>
               <Select 
                 onValueChange={field.onChange} 
                 value={field.value || ''}
@@ -83,8 +112,10 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) =
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                 </FormControl>
-                {/* Force the SelectContent to remain in the DOM with position="popper" */}
-                <SelectContent position="popper" className="z-[100] w-full bg-background border shadow">
+                <SelectContent 
+                  position="popper" 
+                  className="z-[100] w-full bg-background border shadow"
+                >
                   {categories && categories.length > 0 ? (
                     categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
@@ -92,9 +123,12 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ form, categories }) =
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="no-categories" disabled>
-                      No categories available
-                    </SelectItem>
+                    <div className="px-2 py-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-2">No categories available</p>
+                      <p className="text-xs text-muted-foreground">
+                        Please create a category first or click refresh
+                      </p>
+                    </div>
                   )}
                 </SelectContent>
               </Select>

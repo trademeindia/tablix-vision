@@ -17,13 +17,15 @@ interface ItemFormProps {
   initialData?: MenuItem;
   onSubmit: (data: any) => Promise<void>;
   isSubmitting: boolean;
+  onRefreshCategories?: () => void;
 }
 
 const ItemForm: React.FC<ItemFormProps> = ({
   categories,
   initialData,
   onSubmit,
-  isSubmitting
+  isSubmitting,
+  onRefreshCategories
 }) => {
   const [mediaReference, setMediaReference] = useState(initialData?.media_reference || '');
   const [mediaUrl, setMediaUrl] = useState(initialData?.model_url || '');
@@ -124,7 +126,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <BasicInfoFields form={form} categories={categories} />
+        <BasicInfoFields 
+          form={form} 
+          categories={categories} 
+          onRefreshCategories={onRefreshCategories}
+        />
         
         <MediaFields 
           form={form} 

@@ -1,17 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { fetchMenuCategories, fetchMenuItems } from '@/services/menuService';
+import { fetchMenuCategories, fetchMenuItems, createMenuCategory } from '@/services/menuService';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
 import Spinner from '@/components/ui/spinner';
+import { toast } from '@/hooks/use-toast';
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
@@ -72,6 +74,50 @@ const MenuPage = () => {
       return () => clearTimeout(timer);
     }
   }, [itemsError, refetchItems]);
+  
+  const handleRefreshCategories = async () => {
+    try {
+      await refetchCategories();
+      toast({
+        title: "Categories refreshed",
+        description: `${categories.length} categories loaded.`,
+      });
+    } catch (error) {
+      console.error("Error refreshing categories:", error);
+      toast({
+        title: "Failed to refresh categories",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleCreateDefaultCategory = async () => {
+    try {
+      if (categories.length === 0) {
+        await createMenuCategory({
+          name: "General",
+          description: "Default category for menu items",
+          display_order: 0,
+          restaurant_id: restaurantId
+        });
+        await refetchCategories();
+        toast({
+          title: "Default category created",
+          description: "A 'General' category has been created for you.",
+        });
+      }
+    } catch (error) {
+      console.error("Error creating default category:", error);
+    }
+  };
+  
+  useEffect(() => {
+    // Create a default category if none exists
+    if (categories.length === 0 && !isCategoriesLoading && !categoriesError) {
+      handleCreateDefaultCategory();
+    }
+  }, [categories, isCategoriesLoading, categoriesError]);
   
   const handleEditCategory = (category: MenuCategory) => {
     setSelectedCategory(category);
@@ -151,10 +197,20 @@ const MenuPage = () => {
           <p className="text-slate-500">Manage your restaurant's menu items and categories</p>
         </div>
         
-        <Button onClick={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {activeTab === 'categories' ? 'Add Category' : 'Add Menu Item'}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleRefreshCategories} 
+            disabled={isCategoriesLoading}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button onClick={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {activeTab === 'categories' ? 'Add Category' : 'Add Menu Item'}
+          </Button>
+        </div>
       </div>
       
       {(categoriesError || itemsError) && (
@@ -163,6 +219,23 @@ const MenuPage = () => {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             {categoriesError ? 'Failed to load categories' : 'Failed to load menu items'}. The application will automatically retry.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {categories.length === 0 && !isCategoriesLoading && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No categories found</AlertTitle>
+          <AlertDescription>
+            You need to create at least one category before adding menu items.
+            <Button 
+              variant="link" 
+              onClick={() => setIsAddCategoryOpen(true)} 
+              className="p-0 h-auto text-blue-500 ml-1"
+            >
+              Create a category now
+            </Button>
           </AlertDescription>
         </Alert>
       )}
@@ -192,6 +265,7 @@ const MenuPage = () => {
         setSelectedItem={setSelectedItem}
         categories={categories}
         restaurantId={restaurantId}
+        onRefreshCategories={handleRefreshCategories}
       />
     </DashboardLayout>
   );

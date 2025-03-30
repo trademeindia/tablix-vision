@@ -28,6 +28,7 @@ interface ItemDialogsProps {
   setSelectedItem: (item: MenuItem | null) => void;
   categories: MenuCategory[];
   restaurantId: string;
+  onRefreshCategories?: () => void;
 }
 
 const ItemDialogs: React.FC<ItemDialogsProps> = ({ 
@@ -40,7 +41,8 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
   selectedItem,
   setSelectedItem,
   categories,
-  restaurantId
+  restaurantId,
+  onRefreshCategories
 }) => {
   const queryClient = useQueryClient();
   
@@ -142,6 +144,7 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
               categories={categories}
               onSubmit={handleAddItem}
               isSubmitting={createItemMutation.isPending}
+              onRefreshCategories={onRefreshCategories}
             />
           </div>
         </DialogContent>
@@ -168,6 +171,7 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
                 }}
                 onSubmit={handleUpdateItem}
                 isSubmitting={updateItemMutation.isPending}
+                onRefreshCategories={onRefreshCategories}
               />
             </div>
           )}
