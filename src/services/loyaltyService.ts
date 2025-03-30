@@ -71,19 +71,78 @@ export const updateLoyaltyPoints = async (customerId: string, orderAmount: numbe
 };
 
 /**
+ * Calculate loyalty points for an order amount
+ * @param amount Order amount
+ * @returns Number of points earned
+ */
+export const calculateLoyaltyPoints = (amount: number): number => {
+  // 1 point for every $50 spent, rounded down
+  return Math.floor(amount / 50);
+};
+
+/**
+ * Add loyalty points to a customer by increasing their expenditure
+ * @param customerId The customer ID
+ * @param points Number of points to add
+ */
+export const addLoyaltyPoints = async (customerId: string, points: number): Promise<void> => {
+  // Convert points to expenditure value (1 point = $50)
+  const expenditureToAdd = points * 50;
+  
+  try {
+    // Get current customer data
+    const { data: customer, error: fetchError } = await supabase
+      .from('customers')
+      .select('total_expenditure')
+      .eq('id', customerId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching customer:', fetchError);
+      return;
+    }
+
+    // Update the total expenditure
+    const currentExpenditure = customer.total_expenditure || 0;
+    const newExpenditure = currentExpenditure + expenditureToAdd;
+
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ 
+        total_expenditure: newExpenditure,
+      })
+      .eq('id', customerId);
+
+    if (updateError) {
+      console.error('Error updating loyalty points:', updateError);
+    }
+  } catch (error) {
+    console.error('Error in addLoyaltyPoints:', error);
+  }
+};
+
+/**
  * Redeem loyalty points for a customer
  * @param customerId The customer's ID
  * @param pointsToRedeem The number of points to redeem
- * @returns Boolean indicating success or failure
+ * @returns Object with success status, remaining points, and discount amount
  */
-export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: number): Promise<boolean> => {
+export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: number): Promise<{
+  success: boolean;
+  remainingPoints: number;
+  discountAmount: number;
+}> => {
   try {
     // Get current loyalty points
     const currentPoints = await getLoyaltyPoints(customerId);
     
     // Check if customer has enough points
     if (currentPoints < pointsToRedeem) {
-      return false;
+      return {
+        success: false,
+        remainingPoints: currentPoints,
+        discountAmount: 0
+      };
     }
     
     // Get current customer data
@@ -95,8 +154,15 @@ export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: nu
 
     if (fetchError) {
       console.error('Error fetching customer:', fetchError);
-      return false;
+      return {
+        success: false,
+        remainingPoints: currentPoints,
+        discountAmount: 0
+      };
     }
+
+    // Calculate discount amount (1 point = $5 in discount)
+    const discountAmount = pointsToRedeem * 5;
 
     // Calculate new expenditure after redeeming points
     // (Reducing expenditure is how we track point usage)
@@ -114,13 +180,28 @@ export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: nu
 
     if (updateError) {
       console.error('Error redeeming points:', updateError);
-      return false;
+      return {
+        success: false,
+        remainingPoints: currentPoints,
+        discountAmount: 0
+      };
     }
 
-    return true;
+    // Calculate remaining points after redemption
+    const remainingPoints = Math.floor(newExpenditure / 50);
+
+    return {
+      success: true,
+      remainingPoints,
+      discountAmount
+    };
   } catch (error) {
     console.error('Error in redeemLoyaltyPoints:', error);
-    return false;
+    return {
+      success: false,
+      remainingPoints: 0,
+      discountAmount: 0
+    };
   }
 };
 

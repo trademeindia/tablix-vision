@@ -39,7 +39,7 @@ const LoyaltyPointsCard: React.FC<LoyaltyPointsCardProps> = ({
     try {
       const result = await redeemLoyaltyPoints(customerId, pointsToRedeem);
       
-      if (!result) {
+      if (!result.success) {
         throw new Error("Failed to redeem points");
       }
       

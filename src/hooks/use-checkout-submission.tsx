@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { createOrUpdateCustomer } from '@/services/customerService';
 import { createOrder, convertCartItemsToOrderItems } from '@/services/order';
-import { calculateLoyaltyPoints, addLoyaltyPoints } from '@/services/loyaltyService';
+import { calculateLoyaltyPoints, updateLoyaltyPoints } from '@/services/loyaltyService';
 import { toast } from '@/hooks/use-toast';
 import { CartItem } from './use-checkout-storage';
 import { useSaveCustomerInfo } from './use-checkout-storage';
@@ -120,11 +120,13 @@ export function useCheckoutSubmission({
       
       setOrderId(order.id || null);
       
-      // Calculate and add loyalty points
+      // Calculate and add loyalty points by updating expenditure
       if (customer.id) {
+        // Update loyalty points (update expenditure)
+        await updateLoyaltyPoints(customer.id, totalAmount);
+        
         const pointsEarned = calculateLoyaltyPoints(totalAmount);
         if (pointsEarned > 0) {
-          await addLoyaltyPoints(customer.id, pointsEarned);
           toast({
             title: "Loyalty Points Earned!",
             description: `You earned ${pointsEarned} loyalty points with this order.`,

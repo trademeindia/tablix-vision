@@ -7,6 +7,7 @@ import OrderSummary from '@/components/customer/menu/OrderSummary';
 import { Button } from '@/components/ui/button';
 import { Gift } from 'lucide-react';
 import { useLoyalty } from '@/hooks/use-loyalty';
+import { MenuItem } from '@/types/menu';
 
 interface MenuContentProps {
   categories: any[];
