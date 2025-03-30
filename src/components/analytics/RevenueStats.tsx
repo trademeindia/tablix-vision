@@ -9,18 +9,20 @@ interface RevenueStatsProps {
   monthlyRevenue: number;
   yearlyRevenue: number;
   isLoading: boolean;
+  currency?: string;
 }
 
 const RevenueStats: React.FC<RevenueStatsProps> = ({
   weeklyRevenue,
   monthlyRevenue,
   yearlyRevenue,
-  isLoading
+  isLoading,
+  currency = 'USD'
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
       minimumFractionDigits: 2
     }).format(amount);
   };

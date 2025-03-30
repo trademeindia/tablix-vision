@@ -7,9 +7,14 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 interface SalesChartProps {
   data: Array<{name: string, total: number}>;
   isLoading: boolean;
+  currency?: string;
 }
 
-const SalesChart: React.FC<SalesChartProps> = ({ data, isLoading }) => {
+const SalesChart: React.FC<SalesChartProps> = ({ 
+  data, 
+  isLoading,
+  currency = 'USD'
+}) => {
   // Format the date for display
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -20,7 +25,7 @@ const SalesChart: React.FC<SalesChartProps> = ({ data, isLoading }) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: currency,
     }).format(value);
   };
 
@@ -67,7 +72,7 @@ const SalesChart: React.FC<SalesChartProps> = ({ data, isLoading }) => {
                   stroke="#94a3b8"
                 />
                 <YAxis 
-                  tickFormatter={(value) => `$${value}`} 
+                  tickFormatter={(value) => `${currency === 'USD' ? '$' : ''}${value}`} 
                   tick={{ fontSize: 12 }}
                   tickMargin={10}
                   stroke="#94a3b8"

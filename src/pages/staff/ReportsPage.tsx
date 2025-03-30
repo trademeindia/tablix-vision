@@ -1,15 +1,59 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import StaffDashboardLayout from '@/components/layout/StaffDashboardLayout';
 import { useAnalytics } from '@/hooks/use-analytics';
 import RevenueStats from '@/components/analytics/RevenueStats';
 import OrderStats from '@/components/analytics/OrderStats';
 import PopularItems from '@/components/analytics/PopularItems';
 import SalesChart from '@/components/analytics/SalesChart';
+import { supabase } from '@/integrations/supabase/client';
 
 const ReportsPage = () => {
-  // In a real application, you would get this from auth or context
-  const restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Placeholder restaurant ID
+  const { toast } = useToast();
+  const [restaurantId, setRestaurantId] = useState<string | undefined>(undefined);
+  const [currency, setCurrency] = useState('USD');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch restaurant ID from the authenticated user's profile
+  useEffect(() => {
+    const fetchRestaurantId = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('restaurant_id')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (error) {
+            console.error('Error fetching profile:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to load restaurant data',
+              variant: 'destructive',
+            });
+            setRestaurantId('123e4567-e89b-12d3-a456-426614174000'); // Fallback to placeholder
+          } else if (profile?.restaurant_id) {
+            setRestaurantId(profile.restaurant_id);
+          } else {
+            setRestaurantId('123e4567-e89b-12d3-a456-426614174000'); // Fallback to placeholder
+          }
+        } else {
+          setRestaurantId('123e4567-e89b-12d3-a456-426614174000'); // Fallback to placeholder
+        }
+      } catch (error) {
+        console.error('Error in fetchRestaurantId:', error);
+        setRestaurantId('123e4567-e89b-12d3-a456-426614174000'); // Fallback to placeholder
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRestaurantId();
+  }, [toast]);
   
   const {
     revenueData,
@@ -32,14 +76,15 @@ const ReportsPage = () => {
           weeklyRevenue={revenueData.week}
           monthlyRevenue={revenueData.month}
           yearlyRevenue={revenueData.year}
-          isLoading={revenueData.isLoading}
+          isLoading={revenueData.isLoading || isLoading}
+          currency={currency}
         />
         
         <OrderStats
           weeklyOrders={orderCounts.week}
           monthlyOrders={orderCounts.month}
           yearlyOrders={orderCounts.year}
-          isLoading={orderCounts.isLoading}
+          isLoading={orderCounts.isLoading || isLoading}
         />
       </div>
       
@@ -47,14 +92,15 @@ const ReportsPage = () => {
         <div className="lg:col-span-1">
           <PopularItems 
             items={popularItems} 
-            isLoading={popularItemsLoading} 
+            isLoading={popularItemsLoading || isLoading} 
           />
         </div>
         
         <div className="lg:col-span-2">
           <SalesChart 
             data={salesData} 
-            isLoading={salesDataLoading} 
+            isLoading={salesDataLoading || isLoading}
+            currency={currency}
           />
         </div>
       </div>
