@@ -178,7 +178,16 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
       // Clean up THREE.js resources
       renderer.dispose();
       cube.geometry.dispose();
-      cube.material.dispose();
+      
+      // Fix for the TypeScript error - properly handle material disposal
+      // Check if material is an array or a single material
+      if (Array.isArray(cube.material)) {
+        // If it's an array, dispose each material individually
+        cube.material.forEach(material => material.dispose());
+      } else {
+        // If it's a single material, dispose it directly
+        cube.material.dispose();
+      }
     };
   }, [modelUrl, isLoading]);
   
@@ -192,3 +201,4 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
 };
 
 export default ModelViewer;
+
