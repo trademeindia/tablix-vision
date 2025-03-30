@@ -11,5 +11,24 @@ export const convertCartItemsToOrderItems = (cartItems: Array<{ item: MenuItem; 
     name: item.name,
     price: item.price,
     quantity,
+    // If there are customizations or special instructions, they would be added here
   }));
+};
+
+/**
+ * Format currency amount
+ */
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(amount);
+};
+
+/**
+ * Calculate total price of order items
+ */
+export const calculateTotalPrice = (items: Array<{ item: MenuItem; quantity: number }>): number => {
+  return items.reduce((total, { item, quantity }) => total + item.price * quantity, 0);
 };

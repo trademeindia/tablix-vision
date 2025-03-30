@@ -20,8 +20,14 @@ const CustomerMenuPage = () => {
   // QR data parsing hook
   const { tableId, restaurantId, parseQRData } = useQRDataParser();
   
-  // Order management hook
-  const { orderItems, addToOrder, removeFromOrder, totalItems } = useOrderItems();
+  // Order management hook with enhanced functionality
+  const { 
+    orderItems, 
+    addToOrder, 
+    removeFromOrder, 
+    totalItems,
+    totalPrice 
+  } = useOrderItems();
   
   // Handle QR scan success
   const handleQRScan = useCallback((data: string) => {

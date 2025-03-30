@@ -70,10 +70,11 @@ const MenuContent: React.FC<MenuContentProps> = ({
       />
       
       {orderItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50">
+        <div className="fixed bottom-0 left-0 right-0 pb-safe z-50">
           <OrderSummary 
             orderItems={orderItems} 
-            onRemoveItem={onRemoveFromOrder} 
+            onRemoveItem={onRemoveFromOrder}
+            onAddItem={onAddToOrder}
             onCheckout={handleCheckout}
           />
         </div>

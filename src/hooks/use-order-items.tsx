@@ -12,8 +12,11 @@ interface UseOrderItemsResult {
   orderItems: OrderItem[];
   addToOrder: (item: MenuItem) => void;
   removeFromOrder: (itemId: string) => void;
+  increaseQuantity: (itemId: string) => void;
+  decreaseQuantity: (itemId: string) => void;
   clearOrder: () => void;
   totalItems: number;
+  totalPrice: number;
 }
 
 export function useOrderItems(): UseOrderItemsResult {
@@ -84,6 +87,46 @@ export function useOrderItems(): UseOrderItemsResult {
       return prev;
     });
   };
+
+  // Increase quantity of an item
+  const increaseQuantity = (itemId: string) => {
+    setOrderItems(prev => {
+      const existingItemIndex = prev.findIndex(orderItem => orderItem.item.id === itemId);
+      
+      if (existingItemIndex >= 0) {
+        const newItems = [...prev];
+        newItems[existingItemIndex] = {
+          ...newItems[existingItemIndex],
+          quantity: newItems[existingItemIndex].quantity + 1
+        };
+        return newItems;
+      }
+      return prev;
+    });
+  };
+
+  // Decrease quantity of an item
+  const decreaseQuantity = (itemId: string) => {
+    setOrderItems(prev => {
+      const existingItemIndex = prev.findIndex(orderItem => orderItem.item.id === itemId);
+      
+      if (existingItemIndex >= 0) {
+        const newItems = [...prev];
+        if (newItems[existingItemIndex].quantity > 1) {
+          // Decrement quantity if more than 1
+          newItems[existingItemIndex] = {
+            ...newItems[existingItemIndex],
+            quantity: newItems[existingItemIndex].quantity - 1
+          };
+        } else {
+          // Remove item if quantity is 1
+          newItems.splice(existingItemIndex, 1);
+        }
+        return newItems;
+      }
+      return prev;
+    });
+  };
   
   // Clear the entire order
   const clearOrder = () => {
@@ -97,5 +140,20 @@ export function useOrderItems(): UseOrderItemsResult {
     0
   );
   
-  return { orderItems, addToOrder, removeFromOrder, clearOrder, totalItems };
+  // Calculate total price
+  const totalPrice = orderItems.reduce(
+    (total, { item, quantity }) => total + item.price * quantity, 
+    0
+  );
+  
+  return { 
+    orderItems, 
+    addToOrder, 
+    removeFromOrder, 
+    increaseQuantity,
+    decreaseQuantity,
+    clearOrder, 
+    totalItems,
+    totalPrice
+  };
 }
