@@ -20,9 +20,8 @@ export const callWaiter = async (
       request_time: new Date().toISOString(),
     };
 
-    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests' as any)
+      .from('waiter_requests')
       .insert(waiterRequest)
       .select()
       .single();
@@ -67,9 +66,8 @@ export const updateWaiterRequestStatus = async (
       updates.completion_time = new Date().toISOString();
     }
 
-    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests' as any)
+      .from('waiter_requests')
       .update(updates)
       .eq('id', requestId)
       .select()

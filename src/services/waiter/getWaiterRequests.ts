@@ -10,9 +10,8 @@ export const getWaiterRequests = async (
   restaurantId: string
 ): Promise<WaiterRequest[]> => {
   try {
-    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests' as any)
+      .from('waiter_requests')
       .select('*')
       .eq('restaurant_id', restaurantId)
       .order('request_time', { ascending: false });
@@ -36,9 +35,8 @@ export const getWaiterRequestById = async (
   requestId: string
 ): Promise<WaiterRequest | null> => {
   try {
-    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests' as any)
+      .from('waiter_requests')
       .select('*')
       .eq('id', requestId)
       .single();
@@ -63,9 +61,8 @@ export const getTableWaiterRequests = async (
   tableNumber: string
 ): Promise<WaiterRequest[]> => {
   try {
-    // Use type assertion to bypass the TypeScript error for table not in schema
     const { data, error } = await supabase
-      .from('waiter_requests' as any)
+      .from('waiter_requests')
       .select('*')
       .eq('restaurant_id', restaurantId)
       .eq('table_number', tableNumber)

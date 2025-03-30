@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { callWaiter, getTableWaiterRequests, WaiterRequest } from '@/services/waiter';
+import { callWaiter, getTableWaiterRequests, WaiterRequest, WaiterCallResponse } from '@/services/waiter';
 import CustomerMenuLayout from '@/components/layout/CustomerMenuLayout';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
@@ -46,9 +46,9 @@ const CallWaiterPage: React.FC = () => {
     
     setIsLoading(true);
     
-    const result = await callWaiter(restaurantId, tableId);
+    const response: WaiterCallResponse = await callWaiter(restaurantId, tableId);
     
-    if (result.success) {
+    if (response.success) {
       toast({
         title: "Waiter Called",
         description: "A waiter will be with you shortly",
@@ -60,7 +60,7 @@ const CallWaiterPage: React.FC = () => {
     } else {
       toast({
         title: "Error",
-        description: result.error || "Failed to call waiter",
+        description: response.error || "Failed to call waiter",
         variant: "destructive"
       });
     }
