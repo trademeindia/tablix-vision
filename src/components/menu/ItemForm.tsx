@@ -74,8 +74,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
           isGlutenFree: values.is_gluten_free,
           items: values.allergens ? values.allergens.split(',').map(item => item.trim()) : []
         },
-        // Keep media data
-        media_type: values.media_type || (mediaReference ? '3d' : ''),
+        // Handle media data
+        media_type: values.media_type || (mediaReference ? '3d' : values.image_url ? 'image' : undefined),
         media_reference: values.media_reference || mediaReference
       };
       

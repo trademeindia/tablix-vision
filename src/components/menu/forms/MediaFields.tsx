@@ -93,6 +93,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
           <input 
             type="hidden" 
             {...field} 
+            value={field.value || undefined}
           />
         )}
       />
