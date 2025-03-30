@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle, FolderPlus, Upload } from 'lucide-react';
+import { AlertCircle, CheckCircle, FolderPlus, Upload, LinkIcon } from 'lucide-react';
 import Spinner from '@/components/ui/spinner';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const GoogleDriveTest = () => {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -15,6 +17,8 @@ const GoogleDriveTest = () => {
     type: 'success' | 'error' | 'loading' | null;
   }>({ message: '', type: null });
   const [folderId, setFolderId] = useState<string | null>(null);
+  const [folderIdInput, setFolderIdInput] = useState('');
+  const [driveUrl, setDriveUrl] = useState<string | null>(null);
   
   const createTestFolder = async () => {
     setIsCreatingFolder(true);
@@ -29,6 +33,7 @@ const GoogleDriveTest = () => {
       
       if (data && data.folderId) {
         setFolderId(data.folderId);
+        setDriveUrl(data.webViewLink);
         setStatus({
           message: `Folder created successfully! ID: ${data.folderId}`,
           type: 'success'
@@ -47,10 +52,27 @@ const GoogleDriveTest = () => {
     }
   };
   
+  const useFolderId = () => {
+    if (!folderIdInput.trim()) {
+      setStatus({
+        message: 'Please enter a folder ID',
+        type: 'error'
+      });
+      return;
+    }
+    
+    setFolderId(folderIdInput);
+    setDriveUrl(`https://drive.google.com/drive/folders/${folderIdInput}`);
+    setStatus({
+      message: `Using existing folder ID: ${folderIdInput}`,
+      type: 'success'
+    });
+  };
+  
   const testUpload = async () => {
     if (!folderId) {
       setStatus({
-        message: 'Please create a test folder first',
+        message: 'Please create or specify a test folder first',
         type: 'error'
       });
       return;
@@ -96,7 +118,7 @@ const GoogleDriveTest = () => {
       <CardHeader>
         <CardTitle>Google Drive Integration Test</CardTitle>
         <CardDescription>
-          Verify your Google Drive integration by creating a test folder and uploading a file
+          Verify your Google Drive integration by creating a test folder or using an existing one
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -113,9 +135,39 @@ const GoogleDriveTest = () => {
         )}
         
         <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="folderId">Existing Folder ID</Label>
+              <div className="flex space-x-2">
+                <Input 
+                  id="folderId" 
+                  placeholder="Paste Google Drive folder ID here" 
+                  value={folderIdInput}
+                  onChange={(e) => setFolderIdInput(e.target.value)}
+                />
+                <Button onClick={useFolderId} variant="outline">
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Use
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              If you already have a Google Drive folder, enter its ID above
+            </p>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t"></span>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-muted-foreground">OR</span>
+            </div>
+          </div>
+          
           <div>
             <p className="text-sm text-muted-foreground mb-2">
-              Step 1: Create a test folder in Google Drive
+              Create a new test folder in Google Drive
             </p>
             <Button 
               onClick={createTestFolder} 
@@ -127,9 +179,23 @@ const GoogleDriveTest = () => {
             </Button>
           </div>
           
+          {driveUrl && (
+            <div className="pt-2">
+              <a 
+                href={driveUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline flex items-center"
+              >
+                <LinkIcon className="h-3 w-3 mr-1" />
+                View folder in Google Drive
+              </a>
+            </div>
+          )}
+          
           <div>
             <p className="text-sm text-muted-foreground mb-2">
-              Step 2: Test file upload to the created folder
+              Test file upload to the selected folder
             </p>
             <Button 
               onClick={testUpload} 
