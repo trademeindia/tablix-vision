@@ -45,11 +45,12 @@ export function useLoyalty() {
     if (!customerId) return false;
     
     try {
-      const success = await redeemLoyaltyPoints(customerId, pointsToRedeem);
-      if (success) {
-        setPoints(prev => Math.max(0, prev - pointsToRedeem));
+      const result = await redeemLoyaltyPoints(customerId, pointsToRedeem);
+      if (result.success) {
+        setPoints(result.remainingPoints);
+        return true;
       }
-      return success;
+      return false;
     } catch (error) {
       console.error('Error redeeming points:', error);
       return false;
