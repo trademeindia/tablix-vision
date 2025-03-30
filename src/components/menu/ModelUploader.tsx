@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from '@/hooks/use-toast';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { Upload, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 
 interface ModelUploaderProps {
@@ -23,9 +22,11 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
+    setUploadSuccess(false);
     
     if (!e.target.files || e.target.files.length === 0) {
       setSelectedFile(null);
@@ -87,16 +88,17 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({
       }
       
       setUploadProgress(100);
+      setUploadSuccess(true);
       
       // Call the callback with the file ID and URL
       onUploadComplete(data.fileId, data.fileUrl);
       
       toast({
         title: "Upload complete",
-        description: "3D model has been uploaded successfully",
+        description: "3D model has been uploaded successfully to Google Drive",
       });
       
-      // Reset state
+      // Reset selected file but keep success state
       setSelectedFile(null);
     } catch (err) {
       console.error('Upload error:', err);
@@ -114,36 +116,40 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({
   const cancelUpload = () => {
     setSelectedFile(null);
     setError(null);
+    setUploadSuccess(false);
   };
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label htmlFor="model-upload" className="text-sm font-medium">
-            Upload 3D Model (GLB or GLTF)
-          </label>
-        </div>
-        
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <label 
               htmlFor="model-upload" 
-              className="cursor-pointer flex-1 flex items-center justify-center gap-2 rounded-md border border-dashed border-input p-4 text-muted-foreground hover:bg-muted/50 transition-colors"
+              className={`cursor-pointer flex-1 flex items-center justify-center gap-2 rounded-md border ${uploadSuccess ? 'border-green-300 bg-green-50' : 'border-dashed border-input'} p-4 text-muted-foreground hover:bg-muted/50 transition-colors`}
             >
-              <Upload className="h-5 w-5" />
-              <span>{selectedFile ? selectedFile.name : 'Choose file'}</span>
+              {uploadSuccess ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <span className="text-green-700">3D model uploaded successfully</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-5 w-5" />
+                  <span>{selectedFile ? selectedFile.name : 'Choose GLB or GLTF file'}</span>
+                </>
+              )}
               <input
                 id="model-upload"
                 type="file"
                 className="hidden"
                 accept=".glb,.gltf"
                 onChange={handleFileChange}
-                disabled={isUploading}
+                disabled={isUploading || uploadSuccess}
               />
             </label>
             
-            {selectedFile && (
+            {selectedFile && !uploadSuccess && (
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -164,12 +170,12 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({
           
           <p className="text-xs text-muted-foreground">
             Upload a 3D model to showcase your menu item. Supported formats: GLB & GLTF. Max file size: 10MB. 
-            For optimal viewing, ensure models are optimized for web use.
+            Your model will be securely stored in Google Drive.
           </p>
         </div>
       </div>
       
-      {selectedFile && !isUploading && (
+      {selectedFile && !isUploading && !uploadSuccess && (
         <Button 
           onClick={uploadFile}
           className="w-full"

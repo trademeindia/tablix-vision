@@ -22,6 +22,8 @@ export const itemFormSchema = z.object({
   is_available: z.boolean().default(true),
   is_featured: z.boolean().default(false),
   restaurant_id: z.string().optional(),
+  media_type: z.enum(['image', '3d']).optional(),
+  media_reference: z.string().optional(),
 });
 
 export type ItemFormValues = z.infer<typeof itemFormSchema>;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,6 +44,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
       is_available: initialData?.is_available !== false,
       is_featured: initialData?.is_featured || false,
       restaurant_id: initialData?.restaurant_id || "",
+      media_type: initialData?.media_type || "",
+      media_reference: initialData?.media_reference || "",
     },
   });
 
@@ -52,6 +53,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
     setMediaReference(fileId);
     setMediaUrl(fileUrl);
     form.setValue('model_url', fileUrl);
+    form.setValue('media_type', '3d');
+    form.setValue('media_reference', fileId);
   };
 
   const handleSubmit = async (values: ItemFormValues) => {
@@ -65,11 +68,9 @@ const ItemForm: React.FC<ItemFormProps> = ({
           isGlutenFree: values.is_gluten_free,
           items: values.allergens ? values.allergens.split(',').map(item => item.trim()) : []
         },
-        // Add model reference data if available
-        ...(mediaReference && {
-          media_reference: mediaReference,
-          media_type: '3d'
-        })
+        // Keep media data
+        media_type: values.media_type || (mediaReference ? '3d' : ''),
+        media_reference: values.media_reference || mediaReference
       };
       
       // Remove individual dietary flags as they're now in the allergens object
@@ -78,6 +79,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
       delete formattedData.is_gluten_free;
       
       await onSubmit(formattedData);
+      
       toast({
         title: initialData ? "Item updated" : "Item created",
         description: initialData ? "Your menu item has been updated successfully." : "Your menu item has been created successfully.",
@@ -89,6 +91,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         setMediaUrl('');
       }
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Something went wrong",
         description: "Please try again later.",
@@ -99,7 +102,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <BasicInfoFields form={form} categories={categories} />
         
         <MediaFields 
@@ -115,7 +118,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
         
         <AvailabilityFields form={form} />
         
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
           {isSubmitting ? "Saving..." : initialData ? "Update Item" : "Create Item"}
         </Button>
       </form>
