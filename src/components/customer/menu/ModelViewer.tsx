@@ -14,7 +14,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
-  const handleSceneReady = (scene, camera, renderer, controls) => {
+  const handleSceneReady = () => {
     // The scene is now ready and ModelLoader will handle the rest
   };
   
