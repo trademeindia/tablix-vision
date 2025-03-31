@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCategory, MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 
@@ -40,7 +41,8 @@ export const createMenuCategory = async (category: Partial<MenuCategory>) => {
       name: category.name,
       description: category.description,
       display_order: category.display_order,
-      restaurant_id: category.restaurant_id
+      restaurant_id: category.restaurant_id,
+      user_id: (await supabase.auth.getUser()).data.user?.id
     })
     .select();
     
@@ -130,45 +132,83 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
   if (item.price === undefined || item.price === null) {
     throw new Error("Item price is required");
   }
-  
-  const dbItem = {
-    name: item.name,
-    description: item.description,
-    price: item.price,
-    category_id: item.category_id,
-    image_url: item.image_url,
-    model_url: item.model_url,
-    media_type: item.media_type,
-    media_reference: item.media_reference,
-    is_available: item.is_available,
-    is_featured: item.is_featured,
-    ingredients: item.ingredients,
-    allergens: stringifyAllergens(item.allergens),
-    nutritional_info: item.nutritional_info,
-    preparation_time: item.preparation_time,
-    restaurant_id: item.restaurant_id
-  };
-  
-  const { data, error } = await supabase
-    .from('menu_items')
-    .insert(dbItem)
-    .select();
-    
-  if (error) {
-    console.error('Error creating menu item:', error);
-    throw error;
+
+  // Start transaction
+  const { error: beginError } = await supabase.rpc('begin_transaction');
+  if (beginError) {
+    console.error('Error beginning transaction:', beginError);
+    throw beginError;
   }
   
-  return {
-    ...data[0],
-    allergens: parseAllergens(data[0].allergens)
-  };
+  try {
+    // Get current user ID
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+    
+    const dbItem = {
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category_id: item.category_id,
+      image_url: item.image_url,
+      model_url: item.model_url,
+      media_type: item.media_type,
+      media_reference: item.media_reference,
+      is_available: item.is_available,
+      is_featured: item.is_featured,
+      ingredients: item.ingredients,
+      allergens: stringifyAllergens(item.allergens),
+      nutritional_info: item.nutritional_info,
+      preparation_time: item.preparation_time,
+      restaurant_id: item.restaurant_id,
+      user_id: userId // Explicitly set user_id for RLS
+    };
+    
+    const { data, error } = await supabase
+      .from('menu_items')
+      .insert(dbItem)
+      .select();
+      
+    if (error) {
+      // Rollback transaction on error
+      await supabase.rpc('rollback_transaction');
+      console.error('Error creating menu item:', error);
+      throw error;
+    }
+    
+    // Commit transaction
+    const { error: commitError } = await supabase.rpc('commit_transaction');
+    if (commitError) {
+      console.error('Error committing transaction:', commitError);
+      throw commitError;
+    }
+    
+    return {
+      ...data[0],
+      allergens: parseAllergens(data[0].allergens)
+    };
+  } catch (error) {
+    // Ensure rollback on any error
+    await supabase.rpc('rollback_transaction').catch(e => 
+      console.error('Error in rollback:', e)
+    );
+    throw error;
+  }
 };
 
 export const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => {
+  // Get current user ID for RLS validation
+  const userId = (await supabase.auth.getUser()).data.user?.id;
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+  
   const dbUpdates = {
     ...updates,
-    allergens: updates.allergens ? stringifyAllergens(updates.allergens) : undefined
+    allergens: updates.allergens ? stringifyAllergens(updates.allergens) : undefined,
+    user_id: userId // Ensure user_id is set for RLS policies
   };
   
   const { data, error } = await supabase

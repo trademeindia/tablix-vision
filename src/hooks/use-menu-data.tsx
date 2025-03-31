@@ -19,6 +19,18 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
       if (!restaurantId) throw new Error('Restaurant ID is required');
       
       console.log("Fetching categories for restaurant:", restaurantId);
+      
+      // Ensure we have a current user for RLS
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error("Error getting current user:", userError);
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
+      
+      if (!userData.user) {
+        console.warn("No authenticated user found. RLS policies will restrict data access.");
+      }
+      
       const { data, error } = await supabase
         .from('menu_categories')
         .select('*')
@@ -46,6 +58,13 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
       if (!restaurantId) throw new Error('Restaurant ID is required');
       
       try {
+        // Check authentication for RLS
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting current user:", userError);
+          throw new Error(`Authentication error: ${userError.message}`);
+        }
+        
         const { data, error } = await supabase
           .from('menu_items')
           .select('*')
