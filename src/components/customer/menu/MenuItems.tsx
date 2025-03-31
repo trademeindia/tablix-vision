@@ -134,14 +134,16 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
       </Dialog>
 
       {/* Add styles for image error handling */}
-      <style jsx global>{`
-        .image-error-container .image-fallback {
-          opacity: 1 !important;
-        }
-        .image-error {
-          opacity: 0;
-        }
-      `}</style>
+      <style>
+        {`
+          .image-error-container .image-fallback {
+            opacity: 1 !important;
+          }
+          .image-error {
+            opacity: 0;
+          }
+        `}
+      </style>
     </>
   );
 };
