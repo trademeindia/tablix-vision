@@ -9,15 +9,25 @@ export const useItemMutations = (usingTestData: boolean = false) => {
 
   const createItemMutation = useMutation({
     mutationFn: (data: Partial<MenuItem>) => {
+      // Fix: Ensure media_type is properly set as a string value rather than an object
+      const formattedData = {
+        ...data,
+        media_type: typeof data.media_type === 'object' ? 
+          (data.media_type as any)?.value || 'image' : 
+          data.media_type || 'image'
+      };
+
+      console.log("Creating menu item with data:", formattedData);
+      
       if (usingTestData) {
-        console.log("Would create item with test data:", data);
+        console.log("Would create item with test data:", formattedData);
         return Promise.resolve({
-          ...data,
+          ...formattedData,
           id: `00000000-0000-0000-0000-${Math.floor(Math.random() * 1000000).toString().padStart(9, '0')}`,
           created_at: new Date().toISOString()
         } as MenuItem);
       }
-      return createMenuItem(data);
+      return createMenuItem(formattedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
@@ -38,15 +48,25 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   
   const updateItemMutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<MenuItem> }) => {
+      // Fix: Ensure media_type is properly set as a string value rather than an object
+      const formattedUpdates = {
+        ...updates,
+        media_type: typeof updates.media_type === 'object' ? 
+          (updates.media_type as any)?.value || 'image' : 
+          updates.media_type || 'image'
+      };
+
+      console.log("Updating menu item with data:", id, formattedUpdates);
+      
       if (usingTestData) {
-        console.log("Would update item with test data:", id, updates);
+        console.log("Would update item with test data:", id, formattedUpdates);
         return Promise.resolve({
-          ...updates,
+          ...formattedUpdates,
           id,
           updated_at: new Date().toISOString()
         } as MenuItem);
       }
-      return updateMenuItem(id, updates);
+      return updateMenuItem(id, formattedUpdates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });

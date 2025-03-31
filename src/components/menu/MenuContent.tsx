@@ -6,7 +6,6 @@ import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import { useItemDialogs } from '@/hooks/menu/use-item-dialogs';
-import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
 
 interface MenuContentProps {
   activeTab: string;
@@ -39,13 +38,9 @@ const MenuContent: React.FC<MenuContentProps> = ({
   onEditItem,
   onDeleteItem
 }) => {
-  const {
-    isAddOpen, setIsAddOpen,
-    isEditOpen, setIsEditOpen,
-    isDeleteOpen, setIsDeleteOpen,
-    selectedItem, setSelectedItem
-  } = useItemDialogs();
-
+  // We don't need the item dialogs here since they're already managed at the page level
+  // and this was causing a duplicate dialog issue
+  
   if (isCategoriesLoading || isItemsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -85,20 +80,6 @@ const MenuContent: React.FC<MenuContentProps> = ({
           />
         </TabsContent>
       </Tabs>
-      
-      <ItemDialogs 
-        isAddOpen={isAddOpen}
-        setIsAddOpen={setIsAddOpen}
-        isEditOpen={isEditOpen}
-        setIsEditOpen={setIsEditOpen}
-        isDeleteOpen={isDeleteOpen}
-        setIsDeleteOpen={setIsDeleteOpen}
-        selectedItem={selectedItem}
-        setSelectedItem={setSelectedItem}
-        categories={categories}
-        restaurantId="placeholder-restaurant-id" // This should be dynamically provided
-        onRefreshCategories={() => {}} // This should be dynamically provided
-      />
     </>
   );
 };

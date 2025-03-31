@@ -44,6 +44,11 @@ export const useItemQueries = (
     }
   }, [itemsError, refetchItems, setUsingTestData]);
 
+  useEffect(() => {
+    // Log the items when they change to help with debugging
+    console.log("Current menu items:", menuItems);
+  }, [menuItems]);
+
   return {
     menuItems,
     isItemsLoading,
