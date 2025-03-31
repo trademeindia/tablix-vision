@@ -28,20 +28,17 @@ serve(async (req) => {
     
     if (action === 'begin_transaction') {
       // Begin a transaction
-      const { data, error } = await supabase.rpc('begin_transaction');
-      if (error) throw error;
+      await supabase.rpc('begin_transaction');
       result = { success: true, message: 'Transaction started' };
     } 
     else if (action === 'commit_transaction') {
       // Commit a transaction
-      const { data, error } = await supabase.rpc('commit_transaction');
-      if (error) throw error;
+      await supabase.rpc('commit_transaction');
       result = { success: true, message: 'Transaction committed' };
     } 
     else if (action === 'rollback_transaction') {
       // Rollback a transaction
-      const { data, error } = await supabase.rpc('rollback_transaction');
-      if (error) throw error;
+      await supabase.rpc('rollback_transaction');
       result = { success: true, message: 'Transaction rolled back' };
     } 
     else {
