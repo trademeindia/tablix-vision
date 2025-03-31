@@ -10,7 +10,8 @@ export const transactionService = {
    */
   beginTransaction: async () => {
     try {
-      const response = await fetch(`${supabase.functions.url}/database-transactions/begin_transaction`, {
+      const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
+      const response = await fetch(`${supabaseUrl}/database-transactions/begin_transaction`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +35,8 @@ export const transactionService = {
    */
   commitTransaction: async () => {
     try {
-      const response = await fetch(`${supabase.functions.url}/database-transactions/commit_transaction`, {
+      const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
+      const response = await fetch(`${supabaseUrl}/database-transactions/commit_transaction`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +60,8 @@ export const transactionService = {
    */
   rollbackTransaction: async () => {
     try {
-      const response = await fetch(`${supabase.functions.url}/database-transactions/rollback_transaction`, {
+      const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
+      const response = await fetch(`${supabaseUrl}/database-transactions/rollback_transaction`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
