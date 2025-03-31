@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from "@/integrations/supabase/client";
 
 interface UseModelUploadProps {
   menuItemId?: string;
@@ -9,108 +8,125 @@ interface UseModelUploadProps {
   onUploadComplete: (fileId: string, fileUrl: string) => void;
 }
 
-export const useModelUpload = ({ menuItemId, restaurantId, onUploadComplete }: UseModelUploadProps) => {
+export const useModelUpload = ({ 
+  menuItemId, 
+  restaurantId,
+  onUploadComplete 
+}: UseModelUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null);
-    setUploadSuccess(false);
-    
-    if (!e.target.files || e.target.files.length === 0) {
-      setSelectedFile(null);
-      return;
+  
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      // Validate file size (max 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        setError('File size exceeds 50MB limit');
+        return;
+      }
+      
+      // Validate file type
+      if (!file.name.endsWith('.glb') && !file.name.endsWith('.gltf')) {
+        setError('Only GLB and GLTF files are supported');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setError(null);
+      setUploadSuccess(false);
     }
-    
-    const file = e.target.files[0];
-    
-    // Validate file type
-    const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.glb') && !fileName.endsWith('.gltf')) {
-      setError('Invalid file type. Only GLB and GLTF formats are supported.');
-      setSelectedFile(null);
-      return;
-    }
-    
-    // Validate file size (10MB max)
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-    if (file.size > MAX_FILE_SIZE) {
-      setError('File too large. Maximum size is 10MB.');
-      setSelectedFile(null);
-      return;
-    }
-    
-    setSelectedFile(file);
-  };
-
-  const uploadFile = async () => {
+  }, []);
+  
+  const uploadFile = useCallback(async () => {
     if (!selectedFile || !menuItemId || !restaurantId) {
-      setError('Missing required data for upload');
+      setError('Missing required information');
       return;
     }
-    
-    setIsUploading(true);
-    setUploadProgress(10);
     
     try {
-      // Create form data
+      setIsUploading(true);
+      setUploadProgress(0);
+      setError(null);
+      
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('menuItemId', menuItemId);
       formData.append('restaurantId', restaurantId);
       
-      setUploadProgress(30);
+      // Create an XMLHttpRequest to track upload progress
+      const xhr = new XMLHttpRequest();
       
-      // Call the Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('upload-model', {
-        body: formData,
+      // Track progress
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = (event.loaded / event.total) * 100;
+          setUploadProgress(progress);
+        }
       });
       
-      setUploadProgress(90);
-      
-      if (error) {
-        throw new Error(error.message || 'Upload failed');
+      // Get Supabase URL from environment
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL not found');
       }
       
-      if (!data || !data.success) {
-        throw new Error((data && data.error) || 'Unknown error occurred');
-      }
-      
-      setUploadProgress(100);
-      setUploadSuccess(true);
-      
-      // Call the callback with the file ID and URL
-      onUploadComplete(data.fileId, data.fileUrl);
-      
-      toast({
-        title: "Upload complete",
-        description: "3D model has been uploaded successfully to Google Drive",
+      // Create promise to handle XHR
+      const response = await new Promise<any>((resolve, reject) => {
+        xhr.open('POST', `${supabaseUrl}/functions/v1/upload-model`);
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data);
+            } catch (err) {
+              reject(new Error('Invalid response format'));
+            }
+          } else {
+            reject(new Error(`Upload failed with status: ${xhr.status}`));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.onabort = () => reject(new Error('Upload aborted'));
+        
+        xhr.send(formData);
       });
       
-      // Reset selected file but keep success state
-      setSelectedFile(null);
+      if (response.success && response.fileId && response.fileUrl) {
+        setUploadSuccess(true);
+        onUploadComplete(response.fileId, response.fileUrl);
+        toast({
+          title: "Upload successful",
+          description: "3D model uploaded to Google Drive",
+        });
+      } else {
+        throw new Error(response.error || 'Upload failed');
+      }
     } catch (err: any) {
       console.error('Upload error:', err);
       setError(err.message || 'Failed to upload file');
       toast({
         title: "Upload failed",
-        description: err.message || 'An error occurred during upload',
+        description: err.message || 'There was an error uploading your file',
         variant: "destructive",
       });
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const cancelUpload = () => {
+  }, [selectedFile, menuItemId, restaurantId, onUploadComplete]);
+  
+  const cancelUpload = useCallback(() => {
     setSelectedFile(null);
     setError(null);
+    setUploadProgress(0);
     setUploadSuccess(false);
-  };
-
+  }, []);
+  
   return {
     isUploading,
     uploadProgress,

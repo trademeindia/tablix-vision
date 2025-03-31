@@ -72,7 +72,7 @@ serve(async (req) => {
     // Upload to Google Drive
     const fileName = file.name;
     const mimeType = fileName.endsWith('.glb') ? 'model/gltf-binary' : 'model/gltf+json';
-    console.log(`File type determined as: ${mimeType}`);
+    console.log(`File type determined as: ${mimeType}, filename: ${fileName}, size: ${(arrayBuffer.byteLength / 1024 / 1024).toFixed(2)}MB`);
     
     const fileId = await uploadToGoogleDrive(arrayBuffer, fileName, mimeType, folderId);
 

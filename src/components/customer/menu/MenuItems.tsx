@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, Box } from 'lucide-react';
+import { Plus, Box, ImageOff } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { lazy, Suspense } from 'react';
 
@@ -36,6 +37,13 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     setModelViewerOpen(true);
   };
   
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error("Image failed to load:", e.currentTarget.src);
+    e.currentTarget.src = ''; // Clear the source to show fallback
+    e.currentTarget.classList.add('image-error');
+    e.currentTarget.parentElement?.classList.add('image-error-container');
+  };
+  
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -43,14 +51,21 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
           <Card key={item.id} className="overflow-hidden h-full flex flex-col">
             <div className="relative h-40 bg-slate-100 overflow-hidden">
               {item.image_url ? (
-                <img 
-                  src={item.image_url} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  <img 
+                    src={item.image_url} 
+                    alt={item.name} 
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 image-fallback">
+                    <ImageOff className="h-8 w-8 text-slate-400" />
+                  </div>
+                </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-400">
-                  No image
+                  <ImageOff className="h-8 w-8" />
                 </div>
               )}
               
@@ -117,6 +132,16 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add styles for image error handling */}
+      <style jsx global>{`
+        .image-error-container .image-fallback {
+          opacity: 1 !important;
+        }
+        .image-error {
+          opacity: 0;
+        }
+      `}</style>
     </>
   );
 };

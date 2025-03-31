@@ -47,12 +47,17 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
     // Notify loading started
     onLoadStart?.();
     
-    // Create GLTF loader
+    // Create GLTF loader with error handler
     const loader = new GLTFLoader();
+    loader.setCrossOrigin('anonymous');
+    
+    // Add some metadata to help with debugging
+    const urlWithNonce = `${modelUrl}${modelUrl.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+    console.log("Loading model with URL:", urlWithNonce);
     
     // Load the model
     loader.load(
-      modelUrl,
+      urlWithNonce,
       (gltf) => {
         try {
           console.log("Model loaded successfully", gltf);

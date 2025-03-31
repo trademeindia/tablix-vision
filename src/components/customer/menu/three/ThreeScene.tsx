@@ -53,8 +53,9 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       
       // Set up renderer with performance optimizations
       renderer = new THREE.WebGLRenderer({ 
-        antialias: false, // Disable antialiasing for performance
-        powerPreference: 'high-performance'
+        antialias: pixelRatio < 2, // Only use antialiasing on lower pixel ratios
+        powerPreference: 'high-performance',
+        alpha: true
       });
       renderer.setSize(container.clientWidth, container.clientHeight);
       renderer.setPixelRatio(pixelRatio);
@@ -67,14 +68,21 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       controls.dampingFactor = 0.05;
       controls.maxDistance = 10;
       controls.minDistance = 2;
+      controls.autoRotate = autoRotate;
+      controls.autoRotateSpeed = 1.0;
       
-      // Add lights (simplified for performance)
+      // Add lights (improved for better model visualization)
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
       scene.add(ambientLight);
       
       const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
       directionalLight.position.set(1, 1, 1);
       scene.add(directionalLight);
+      
+      // Add a back light for better model outline
+      const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+      backLight.position.set(-1, 0.5, -1);
+      scene.add(backLight);
       
       // Create model group to hold loaded model
       modelGroup = new THREE.Group();

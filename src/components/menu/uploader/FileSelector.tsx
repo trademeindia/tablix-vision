@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Upload, X, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { FileUp, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FileSelectorProps {
   selectedFile: File | null;
@@ -20,59 +21,76 @@ const FileSelector: React.FC<FileSelectorProps> = ({
   onFileChange,
   onCancel
 }) => {
+  // Supported file types
+  const acceptedFileTypes = ".glb,.gltf";
+  
   return (
-    <div className="space-y-2">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <label 
-            htmlFor="model-upload" 
-            className={`cursor-pointer flex-1 flex items-center justify-center gap-2 rounded-md border ${uploadSuccess ? 'border-green-300 bg-green-50' : 'border-dashed border-input'} p-4 text-muted-foreground hover:bg-muted/50 transition-colors`}
+    <div className="space-y-3">
+      {!selectedFile && (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          <input
+            id="file-upload"
+            name="file-upload"
+            type="file"
+            className="sr-only"
+            accept={acceptedFileTypes}
+            onChange={onFileChange}
+            disabled={isUploading}
+          />
+          <label
+            htmlFor="file-upload"
+            className="cursor-pointer flex flex-col items-center"
           >
-            {uploadSuccess ? (
-              <>
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-green-700">3D model uploaded successfully</span>
-              </>
-            ) : (
-              <>
-                <Upload className="h-5 w-5" />
-                <span>{selectedFile ? selectedFile.name : 'Choose GLB or GLTF file'}</span>
-              </>
-            )}
-            <input
-              id="model-upload"
-              type="file"
-              className="hidden"
-              accept=".glb,.gltf"
-              onChange={onFileChange}
-              disabled={isUploading || uploadSuccess}
-            />
+            <FileUp className="h-10 w-10 text-gray-400 mb-2" />
+            <span className="text-sm font-medium text-primary">Select 3D model file</span>
+            <span className="mt-1 text-xs text-gray-500">
+              GLB or GLTF (max 50MB)
+            </span>
           </label>
-          
-          {selectedFile && !uploadSuccess && (
+        </div>
+      )}
+      
+      {selectedFile && !uploadSuccess && (
+        <div className="flex items-center justify-between border rounded-lg p-3">
+          <div className="overflow-hidden">
+            <p className="font-medium text-sm truncate">
+              {selectedFile.name}
+            </p>
+            <p className="text-xs text-gray-500">
+              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+            </p>
+          </div>
+          {!isUploading && (
             <Button 
+              type="button" 
               variant="ghost" 
-              size="icon" 
+              size="sm" 
               onClick={onCancel}
-              disabled={isUploading}
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
+              <span className="sr-only">Remove file</span>
             </Button>
           )}
         </div>
-        
-        {error && (
-          <div className="flex items-center gap-2 text-destructive text-sm">
-            <AlertCircle className="h-4 w-4" />
-            <span>{error}</span>
-          </div>
-        )}
-        
-        <p className="text-xs text-muted-foreground">
-          Upload a 3D model to showcase your menu item. Supported formats: GLB & GLTF. Max file size: 10MB. 
-          Your model will be securely stored in Google Drive.
-        </p>
-      </div>
+      )}
+      
+      {uploadSuccess && (
+        <Alert className="bg-green-50 border-green-200 text-green-800">
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <AlertDescription>
+            File uploaded successfully
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };
