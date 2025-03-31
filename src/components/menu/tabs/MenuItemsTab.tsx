@@ -58,6 +58,7 @@ const MenuItemsTab: React.FC<MenuItemsTabProps> = ({
             isVegetarian={allergens.isVegetarian}
             isVegan={allergens.isVegan}
             isGlutenFree={allergens.isGlutenFree}
+            mediaType={item.media_type}
             onView={() => onViewItem(item.id)}
             onEdit={() => onEditItem(item)}
             onDelete={() => onDeleteItem(item)}

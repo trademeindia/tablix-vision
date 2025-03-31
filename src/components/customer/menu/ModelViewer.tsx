@@ -1,6 +1,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface ModelViewerProps {
   modelUrl: string;
@@ -9,17 +11,18 @@ interface ModelViewerProps {
 const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !modelUrl) return;
     
     const container = containerRef.current;
     let animationFrameId: number;
     let renderer: THREE.WebGLRenderer;
     let scene: THREE.Scene;
     let camera: THREE.PerspectiveCamera;
+    let controls: OrbitControls;
     let modelGroup: THREE.Group;
-    let cube: THREE.Mesh;
     
     // Setup renderer with lower pixel ratio for mobile performance
     const pixelRatio = Math.min(window.devicePixelRatio, 2);
@@ -48,6 +51,13 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
       renderer.outputEncoding = THREE.sRGBEncoding;
       container.appendChild(renderer.domElement);
       
+      // Add orbit controls for touch interaction
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxDistance = 10;
+      controls.minDistance = 2;
+      
       // Add lights (simplified for performance)
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
       scene.add(ambientLight);
@@ -56,58 +66,120 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
       directionalLight.position.set(1, 1, 1);
       scene.add(directionalLight);
       
-      // Add simple controls for rotation
+      // Create model group to hold loaded model
       modelGroup = new THREE.Group();
       scene.add(modelGroup);
       
-      // Create a cube as a placeholder while loading
+      // Create a loading indicator
+      const loadingElem = document.createElement('div');
+      loadingElem.id = 'model-loading-indicator';
+      loadingElem.style.position = 'absolute';
+      loadingElem.style.top = '50%';
+      loadingElem.style.left = '50%';
+      loadingElem.style.transform = 'translate(-50%, -50%)';
+      loadingElem.style.color = '#888';
+      loadingElem.textContent = 'Loading 3D model...';
+      container.appendChild(loadingElem);
+      
+      // Load the model
+      loadModel();
+    };
+    
+    const loadModel = () => {
+      // Create a temporary loading cube
       const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
       const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
-      cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+      const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+      cube.scale.set(0.5, 0.5, 0.5);
       modelGroup.add(cube);
-    };
-    
-    // Touch and rotation handling
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
-    
-    const handleMouseDown = (e: MouseEvent | TouchEvent) => {
-      isDragging = true;
-      const clientX = 'touches' in e && e.touches[0] ? e.touches[0].clientX : (e as MouseEvent).clientX;
-      const clientY = 'touches' in e && e.touches[0] ? e.touches[0].clientY : (e as MouseEvent).clientY;
       
-      previousMousePosition = { x: clientX, y: clientY };
-    };
-    
-    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      if (!isDragging) return;
+      // Create GLTF loader
+      const loader = new GLTFLoader();
       
-      const clientX = 'touches' in e && e.touches[0] ? e.touches[0].clientX : (e as MouseEvent).clientX;
-      const clientY = 'touches' in e && e.touches[0] ? e.touches[0].clientY : (e as MouseEvent).clientY;
-      
-      const deltaMove = {
-        x: clientX - previousMousePosition.x,
-        y: clientY - previousMousePosition.y
-      };
-      
-      modelGroup.rotation.y += deltaMove.x * 0.01;
-      modelGroup.rotation.x += deltaMove.y * 0.01;
-      
-      previousMousePosition = { x: clientX, y: clientY };
-    };
-    
-    const handleMouseUp = () => {
-      isDragging = false;
+      // Load the model
+      loader.load(
+        modelUrl,
+        (gltf) => {
+          // Success - remove loading cube and add model
+          modelGroup.remove(cube);
+          
+          // Process the loaded model
+          const model = gltf.scene;
+          
+          // Center the model
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          model.position.sub(center);
+          
+          // Scale the model to reasonable size
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          if (maxDim > 0) {
+            const scale = 2 / maxDim;
+            model.scale.multiplyScalar(scale);
+          }
+          
+          // Add model to the scene
+          modelGroup.add(model);
+          
+          // Remove loading indicator
+          const loadingElem = document.getElementById('model-loading-indicator');
+          if (loadingElem && container.contains(loadingElem)) {
+            container.removeChild(loadingElem);
+          }
+          
+          // Setup animations if present
+          if (gltf.animations && gltf.animations.length) {
+            const mixer = new THREE.AnimationMixer(model);
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+            
+            // Update mixer in animation loop
+            const clock = new THREE.Clock();
+            
+            const originalAnimate = animate;
+            animate = () => {
+              mixer.update(clock.getDelta());
+              originalAnimate();
+            };
+          }
+          
+          setIsLoading(false);
+        },
+        // Progress callback
+        (xhr) => {
+          const loadingElem = document.getElementById('model-loading-indicator');
+          if (loadingElem) {
+            const percentComplete = (xhr.loaded / xhr.total) * 100;
+            loadingElem.textContent = `Loading: ${Math.round(percentComplete)}%`;
+          }
+        },
+        // Error callback
+        (error) => {
+          console.error('Error loading model:', error);
+          setError('Failed to load 3D model');
+          setIsLoading(false);
+          
+          const loadingElem = document.getElementById('model-loading-indicator');
+          if (loadingElem) {
+            loadingElem.textContent = 'Error loading model';
+            loadingElem.style.color = '#e53935';
+          }
+        }
+      );
     };
     
     // Animation loop with optimizations
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       
-      // Only rotate when not being dragged and not too resource-intensive
-      if (!isDragging && !isLoading) {
+      // Only rotate when not interacting and not in error state
+      if (!controls.enabled && !isLoading && !error) {
         modelGroup.rotation.y += 0.005;
       }
+      
+      // Update orbit controls
+      controls.update();
       
       renderer.render(scene, camera);
     };
@@ -125,34 +197,10 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
     init();
     
     // Add event listeners
-    container.addEventListener('mousedown', handleMouseDown);
-    container.addEventListener('touchstart', handleMouseDown, { passive: true });
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleMouseMove, { passive: true });
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchend', handleMouseUp);
     window.addEventListener('resize', handleResize);
     
     // Start animation loop
     animate();
-    
-    // Loading indicator
-    const loadingElem = document.createElement('div');
-    loadingElem.style.position = 'absolute';
-    loadingElem.style.top = '50%';
-    loadingElem.style.left = '50%';
-    loadingElem.style.transform = 'translate(-50%, -50%)';
-    loadingElem.style.color = '#888';
-    loadingElem.textContent = 'Loading...';
-    container.appendChild(loadingElem);
-    
-    // Simulate model loading completed
-    setTimeout(() => {
-      setIsLoading(false);
-      if (container.contains(loadingElem)) {
-        container.removeChild(loadingElem);
-      }
-    }, 1000);
     
     // Cleanup function
     return () => {
@@ -162,43 +210,50 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
         containerRef.current.removeChild(renderer.domElement);
       }
       
-      if (container.contains(loadingElem)) {
+      const loadingElem = document.getElementById('model-loading-indicator');
+      if (loadingElem && container.contains(loadingElem)) {
         container.removeChild(loadingElem);
       }
       
       // Remove event listeners
-      container.removeEventListener('mousedown', handleMouseDown);
-      container.removeEventListener('touchstart', handleMouseDown);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchend', handleMouseUp);
       window.removeEventListener('resize', handleResize);
       
       // Clean up THREE.js resources
       renderer.dispose();
-      cube.geometry.dispose();
       
-      // Fix for the TypeScript error - properly handle material disposal
-      // Check if material is an array or a single material
-      if (Array.isArray(cube.material)) {
-        // If it's an array, dispose each material individually
-        cube.material.forEach(material => material.dispose());
-      } else {
-        // If it's a single material, dispose it directly
-        cube.material.dispose();
-      }
+      // Clean up controls
+      controls.dispose();
+      
+      // Clean up all scene objects
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          if (object.geometry) object.geometry.dispose();
+          
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(material => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        }
+      });
     };
-  }, [modelUrl, isLoading]);
+  }, [modelUrl, isLoading, error]);
   
   return (
     <div 
       ref={containerRef} 
       className="w-full h-full"
       style={{ touchAction: 'none' }} // Prevent touch events from causing page scroll
-    />
+    >
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 bg-opacity-80">
+          <p className="text-red-500">{error}</p>
+        </div>
+      )}
+    </div>
   );
 };
 
 export default ModelViewer;
-

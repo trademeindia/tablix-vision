@@ -4,7 +4,7 @@ import { MenuItem } from '@/types/menu';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Eye, Box } from 'lucide-react';
+import { Plus, Eye3d, Image } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -36,35 +36,45 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
     <div className="grid grid-cols-1 gap-4 mb-16">
       {items.map((item) => {
         const allergens = item.allergens || {};
+        const has3DModel = item.media_type === '3d' && item.model_url;
         
         return (
           <Card key={item.id} className="overflow-hidden">
             <CardContent className="p-0">
               <div className="flex">
-                <div className="w-1/3 relative">
+                <div 
+                  className="w-1/3 relative cursor-pointer"
+                  onClick={() => {
+                    setSelectedItem(item);
+                    setShowModelViewer(has3DModel);
+                  }}
+                >
                   {item.image_url ? (
-                    <img 
-                      src={item.image_url} 
-                      alt={item.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover aspect-square"
-                    />
-                  ) : item.media_type === '3d' && item.model_url ? (
-                    <div 
-                      className="w-full h-full bg-slate-100 flex items-center justify-center aspect-square cursor-pointer"
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setShowModelViewer(true);
-                      }}
-                    >
-                      <Box className="h-8 w-8 text-slate-400" />
-                      <span className="absolute bottom-1 right-1 bg-slate-800/70 text-white text-xs px-1 rounded">
+                    <div className="relative w-full h-full">
+                      <img 
+                        src={item.image_url} 
+                        alt={item.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover aspect-square"
+                      />
+                      {has3DModel && (
+                        <div className="absolute bottom-1 right-1 bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                          <Eye3d className="h-3 w-3 mr-1" />
+                          <span>3D</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : has3DModel ? (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center aspect-square">
+                      <Eye3d className="h-8 w-8 text-primary/70" />
+                      <span className="absolute bottom-1 right-1 bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                        <Eye3d className="h-3 w-3 mr-1" />
                         3D
                       </span>
                     </div>
                   ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center aspect-square">
-                      <span className="text-slate-400">No Image</span>
+                      <Image className="h-8 w-8 text-slate-400" />
                     </div>
                   )}
                 </div>
@@ -124,14 +134,14 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, onAddToOrder }) => {
           <DialogHeader>
             <DialogTitle>{selectedItem?.name}</DialogTitle>
           </DialogHeader>
-          {selectedItem && selectedItem.model_url && (
-            <div className="w-full aspect-square bg-slate-100 relative">
+          {selectedItem && selectedItem.model_url && showModelViewer && (
+            <div className="w-full aspect-square bg-slate-100 relative rounded-md overflow-hidden">
               <Suspense fallback={<MenuItemSkeleton />}>
                 <ModelViewer modelUrl={selectedItem.model_url} />
               </Suspense>
             </div>
           )}
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center pt-2">
             <p className="font-medium">${selectedItem?.price.toFixed(2)}</p>
             <Button onClick={() => {
               if (selectedItem) onAddToOrder(selectedItem);

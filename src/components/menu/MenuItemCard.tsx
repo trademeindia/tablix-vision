@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye } from 'lucide-react';
+import { Edit, Trash2, Eye, Eye3d } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MenuItemCardProps {
@@ -14,6 +14,7 @@ interface MenuItemCardProps {
   isVegetarian?: boolean;
   isVegan?: boolean;
   isGlutenFree?: boolean;
+  mediaType?: string;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -28,23 +29,44 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   isVegetarian,
   isVegan,
   isGlutenFree,
+  mediaType,
   onView,
   onEdit,
   onDelete,
 }) => {
+  const has3DModel = mediaType === '3d';
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="p-0">
         <div className="h-40 relative">
           {image ? (
-            <img 
-              src={image} 
-              alt={name} 
-              className="w-full h-full object-cover"
-            />
+            <div className="relative w-full h-full">
+              <img 
+                src={image} 
+                alt={name} 
+                className="w-full h-full object-cover"
+              />
+              {has3DModel && (
+                <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                  <Eye3d className="h-3 w-3 mr-1" />
+                  <span>3D</span>
+                </div>
+              )}
+            </div>
           ) : (
-            <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500">
-              No Image
+            <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500 relative">
+              {has3DModel ? (
+                <>
+                  <Eye3d className="h-8 w-8 text-primary/70" />
+                  <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                    <Eye3d className="h-3 w-3 mr-1" />
+                    <span>3D</span>
+                  </div>
+                </>
+              ) : (
+                <span>No Image</span>
+              )}
             </div>
           )}
           
