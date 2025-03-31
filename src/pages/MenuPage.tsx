@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { useMenuPageData } from '@/hooks/use-menu-page-data';
+import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
 import PageHeader from '@/components/menu/PageHeader';
 import MenuAlerts from '@/components/menu/MenuAlerts';
 import MenuContent from '@/components/menu/MenuContent';
