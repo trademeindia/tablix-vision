@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/use-menu-page-data';
 import PageHeader from '@/components/menu/PageHeader';
@@ -7,9 +7,26 @@ import MenuAlerts from '@/components/menu/MenuAlerts';
 import MenuContent from '@/components/menu/MenuContent';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
+import { toast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const MenuPage = () => {
-  const restaurantId = "00000000-0000-0000-0000-000000000000";
+  // Use a state for restaurant ID in case we want to make it dynamic in the future
+  const [restaurantId] = useState("00000000-0000-0000-0000-000000000000");
+  const [isErrorVisible, setIsErrorVisible] = useState(false);
+  
+  useEffect(() => {
+    // Check for database errors and show a helpful message after a short delay
+    const timer = setTimeout(() => {
+      const consoleErrors = document.querySelectorAll('.console-error');
+      if (consoleErrors.length > 0) {
+        setIsErrorVisible(true);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const {
     // Tab state
@@ -61,6 +78,16 @@ const MenuPage = () => {
         onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
         isLoading={isCategoriesLoading}
       />
+      
+      {isErrorVisible && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            There appears to be a database connection issue. Please check your Supabase configuration and permissions.
+            You can continue to use the interface with test data.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <MenuAlerts 
         categoriesError={categoriesError}
