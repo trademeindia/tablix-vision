@@ -17,24 +17,28 @@ const AuthPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Restaurant Management Dashboard</h1>
-        <p className="text-muted-foreground">Sign in to manage your restaurant</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-2 text-gray-800">
+            Restaurant Dashboard
+          </h1>
+          <p className="text-gray-600">Sign in to manage your restaurant operations</p>
+        </div>
+        
+        <AuthForm />
+        
+        <p className="mt-8 text-sm text-center text-gray-500">
+          Manage menus, orders, and staff all in one place
+        </p>
       </div>
-      
-      <AuthForm />
-      
-      <p className="mt-8 text-sm text-muted-foreground text-center">
-        Manage your menus, orders, and staff all in one place.
-      </p>
     </div>
   );
 };
