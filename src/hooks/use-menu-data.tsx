@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuCategory, MenuItem, parseAllergens } from '@/types/menu';
@@ -38,6 +37,7 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
     },
     enabled: !!restaurantId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 2, // Retry failed requests twice
   });
   
   const itemsQuery = useQuery({
@@ -45,33 +45,40 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
     queryFn: async () => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
       
-      const { data, error } = await supabase
-        .from('menu_items')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .eq('is_available', true);
-      
-      if (error) throw new Error(`Error fetching items: ${error.message}`);
-      
-      // Transform the items data
-      const transformedItems = data.map(item => ({
-        ...item,
-        allergens: parseAllergens(item.allergens)
-      }));
-      
-      return transformedItems as MenuItem[];
+      try {
+        const { data, error } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('restaurant_id', restaurantId)
+          .eq('is_available', true);
+        
+        if (error) throw new Error(`Error fetching items: ${error.message}`);
+        
+        // Transform the items data
+        const transformedItems = data.map(item => ({
+          ...item,
+          allergens: parseAllergens(item.allergens)
+        }));
+        
+        return transformedItems as MenuItem[];
+      } catch (error) {
+        console.error("Error in fetchMenuItems query:", error);
+        throw error instanceof Error ? error : new Error(String(error));
+      }
     },
     enabled: !!restaurantId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 2, // Retry failed requests twice
   });
 
   const refetchCategories = async () => {
     try {
       await categoriesQuery.refetch();
+      await itemsQuery.refetch();
     } catch (error) {
-      console.error("Error refetching categories:", error);
+      console.error("Error refetching data:", error);
       toast({
-        title: "Failed to refresh categories",
+        title: "Failed to refresh data",
         description: "Please try again or check your connection",
         variant: "destructive"
       });

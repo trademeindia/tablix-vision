@@ -5,7 +5,6 @@ import Spinner from '@/components/ui/spinner';
 import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import { MenuCategory, MenuItem } from '@/types/menu';
-import { useItemDialogs } from '@/hooks/menu/use-item-dialogs';
 
 interface MenuContentProps {
   activeTab: string;
@@ -38,9 +37,6 @@ const MenuContent: React.FC<MenuContentProps> = ({
   onEditItem,
   onDeleteItem
 }) => {
-  // We don't need the item dialogs here since they're already managed at the page level
-  // and this was causing a duplicate dialog issue
-  
   if (isCategoriesLoading || isItemsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -50,7 +46,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
   }
 
   return (
-    <>
+    <div className="bg-background">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="items">Menu Items</TabsTrigger>
@@ -80,7 +76,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
           />
         </TabsContent>
       </Tabs>
-    </>
+    </div>
   );
 };
 

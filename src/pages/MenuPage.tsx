@@ -72,75 +72,78 @@ const MenuPage = () => {
     usingTestData
   } = useMenuPageData(restaurantId);
 
+  // Defensive rendering to ensure the page loads even if some data is missing
   return (
     <DashboardLayout>
-      <PageHeader 
-        activeTab={activeTab}
-        onRefresh={handleRefreshCategories}
-        onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
-        isLoading={isCategoriesLoading}
-      />
-      
-      {isErrorVisible && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            There appears to be a database connection issue. Please check your Supabase configuration and permissions.
-            You can continue to use the interface with test data.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <MenuAlerts 
-        categoriesError={categoriesError}
-        itemsError={itemsError}
-        categoriesCount={categories.length}
-        isCategoriesLoading={isCategoriesLoading}
-        onAddCategory={() => setIsAddCategoryOpen(true)}
-      />
-      
-      <MenuContent
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        categories={categories}
-        menuItems={menuItems}
-        isCategoriesLoading={isCategoriesLoading}
-        isItemsLoading={isItemsLoading}
-        onAddItem={() => setIsAddItemOpen(true)}
-        onViewItem={handleViewItem}
-        onEditItem={handleEditItem}
-        onDeleteItem={handleDeleteItemClick}
-        onAddCategory={() => setIsAddCategoryOpen(true)}
-        onEditCategory={handleEditCategory}
-        onDeleteCategory={handleDeleteCategoryClick}
-      />
-      
-      <CategoryDialogs 
-        isAddOpen={isAddCategoryOpen}
-        setIsAddOpen={setIsAddCategoryOpen}
-        isEditOpen={isEditCategoryOpen}
-        setIsEditOpen={setIsEditCategoryOpen}
-        isDeleteOpen={isDeleteCategoryOpen}
-        setIsDeleteOpen={setIsDeleteCategoryOpen}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        restaurantId={restaurantId}
-      />
-      
-      <ItemDialogs 
-        isAddOpen={isAddItemOpen}
-        setIsAddOpen={setIsAddItemOpen}
-        isEditOpen={isEditItemOpen}
-        setIsEditOpen={setIsEditItemOpen}
-        isDeleteOpen={isDeleteItemOpen}
-        setIsDeleteOpen={setIsDeleteItemOpen}
-        selectedItem={selectedItem}
-        setSelectedItem={setSelectedItem}
-        categories={categories}
-        restaurantId={restaurantId}
-        onRefreshCategories={handleRefreshCategories}
-        usingTestData={usingTestData}
-      />
+      <div className="container mx-auto py-6">
+        <PageHeader 
+          activeTab={activeTab}
+          onRefresh={handleRefreshCategories}
+          onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
+          isLoading={isCategoriesLoading}
+        />
+        
+        {isErrorVisible && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              There appears to be a database connection issue. Please check your Supabase configuration and permissions.
+              You can continue to use the interface with test data.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        <MenuAlerts 
+          categoriesError={categoriesError}
+          itemsError={itemsError}
+          categoriesCount={categories?.length || 0}
+          isCategoriesLoading={isCategoriesLoading}
+          onAddCategory={() => setIsAddCategoryOpen(true)}
+        />
+        
+        <MenuContent
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          categories={categories || []}
+          menuItems={menuItems || []}
+          isCategoriesLoading={isCategoriesLoading}
+          isItemsLoading={isItemsLoading}
+          onAddItem={() => setIsAddItemOpen(true)}
+          onViewItem={handleViewItem}
+          onEditItem={handleEditItem}
+          onDeleteItem={handleDeleteItemClick}
+          onAddCategory={() => setIsAddCategoryOpen(true)}
+          onEditCategory={handleEditCategory}
+          onDeleteCategory={handleDeleteCategoryClick}
+        />
+        
+        <CategoryDialogs 
+          isAddOpen={isAddCategoryOpen}
+          setIsAddOpen={setIsAddCategoryOpen}
+          isEditOpen={isEditCategoryOpen}
+          setIsEditOpen={setIsEditCategoryOpen}
+          isDeleteOpen={isDeleteCategoryOpen}
+          setIsDeleteOpen={setIsDeleteCategoryOpen}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          restaurantId={restaurantId}
+        />
+        
+        <ItemDialogs 
+          isAddOpen={isAddItemOpen}
+          setIsAddOpen={setIsAddItemOpen}
+          isEditOpen={isEditItemOpen}
+          setIsEditOpen={setIsEditItemOpen}
+          isDeleteOpen={isDeleteItemOpen}
+          setIsDeleteOpen={setIsDeleteItemOpen}
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+          categories={categories || []}
+          restaurantId={restaurantId}
+          onRefreshCategories={handleRefreshCategories}
+          usingTestData={usingTestData}
+        />
+      </div>
     </DashboardLayout>
   );
 };
