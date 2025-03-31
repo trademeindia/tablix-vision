@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Upload, Eye3d } from 'lucide-react';
+import { ExternalLink, Upload, Cube } from 'lucide-react';
 import { UseFormReturn } from "react-hook-form";
 import ModelUploader from '../ModelUploader';
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +87,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
                       onClick={() => setShowModelPreview(true)}
                       title="Preview 3D model"
                     >
-                      <Eye3d className="h-4 w-4" />
+                      <Cube className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
@@ -104,7 +103,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         />
       </div>
       
-      {/* Hidden fields for media type and reference */}
       <FormField
         control={form.control}
         name="media_type"
@@ -125,7 +123,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         )}
       />
       
-      {/* 3D Model Uploader */}
       <div className="border rounded-lg p-4 bg-slate-50">
         <h3 className="text-sm font-medium mb-3">3D Model Upload</h3>
         <ModelUploader
@@ -138,7 +135,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         </p>
       </div>
 
-      {/* Model Preview Dialog */}
       <Dialog open={showModelPreview} onOpenChange={setShowModelPreview}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
