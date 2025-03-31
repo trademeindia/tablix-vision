@@ -92,7 +92,8 @@ export const useAuthStatus = (): AuthStatus => {
         email,
         password,
         options: {
-          data: userData
+          data: userData,
+          emailRedirectTo: window.location.origin + '/auth'
         }
       });
 
@@ -101,14 +102,36 @@ export const useAuthStatus = (): AuthStatus => {
         return { success: false, error: error.message };
       }
 
-      // Note: signUp might require email verification, so the session might not be immediately available
-      if (data.session) {
+      // During development, auto sign-in after signup even if email verification is required
+      if (data.user && !data.session) {
+        console.log('User created but session is null - attempting direct signin');
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (!signInError && signInData.session) {
+          setSession(signInData.session);
+          setUser(signInData.user);
+          toast({
+            title: "Sign up successful",
+            description: "You've been automatically signed in for development purposes.",
+          });
+          return { success: true };
+        } else {
+          toast({
+            title: "Email verification required",
+            description: "Please check your email to verify your account before signing in. If you don't receive an email, you'll need to disable email verification in Supabase.",
+            variant: "destructive"
+          });
+        }
+      } else if (data.session) {
+        // User was created and automatically signed in
         setSession(data.session);
         setUser(data.user);
-      } else {
         toast({
-          title: "Email verification required",
-          description: "Please check your email to verify your account before signing in.",
+          title: "Sign up successful",
+          description: "You've been automatically signed in.",
         });
       }
       

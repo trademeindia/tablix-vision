@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { useAuthStatus } from '@/hooks/use-auth-status';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 const authFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -55,7 +57,7 @@ export const AuthForm: React.FC = () => {
         if (success) {
           toast({
             title: 'Sign up successful',
-            description: 'Welcome! Please check your email for verification instructions.'
+            description: 'Welcome to Restaurant Management Dashboard!'
           });
         } else {
           toast({
@@ -79,6 +81,14 @@ export const AuthForm: React.FC = () => {
 
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+      <Alert className="mb-6 bg-blue-50">
+        <InfoIcon className="h-4 w-4" />
+        <AlertTitle>Development Note</AlertTitle>
+        <AlertDescription>
+          For development purposes, email verification is bypassed. In production, users would need to verify their email.
+        </AlertDescription>
+      </Alert>
+      
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signin' | 'signup')}>
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="signin">Sign In</TabsTrigger>
