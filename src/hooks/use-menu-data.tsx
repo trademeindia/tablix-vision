@@ -6,7 +6,7 @@ import { MenuCategory, MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 
 interface UseMenuDataResult {
-  categories: MenuCategory[] | null;
+  categories: MenuCategory[];
   items: MenuItem[] | null;
   isLoading: boolean;
   error: Error | null;

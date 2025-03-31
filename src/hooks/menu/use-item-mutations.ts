@@ -31,17 +31,22 @@ const getErrorMessage = (error: any): string => {
   return "An unexpected error occurred. Please try again.";
 };
 
+export interface MediaTypeOption {
+  value: string;
+  label: string;
+}
+
 export const useItemMutations = (usingTestData: boolean = false) => {
   const queryClient = useQueryClient();
 
   const createItemMutation = useMutation({
-    mutationFn: (data: Partial<MenuItem>) => {
+    mutationFn: async (data: Partial<MenuItem>) => {
       // Fix: Ensure media_type is properly set as a string value rather than an object
       const formattedData = {
         ...data,
         media_type: typeof data.media_type === 'object' ? 
-          (data.media_type as any)?.value || 'image' : 
-          data.media_type || 'image'
+          ((data.media_type as unknown as MediaTypeOption)?.value || 'image') : 
+          (data.media_type || 'image')
       };
 
       console.log("Creating menu item with data:", formattedData);
@@ -89,13 +94,13 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   });
   
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<MenuItem> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<MenuItem> }) => {
       // Fix: Ensure media_type is properly set as a string value rather than an object
       const formattedUpdates = {
         ...updates,
         media_type: typeof updates.media_type === 'object' ? 
-          (updates.media_type as any)?.value || 'image' : 
-          updates.media_type || 'image'
+          ((updates.media_type as unknown as MediaTypeOption)?.value || 'image') : 
+          (updates.media_type || 'image')
       };
 
       console.log("Updating menu item with data:", id, formattedUpdates);
@@ -139,7 +144,7 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   });
   
   const deleteItemMutation = useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string) => {
       if (!id) {
         throw new Error("Item ID is required for deletion");
       }

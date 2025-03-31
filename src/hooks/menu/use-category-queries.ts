@@ -11,21 +11,28 @@ export const useCategoryQueries = (
   usingTestData: boolean,
   setUsingTestData: (value: boolean) => void
 ) => {
-  // Fetch categories
+  // Fetch categories with proper type definitions
   const { 
     data: categoriesData = [], 
     isLoading: isCategoriesLoading, 
     error: categoriesError,
     refetch: refetchCategories
   } = useQuery({
-    queryKey: ['menuCategories'],
-    queryFn: () => fetchMenuCategories(restaurantId),
+    queryKey: ['menuCategories', restaurantId],
+    queryFn: async () => {
+      try {
+        return await fetchMenuCategories(restaurantId);
+      } catch (error) {
+        console.error("Error in fetchMenuCategories:", error);
+        throw error;
+      }
+    },
     retry: 2,
     staleTime: 30000 // 30 seconds
   });
   
   // Use test data if there are errors with real data
-  const categories = (categoriesError || categoriesData.length === 0) && usingTestData 
+  const categories: MenuCategory[] = (categoriesError || categoriesData.length === 0) && usingTestData 
     ? TEST_CATEGORIES 
     : categoriesData;
 
@@ -33,6 +40,32 @@ export const useCategoryQueries = (
   useEffect(() => {
     if (categoriesError) {
       console.error("Error fetching categories:", categoriesError);
+      
+      // Provide specific error guidance based on error type
+      let errorTitle = "Could not load menu categories";
+      let errorDescription = "Falling back to test data";
+      
+      if (categoriesError instanceof Error) {
+        const errorMsg = categoriesError.message.toLowerCase();
+        
+        if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          errorTitle = "Network connection issue";
+          errorDescription = "Check your internet connection and try again. Using test data for now.";
+        } else if (errorMsg.includes('timeout')) {
+          errorTitle = "Server response timeout";
+          errorDescription = "The server is taking too long to respond. Using test data for now.";
+        } else if (errorMsg.includes('permission') || errorMsg.includes('security policy')) {
+          errorTitle = "Permission error";
+          errorDescription = "You may not have permission to view this data. Using test data instead.";
+        }
+      }
+      
+      toast({
+        title: errorTitle,
+        description: errorDescription,
+        variant: "destructive",
+      });
+      
       // Use test data after multiple retries
       setTimeout(() => {
         setUsingTestData(true);

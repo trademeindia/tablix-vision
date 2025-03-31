@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef } from 'react';
 import { toast } from '@/hooks/use-toast';
 
@@ -85,7 +86,12 @@ export const useModelUpload = ({
       
       while (!success && retryCount <= MAX_RETRIES) {
         try {
-          const response = await new Promise<any>((resolve, reject) => {
+          const response = await new Promise<{
+            success?: boolean;
+            fileId?: string;
+            fileUrl?: string;
+            error?: string;
+          }>((resolve, reject) => {
             xhr.open('POST', `${supabaseUrl}/functions/v1/upload-model`);
             
             xhr.onload = () => {

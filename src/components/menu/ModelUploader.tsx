@@ -36,7 +36,7 @@ const ModelUploader: React.FC<ModelUploaderProps> = ({
   });
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className || ''}`}>
       <FileSelector
         selectedFile={selectedFile}
         isUploading={isUploading}

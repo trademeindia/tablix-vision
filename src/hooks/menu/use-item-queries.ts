@@ -13,7 +13,7 @@ export const useItemQueries = (
 ) => {
   const queryClient = useQueryClient();
   
-  // Fetch menu items
+  // Fetch menu items with proper type definitions
   const { 
     data: menuItemsData = [], 
     isLoading: isItemsLoading, 
@@ -21,16 +21,20 @@ export const useItemQueries = (
     refetch: refetchItems
   } = useQuery({
     queryKey: ['menuItems', restaurantId],
-    queryFn: () => fetchMenuItems(undefined, restaurantId),
+    queryFn: async () => {
+      try {
+        return await fetchMenuItems(undefined, restaurantId);
+      } catch (error) {
+        console.error("Error in fetchMenuItems:", error);
+        throw error;
+      }
+    },
     retry: 3,
     staleTime: 5000, // 5 seconds
-    meta: {
-      errorHandler: true
-    }
   });
   
   // Use test data if there are errors with real data or if explicitly requested
-  const menuItems = (itemsError || (menuItemsData.length === 0 && usingTestData)) 
+  const menuItems: MenuItem[] = (itemsError || (menuItemsData.length === 0 && usingTestData)) 
     ? TEST_MENU_ITEMS 
     : menuItemsData;
 
