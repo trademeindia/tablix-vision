@@ -20,17 +20,20 @@ export const transactionService = {
   beginTransaction: async () => {
     let retries = 0;
     let delay = RETRY_CONFIG.initialDelayMs;
+    
+    // Get the client's session before entering the retry loop to avoid multiple auth calls
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      console.error('Authentication required to begin transaction:', sessionError);
+      throw new Error('Authentication required to begin transaction');
+    }
+    
+    const accessToken = sessionData.session.access_token;
+    const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
 
     while (retries <= RETRY_CONFIG.maxRetries) {
       try {
-        const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
-        const session = await supabase.auth.getSession();
-        const accessToken = session.data.session?.access_token;
-
-        if (!accessToken) {
-          throw new Error('Authentication required to begin transaction');
-        }
-
         const response = await fetch(`${supabaseUrl}/database-transactions/begin_transaction`, {
           method: 'POST',
           headers: {
@@ -75,17 +78,20 @@ export const transactionService = {
   commitTransaction: async () => {
     let retries = 0;
     let delay = RETRY_CONFIG.initialDelayMs;
+    
+    // Get the client's session before entering the retry loop to avoid multiple auth calls
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      console.error('Authentication required to commit transaction:', sessionError);
+      throw new Error('Authentication required to commit transaction');
+    }
+    
+    const accessToken = sessionData.session.access_token;
+    const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
 
     while (retries <= RETRY_CONFIG.maxRetries) {
       try {
-        const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
-        const session = await supabase.auth.getSession();
-        const accessToken = session.data.session?.access_token;
-
-        if (!accessToken) {
-          throw new Error('Authentication required to commit transaction');
-        }
-
         const response = await fetch(`${supabaseUrl}/database-transactions/commit_transaction`, {
           method: 'POST',
           headers: {
@@ -130,17 +136,20 @@ export const transactionService = {
   rollbackTransaction: async () => {
     let retries = 0;
     let delay = RETRY_CONFIG.initialDelayMs;
+    
+    // Get the client's session before entering the retry loop to avoid multiple auth calls
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      console.error('Authentication required to rollback transaction:', sessionError);
+      throw new Error('Authentication required to rollback transaction');
+    }
+    
+    const accessToken = sessionData.session.access_token;
+    const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
 
     while (retries <= RETRY_CONFIG.maxRetries) {
       try {
-        const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co/functions/v1';
-        const session = await supabase.auth.getSession();
-        const accessToken = session.data.session?.access_token;
-
-        if (!accessToken) {
-          throw new Error('Authentication required to rollback transaction');
-        }
-
         const response = await fetch(`${supabaseUrl}/database-transactions/rollback_transaction`, {
           method: 'POST',
           headers: {
