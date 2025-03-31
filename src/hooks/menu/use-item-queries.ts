@@ -24,14 +24,21 @@ export const useItemQueries = (
     queryFn: () => fetchMenuItems(undefined, restaurantId),
     retry: 3,
     staleTime: 5000, // 5 seconds
-    onError: (error) => {
-      console.error("Error fetching menu items:", error);
-      toast({
-        title: "Could not load menu items",
-        description: "Falling back to test data",
-        variant: "destructive",
-      });
-      setUsingTestData(true);
+    meta: {
+      // Use meta for any additional information
+      errorHandler: true
+    },
+    // Using onSettled instead of onError in latest Tanstack Query
+    onSettled: (data, error) => {
+      if (error) {
+        console.error("Error fetching menu items:", error);
+        toast({
+          title: "Could not load menu items",
+          description: "Falling back to test data",
+          variant: "destructive",
+        });
+        setUsingTestData(true);
+      }
     }
   });
   

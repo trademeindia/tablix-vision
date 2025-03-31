@@ -6,9 +6,14 @@ import { Loader2 } from 'lucide-react';
 interface LoadingErrorSectionProps {
   isLoading: boolean;
   error: Error | null;
+  onRetry?: () => void;
 }
 
-const LoadingErrorSection: React.FC<LoadingErrorSectionProps> = ({ isLoading, error }) => {
+const LoadingErrorSection: React.FC<LoadingErrorSectionProps> = ({ 
+  isLoading, 
+  error, 
+  onRetry 
+}) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -22,7 +27,9 @@ const LoadingErrorSection: React.FC<LoadingErrorSectionProps> = ({ isLoading, er
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-2xl font-bold text-destructive mb-2">Error</h1>
         <p className="text-center mb-4">{error.message}</p>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
+        <Button onClick={onRetry || (() => window.location.reload())}>
+          Try Again
+        </Button>
       </div>
     );
   }

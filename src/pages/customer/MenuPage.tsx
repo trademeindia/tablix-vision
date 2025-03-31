@@ -9,7 +9,7 @@ import QRScannerSection from '@/components/customer/menu/QRScannerSection';
 import LoadingErrorSection from '@/components/customer/menu/LoadingErrorSection';
 import MenuContent from '@/components/customer/menu/MenuContent';
 import PageTransition from '@/components/ui/page-transition';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
