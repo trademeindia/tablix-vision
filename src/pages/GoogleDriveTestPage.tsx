@@ -1,7 +1,7 @@
 
 import React from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import GoogleDriveTest from '@/components/GoogleDriveTest';
+import GoogleDriveTest from '@/components/google-drive/GoogleDriveTest';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
