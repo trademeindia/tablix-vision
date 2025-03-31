@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Box, ImageOff } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { lazy, Suspense } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 const ModelViewer = lazy(() => import('./ModelViewer'));
 
@@ -33,6 +34,15 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
   }
 
   const openModelViewer = (modelUrl: string) => {
+    if (!modelUrl) {
+      toast({
+        title: "No 3D model available",
+        description: "This item doesn't have a 3D model to display",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSelectedModel(modelUrl);
     setModelViewerOpen(true);
   };
@@ -83,7 +93,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
               </div>
               
               {/* 3D model indicator */}
-              {item.media_type === '3d' && item.model_url && (
+              {(item.media_type === '3d' && item.model_url) && (
                 <Button 
                   size="sm"
                   variant="secondary"
@@ -124,7 +134,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
             <DialogTitle>3D Model Viewer</DialogTitle>
           </DialogHeader>
           <div className="w-full aspect-square bg-slate-100 rounded-md overflow-hidden">
-            {modelViewerOpen && (
+            {modelViewerOpen && selectedModel && (
               <Suspense fallback={
                 <div className="h-full w-full flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

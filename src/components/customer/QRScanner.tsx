@@ -4,6 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { XCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -33,18 +34,34 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
         },
         (decodedText) => {
           // On successful scan
-          onScan(decodedText);
-          if (scannerRef.current) {
-            scannerRef.current.stop();
+          if (decodedText) {
+            console.log('QR Code scanned:', decodedText);
+            toast({
+              title: "QR Code Scanned",
+              description: "Loading menu...",
+            });
+            
+            if (scannerRef.current) {
+              scannerRef.current.stop().catch(err => {
+                console.error('Failed to stop scanner after successful scan', err);
+              });
+            }
+            
+            onScan(decodedText);
           }
         },
         (errorMessage) => {
           // On error - don't show these to the user
-          console.log(errorMessage);
+          console.log('QR scan error (normal during scanning):', errorMessage);
         }
       )
       .catch((err) => {
         console.error('Failed to start scanner', err);
+        toast({
+          title: "Camera Error",
+          description: "Could not access your camera. Please check permissions.",
+          variant: "destructive"
+        });
       });
 
     // Cleanup on unmount
@@ -52,7 +69,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
       if (scannerRef.current && scannerRef.current.isScanning) {
         scannerRef.current
           .stop()
-          .catch((err) => console.error('Failed to stop scanner', err));
+          .catch((err) => console.error('Failed to stop scanner on unmount', err));
       }
     };
   }, [onScan]);

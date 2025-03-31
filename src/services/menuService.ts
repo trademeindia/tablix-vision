@@ -1,27 +1,31 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCategory, MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 
 // Menu Categories
 export const fetchMenuCategories = async (restaurant_id?: string) => {
-  let query = supabase
-    .from('menu_categories')
-    .select('*')
-    .order('display_order', { ascending: true });
-  
-  if (restaurant_id) {
-    query = query.eq('restaurant_id', restaurant_id);
-  }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error fetching menu categories:', error);
+  try {
+    let query = supabase
+      .from('menu_categories')
+      .select('*')
+      .order('display_order', { ascending: true });
+    
+    if (restaurant_id) {
+      query = query.eq('restaurant_id', restaurant_id);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching menu categories:', error);
+      throw error;
+    }
+    
+    console.log('Menu categories fetched:', data && data.length);
+    return data || [];
+  } catch (error) {
+    console.error('Error in fetchMenuCategories:', error);
     throw error;
   }
-  
-  console.log('Menu categories fetched:', data);
-  return data;
 };
 
 export const createMenuCategory = async (category: Partial<MenuCategory>) => {
@@ -79,29 +83,42 @@ export const deleteMenuCategory = async (id: string) => {
 
 // Menu Items
 export const fetchMenuItems = async (category_id?: string, restaurant_id?: string) => {
-  let query = supabase
-    .from('menu_items')
-    .select('*');
-  
-  if (category_id) {
-    query = query.eq('category_id', category_id);
-  }
-  
-  if (restaurant_id) {
-    query = query.eq('restaurant_id', restaurant_id);
-  }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error fetching menu items:', error);
+  try {
+    console.log("Fetching menu items with restaurant_id:", restaurant_id);
+    
+    let query = supabase
+      .from('menu_items')
+      .select('*');
+    
+    if (category_id) {
+      query = query.eq('category_id', category_id);
+    }
+    
+    if (restaurant_id) {
+      query = query.eq('restaurant_id', restaurant_id);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching menu items:', error);
+      throw error;
+    }
+    
+    console.log('Menu items fetched:', data && data.length);
+    
+    if (!data || data.length === 0) {
+      console.warn('No menu items found for restaurant_id:', restaurant_id);
+    }
+    
+    return data ? data.map(item => ({
+      ...item,
+      allergens: parseAllergens(item.allergens)
+    })) : [];
+  } catch (error) {
+    console.error('Error in fetchMenuItems:', error);
     throw error;
   }
-  
-  return data.map(item => ({
-    ...item,
-    allergens: parseAllergens(item.allergens)
-  }));
 };
 
 export const createMenuItem = async (item: Partial<MenuItem>) => {
