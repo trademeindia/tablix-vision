@@ -30,7 +30,10 @@ const AuthPage: React.FC = () => {
           <h1 className="text-4xl font-bold mb-2 text-gray-800">
             Restaurant Dashboard
           </h1>
-          <p className="text-gray-600">Sign in to manage your restaurant operations</p>
+          <p className="text-gray-600 mb-3">Sign in to manage your restaurant operations</p>
+          <p className="text-sm text-amber-600 font-medium">
+            New here? Try our demo account for instant access!
+          </p>
         </div>
         
         <AuthForm />

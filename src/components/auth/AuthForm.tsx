@@ -9,8 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { useAuthStatus } from '@/hooks/use-auth-status';
-import { Loader2, Mail, Lock, Info } from 'lucide-react';
+import { Loader2, Mail, Lock, Info, ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 
 const authFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -19,8 +20,13 @@ const authFormSchema = z.object({
 
 type AuthFormValues = z.infer<typeof authFormSchema>;
 
+// Demo account credentials
+const DEMO_EMAIL = 'demo@restaurant.com';
+const DEMO_PASSWORD = 'demo123456';
+
 export const AuthForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const { signIn, signUp } = useAuthStatus();
 
@@ -78,6 +84,34 @@ export const AuthForm: React.FC = () => {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true);
+    try {
+      const { success, error } = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+      if (success) {
+        toast({
+          title: 'Demo Access Granted',
+          description: 'You are now using the demo account. Explore the features!'
+        });
+      } else {
+        toast({
+          title: 'Demo Access Failed',
+          description: error || 'Unable to access demo account. Please try again.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Demo login error:', error);
+      toast({
+        title: 'Demo Access Error',
+        description: 'An unexpected error occurred. Please try again later.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDemoLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md overflow-hidden bg-white rounded-xl shadow-lg border border-gray-100">
       <div className="px-6 py-8">
@@ -93,6 +127,32 @@ export const AuthForm: React.FC = () => {
             Email verification is bypassed for development.
           </AlertDescription>
         </Alert>
+
+        {/* Demo Login Button */}
+        <div className="mb-6">
+          <Button 
+            onClick={handleDemoLogin} 
+            className="w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 transition-all duration-200 py-2 h-11"
+            disabled={isDemoLoading}
+          >
+            {isDemoLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Accessing Demo...
+              </>
+            ) : (
+              <>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Try Demo Account
+              </>
+            )}
+          </Button>
+          <p className="text-center text-xs text-gray-500 mt-2">
+            No sign up required - instant access to all features
+          </p>
+        </div>
+
+        <Separator className="my-6" />
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signin' | 'signup')} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8 rounded-lg bg-gray-100 p-1">
