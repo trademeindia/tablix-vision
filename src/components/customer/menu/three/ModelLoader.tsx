@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useThree } from './useThree';
 
 interface ModelLoaderProps {
@@ -24,14 +23,26 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
   const { scene, camera } = useThree();
   
   useEffect(() => {
-    if (!scene || !modelUrl) return;
+    if (!scene || !modelUrl) {
+      console.error("Scene or modelUrl not available:", { sceneAvailable: !!scene, modelUrlAvailable: !!modelUrl });
+      return;
+    }
+    
+    console.log("Starting to load model:", modelUrl);
     
     // Create a temporary loading cube
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
     const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.scale.set(0.5, 0.5, 0.5);
-    scene.add(cube);
+    
+    // Add the cube to the scene
+    try {
+      scene.add(cube);
+      cube.position.set(0, 0, 0);
+    } catch (e) {
+      console.error("Error adding loading cube to scene:", e);
+    }
     
     // Notify loading started
     onLoadStart?.();
@@ -43,64 +54,79 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
     loader.load(
       modelUrl,
       (gltf) => {
-        // Success - remove loading cube
-        scene.remove(cube);
-        
-        // Process the loaded model
-        const model = gltf.scene;
-        
-        // Center the model
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.sub(center);
-        
-        // Scale the model to reasonable size
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        if (maxDim > 0) {
-          const scale = 2 / maxDim;
-          model.scale.multiplyScalar(scale);
+        try {
+          console.log("Model loaded successfully", gltf);
+          
+          // Success - remove loading cube
+          scene.remove(cube);
+          
+          // Process the loaded model
+          const model = gltf.scene;
+          
+          // Center the model
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          model.position.sub(center);
+          
+          // Scale the model to reasonable size
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          if (maxDim > 0) {
+            const scale = 2 / maxDim;
+            model.scale.multiplyScalar(scale);
+          }
+          
+          // Add model to the scene
+          scene.add(model);
+          
+          // Setup animations if present
+          if (gltf.animations && gltf.animations.length) {
+            const mixer = new THREE.AnimationMixer(model);
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+          }
+          
+          // Notify loading complete
+          onLoadComplete?.(model);
+          setLoadingProgress(100);
+        } catch (e) {
+          console.error("Error processing loaded model:", e);
+          onLoadError?.(new Error(`Error processing model: ${e.message}`));
         }
-        
-        // Add model to the scene
-        scene.add(model);
-        
-        // Setup animations if present
-        if (gltf.animations && gltf.animations.length) {
-          const mixer = new THREE.AnimationMixer(model);
-          const action = mixer.clipAction(gltf.animations[0]);
-          action.play();
-        }
-        
-        // Notify loading complete
-        onLoadComplete?.(model);
-        setLoadingProgress(100);
       },
       // Progress callback
       (xhr) => {
         if (xhr.total === 0) return; // Avoid division by zero
         const percentComplete = (xhr.loaded / xhr.total) * 100;
+        console.log(`Model loading progress: ${percentComplete.toFixed(2)}%`);
         setLoadingProgress(percentComplete);
         onLoadProgress?.(percentComplete);
       },
       // Error callback
       (error) => {
         console.error('Error loading model:', error);
-        scene.remove(cube);
-        onLoadError?.(new Error('Failed to load 3D model'));
+        try {
+          scene.remove(cube);
+        } catch (e) {
+          console.error("Error removing loading cube:", e);
+        }
+        onLoadError?.(new Error(`Failed to load 3D model: ${error.message}`));
       }
     );
     
     // Cleanup function
     return () => {
-      scene.remove(cube);
+      try {
+        scene.remove(cube);
+      } catch (e) {
+        console.error("Error cleaning up loading cube:", e);
+      }
     };
   }, [modelUrl, scene, camera, onLoadStart, onLoadProgress, onLoadComplete, onLoadError]);
   
   return (
-    <div className="sr-only">
-      {/* This is a headless component - it doesn't render anything visible */}
-      Loading progress: {loadingProgress.toFixed(0)}%
+    <div className="sr-only" aria-live="polite">
+      Loading 3D model: {loadingProgress.toFixed(0)}%
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -41,12 +41,14 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     modelGroup: null,
   });
 
-  const handleSetThreeObjects = (
+  const handleSetThreeObjects = useCallback((
     scene: THREE.Scene, 
     camera: THREE.PerspectiveCamera, 
     renderer: THREE.WebGLRenderer, 
     controls: OrbitControls
   ) => {
+    console.log("Setting Three objects in context");
+    
     // Create a model group and add it to the scene
     const modelGroup = new THREE.Group();
     scene.add(modelGroup);
@@ -58,7 +60,7 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       controls,
       modelGroup,
     });
-  };
+  }, []);
 
   return (
     <ThreeContext.Provider

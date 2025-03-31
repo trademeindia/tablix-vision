@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { useThree } from './useThree';
 
 interface ThreeSceneProps {
   children?: React.ReactNode;
@@ -17,6 +18,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   backgroundColor = '#f8f9fa'
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { setThreeObjects } = useThree();
+  const sceneSetupRef = useRef<boolean>(false);
   
   useEffect(() => {
     if (!containerRef.current) return;
@@ -33,6 +36,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     const pixelRatio = Math.min(window.devicePixelRatio, 2);
     
     const init = () => {
+      console.log("Initializing Three.js scene");
+      
       // Set up scene with optimized settings
       scene = new THREE.Scene();
       scene.background = new THREE.Color(backgroundColor);
@@ -75,28 +80,33 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       modelGroup = new THREE.Group();
       scene.add(modelGroup);
       
+      // Set up in context
+      setThreeObjects(scene, camera, renderer, controls);
+      
       // Call the callback with created objects
       onSceneReady(scene, camera, renderer, controls);
+      sceneSetupRef.current = true;
+      
+      console.log("Scene initialized successfully");
     };
     
     // Animation loop with optimizations
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       
-      // Only rotate when not interacting and autoRotate is enabled
-      if (!controls.enabled && autoRotate && modelGroup) {
-        modelGroup.rotation.y += 0.005;
+      // Only update when necessary
+      if (controls) {
+        controls.update();
       }
       
-      // Update orbit controls
-      controls.update();
-      
-      renderer.render(scene, camera);
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+      }
     };
     
     // Handle window resize
     const handleResize = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !camera || !renderer) return;
       
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
@@ -114,37 +124,50 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     
     // Cleanup function
     return () => {
+      console.log("Cleaning up Three.js resources");
+      
       cancelAnimationFrame(animationFrameId);
       
-      if (containerRef.current && containerRef.current.contains(renderer.domElement)) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (controls) {
+        controls.dispose();
+      }
+      
+      if (containerRef.current && renderer && containerRef.current.contains(renderer.domElement)) {
+        try {
+          containerRef.current.removeChild(renderer.domElement);
+        } catch (e) {
+          console.error("Error removing renderer from DOM", e);
+        }
       }
       
       // Remove event listeners
       window.removeEventListener('resize', handleResize);
       
       // Clean up THREE.js resources
-      renderer.dispose();
-      
-      // Clean up controls
-      controls.dispose();
+      if (renderer) {
+        renderer.dispose();
+      }
       
       // Clean up all scene objects
-      scene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          if (object.geometry) object.geometry.dispose();
-          
-          if (object.material) {
-            if (Array.isArray(object.material)) {
-              object.material.forEach(material => material.dispose());
-            } else {
-              object.material.dispose();
+      if (scene) {
+        scene.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            if (object.geometry) {
+              object.geometry.dispose();
+            }
+            
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach(material => material.dispose());
+              } else {
+                object.material.dispose();
+              }
             }
           }
-        }
-      });
+        });
+      }
     };
-  }, [onSceneReady, autoRotate, backgroundColor]);
+  }, [onSceneReady, autoRotate, backgroundColor, setThreeObjects]);
   
   return (
     <div 
