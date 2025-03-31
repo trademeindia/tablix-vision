@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Upload, Cube } from 'lucide-react';
+import { ExternalLink, Upload, Box } from 'lucide-react';
 import { UseFormReturn } from "react-hook-form";
 import ModelUploader from '../ModelUploader';
 import { Badge } from "@/components/ui/badge";
@@ -87,7 +88,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
                       onClick={() => setShowModelPreview(true)}
                       title="Preview 3D model"
                     >
-                      <Cube className="h-4 w-4" />
+                      <Box className="h-4 w-4" />
                     </Button>
                   </div>
                 )}

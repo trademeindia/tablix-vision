@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, Cube } from 'lucide-react';
+import { Plus, Box } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { lazy, Suspense } from 'react';
 
@@ -76,7 +75,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
                   className="absolute bottom-2 left-2 bg-black/70 hover:bg-black/90 text-white gap-1 py-1 px-2 h-auto"
                   onClick={() => openModelViewer(item.model_url as string)}
                 >
-                  <Cube className="h-3 w-3" />
+                  <Box className="h-3 w-3" />
                   View 3D
                 </Button>
               )}
