@@ -17,8 +17,7 @@ const GoogleDriveTestPage = () => {
       <Alert className="mb-6 border-blue-200 bg-blue-50">
         <InfoIcon className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-700">
-          A Google Drive folder has been provided with ID: <span className="font-mono bg-white px-2 py-0.5 rounded border">1YeQFebTjgSQQNYt4Dq2CF_1b_Qu1lcqj</span>. 
-          Use this ID in the test tool below to connect to your Google Drive.
+          Connect to Google Drive to store menu item media securely. Follow the setup instructions below if you encounter any connection issues.
         </AlertDescription>
       </Alert>
       
@@ -34,28 +33,46 @@ const GoogleDriveTestPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-medium">Step 1: Verify Google Drive Connection</h3>
+              <h3 className="font-medium">Step 1: Configure Google Cloud</h3>
               <ol className="list-decimal list-inside space-y-2 mt-2 text-sm text-muted-foreground">
-                <li>Use the test tool to verify connectivity with your Google Drive folder</li>
-                <li>Test file upload to ensure proper permissions are set</li>
-                <li>If folder creation fails but upload works with an existing folder ID, use the provided folder ID</li>
+                <li>Create a Google Cloud Project and enable the Drive API</li>
+                <li>Set up OAuth consent screen (external) and credentials</li>
+                <li>Generate a refresh token using OAuth 2.0 Playground</li>
               </ol>
             </div>
             
             <div>
-              <h3 className="font-medium">Step 2: Link to Your Restaurant</h3>
+              <h3 className="font-medium">Step 2: Add Secrets to Supabase</h3>
               <ol className="list-decimal list-inside space-y-2 mt-2 text-sm text-muted-foreground">
-                <li>Once verified, update your restaurant record with the Google Drive folder ID</li>
-                <li>All menu items will now store media in this folder</li>
+                <li>Go to Supabase Edge Function Settings</li>
+                <li>Add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN</li>
+                <li>Make sure the credentials match those from your Google Cloud project</li>
               </ol>
             </div>
             
             <div>
-              <h3 className="font-medium">Step 3: Troubleshooting</h3>
+              <h3 className="font-medium">Step 3: Verify Connection</h3>
+              <ol className="list-decimal list-inside space-y-2 mt-2 text-sm text-muted-foreground">
+                <li>Use the test tool to verify connectivity with Google Drive</li>
+                <li>Create a test folder or use an existing folder ID</li>
+                <li>Test file upload to ensure proper permissions</li>
+              </ol>
+            </div>
+            
+            <div>
+              <h3 className="font-medium">Step 4: Link to Your Restaurant</h3>
+              <ol className="list-decimal list-inside space-y-2 mt-2 text-sm text-muted-foreground">
+                <li>Once verified, your restaurant will automatically use the created folder</li>
+                <li>All menu items will store media in this Google Drive folder</li>
+              </ol>
+            </div>
+            
+            <div>
+              <h3 className="font-medium">Common Issues</h3>
               <ul className="list-disc list-inside space-y-2 mt-2 text-sm text-muted-foreground">
-                <li>If connection fails, check that Google API credentials are properly set in Supabase secrets</li>
-                <li>Verify the folder has proper sharing permissions</li>
-                <li>Check Edge Function logs for detailed error messages</li>
+                <li><span className="font-semibold">invalid_client error</span>: OAuth credentials are incorrect or missing</li>
+                <li><span className="font-semibold">invalid_grant error</span>: Refresh token is expired or invalid</li>
+                <li><span className="font-semibold">permission denied</span>: API not enabled or scopes not configured</li>
               </ul>
             </div>
           </CardContent>
