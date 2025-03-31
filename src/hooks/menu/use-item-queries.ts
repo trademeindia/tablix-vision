@@ -39,10 +39,29 @@ export const useItemQueries = (
     if (itemsError) {
       console.error("Error fetching items:", itemsError);
       
-      // Show error toast
+      // Determine the specific error type for better user guidance
+      let errorTitle = "Could not load menu items";
+      let errorDescription = "Falling back to test data";
+      
+      if (itemsError instanceof Error) {
+        const errorMsg = itemsError.message.toLowerCase();
+        
+        if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+          errorTitle = "Network connection issue";
+          errorDescription = "Check your internet connection and try again. Using test data for now.";
+        } else if (errorMsg.includes('timeout')) {
+          errorTitle = "Server response timeout";
+          errorDescription = "The server is taking too long to respond. Using test data for now.";
+        } else if (errorMsg.includes('permission') || errorMsg.includes('security policy')) {
+          errorTitle = "Permission error";
+          errorDescription = "You may not have permission to view this data. Using test data instead.";
+        }
+      }
+      
+      // Show error toast with specific guidance
       toast({
-        title: "Could not load menu items",
-        description: "Falling back to test data",
+        title: errorTitle,
+        description: errorDescription,
         variant: "destructive",
       });
       

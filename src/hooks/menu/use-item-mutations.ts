@@ -4,6 +4,33 @@ import { toast } from '@/hooks/use-toast';
 import { MenuItem } from '@/types/menu';
 import { createMenuItem, updateMenuItem, deleteMenuItem } from '@/services/menuService';
 
+// Helper to provide better error messages
+const getErrorMessage = (error: any): string => {
+  // Extract the most meaningful error message
+  if (error?.message) {
+    const message = error.message;
+    
+    // Handle specific error cases
+    if (message.includes('duplicate key')) {
+      return "An item with this name already exists. Please use a different name.";
+    } else if (message.includes('not found')) {
+      return "The menu category couldn't be found. It may have been deleted.";
+    } else if (message.includes('violates row level security')) {
+      return "You don't have permission to perform this action. Please contact an administrator.";
+    } else if (message.includes('network')) {
+      return "Network error. Please check your internet connection and try again.";
+    } else if (message.includes('timeout')) {
+      return "The request timed out. Please try again later.";
+    } else if (message.includes('required')) {
+      return "Please fill in all required fields: name, price, and category.";
+    }
+    
+    return message;
+  }
+  
+  return "An unexpected error occurred. Please try again.";
+};
+
 export const useItemMutations = (usingTestData: boolean = false) => {
   const queryClient = useQueryClient();
 
@@ -18,6 +45,19 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       };
 
       console.log("Creating menu item with data:", formattedData);
+      
+      // Validate required fields
+      if (!formattedData.name) {
+        throw new Error("Item name is required");
+      }
+      
+      if (formattedData.price === undefined || formattedData.price === null) {
+        throw new Error("Item price is required");
+      }
+      
+      if (!formattedData.category_id) {
+        throw new Error("Please select a category");
+      }
       
       if (usingTestData) {
         console.log("Would create item with test data:", formattedData);
@@ -36,11 +76,13 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         description: "The menu item has been created successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Create item error:", error);
+      const errorMessage = getErrorMessage(error);
+      
       toast({
         title: "Failed to create item",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -57,6 +99,15 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       };
 
       console.log("Updating menu item with data:", id, formattedUpdates);
+      
+      // Validate required fields
+      if (formattedUpdates.name === '') {
+        throw new Error("Item name cannot be empty");
+      }
+      
+      if (formattedUpdates.price !== undefined && formattedUpdates.price < 0) {
+        throw new Error("Price cannot be negative");
+      }
       
       if (usingTestData) {
         console.log("Would update item with test data:", id, formattedUpdates);
@@ -75,11 +126,13 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         description: "The menu item has been updated successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Update item error:", error);
+      const errorMessage = getErrorMessage(error);
+      
       toast({
         title: "Failed to update item",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -87,6 +140,10 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   
   const deleteItemMutation = useMutation({
     mutationFn: (id: string) => {
+      if (!id) {
+        throw new Error("Item ID is required for deletion");
+      }
+      
       if (usingTestData) {
         console.log("Would delete item with test data:", id);
         return Promise.resolve(true);
@@ -100,11 +157,13 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         description: "The menu item has been deleted successfully.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Delete item error:", error);
+      const errorMessage = getErrorMessage(error);
+      
       toast({
         title: "Failed to delete item",
-        description: error.message || "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }
