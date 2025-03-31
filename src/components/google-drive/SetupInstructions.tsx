@@ -42,7 +42,7 @@ const SetupInstructions: React.FC<SetupInstructionsProps> = ({ open, onOpenChang
               <li>Go to "OAuth consent screen" in the API & Services section</li>
               <li>Select "External" for User Type</li>
               <li>Fill in required fields (App name, email)</li>
-              <li>Add scopes: "../auth/drive" and "../auth/drive.file"</li>
+              <li>Add scopes: ".../auth/drive" and ".../auth/drive.file"</li>
               <li>Add yourself as a test user</li>
             </ol>
           </div>
