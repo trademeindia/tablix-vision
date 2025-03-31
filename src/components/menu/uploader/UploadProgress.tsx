@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface UploadProgressProps {
   isUploading: boolean;
@@ -16,7 +17,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ isUploading, progress }
         <span>Uploading...</span>
         <span>{Math.round(progress)}%</span>
       </div>
-      <Progress value={progress} className="h-2 bg-muted" indicatorClassName="bg-primary" />
+      <Progress value={progress} className="h-2 bg-muted" />
     </div>
   );
 };
