@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 import { transactionService } from "./transactionService";
@@ -254,7 +253,7 @@ export const deleteMenuItem = async (id: string) => {
     toast({
       title: "Delete Warning",
       description: "Menu item not found or you don't have permission to delete it",
-      variant: "warning"
+      variant: "destructive"
     });
   }
   

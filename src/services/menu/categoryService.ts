@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCategory } from "@/types/menu";
 import { toast } from "@/hooks/use-toast";
@@ -203,7 +202,7 @@ export const deleteMenuCategory = async (id: string) => {
     toast({
       title: "Delete Warning",
       description: "Category not found or you don't have permission to delete it",
-      variant: "warning"
+      variant: "destructive"
     });
   }
   
