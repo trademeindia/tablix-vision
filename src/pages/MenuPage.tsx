@@ -7,7 +7,6 @@ import MenuAlerts from '@/components/menu/MenuAlerts';
 import MenuContent from '@/components/menu/MenuContent';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
-import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 

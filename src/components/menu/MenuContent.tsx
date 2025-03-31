@@ -6,6 +6,7 @@ import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import { useItemDialogs } from '@/hooks/menu/use-item-dialogs';
+import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
 
 interface MenuContentProps {
   activeTab: string;
@@ -17,6 +18,10 @@ interface MenuContentProps {
   onAddCategory: () => void;
   onEditCategory: (category: MenuCategory) => void;
   onDeleteCategory: (category: MenuCategory) => void;
+  onAddItem: () => void;
+  onViewItem: (id: string) => void;
+  onEditItem: (item: MenuItem) => void;
+  onDeleteItem: (item: MenuItem) => void;
 }
 
 const MenuContent: React.FC<MenuContentProps> = ({
@@ -28,14 +33,17 @@ const MenuContent: React.FC<MenuContentProps> = ({
   isItemsLoading,
   onAddCategory,
   onEditCategory,
-  onDeleteCategory
+  onDeleteCategory,
+  onAddItem,
+  onViewItem,
+  onEditItem,
+  onDeleteItem
 }) => {
   const {
     isAddOpen, setIsAddOpen,
     isEditOpen, setIsEditOpen,
     isDeleteOpen, setIsDeleteOpen,
-    selectedItem, setSelectedItem,
-    handleAddItem, handleEditItem, handleDeleteItem, handleViewItem
+    selectedItem, setSelectedItem
   } = useItemDialogs();
 
   if (isCategoriesLoading || isItemsLoading) {
@@ -59,10 +67,10 @@ const MenuContent: React.FC<MenuContentProps> = ({
             items={menuItems} 
             categories={categories}
             isLoading={isItemsLoading}
-            onAddItem={handleAddItem}
-            onViewItem={(id) => handleViewItem(id, menuItems)}
-            onEditItem={handleEditItem}
-            onDeleteItem={handleDeleteItem}
+            onAddItem={onAddItem}
+            onViewItem={onViewItem}
+            onEditItem={onEditItem}
+            onDeleteItem={onDeleteItem}
           />
         </TabsContent>
         
@@ -78,7 +86,6 @@ const MenuContent: React.FC<MenuContentProps> = ({
         </TabsContent>
       </Tabs>
       
-      {/* Include the ItemDialogs component to handle item operations */}
       <ItemDialogs 
         isAddOpen={isAddOpen}
         setIsAddOpen={setIsAddOpen}

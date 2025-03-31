@@ -21,6 +21,10 @@ export const useItemDialogs = () => {
     setSelectedItem,
     
     // Helper functions for common actions
+    handleAddItem: () => {
+      setIsAddOpen(true);
+    },
+    
     handleEditItem: (item: MenuItem) => {
       setSelectedItem(item);
       setIsEditOpen(true);
