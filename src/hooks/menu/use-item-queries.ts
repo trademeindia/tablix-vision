@@ -25,20 +25,7 @@ export const useItemQueries = (
     retry: 3,
     staleTime: 5000, // 5 seconds
     meta: {
-      // Use meta for any additional information
       errorHandler: true
-    },
-    // Using onSettled instead of onError in latest Tanstack Query
-    onSettled: (data, error) => {
-      if (error) {
-        console.error("Error fetching menu items:", error);
-        toast({
-          title: "Could not load menu items",
-          description: "Falling back to test data",
-          variant: "destructive",
-        });
-        setUsingTestData(true);
-      }
     }
   });
   
@@ -51,6 +38,14 @@ export const useItemQueries = (
   useEffect(() => {
     if (itemsError) {
       console.error("Error fetching items:", itemsError);
+      
+      // Show error toast
+      toast({
+        title: "Could not load menu items",
+        description: "Falling back to test data",
+        variant: "destructive",
+      });
+      
       // Use test data after multiple retries
       setTimeout(() => {
         setUsingTestData(true);
