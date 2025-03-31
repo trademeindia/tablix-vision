@@ -91,7 +91,9 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
           setLoadingProgress(100);
         } catch (e) {
           console.error("Error processing loaded model:", e);
-          onLoadError?.(new Error(`Error processing model: ${e.message}`));
+          // Fix: Cast unknown error to Error or use a string fallback
+          const errorMessage = e instanceof Error ? e.message : 'Unknown error processing model';
+          onLoadError?.(new Error(errorMessage));
         }
       },
       // Progress callback
@@ -110,7 +112,9 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
         } catch (e) {
           console.error("Error removing loading cube:", e);
         }
-        onLoadError?.(new Error(`Failed to load 3D model: ${error.message}`));
+        // Fix: Cast unknown error to Error or use a string fallback
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load 3D model';
+        onLoadError?.(new Error(errorMessage));
       }
     );
     
