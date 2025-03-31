@@ -5,6 +5,7 @@ import Spinner from '@/components/ui/spinner';
 import MenuCategoriesTab from '@/components/menu/tabs/MenuCategoriesTab';
 import MenuItemsTab from '@/components/menu/tabs/MenuItemsTab';
 import { MenuCategory, MenuItem } from '@/types/menu';
+import { useItemDialogs } from '@/hooks/menu/use-item-dialogs';
 
 interface MenuContentProps {
   activeTab: string;
@@ -13,10 +14,6 @@ interface MenuContentProps {
   menuItems: MenuItem[];
   isCategoriesLoading: boolean;
   isItemsLoading: boolean;
-  onAddItem: () => void;
-  onViewItem: (id: string) => void;
-  onEditItem: (item: MenuItem) => void;
-  onDeleteItem: (item: MenuItem) => void;
   onAddCategory: () => void;
   onEditCategory: (category: MenuCategory) => void;
   onDeleteCategory: (category: MenuCategory) => void;
@@ -29,14 +26,18 @@ const MenuContent: React.FC<MenuContentProps> = ({
   menuItems,
   isCategoriesLoading,
   isItemsLoading,
-  onAddItem,
-  onViewItem,
-  onEditItem,
-  onDeleteItem,
   onAddCategory,
   onEditCategory,
   onDeleteCategory
 }) => {
+  const {
+    isAddOpen, setIsAddOpen,
+    isEditOpen, setIsEditOpen,
+    isDeleteOpen, setIsDeleteOpen,
+    selectedItem, setSelectedItem,
+    handleAddItem, handleEditItem, handleDeleteItem, handleViewItem
+  } = useItemDialogs();
+
   if (isCategoriesLoading || isItemsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -46,35 +47,52 @@ const MenuContent: React.FC<MenuContentProps> = ({
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="mb-6">
-        <TabsTrigger value="items">Menu Items</TabsTrigger>
-        <TabsTrigger value="categories">Categories</TabsTrigger>
-      </TabsList>
+    <>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="items">Menu Items</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="items">
+          <MenuItemsTab 
+            items={menuItems} 
+            categories={categories}
+            isLoading={isItemsLoading}
+            onAddItem={handleAddItem}
+            onViewItem={(id) => handleViewItem(id, menuItems)}
+            onEditItem={handleEditItem}
+            onDeleteItem={handleDeleteItem}
+          />
+        </TabsContent>
+        
+        <TabsContent value="categories">
+          <MenuCategoriesTab 
+            categories={categories} 
+            menuItems={menuItems}
+            isLoading={isCategoriesLoading}
+            onAddCategory={onAddCategory}
+            onEditCategory={onEditCategory}
+            onDeleteCategory={onDeleteCategory}
+          />
+        </TabsContent>
+      </Tabs>
       
-      <TabsContent value="items">
-        <MenuItemsTab 
-          items={menuItems} 
-          categories={categories}
-          isLoading={isItemsLoading}
-          onAddItem={onAddItem}
-          onViewItem={onViewItem}
-          onEditItem={onEditItem}
-          onDeleteItem={onDeleteItem}
-        />
-      </TabsContent>
-      
-      <TabsContent value="categories">
-        <MenuCategoriesTab 
-          categories={categories} 
-          menuItems={menuItems}
-          isLoading={isCategoriesLoading}
-          onAddCategory={onAddCategory}
-          onEditCategory={onEditCategory}
-          onDeleteCategory={onDeleteCategory}
-        />
-      </TabsContent>
-    </Tabs>
+      {/* Include the ItemDialogs component to handle item operations */}
+      <ItemDialogs 
+        isAddOpen={isAddOpen}
+        setIsAddOpen={setIsAddOpen}
+        isEditOpen={isEditOpen}
+        setIsEditOpen={setIsEditOpen}
+        isDeleteOpen={isDeleteOpen}
+        setIsDeleteOpen={setIsDeleteOpen}
+        selectedItem={selectedItem}
+        setSelectedItem={setSelectedItem}
+        categories={categories}
+        restaurantId="placeholder-restaurant-id" // This should be dynamically provided
+        onRefreshCategories={() => {}} // This should be dynamically provided
+      />
+    </>
   );
 };
 
