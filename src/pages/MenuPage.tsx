@@ -67,7 +67,10 @@ const MenuPage = () => {
     handleDeleteCategoryClick,
     handleEditItem,
     handleDeleteItemClick,
-    handleViewItem
+    handleViewItem,
+    
+    // Test data status
+    usingTestData
   } = useMenuPageData(restaurantId);
 
   return (
@@ -137,6 +140,7 @@ const MenuPage = () => {
         categories={categories}
         restaurantId={restaurantId}
         onRefreshCategories={handleRefreshCategories}
+        usingTestData={usingTestData}
       />
     </DashboardLayout>
   );

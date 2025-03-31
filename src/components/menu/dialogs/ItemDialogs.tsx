@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
@@ -29,6 +28,7 @@ interface ItemDialogsProps {
   categories: MenuCategory[];
   restaurantId: string;
   onRefreshCategories?: () => void;
+  usingTestData?: boolean;
 }
 
 const ItemDialogs: React.FC<ItemDialogsProps> = ({ 
@@ -42,12 +42,23 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
   setSelectedItem,
   categories,
   restaurantId,
-  onRefreshCategories
+  onRefreshCategories,
+  usingTestData = false
 }) => {
   const queryClient = useQueryClient();
   
   const createItemMutation = useMutation({
-    mutationFn: createMenuItem,
+    mutationFn: (data: Partial<MenuItem>) => {
+      if (usingTestData) {
+        console.log("Would create item with test data:", data);
+        return Promise.resolve({
+          ...data,
+          id: `00000000-0000-0000-0000-${Math.floor(Math.random() * 1000000).toString().padStart(9, '0')}`,
+          created_at: new Date().toISOString()
+        } as MenuItem);
+      }
+      return createMenuItem(data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       setIsAddOpen(false);
@@ -67,8 +78,17 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
   });
   
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<MenuItem> }) => 
-      updateMenuItem(id, updates),
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<MenuItem> }) => {
+      if (usingTestData) {
+        console.log("Would update item with test data:", id, updates);
+        return Promise.resolve({
+          ...updates,
+          id,
+          updated_at: new Date().toISOString()
+        } as MenuItem);
+      }
+      return updateMenuItem(id, updates);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       setIsEditOpen(false);
@@ -89,7 +109,13 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
   });
   
   const deleteItemMutation = useMutation({
-    mutationFn: deleteMenuItem,
+    mutationFn: (id: string) => {
+      if (usingTestData) {
+        console.log("Would delete item with test data:", id);
+        return Promise.resolve(true);
+      }
+      return deleteMenuItem(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       setIsDeleteOpen(false);
@@ -138,7 +164,6 @@ const ItemDialogs: React.FC<ItemDialogsProps> = ({
               Create a new item for your menu.
             </DialogDescription>
           </DialogHeader>
-          {/* Wrap the form in a div with `position: relative` to create a new stacking context */}
           <div className="relative">
             <ItemForm 
               categories={categories}
