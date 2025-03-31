@@ -47,24 +47,30 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             <ShoppingCart className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-medium">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
-            <p className="text-sm font-bold">${totalPrice.toFixed(2)}</p>
+            <p className="text-sm font-medium text-foreground">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
+            <p className="text-sm font-bold text-foreground">${totalPrice.toFixed(2)}</p>
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <Button onClick={onCheckout} className="mr-2">
+        <div className="flex gap-2 items-center">
+          <Button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onCheckout();
+            }} 
+            className="mr-2"
+          >
             Checkout
           </Button>
           {expanded ? 
-            <ChevronDown className="h-5 w-5" /> : 
-            <ChevronUp className="h-5 w-5" />
+            <ChevronDown className="h-5 w-5 text-foreground" /> : 
+            <ChevronUp className="h-5 w-5 text-foreground" />
           }
         </div>
       </div>
       
       {expanded && (
-        <div className="p-4 pt-0 max-h-[250px] overflow-y-auto">
+        <div className="p-4 pt-0 max-h-[250px] overflow-y-auto bg-background">
           {orderItems.map(({ item, quantity }) => (
             <CartItem 
               key={item.id}

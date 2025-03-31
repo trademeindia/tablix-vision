@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +99,40 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Fix for z-index issues with modals and dialogs */
+  .dialog-overlay {
+    @apply z-50;
+  }
+  
+  .dialog-content {
+    @apply z-50;
+  }
+  
+  /* Ensure contrast for text */
+  .text-contrast-fix {
+    text-shadow: 0 0 1px rgba(0,0,0,0.1);
+  }
+  
+  /* Improve image display */
+  img.fallback-ready {
+    @apply opacity-100 transition-opacity duration-300;
+  }
+  
+  img.fallback-ready.error {
+    @apply opacity-0;
+  }
+}
+
+/* Fix for dialog backdrops */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* Fix for dropdown menus */
+.dropdown-menu {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  z-index: 50;
 }

@@ -48,16 +48,20 @@ const DeleteItemDialog: React.FC<DeleteItemDialogProps> = ({
   
   return (
     <AlertDialog open={isOpen} onOpenChange={handleCloseDialog}>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-background border shadow-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-foreground">Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground">
             This will permanently delete the menu item "{selectedItem?.name}".
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDeleteItem} disabled={deleteItemMutation.isPending}>
+          <AlertDialogCancel className="bg-muted text-foreground hover:bg-muted/80">Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleDeleteItem} 
+            disabled={deleteItemMutation.isPending}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
             {deleteItemMutation.isPending ? "Deleting..." : "Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>

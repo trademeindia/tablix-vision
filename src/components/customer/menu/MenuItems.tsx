@@ -72,13 +72,13 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
               {/* Diet badges */}
               <div className="absolute top-2 right-2 flex flex-wrap gap-1">
                 {item.allergens?.isVegetarian && (
-                  <Badge variant="secondary" className="bg-green-50 text-green-700">Veg</Badge>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700 border border-green-200">Veg</Badge>
                 )}
                 {item.allergens?.isVegan && (
-                  <Badge variant="secondary" className="bg-green-50 text-green-700">Vegan</Badge>
+                  <Badge variant="secondary" className="bg-green-50 text-green-700 border border-green-200">Vegan</Badge>
                 )}
                 {item.allergens?.isGlutenFree && (
-                  <Badge variant="secondary" className="bg-amber-50 text-amber-700">GF</Badge>
+                  <Badge variant="secondary" className="bg-amber-50 text-amber-700 border border-amber-200">GF</Badge>
                 )}
               </div>
               
@@ -87,7 +87,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
                 <Button 
                   size="sm"
                   variant="secondary"
-                  className="absolute bottom-2 left-2 bg-black/70 hover:bg-black/90 text-white gap-1 py-1 px-2 h-auto"
+                  className="absolute bottom-2 left-2 bg-black/70 hover:bg-black/90 text-white gap-1 py-1 px-2 h-auto z-10"
                   onClick={() => openModelViewer(item.model_url as string)}
                 >
                   <Box className="h-3 w-3" />
@@ -97,12 +97,12 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
             </div>
             
             <div className="p-4 flex-1 flex flex-col">
-              <h3 className="font-medium">{item.name}</h3>
+              <h3 className="font-medium text-foreground">{item.name}</h3>
               {item.description && (
-                <p className="text-sm text-slate-500 line-clamp-2 mt-1">{item.description}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{item.description}</p>
               )}
               <div className="mt-auto pt-3 flex items-center justify-between">
-                <span className="font-semibold">${item.price.toFixed(2)}</span>
+                <span className="font-semibold text-foreground">${item.price.toFixed(2)}</span>
                 <Button 
                   size="sm" 
                   onClick={() => onAddToOrder(item)}
@@ -125,7 +125,12 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
           </DialogHeader>
           <div className="w-full aspect-square bg-slate-100 rounded-md overflow-hidden">
             {modelViewerOpen && (
-              <Suspense fallback={<div className="h-full w-full flex items-center justify-center">Loading 3D model...</div>}>
+              <Suspense fallback={
+                <div className="h-full w-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2">Loading 3D model...</span>
+                </div>
+              }>
                 <ModelViewer modelUrl={selectedModel} />
               </Suspense>
             )}
