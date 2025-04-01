@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
@@ -40,7 +40,7 @@ export const useAuthStatus = (): AuthStatus => {
     };
   }, []);
 
-  const checkSession = async (): Promise<boolean> => {
+  const checkSession = useCallback(async (): Promise<boolean> => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase.auth.getSession();
@@ -59,25 +59,39 @@ export const useAuthStatus = (): AuthStatus => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
+      
+      // Validate inputs
       if (!email || !password) {
         return { success: false, error: 'Email and password are required' };
       }
 
+      // Normalize email to handle potential typos or case issues
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      console.log(`Attempting to sign in with email: ${normalizedEmail}`);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password
       });
 
       if (error) {
         console.error('Error signing in:', error);
+        
+        // Provide more specific error messages
+        if (error.message.includes('Invalid login')) {
+          return { success: false, error: 'Invalid email or password. Please try again.' };
+        }
+        
         return { success: false, error: error.message };
       }
 
+      console.log('Sign in successful:', data);
       setSession(data.session);
       setUser(data.user);
       return { success: true };
@@ -95,12 +109,19 @@ export const useAuthStatus = (): AuthStatus => {
   const signUp = async (email: string, password: string, userData?: any): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
+      
+      // Validate inputs
       if (!email || !password) {
         return { success: false, error: 'Email and password are required' };
       }
 
+      // Normalize email
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      console.log(`Attempting to sign up with email: ${normalizedEmail}`);
+      
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
           data: userData,
@@ -110,6 +131,12 @@ export const useAuthStatus = (): AuthStatus => {
 
       if (error) {
         console.error('Error signing up:', error);
+        
+        // Provide specific error messages
+        if (error.message.includes('already registered')) {
+          return { success: false, error: 'This email is already registered. Please sign in instead.' };
+        }
+        
         return { success: false, error: error.message };
       }
 
@@ -117,7 +144,7 @@ export const useAuthStatus = (): AuthStatus => {
       if (data.user && !data.session) {
         console.log('User created but session is null - attempting direct signin');
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: normalizedEmail,
           password
         });
         

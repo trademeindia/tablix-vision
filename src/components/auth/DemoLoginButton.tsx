@@ -18,6 +18,7 @@ export const DemoLoginButton: React.FC<DemoLoginButtonProps> = ({
         onClick={onDemoLogin} 
         className="w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 transition-all duration-200 py-2 h-11"
         disabled={isLoading}
+        type="button"
       >
         {isLoading ? (
           <>

@@ -6,10 +6,20 @@ import { useAuthStatus } from '@/hooks/use-auth-status';
 import { Loader2 } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
-  const { isLoading, isAuthenticated } = useAuthStatus();
+  const { isLoading, isAuthenticated, checkSession } = useAuthStatus();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check the session when the component mounts
+    const verifySession = async () => {
+      await checkSession();
+    };
+    
+    verifySession();
+  }, [checkSession]);
+
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated
     if (isAuthenticated) {
       navigate('/');
     }
@@ -17,8 +27,9 @@ const AuthPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-gray-600">Checking authentication status...</p>
       </div>
     );
   }

@@ -52,6 +52,7 @@ export const AuthForm: React.FC = () => {
             description: error || 'Please check your credentials and try again',
             variant: 'destructive'
           });
+          console.log('Sign in failed with error:', error);
         }
       } else {
         const { success, error } = await signUp(values.email, values.password, {
@@ -68,6 +69,7 @@ export const AuthForm: React.FC = () => {
             description: error || 'An error occurred during sign up',
             variant: 'destructive'
           });
+          console.log('Sign up failed with error:', error);
         }
       }
     } catch (error) {
@@ -85,6 +87,7 @@ export const AuthForm: React.FC = () => {
   const handleDemoLogin = async () => {
     setIsDemoLoading(true);
     try {
+      console.log(`Attempting demo login with: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
       const { success, error } = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
       if (success) {
         toast({
@@ -97,6 +100,7 @@ export const AuthForm: React.FC = () => {
           description: error || 'Unable to access demo account. Please try again.',
           variant: 'destructive'
         });
+        console.error('Demo login failed with error:', error);
       }
     } catch (error) {
       console.error('Demo login error:', error);

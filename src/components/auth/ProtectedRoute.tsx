@@ -27,18 +27,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     verify();
   }, [checkSession]);
 
+  // Show loading state while checking authentication status
   if (isLoading || isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-gray-600">Verifying your session...</span>
       </div>
     );
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    // Redirect to the login page with a return url
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // Render children if authenticated
   return <>{children}</>;
 };
