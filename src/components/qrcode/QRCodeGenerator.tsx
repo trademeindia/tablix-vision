@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,9 +33,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
     // Simulate API call delay
     setTimeout(() => {
       // Create a properly formatted URL for QR code scanning
-      // Use a format that the customer app can parse
+      // Use the correct path that matches the routes in App.tsx
       const baseUrl = window.location.origin;
-      const value = `${baseUrl}/customer/menu?restaurant=${restaurantId}&table=${tableNumber}`;
+      const value = `${baseUrl}/customer-menu?restaurant=${restaurantId}&table=${tableNumber}`;
       
       console.log("Generated QR code with URL:", value);
       
