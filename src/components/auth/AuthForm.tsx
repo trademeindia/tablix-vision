@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -127,7 +128,7 @@ export const AuthForm: React.FC = () => {
         });
       } else {
         console.error('Demo login failed with error:', error);
-        setAuthError(error || 'Unable to access demo account. Please try again.');
+        setAuthError(`Demo login failed: ${error || 'Unable to access demo account. Please try again.'}`);
         toast({
           title: 'Demo Access Failed',
           description: error || 'Unable to access demo account. Please try again.',

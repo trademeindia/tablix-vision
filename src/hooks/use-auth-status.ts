@@ -40,7 +40,32 @@ export const useAuthStatus = (): AuthStatus => {
     );
 
     // Check for existing session immediately
-    checkSession();
+    const checkInitialSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error checking initial session:', error);
+          return;
+        }
+        
+        if (data.session) {
+          console.log('Found existing session for user:', data.session.user.email);
+          setSession(data.session);
+          setUser(data.session.user);
+        } else {
+          console.log('No existing session found');
+          setSession(null);
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Unexpected error checking initial session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkInitialSession();
 
     // Cleanup subscription on unmount
     return () => {
