@@ -15,8 +15,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     const verify = async () => {
-      await checkSession();
-      setIsChecking(false);
+      try {
+        await checkSession();
+      } catch (error) {
+        console.error("Error verifying session:", error);
+      } finally {
+        setIsChecking(false);
+      }
     };
     
     verify();

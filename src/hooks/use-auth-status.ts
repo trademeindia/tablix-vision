@@ -64,6 +64,10 @@ export const useAuthStatus = (): AuthStatus => {
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
+      if (!email || !password) {
+        return { success: false, error: 'Email and password are required' };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -77,9 +81,12 @@ export const useAuthStatus = (): AuthStatus => {
       setSession(data.session);
       setUser(data.user);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected error in signIn:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      return { 
+        success: false, 
+        error: error?.message || 'An unexpected error occurred during sign in' 
+      };
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +95,10 @@ export const useAuthStatus = (): AuthStatus => {
   const signUp = async (email: string, password: string, userData?: any): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
+      if (!email || !password) {
+        return { success: false, error: 'Email and password are required' };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -121,7 +132,7 @@ export const useAuthStatus = (): AuthStatus => {
         } else {
           toast({
             title: "Email verification required",
-            description: "Please check your email to verify your account before signing in. If you don't receive an email, you'll need to disable email verification in Supabase.",
+            description: "Please check your email to verify your account before signing in.",
             variant: "destructive"
           });
         }
@@ -136,9 +147,12 @@ export const useAuthStatus = (): AuthStatus => {
       }
       
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected error in signUp:', error);
-      return { success: false, error: 'An unexpected error occurred' };
+      return { 
+        success: false, 
+        error: error?.message || 'An unexpected error occurred during sign up' 
+      };
     } finally {
       setIsLoading(false);
     }
