@@ -13,7 +13,6 @@ import StaffDashboardPage from "./pages/StaffDashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import OrdersPage from "./pages/OrdersPage";
-import AuthPage from "./pages/auth/AuthPage";
 import GoogleDriveTestPage from "./pages/GoogleDriveTestPage";
 
 // Import placeholder pages for staff dashboard sections
@@ -28,9 +27,6 @@ import CheckoutPage from "./pages/customer/CheckoutPage";
 import CallWaiterPage from "./pages/customer/CallWaiterPage";
 import CustomerProfilePage from './pages/customer/ProfilePage';
 
-// Protected route component
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
-
 // Create a new query client instance with error handling
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,7 +39,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log("Rendering App component");
+  console.log("Rendering App component - Authentication removed");
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -52,31 +48,31 @@ const App = () => {
           <Toaster />
           <Sonner />
           <Routes>
-            {/* Auth routes */}
-            <Route path="/auth" element={<AuthPage />} />
-            
-            {/* Protected admin routes */}
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
-            <Route path="/qr-codes" element={<ProtectedRoute><QRCodePage /></ProtectedRoute>} />
-            <Route path="/tables" element={<ProtectedRoute><TablesPage /></ProtectedRoute>} />
-            <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
-            <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-            <Route path="/google-drive-test" element={<ProtectedRoute><GoogleDriveTestPage /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+            {/* All routes now accessible without authentication */}
+            <Route path="/" element={<Index />} />
+            <Route path="/menu" element={<MenuPage />} />
+            <Route path="/qr-codes" element={<QRCodePage />} />
+            <Route path="/tables" element={<TablesPage />} />
+            <Route path="/staff" element={<StaffPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             
             {/* Staff Dashboard Routes */}
-            <Route path="/staff-dashboard" element={<ProtectedRoute><StaffDashboardPage /></ProtectedRoute>} />
-            <Route path="/staff-dashboard/orders" element={<ProtectedRoute><StaffOrdersPage /></ProtectedRoute>} />
-            <Route path="/staff-dashboard/kitchen" element={<ProtectedRoute><KitchenPage /></ProtectedRoute>} />
-            <Route path="/staff-dashboard/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
-            <Route path="/staff-dashboard/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+            <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
+            <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
+            <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
+            <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
+            <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
             
             {/* Public Customer Facing Routes */}
             <Route path="/customer-menu" element={<CustomerMenuPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/call-waiter" element={<CallWaiterPage />} />
             <Route path="/profile" element={<CustomerProfilePage />} />
+            
+            {/* Redirect auth to home */}
+            <Route path="/auth" element={<Navigate to="/" replace />} />
             
             {/* Catch-all and redirect */}
             <Route path="*" element={<NotFound />} />
