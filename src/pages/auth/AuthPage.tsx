@@ -1,18 +1,30 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthForm } from '@/components/auth/AuthForm';
 import { useAuthStatus } from '@/hooks/use-auth-status';
-import { Loader2 } from 'lucide-react';
+import Spinner from '@/components/ui/spinner';
 
 const AuthPage: React.FC = () => {
   const { isLoading, isAuthenticated, checkSession } = useAuthStatus();
+  const [isVerifying, setIsVerifying] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the page the user was trying to access
+  const from = (location.state as any)?.from?.pathname || '/';
 
   useEffect(() => {
     // Check the session when the component mounts
     const verifySession = async () => {
-      await checkSession();
+      try {
+        console.log('Verifying session in AuthPage...');
+        await checkSession();
+      } catch (error) {
+        console.error('Error verifying session:', error);
+      } finally {
+        setIsVerifying(false);
+      }
     };
     
     verifySession();
@@ -20,16 +32,18 @@ const AuthPage: React.FC = () => {
 
   useEffect(() => {
     // Redirect to dashboard if already authenticated
-    if (isAuthenticated) {
-      navigate('/');
+    if (isAuthenticated && !isVerifying) {
+      console.log(`User is authenticated, redirecting to ${from}`);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, from, isVerifying]);
 
-  if (isLoading) {
+  if (isLoading || isVerifying) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-gray-600">Checking authentication status...</p>
+        <Spinner size="lg" className="mb-4" />
+        <p className="text-gray-600 font-medium">Checking authentication status...</p>
+        <p className="text-gray-500 text-sm mt-2">Just a moment, please</p>
       </div>
     );
   }

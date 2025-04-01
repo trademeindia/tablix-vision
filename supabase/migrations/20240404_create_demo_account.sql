@@ -1,8 +1,6 @@
 
 -- This migration creates a demo account if it doesn't already exist
--- Note: In a production environment, you might want to implement this differently
 
--- First, check if the demo user already exists
 DO $$
 DECLARE
   demo_email TEXT := 'demo@restaurant.com';
@@ -25,7 +23,8 @@ BEGIN
       created_at,
       updated_at,
       raw_app_meta_data,
-      raw_user_meta_data
+      raw_user_meta_data,
+      confirmed_at
     ) VALUES (
       demo_email,
       crypt(demo_password, gen_salt('bf')),
@@ -33,7 +32,8 @@ BEGIN
       now(),
       now(),
       '{"provider": "email", "providers": ["email"]}',
-      '{"full_name": "Demo User"}'
+      '{"full_name": "Demo User"}',
+      now()
     )
     RETURNING id INTO user_id;
     
@@ -44,12 +44,14 @@ BEGIN
       identity_data,
       provider,
       created_at,
-      updated_at
+      updated_at,
+      last_sign_in_at
     ) VALUES (
       user_id,
       user_id,
       format('{"sub": "%s", "email": "%s"}', user_id::text, demo_email)::jsonb,
       'email',
+      now(),
       now(),
       now()
     );

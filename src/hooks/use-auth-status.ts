@@ -20,18 +20,26 @@ export const useAuthStatus = (): AuthStatus => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
+  // Setup auth state listener and check for existing session
   useEffect(() => {
     // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log('Auth state changed:', event);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+        console.log('Auth state changed:', event, 'Session:', currentSession?.user?.email ?? 'No user');
+        
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+        } else {
+          setSession(null);
+          setUser(null);
+        }
+        
         setIsLoading(false);
       }
     );
 
-    // Check for existing session
+    // Check for existing session immediately
     checkSession();
 
     // Cleanup subscription on unmount
@@ -50,9 +58,17 @@ export const useAuthStatus = (): AuthStatus => {
         return false;
       }
       
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      return !!data.session;
+      if (data.session) {
+        console.log('Found existing session for user:', data.session.user.email);
+        setSession(data.session);
+        setUser(data.session.user);
+        return true;
+      } else {
+        console.log('No existing session found');
+        setSession(null);
+        setUser(null);
+        return false;
+      }
     } catch (error) {
       console.error('Unexpected error in checkSession:', error);
       return false;
@@ -81,7 +97,7 @@ export const useAuthStatus = (): AuthStatus => {
       });
 
       if (error) {
-        console.error('Error signing in:', error);
+        console.error('Error signing in:', error.message);
         
         // Provide more specific error messages
         if (error.message.includes('Invalid login')) {
@@ -91,10 +107,15 @@ export const useAuthStatus = (): AuthStatus => {
         return { success: false, error: error.message };
       }
 
-      console.log('Sign in successful:', data);
-      setSession(data.session);
-      setUser(data.user);
-      return { success: true };
+      if (data.session && data.user) {
+        console.log('Sign in successful for user:', data.user.email);
+        setSession(data.session);
+        setUser(data.user);
+        return { success: true };
+      } else {
+        console.error('Sign in returned without error but no session/user');
+        return { success: false, error: 'Authentication failed. Please try again.' };
+      }
     } catch (error: any) {
       console.error('Unexpected error in signIn:', error);
       return { 
@@ -140,7 +161,7 @@ export const useAuthStatus = (): AuthStatus => {
         return { success: false, error: error.message };
       }
 
-      // During development, auto sign-in after signup even if email verification is required
+      // For development convenience - auto sign-in after signup
       if (data.user && !data.session) {
         console.log('User created but session is null - attempting direct signin');
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -153,14 +174,13 @@ export const useAuthStatus = (): AuthStatus => {
           setUser(signInData.user);
           toast({
             title: "Sign up successful",
-            description: "You've been automatically signed in for development purposes.",
+            description: "You've been automatically signed in.",
           });
           return { success: true };
         } else {
           toast({
-            title: "Email verification required",
+            title: "Account created",
             description: "Please check your email to verify your account before signing in.",
-            variant: "destructive"
           });
         }
       } else if (data.session) {
@@ -188,11 +208,22 @@ export const useAuthStatus = (): AuthStatus => {
   const signOut = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      await supabase.auth.signOut();
-      setSession(null);
-      setUser(null);
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error signing out:', error);
+        toast({
+          title: "Sign out failed",
+          description: "There was an error signing out. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        setSession(null);
+        setUser(null);
+        console.log('User signed out successfully');
+      }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Unexpected error signing out:', error);
       toast({
         title: "Sign out failed",
         description: "There was an error signing out. Please try again.",
