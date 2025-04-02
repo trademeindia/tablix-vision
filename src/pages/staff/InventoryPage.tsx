@@ -9,7 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 
 // Component imports
 import InventoryStatsCards from '@/components/inventory/InventoryStatsCards';
+import InventoryStatsCardsSkeleton from '@/components/inventory/InventoryStatsCardsSkeleton';
 import InventoryCategorySidebar from '@/components/inventory/InventoryCategorySidebar';
+import InventoryCategorySidebarSkeleton from '@/components/inventory/InventoryCategorySidebarSkeleton';
 import InventoryItemsTable, { InventoryItem } from '@/components/inventory/InventoryItemsTable';
 import AddItemDialog from '@/components/inventory/AddItemDialog';
 
@@ -154,8 +156,8 @@ const InventoryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
-  const [isLoading, setIsLoading] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
   // In a real app, we would fetch data from Supabase
@@ -242,24 +244,32 @@ const InventoryPage = () => {
         </div>
         
         {/* Stats Cards */}
-        <InventoryStatsCards
-          totalItems={inventoryItems.length}
-          categoryCount={categories.length - 1}
-          lowStockCount={lowStockCount}
-          lastOrderDate="May 17"
-          inventoryValue="$12,580"
-          inventoryTrend="+2.5% from last month"
-        />
+        {isLoading ? (
+          <InventoryStatsCardsSkeleton />
+        ) : (
+          <InventoryStatsCards
+            totalItems={inventoryItems.length}
+            categoryCount={categories.length - 1}
+            lowStockCount={lowStockCount}
+            lastOrderDate="May 17"
+            inventoryValue="$12,580"
+            inventoryTrend="+2.5% from last month"
+          />
+        )}
         
         {/* Main Content */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
           {/* Categories Sidebar */}
-          <InventoryCategorySidebar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            getCategoryCount={getCategoryCount}
-          />
+          {isLoading ? (
+            <InventoryCategorySidebarSkeleton />
+          ) : (
+            <InventoryCategorySidebar
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              getCategoryCount={getCategoryCount}
+            />
+          )}
           
           {/* Inventory Table */}
           <Card className="md:col-span-3">
@@ -275,9 +285,10 @@ const InventoryPage = () => {
                       className="pl-8 w-full sm:w-[200px] md:w-[250px]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      disabled={isLoading}
                     />
                   </div>
-                  <Button onClick={() => setIsAddItemDialogOpen(true)}>
+                  <Button onClick={() => setIsAddItemDialogOpen(true)} disabled={isLoading}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add Item
                   </Button>

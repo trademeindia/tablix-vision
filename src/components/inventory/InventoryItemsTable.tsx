@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table, 
@@ -19,7 +18,8 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Package, MoreVertical } from 'lucide-react';
+import { Package, MoreVertical, Loader2 } from 'lucide-react';
+import InventoryItemsTableSkeleton from './InventoryItemsTableSkeleton';
 
 export interface InventoryItem {
   id: number;
@@ -50,11 +50,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
   onAddItem,
 }) => {
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <p>Loading inventory items...</p>
-      </div>
-    );
+    return <InventoryItemsTableSkeleton />;
   }
 
   if (items.length === 0) {
