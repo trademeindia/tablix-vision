@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Save } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface InvoiceSummarySectionProps {
   totals: {
@@ -24,20 +25,20 @@ const InvoiceSummarySection: React.FC<InvoiceSummarySectionProps> = ({ totals, i
       <CardContent className="space-y-4">
         <div className="flex justify-between">
           <span>Subtotal:</span>
-          <span>${totals.subtotal.toFixed(2)}</span>
+          <span>{formatCurrency(totals.subtotal)}</span>
         </div>
         <div className="flex justify-between">
           <span>Tax:</span>
-          <span>${totals.tax.toFixed(2)}</span>
+          <span>{formatCurrency(totals.tax)}</span>
         </div>
         <div className="flex justify-between">
           <span>Discount:</span>
-          <span>-${totals.discount.toFixed(2)}</span>
+          <span>-{formatCurrency(totals.discount)}</span>
         </div>
         <Separator />
         <div className="flex justify-between font-bold">
           <span>Total:</span>
-          <span>${totals.total.toFixed(2)}</span>
+          <span>{formatCurrency(totals.total)}</span>
         </div>
       </CardContent>
       <CardFooter>
