@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,7 +41,7 @@ const MarketingPage = () => {
               twitter: false,
               linkedin: false
             },
-            status: 'sent'
+            status: 'sent' as CampaignStatus
           },
           {
             id: '2',
@@ -54,7 +55,7 @@ const MarketingPage = () => {
               twitter: true,
               linkedin: false
             },
-            status: 'scheduled'
+            status: 'scheduled' as CampaignStatus
           }
         ]);
       } catch (error) {
@@ -91,7 +92,7 @@ const MarketingPage = () => {
           twitter: formData.platforms.twitter || false,
           linkedin: false // Default value as it wasn't in the form
         },
-        status: 'scheduled' as CampaignStatus // Explicitly cast to CampaignStatus
+        status: 'scheduled' as CampaignStatus
       };
       
       // Mock API call - in a real app, you'd use Supabase
