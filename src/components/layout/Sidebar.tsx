@@ -4,7 +4,8 @@ import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, Utensils, QrCode, Users, BarChart, 
-  ShoppingCart, CloudUpload, Landmark, FileText, Settings
+  ShoppingCart, CloudUpload, FileText, Settings,
+  CalendarDays
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -33,8 +34,9 @@ const Sidebar = () => {
     },
     {
       to: '/tables',
-      icon: <Landmark className="h-5 w-5" />,
-      label: 'Tables'
+      icon: <CalendarDays className="h-5 w-5" />,
+      label: 'Tables & Reservations',
+      highlight: true
     },
     {
       to: '/staff',
