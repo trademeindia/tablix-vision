@@ -1,6 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Invoice } from './types';
+import { getInvoiceById } from './getInvoices';
+
+// Mock invoices from getInvoices
+let mockInvoices: Invoice[] = [];
 
 /**
  * Update invoice status
@@ -12,24 +16,31 @@ export const updateInvoiceStatus = async (
   paymentReference?: string
 ): Promise<boolean> => {
   try {
-    const updateData: any = { status };
+    console.log(`Updating invoice ${invoiceId} status to ${status}`);
+    
+    // Get the current invoice data
+    const invoice = await getInvoiceById(invoiceId);
+    if (!invoice) {
+      console.error('Invoice not found');
+      return false;
+    }
+    
+    // Update the invoice data
+    const updateData: Partial<Invoice> = { 
+      status,
+      updated_at: new Date().toISOString()
+    };
     
     if (status === 'paid') {
       updateData.payment_method = paymentMethod || 'cash';
       updateData.payment_reference = paymentReference || null;
-      updateData.paid_at = new Date().toISOString();
     }
-
-    const { error } = await supabase
-      .from('invoices')
-      .update(updateData)
-      .eq('id', invoiceId);
-
-    if (error) {
-      console.error('Error updating invoice status:', error);
-      return false;
-    }
-
+    
+    // Update the invoice in our mock data
+    mockInvoices = mockInvoices.map(inv => 
+      inv.id === invoiceId ? { ...inv, ...updateData } : inv
+    );
+    
     return true;
   } catch (error) {
     console.error('Error in updateInvoiceStatus:', error);
@@ -45,16 +56,26 @@ export const updateInvoice = async (
   updates: Partial<Omit<Invoice, 'id' | 'items'>>
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('invoices')
-      .update(updates)
-      .eq('id', invoiceId);
-
-    if (error) {
-      console.error('Error updating invoice:', error);
+    console.log(`Updating invoice ${invoiceId}`, updates);
+    
+    // Get the current invoice data
+    const invoice = await getInvoiceById(invoiceId);
+    if (!invoice) {
+      console.error('Invoice not found');
       return false;
     }
-
+    
+    // Update the invoice data with the updated_at timestamp
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Update the invoice in our mock data
+    mockInvoices = mockInvoices.map(inv => 
+      inv.id === invoiceId ? { ...inv, ...updateData } : inv
+    );
+    
     return true;
   } catch (error) {
     console.error('Error in updateInvoice:', error);

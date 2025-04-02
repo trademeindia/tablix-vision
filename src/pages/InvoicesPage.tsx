@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, ArrowLeft, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const InvoicesPage = () => {
@@ -158,18 +157,14 @@ const InvoicesPage = () => {
       });
       
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
       
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Invoice-${selectedInvoice.invoice_number}.pdf`);
+      // Create a download link for the image instead of using jsPDF
+      const downloadLink = document.createElement('a');
+      downloadLink.href = imgData;
+      downloadLink.download = `Invoice-${selectedInvoice.invoice_number}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
       
       toast({
         title: 'Success',
@@ -242,7 +237,7 @@ const InvoicesPage = () => {
               />
               <Button variant="outline" onClick={handleDownloadInvoice}>
                 <Download className="h-4 w-4 mr-2" />
-                Download PDF
+                Download PNG
               </Button>
             </div>
           </DialogContent>
