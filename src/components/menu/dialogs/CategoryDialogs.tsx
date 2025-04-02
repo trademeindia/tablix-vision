@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import CategoryForm from '@/components/menu/CategoryForm';
 import { MenuCategory, MenuItem } from '@/types/menu';
-import { createMenuCategory, updateMenuCategory, deleteMenuCategory } from '@/services/menuService';
+import { createMenuCategory, updateMenuCategory, deleteMenuCategory } from '@/services/menu';
 
 interface CategoryDialogsProps {
   isAddOpen: boolean;
