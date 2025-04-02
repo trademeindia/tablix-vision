@@ -7,6 +7,7 @@ import {
 import { StaffMember } from '@/types/staff';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import EditStaffDialog from './EditStaffDialog';
 import DeleteStaffDialog from './DeleteStaffDialog';
 import StaffDetailsDialog from './StaffDetailsDialog';
@@ -113,8 +114,20 @@ const StaffList: React.FC<StaffListProps> = ({
               </TableRow>
             ) : (
               filteredStaff.map((staff) => (
-                <TableRow key={staff.id}>
-                  <TableCell className="font-medium">{staff.name}</TableCell>
+                <TableRow 
+                  key={staff.id}
+                  className="cursor-pointer hover:bg-slate-50"
+                  onClick={() => handleViewDetails(staff)}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={staff.avatar_url} alt={staff.name} />
+                        <AvatarFallback>{staff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium">{staff.name}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{staff.phone}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
@@ -129,7 +142,7 @@ const StaffList: React.FC<StaffListProps> = ({
                     />
                   </TableCell>
                   <TableCell>{formatDate(staff.last_login)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <StaffActions
                       staff={staff}
                       onView={handleViewDetails}

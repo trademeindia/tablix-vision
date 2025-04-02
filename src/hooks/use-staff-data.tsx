@@ -1,143 +1,46 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { StaffMember } from '@/types/staff';
+import { generateDemoStaffData } from '@/utils/demo-data/staff-data';
+
+// Mock API call to fetch staff data
+const fetchStaffData = async (): Promise<StaffMember[]> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return generateDemoStaffData(12);
+};
 
 export const useStaffData = () => {
   const [staffData, setStaffData] = useState<StaffMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [error, setError] = useState<Error | null>(null);
 
-  const fetchStaffData = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
-      
-      // If user is authenticated, get their restaurant ID
-      if (sessionData && sessionData.session) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('restaurant_id')
-          .eq('id', sessionData.session.user.id)
-          .single();
-          
-        if (profile?.restaurant_id) {
-          restaurantId = profile.restaurant_id;
-        }
-      }
-      
-      // First cast to unknown, then to the expected type
-      const { data, error } = await supabase
-        .from('staff' as any)
-        .select('*')
-        .eq('restaurant_id', restaurantId);
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Proper type assertion with unknown as an intermediate step
-      setStaffData((data as unknown as StaffMember[]) || []);
-    } catch (error) {
-      console.error('Error fetching staff data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load staff data',
-        variant: 'destructive',
-      });
-      
-      // Set sample data for testing if loading fails
-      setStaffData(getSampleStaffData());
+      const data = await fetchStaffData();
+      setStaffData(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching staff data:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStaffData();
-    
-    // Set up realtime subscription for staff table updates
-    const staffSubscription = supabase
-      .channel('staff_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'staff' }, 
-        (payload) => {
-          console.log('Staff change detected:', payload);
-          fetchStaffData();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(staffSubscription);
-    };
-  }, [toast]);
+    fetchData();
+  }, []);
 
-  return { 
-    staffData, 
+  const refetchStaff = () => {
+    fetchData();
+  };
+
+  return {
+    staffData,
     isLoading,
-    refetchStaff: fetchStaffData
+    error,
+    refetchStaff
   };
 };
-
-// Sample data for testing
-const getSampleStaffData = (): StaffMember[] => [
-  {
-    id: '1',
-    name: 'John Smith',
-    phone: '+1234567890',
-    email: 'john@example.com',
-    role: 'Manager',
-    status: 'active',
-    restaurant_id: '123e4567-e89b-12d3-a456-426614174000',
-    last_login: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Maria Garcia',
-    phone: '+1987654321',
-    email: 'maria@example.com',
-    role: 'Chef',
-    status: 'active',
-    restaurant_id: '123e4567-e89b-12d3-a456-426614174000',
-    last_login: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  },
-  {
-    id: '3',
-    name: 'Alex Wong',
-    phone: '+1567890123',
-    email: 'alex@example.com',
-    role: 'Waiter',
-    status: 'active',
-    restaurant_id: '123e4567-e89b-12d3-a456-426614174000',
-    last_login: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  },
-  {
-    id: '4',
-    name: 'Sarah Johnson',
-    phone: '+1678901234',
-    email: 'sarah@example.com',
-    role: 'Waiter',
-    status: 'inactive',
-    restaurant_id: '123e4567-e89b-12d3-a456-426614174000',
-    last_login: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  },
-  {
-    id: '5',
-    name: 'David Lee',
-    phone: '+1789012345',
-    email: 'david@example.com',
-    role: 'Receptionist',
-    status: 'active',
-    restaurant_id: '123e4567-e89b-12d3-a456-426614174000',
-    last_login: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  }
-];

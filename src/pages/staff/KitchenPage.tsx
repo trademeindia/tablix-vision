@@ -1,9 +1,52 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import StaffDashboardLayout from '@/components/layout/StaffDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock, Check, Utensils } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { generateActiveOrders } from '@/utils/demo-data/order-data';
 
 const KitchenPage = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<any[]>([]);
+  
+  // Load demo data
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setIsLoading(true);
+      
+      // Simulate API call with delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate demo orders - filter to show only pending and preparing
+      const activeOrders = generateActiveOrders(12)
+        .filter(order => ['pending', 'preparing'].includes(order.status));
+      
+      setOrders(activeOrders);
+      setIsLoading(false);
+    };
+    
+    fetchOrders();
+  }, []);
+  
+  // Handle updating order status
+  const handleUpdateStatus = (orderId: string, newStatus: string) => {
+    setOrders(prevOrders => 
+      prevOrders.map(order => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      )
+    );
+  };
+  
+  // Pending orders are new orders that haven't started preparation
+  const pendingOrders = orders.filter(order => order.status === 'pending');
+  
+  // In-progress orders are being prepared
+  const inProgressOrders = orders.filter(order => order.status === 'preparing');
+  
   return (
     <StaffDashboardLayout>
       <div className="mb-6">
@@ -11,15 +54,182 @@ const KitchenPage = () => {
         <p className="text-slate-500">View and manage food preparation</p>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Orders in Preparation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-slate-500">Kitchen order management functionality will be implemented here.</p>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium text-muted-foreground">New Orders</p>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">{pendingOrders.length}</Badge>
+            </div>
+            <p className="text-2xl font-bold mt-2">{pendingOrders.length}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium text-muted-foreground">In Preparation</p>
+              <Badge variant="outline" className="bg-amber-50 text-amber-700">{inProgressOrders.length}</Badge>
+            </div>
+            <p className="text-2xl font-bold mt-2">{inProgressOrders.length}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium text-muted-foreground">Average Time</p>
+              <Clock className="h-4 w-4 text-slate-400" />
+            </div>
+            <p className="text-2xl font-bold mt-2">18.5 min</p>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Tabs defaultValue="new">
+        <TabsList className="mb-4">
+          <TabsTrigger value="new">New Orders ({pendingOrders.length})</TabsTrigger>
+          <TabsTrigger value="preparing">In Preparation ({inProgressOrders.length})</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="new">
+          <Card>
+            <CardHeader>
+              <CardTitle>New Orders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-36 w-full" />
+                  <Skeleton className="h-36 w-full" />
+                </div>
+              ) : pendingOrders.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-slate-500">No new orders waiting for preparation.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pendingOrders.map(order => (
+                    <Card key={order.id} className="border-blue-200">
+                      <CardHeader className="pb-2 flex flex-row items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{order.tableNumber}</CardTitle>
+                          <p className="text-sm text-slate-500">Order #{order.id.split('-')[1]}</p>
+                        </div>
+                        <Badge className="bg-blue-100 text-blue-800">New</Badge>
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
+                          {order.items.map((item: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center py-1 border-b border-slate-100">
+                              <div className="flex items-center">
+                                <Utensils className="h-3 w-3 mr-2 text-slate-400" />
+                                <span>{item.quantity}× {item.menuItem.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="text-sm text-slate-500 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          
+                          <Button 
+                            onClick={() => handleUpdateStatus(order.id, 'preparing')}
+                            size="sm"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Start Preparing
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="preparing">
+          <Card>
+            <CardHeader>
+              <CardTitle>In Preparation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-36 w-full" />
+                  <Skeleton className="h-36 w-full" />
+                </div>
+              ) : inProgressOrders.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-slate-500">No orders currently in preparation.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {inProgressOrders.map(order => (
+                    <Card key={order.id} className="border-amber-200">
+                      <CardHeader className="pb-2 flex flex-row items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{order.tableNumber}</CardTitle>
+                          <p className="text-sm text-slate-500">Order #{order.id.split('-')[1]}</p>
+                        </div>
+                        <Badge className="bg-amber-100 text-amber-800">Preparing</Badge>
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <div className="space-y-2 mb-4">
+                          {order.items.map((item: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center py-1 border-b border-slate-100">
+                              <div className="flex items-center">
+                                <Utensils className="h-3 w-3 mr-2 text-slate-400" />
+                                <span>{item.quantity}× {item.menuItem.name}</span>
+                              </div>
+                              <Checkbox 
+                                checked={Math.random() > 0.5}
+                                className="h-4 w-4 rounded-full"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="text-sm text-slate-500 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          
+                          <Button 
+                            onClick={() => handleUpdateStatus(order.id, 'ready')}
+                            size="sm"
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Mark Ready
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </StaffDashboardLayout>
+  );
+};
+
+// Simple checkbox component
+const Checkbox = ({ checked = false, className = "" }) => {
+  return (
+    <div className={`${className} ${checked ? 'bg-green-500' : 'border border-slate-300 bg-white'} flex items-center justify-center`}>
+      {checked && <Check className="h-3 w-3 text-white" />}
+    </div>
   );
 };
 

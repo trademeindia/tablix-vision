@@ -1,44 +1,32 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePayrollData } from '@/hooks/use-payroll-data';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
-import { usePayrollData } from '@/hooks/use-payroll-data';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { DollarSign, Calendar, AlertCircle } from 'lucide-react';
 
 interface PayrollTabProps {
-  staffId?: string;
+  staffId: string;
 }
 
 const PayrollTab: React.FC<PayrollTabProps> = ({ staffId }) => {
-  const { payrollData, isLoading } = usePayrollData(staffId);
+  const { payrollData, payrollSummary, isLoading } = usePayrollData(staffId);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <Badge className="bg-green-500">Paid</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      case 'approved':
-        return <Badge className="bg-blue-500">Approved</Badge>;
-      case 'draft':
-        return <Badge variant="outline">Draft</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-';
-    try {
-      return format(parseISO(dateString), 'MMM dd, yyyy');
-    } catch {
-      return dateString;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -47,81 +35,87 @@ const PayrollTab: React.FC<PayrollTabProps> = ({ staffId }) => {
     }).format(amount);
   };
 
-  const handleDownloadPayslip = (payrollId: string) => {
-    // In a real application, this would generate and download a PDF payslip
-    console.log(`Downloading payslip for ID: ${payrollId}`);
-    alert(`Payslip for ${payrollId} would be downloaded in a real application.`);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-[400px] w-full" />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <DollarSign className="w-4 h-4 mr-1 text-green-600" />
+              Total Paid
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(payrollSummary.totalPaid)}</div>
+            <p className="text-xs text-muted-foreground">Last 6 months</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <AlertCircle className="w-4 h-4 mr-1 text-amber-600" />
+              Pending Amount
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(payrollSummary.pendingAmount)}</div>
+            <p className="text-xs text-muted-foreground">Current period</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <Calendar className="w-4 h-4 mr-1 text-blue-600" />
+              Last Payment
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {payrollSummary.lastPaymentDate ? format(parseISO(payrollSummary.lastPaymentDate), 'MMM dd, yyyy') : 'N/A'}
+            </div>
+            <p className="text-xs text-muted-foreground">Regular monthly payment</p>
+          </CardContent>
+        </Card>
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle>Payroll History</CardTitle>
+          <CardDescription>Last 6 months of payments</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Base Salary</TableHead>
-                  <TableHead>Overtime</TableHead>
-                  <TableHead>Deductions</TableHead>
-                  <TableHead>Bonuses</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Payment Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Period</TableHead>
+                <TableHead>Base Salary</TableHead>
+                <TableHead>Bonus</TableHead>
+                <TableHead>Deductions</TableHead>
+                <TableHead>Net Salary</TableHead>
+                <TableHead>Payment Date</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {payrollData.map((record) => (
+                <TableRow key={record.id}>
+                  <TableCell className="font-medium">{record.period}</TableCell>
+                  <TableCell>{formatCurrency(record.base_salary)}</TableCell>
+                  <TableCell>{formatCurrency(record.bonus)}</TableCell>
+                  <TableCell className="text-red-600">-{formatCurrency(record.deductions)}</TableCell>
+                  <TableCell className="font-bold">{formatCurrency(record.net_salary)}</TableCell>
+                  <TableCell>{format(parseISO(record.payment_date), 'MMM dd, yyyy')}</TableCell>
+                  <TableCell>
+                    <Badge variant={record.status === 'paid' ? "outline" : "secondary"} className={record.status === 'paid' ? 'bg-green-100 text-green-800 hover:bg-green-100' : 'bg-amber-100 text-amber-800 hover:bg-amber-100'}>
+                      {record.status === 'paid' ? 'Paid' : 'Pending'}
+                    </Badge>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payrollData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      No payroll records found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  payrollData.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell>
-                        {formatDate(record.period_start)} - {formatDate(record.period_end)}
-                      </TableCell>
-                      <TableCell>{formatCurrency(record.base_salary)}</TableCell>
-                      <TableCell>
-                        {record.overtime_hours} hrs ({formatCurrency(record.overtime_hours * record.overtime_rate)})
-                      </TableCell>
-                      <TableCell>{formatCurrency(record.deductions)}</TableCell>
-                      <TableCell>{formatCurrency(record.bonuses)}</TableCell>
-                      <TableCell className="font-medium">{formatCurrency(record.total_amount)}</TableCell>
-                      <TableCell>{getStatusBadge(record.status)}</TableCell>
-                      <TableCell>{formatDate(record.payment_date)}</TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDownloadPayslip(record.id)}
-                          disabled={record.status !== 'paid'}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Payslip
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
