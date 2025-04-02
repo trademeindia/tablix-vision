@@ -39,10 +39,13 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
         // If no categories found, we'll return an empty array instead of null
         return (data || []) as MenuCategory[];
       } catch (error) {
-        return handleError(error, { 
+        // Here's the issue - handleError returns an object but we need to throw the error
+        // so the query hook can handle it properly
+        handleError(error, { 
           context: 'fetchCategories',
           showToast: false // We'll handle toast in the component
-        }).originalError;
+        });
+        throw error; // Throw the error so React Query can handle it
       }
     },
     enabled: !!restaurantId,
@@ -76,10 +79,12 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
         
         return transformedItems as MenuItem[];
       } catch (error) {
-        return handleError(error, {
+        // Same issue here - we need to throw the error after handling it
+        handleError(error, {
           context: 'fetchMenuItems',
           showToast: false // We'll handle toast in the component
-        }).originalError;
+        });
+        throw error; // Throw the error so React Query can handle it
       }
     },
     enabled: !!restaurantId,
