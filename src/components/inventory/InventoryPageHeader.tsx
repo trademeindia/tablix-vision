@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ExportButton from './ExportButton';
 import { InventoryItem } from './InventoryItemsTable';
+import { useInventoryExport } from '@/hooks/use-inventory-export';
 
 interface InventoryPageHeaderProps {
   searchQuery: string;
@@ -21,18 +22,7 @@ const InventoryPageHeader: React.FC<InventoryPageHeaderProps> = ({
   onAddItemClick,
   inventoryItems
 }) => {
-  // Define CSV headers for export
-  const csvHeaders = [
-    { key: 'name', label: 'Name' },
-    { key: 'category', label: 'Category' },
-    { key: 'stock_level', label: 'Stock Level (%)' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'unit', label: 'Unit' },
-    { key: 'price_per_unit', label: 'Price Per Unit' },
-    { key: 'supplier', label: 'Supplier' },
-    { key: 'last_ordered', label: 'Last Ordered' },
-    { key: 'status', label: 'Status' }
-  ];
+  const { defaultHeaders } = useInventoryExport();
 
   return (
     <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -51,7 +41,6 @@ const InventoryPageHeader: React.FC<InventoryPageHeaderProps> = ({
         </div>
         <ExportButton 
           data={inventoryItems}
-          headers={csvHeaders}
           fileName="inventory-data.csv"
           variant="outline"
           className="hidden md:flex"

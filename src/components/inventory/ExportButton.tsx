@@ -2,26 +2,28 @@
 import React from 'react';
 import { FileDown } from 'lucide-react';
 import { Button, ButtonProps } from "@/components/ui/button";
-import { exportToCSV } from '@/utils/export';
+import { useInventoryExport } from '@/hooks/use-inventory-export';
 
 interface ExportButtonProps extends Omit<ButtonProps, 'onClick'> {
   data: Record<string, any>[];
-  headers: { key: string; label: string }[];
-  fileName: string;
+  headers?: { key: string; label: string }[];
+  fileName?: string;
   variant?: ButtonProps['variant'];
 }
 
 const ExportButton: React.FC<ExportButtonProps> = ({
   data,
   headers,
-  fileName,
+  fileName = 'export-data.csv',
   variant = 'outline',
   className,
   children,
   ...props
 }) => {
+  const { exportInventory, defaultHeaders } = useInventoryExport();
+  
   const handleExport = () => {
-    exportToCSV(data, headers, fileName);
+    exportInventory(data, headers || defaultHeaders, fileName);
   };
 
   return (

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StockLevelFilter, { StockLevel } from './StockLevelFilter';
 import ExportButton from './ExportButton';
 import { InventoryItem } from './InventoryItemsTable';
+import { useInventoryExport } from '@/hooks/use-inventory-export';
 
 interface InventoryPageFiltersProps {
   searchQuery: string;
@@ -27,18 +28,7 @@ const InventoryPageFilters: React.FC<InventoryPageFiltersProps> = ({
   onAddItemClick,
   inventoryItems = []
 }) => {
-  // Define CSV headers for export
-  const csvHeaders = [
-    { key: 'name', label: 'Name' },
-    { key: 'category', label: 'Category' },
-    { key: 'stock_level', label: 'Stock Level (%)' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'unit', label: 'Unit' },
-    { key: 'price_per_unit', label: 'Price Per Unit' },
-    { key: 'supplier', label: 'Supplier' },
-    { key: 'last_ordered', label: 'Last Ordered' },
-    { key: 'status', label: 'Status' }
-  ];
+  const { defaultHeaders } = useInventoryExport();
 
   return (
     <Card className="md:col-span-1 h-fit">
@@ -70,7 +60,6 @@ const InventoryPageFilters: React.FC<InventoryPageFiltersProps> = ({
         <div className="mt-6 space-y-2 block md:hidden">
           <ExportButton 
             data={inventoryItems}
-            headers={csvHeaders}
             fileName="inventory-data.csv"
             variant="outline"
             className="w-full"
