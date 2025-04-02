@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { handleError } from './errorHandling';
@@ -63,26 +64,48 @@ export const signInWithEmail = async (email: string, password: string): Promise<
  */
 export const signInWithoutConfirmation = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    // For demo accounts only, try direct session creation
-    // This is a workaround for the demo account which may not have email confirmation
+    // For demo accounts only, try a workaround for unconfirmed emails
     console.log('Attempting alternative sign in method for demo account');
     
-    // First, try to get user by email
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-    
-    if (userError || !userData?.user) {
-      console.error('Could not find user by email:', userError);
-      return { success: false, error: 'Demo login failed. Please try regular sign in.' };
-    }
-    
-    // Try to create a session for this user
-    const { data, error } = await supabase.auth.admin.createSession({
-      userId: userData.user.id
+    // Try to sign in directly with password since getUserByEmail and createSession are not available
+    console.log('Trying direct sign in for demo account');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
     
     if (error) {
-      console.error('Failed to create session:', error);
-      return { success: false, error: 'Demo authentication failed. Please try again or contact support.' };
+      // If login failed, try to auto-confirm the email first (for demo purposes only)
+      console.log('Direct login failed, trying to sign up again to auto-confirm');
+      
+      // Try to sign up again (this may auto-confirm the email in development)
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password
+      });
+      
+      if (signUpError) {
+        console.error('Could not auto-confirm email:', signUpError);
+        return { success: false, error: 'Demo login failed. Please use a regular account.' };
+      }
+      
+      // Try signing in one more time
+      const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (retryError) {
+        console.error('Retry login failed:', retryError);
+        return { success: false, error: 'Demo authentication failed. Please try again or contact support.' };
+      }
+      
+      if (retryData?.session) {
+        console.log('Alternative sign in successful after auto-confirmation');
+        return { success: true };
+      }
+      
+      return { success: false, error: 'Could not authenticate demo account' };
     }
     
     if (data?.session) {

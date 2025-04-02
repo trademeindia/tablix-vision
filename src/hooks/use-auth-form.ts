@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -73,9 +72,10 @@ export const useAuthForm = () => {
           });
         } else {
           console.error('Sign in failed with error:', error);
-          // For demo purposes, show a more specific message for email confirmation errors
-          if (error && error.includes('Email not confirmed')) {
-            setAuthError('Demo account email is not confirmed. Using the "Try Demo Account" button is recommended for testing.');
+          
+          // For demo purposes, suggest using the demo button if there's an error
+          if (values.email === DEMO_EMAIL) {
+            setAuthError('For demo access, please use the "Try Demo Account" button above for a more reliable experience.');
           } else {
             setAuthError(error || 'Authentication failed. Please check your credentials and try again.');
           }
@@ -169,11 +169,7 @@ export const useAuthForm = () => {
         console.error('Demo login failed with error:', error);
         
         // Show a more helpful error message for demo users
-        if (error.includes('Email not confirmed')) {
-          setAuthError('The demo account email needs confirmation. Please contact the administrator to confirm the demo account email or create a new account.');
-        } else {
-          setAuthError(`Demo login failed: ${error || 'Unable to access demo account. Please try again.'}`);
-        }
+        setAuthError(`Demo login failed: ${error || 'Unable to access demo account.'} Please try again or create a new account.`);
         
         toast({
           title: 'Demo Access Failed',
