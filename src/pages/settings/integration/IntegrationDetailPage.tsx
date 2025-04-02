@@ -2,356 +2,371 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Check, ChevronLeft, RefreshCw, Save, Settings, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { AlertCircle, Check, RefreshCw, Save, Trash2, ArrowLeft } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useIntegrations } from '@/hooks/integrations/use-integrations';
 import { useIntegrationConfig } from '@/hooks/integrations/use-integration-config';
 import { format } from 'date-fns';
-import { SyncConfig } from '@/types/integration';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const IntegrationDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { integrations, updateIntegration, deleteIntegration, syncIntegration, isSyncing } = useIntegrations();
-  const { 
-    credentials, 
-    configs, 
-    syncConfigs, 
-    saveCredential, 
-    saveConfig, 
-    saveSyncConfig, 
-    testConnection,
-    isTestingConnection 
-  } = useIntegrationConfig(id || '');
   
-  const [integration, setIntegration] = useState(
-    integrations.find(i => i.id === id) || null
-  );
-
-  const [activeTab, setActiveTab] = useState("general");
-  const [newSyncConfig, setNewSyncConfig] = useState<SyncConfig>({
-    entity: '',
-    direction: 'import',
-    mappings: {}, // Required by the SyncConfig type
-    enabled: true
-  });
-
+  // Find current integration
+  const integration = integrations.find(i => i.id === id);
+  
+  // State for form fields
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [apiEndpoint, setApiEndpoint] = useState('');
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [syncFrequency, setSyncFrequency] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('general');
+  
+  // Set initial form values when integration data loads
   useEffect(() => {
-    const foundIntegration = integrations.find(i => i.id === id);
-    console.log('IntegrationDetailPage found integration:', foundIntegration);
-    setIntegration(foundIntegration || null);
-  }, [integrations, id]);
-
-  useEffect(() => {
-    console.log('IntegrationDetailPage state:', { 
-      integration, 
-      credentials, 
-      configs, 
-      syncConfigs 
+    if (integration) {
+      setName(integration.name);
+      setDescription(integration.description || '');
+      setApiEndpoint(integration.apiEndpoint || '');
+      setWebhookUrl(integration.webhookUrl || '');
+      setSyncFrequency(integration.syncFrequency || 'manual');
+    }
+  }, [integration]);
+  
+  // Handle save
+  const handleSave = () => {
+    if (!integration || !id) return;
+    
+    updateIntegration({
+      id,
+      name,
+      description,
+      apiEndpoint,
+      webhookUrl,
+      syncFrequency: syncFrequency as any
     });
-  }, [integration, credentials, configs, syncConfigs]);
-
-  if (!integration) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center gap-2 mb-6">
-          <Button variant="outline" size="sm" onClick={() => navigate('/settings/integrations')}>
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-bold">Integration Not Found</h1>
-        </div>
-        <Card>
-          <CardContent className="pt-6">
-            <p>The integration you're looking for doesn't exist or has been removed.</p>
-            <Button className="mt-4" onClick={() => navigate('/settings/integrations')}>
-              Go Back to Integrations
-            </Button>
-          </CardContent>
-        </Card>
-      </DashboardLayout>
-    );
-  }
-
-  const handleAddSyncConfig = () => {
-    if (id && newSyncConfig.entity) {
-      saveSyncConfig({
-        integration_id: id,
-        syncConfig: newSyncConfig
-      });
+    
+    toast({
+      title: "Integration updated",
+      description: "Your changes have been saved successfully."
+    });
+  };
+  
+  // Handle delete
+  const handleDelete = () => {
+    if (!id) return;
+    
+    // Confirmation dialog would be ideal here
+    const confirmed = window.confirm("Are you sure you want to disconnect this integration? This action cannot be undone.");
+    
+    if (confirmed) {
+      deleteIntegration(id);
+      navigate('/settings/integrations');
       
-      // Reset the form
-      setNewSyncConfig({
-        entity: '',
-        direction: 'import',
-        mappings: {}, // Required by the SyncConfig type
-        enabled: true
+      toast({
+        title: "Integration disconnected",
+        description: "The integration has been successfully disconnected."
       });
     }
   };
-
-  return (
-    <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate('/settings/integrations')}>
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-bold">{integration.name}</h1>
-          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <Check className="h-3 w-3 mr-1" />
-            Connected
-          </span>
-        </div>
-        <div className="flex gap-2">
+  
+  // Handle manual sync
+  const handleSync = () => {
+    if (id) {
+      syncIntegration(id);
+    }
+  };
+  
+  if (!integration) {
+    return (
+      <DashboardLayout>
+        <div className="container py-6">
           <Button 
             variant="outline" 
-            size="sm" 
-            onClick={() => syncIntegration(integration.id)}
-            disabled={isSyncing}
+            onClick={() => navigate('/settings/integrations')}
+            className="mb-4"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-            Sync Now
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Integrations
           </Button>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={() => {
-              deleteIntegration(integration.id);
-              navigate('/settings/integrations');
-            }}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Disconnect
-          </Button>
+          
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Integration not found. It may have been deleted or disconnected.
+            </AlertDescription>
+          </Alert>
         </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="general">
-            <Settings className="h-4 w-4 mr-2" />
-            General
-          </TabsTrigger>
-          <TabsTrigger value="credentials">
-            <Settings className="h-4 w-4 mr-2" />
-            Credentials
-          </TabsTrigger>
-          <TabsTrigger value="sync">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Sync Configuration
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general">
-          {/* General settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>Configure basic integration settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Form content */}
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="integration-name">Integration Name</Label>
+      </DashboardLayout>
+    );
+  }
+  
+  return (
+    <DashboardLayout>
+      <div className="container py-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+          <div className="space-y-1">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/settings/integrations')}
+              className="mb-2"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Integrations
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">{integration.name}</h1>
+            <p className="text-sm text-muted-foreground">{integration.description}</p>
+          </div>
+          <div className="flex items-center space-x-2 mt-4 md:mt-0">
+            {integration.status === 'connected' ? (
+              <Badge variant="outline" className="bg-green-100 text-green-800">
+                <Check className="mr-1 h-3 w-3" />
+                Connected
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                Setup Required
+              </Badge>
+            )}
+            {integration.lastSynced && (
+              <span className="text-xs text-gray-500">
+                Last synced: {format(new Date(integration.lastSynced), 'MMM d, yyyy h:mm a')}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="credentials">Credentials</TabsTrigger>
+            <TabsTrigger value="sync">Sync Settings</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="general">
+            <Card>
+              <CardHeader>
+                <CardTitle>Integration Settings</CardTitle>
+                <CardDescription>
+                  Manage basic settings for this integration
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Integration Name</Label>
                   <Input 
-                    id="integration-name" 
-                    value={integration.name}
-                    onChange={(e) => setIntegration({...integration, name: e.target.value})}
+                    id="name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="integration-description">Description</Label>
-                  <Input 
-                    id="integration-description" 
-                    value={integration.description}
-                    onChange={(e) => setIntegration({...integration, description: e.target.value})}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="sync-frequency">Sync Frequency</Label>
-                  <Select 
-                    value={integration.syncFrequency || 'manual'} 
-                    onValueChange={(value: any) => setIntegration({...integration, syncFrequency: value})}
-                  >
-                    <SelectTrigger id="sync-frequency">
+                
+                <div className="space-y-2">
+                  <Label htmlFor="apiEndpoint">API Endpoint URL</Label>
+                  <Input 
+                    id="apiEndpoint" 
+                    value={apiEndpoint} 
+                    onChange={(e) => setApiEndpoint(e.target.value)}
+                    placeholder="https://api.example.com"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    The base URL for the third-party API.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="webhookUrl">Webhook URL</Label>
+                  <Input 
+                    id="webhookUrl" 
+                    value={webhookUrl} 
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    placeholder="https://hooks.example.com/webhook"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Webhook URL to receive data from the third-party service.
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter className="justify-between">
+                <Button variant="destructive" onClick={handleDelete}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Disconnect
+                </Button>
+                <Button onClick={handleSave}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="sync">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sync Settings</CardTitle>
+                <CardDescription>
+                  Configure how and when data is synchronized
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="syncFrequency">Sync Frequency</Label>
+                  <Select value={syncFrequency} onValueChange={setSyncFrequency}>
+                    <SelectTrigger>
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="realtime">Realtime</SelectItem>
+                      <SelectItem value="realtime">Real-time</SelectItem>
                       <SelectItem value="hourly">Hourly</SelectItem>
                       <SelectItem value="daily">Daily</SelectItem>
                       <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="manual">Manual Only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="enableSync">Enable Automatic Sync</Label>
+                    <Switch id="enableSync" defaultChecked={syncFrequency !== 'manual'} />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    When enabled, data will be synchronized automatically according to the frequency setting.
+                  </p>
+                </div>
+                
                 <Button 
-                  onClick={() => {
-                    if (integration.id) {
-                      updateIntegration({
-                        id: integration.id,
-                        name: integration.name,
-                        description: integration.description,
-                        syncFrequency: integration.syncFrequency
-                      });
-                    }
-                  }}
+                  variant="outline"
+                  className="w-full" 
+                  onClick={handleSync}
+                  disabled={isSyncing}
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  {isSyncing ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Synchronizing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Sync Now
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleSave} className="ml-auto">
+                  <Save className="mr-2 h-4 w-4" />
                   Save Changes
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="credentials">
-          {/* Credentials */}
-          <Card>
-            <CardHeader>
-              <CardTitle>API Credentials</CardTitle>
-              <CardDescription>Configure the credentials needed to connect to this service</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Credentials form */}
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="api-key">API Key</Label>
-                  <Input id="api-key" type="password" placeholder="Enter API key" />
-                </div>
-                <div>
-                  <Label htmlFor="api-secret">API Secret</Label>
-                  <Input id="api-secret" type="password" placeholder="Enter API secret" />
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => testConnection()}
-                    disabled={isTestingConnection}
-                  >
-                    {isTestingConnection ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Testing...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Test Connection
-                      </>
-                    )}
-                  </Button>
-                  <Button>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Credentials
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="sync">
-          {/* Sync Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sync Configuration</CardTitle>
-              <CardDescription>Configure data synchronization between systems</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Sync config form */}
-              {syncConfigs && syncConfigs.length > 0 ? (
-                <div className="space-y-4">
-                  {syncConfigs.map((config, index) => (
-                    <div key={index} className="p-4 border rounded-md">
-                      <div className="flex justify-between mb-2">
-                        <h3 className="font-medium">{config.entity}</h3>
-                        <Badge variant={config.enabled ? "default" : "outline"}>
-                          {config.enabled ? "Enabled" : "Disabled"}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-slate-500">
-                        Direction: {config.direction}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-slate-500">
-                  No sync configurations defined yet
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="mt-4">
-            <h3 className="text-lg font-medium mb-2">Add New Sync Configuration</h3>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="credentials">
             <Card>
-              <CardContent className="pt-6">
-                <div className="grid gap-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="entity">Entity</Label>
-                      <Input 
-                        id="entity" 
-                        value={newSyncConfig.entity} 
-                        onChange={(e) => setNewSyncConfig(prev => ({ ...prev, entity: e.target.value }))}
-                        placeholder="e.g., menu_items, orders, customers" 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="direction">Direction</Label>
-                      <Select 
-                        value={newSyncConfig.direction} 
-                        onValueChange={(value: 'import' | 'export' | 'bidirectional') => 
-                          setNewSyncConfig(prev => ({ ...prev, direction: value }))
-                        }
-                      >
-                        <SelectTrigger id="direction">
-                          <SelectValue placeholder="Select direction" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="import">Import (External → Our System)</SelectItem>
-                          <SelectItem value="export">Export (Our System → External)</SelectItem>
-                          <SelectItem value="bidirectional">Bidirectional</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="enabled">Enabled</Label>
-                      <div className="flex items-center pt-2">
-                        <Switch 
-                          id="enabled" 
-                          checked={newSyncConfig.enabled} 
-                          onCheckedChange={(checked) => 
-                            setNewSyncConfig(prev => ({ ...prev, enabled: checked }))
-                          } 
-                        />
-                        <span className="ml-2 text-sm text-gray-500">
-                          {newSyncConfig.enabled ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                    </div>
+              <CardHeader>
+                <CardTitle>API Credentials</CardTitle>
+                <CardDescription>
+                  Manage authentication credentials for this integration
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="apiKey">API Key</Label>
+                    <Input id="apiKey" type="password" placeholder="Enter API key" />
                   </div>
-                  <Button onClick={handleAddSyncConfig} disabled={!newSyncConfig.entity}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Add Configuration
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="apiSecret">API Secret</Label>
+                    <Input id="apiSecret" type="password" placeholder="Enter API secret" />
+                  </div>
+                  
+                  <Button variant="outline" className="w-full mt-4">
+                    Verify Credentials
                   </Button>
                 </div>
               </CardContent>
+              <CardFooter>
+                <Button onClick={handleSave} className="ml-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Credentials
+                </Button>
+              </CardFooter>
             </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+          
+          <TabsContent value="advanced">
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced Settings</CardTitle>
+                <CardDescription>
+                  Configure advanced options for this integration
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="debug">Debug Mode</Label>
+                      <Switch id="debug" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Enable detailed logging for troubleshooting.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="errorNotify">Error Notifications</Label>
+                      <Switch id="errorNotify" defaultChecked />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Receive notifications when integration errors occur.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="timeout">Request Timeout (seconds)</Label>
+                    <Input id="timeout" type="number" defaultValue="30" min="5" max="300" />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleSave} className="ml-auto">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Settings
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </DashboardLayout>
   );
 };

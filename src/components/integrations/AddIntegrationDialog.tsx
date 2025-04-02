@@ -33,10 +33,20 @@ const formSchema = z.object({
 
 interface AddIntegrationDialogProps {
   onAddIntegration: (integration: CreateIntegrationRequest) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const AddIntegrationDialog: React.FC<AddIntegrationDialogProps> = ({ onAddIntegration }) => {
-  const [open, setOpen] = React.useState(false);
+const AddIntegrationDialog: React.FC<AddIntegrationDialogProps> = ({ 
+  onAddIntegration,
+  open,
+  onOpenChange
+}) => {
+  const [localOpen, setLocalOpen] = React.useState(false);
+  
+  // Use provided open state or fall back to local state
+  const isOpen = open !== undefined ? open : localOpen;
+  const handleOpenChange = onOpenChange || setLocalOpen;
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,11 +68,11 @@ const AddIntegrationDialog: React.FC<AddIntegrationDialogProps> = ({ onAddIntegr
       webhookUrl: values.webhookUrl || undefined,
     });
     form.reset();
-    setOpen(false);
+    handleOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -176,7 +186,7 @@ const AddIntegrationDialog: React.FC<AddIntegrationDialogProps> = ({ onAddIntegr
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit">Add Integration</Button>
