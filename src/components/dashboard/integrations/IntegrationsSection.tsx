@@ -7,6 +7,7 @@ import { Plus, ExternalLink, Check, AlertCircle, RefreshCw } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { useIntegrations } from '@/hooks/integrations/use-integrations';
 import { useToast } from '@/hooks/use-toast';
+import { Integration } from '@/types/integration';
 
 const IntegrationsSection = () => {
   const { integrations, isLoading, syncIntegration, isSyncing } = useIntegrations();
@@ -35,6 +36,8 @@ const IntegrationsSection = () => {
         syncIntegration(integration.id);
       });
   };
+
+  console.log('Integrations section rendering:', { integrations, isLoading });
 
   return (
     <Card className="w-full">

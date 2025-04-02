@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIntegrations } from '@/hooks/integrations/use-integrations';
@@ -8,6 +8,8 @@ import RealtimeSyncStatus from '@/components/integrations/RealtimeSyncStatus';
 import CategoryTab from '@/components/integrations/CategoryTab';
 import DeleteIntegrationDialog from '@/components/integrations/DeleteIntegrationDialog';
 import { getCategoryName } from '@/utils/integration-categories';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const IntegrationsPage = () => {
   const { 
@@ -16,11 +18,22 @@ const IntegrationsPage = () => {
     createIntegration, 
     deleteIntegration,
     syncIntegration,
-    isSyncing
+    isSyncing,
+    error
   } = useIntegrations();
   const [activeTab, setActiveTab] = useState('all');
   const [integrationToDelete, setIntegrationToDelete] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  // Log the state for debugging
+  useEffect(() => {
+    console.log('IntegrationsPage state:', { 
+      integrations, 
+      isLoading, 
+      activeTab,
+      error 
+    });
+  }, [integrations, isLoading, activeTab, error]);
 
   // Get categories with at least one integration
   const categories = Array.from(
@@ -49,13 +62,30 @@ const IntegrationsPage = () => {
         </div>
         <AddIntegrationDialog 
           onAddIntegration={createIntegration} 
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
         />
+        <button 
+          onClick={() => setIsAddDialogOpen(true)}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          Add Integration
+        </button>
       </div>
       
       {/* Realtime sync status */}
       <div className="mb-6">
         <RealtimeSyncStatus />
       </div>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Error loading integrations: {error.message || 'Unknown error'}
+          </AlertDescription>
+        </Alert>
+      )}
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4 flex flex-wrap">

@@ -39,13 +39,24 @@ const IntegrationDetailPage = () => {
   const [newSyncConfig, setNewSyncConfig] = useState<SyncConfig>({
     entity: '',
     direction: 'import',
-    mappings: {}, // This is required by the SyncConfig type
+    mappings: {}, // Required by the SyncConfig type
     enabled: true
   });
 
   useEffect(() => {
-    setIntegration(integrations.find(i => i.id === id) || null);
+    const foundIntegration = integrations.find(i => i.id === id);
+    console.log('IntegrationDetailPage found integration:', foundIntegration);
+    setIntegration(foundIntegration || null);
   }, [integrations, id]);
+
+  useEffect(() => {
+    console.log('IntegrationDetailPage state:', { 
+      integration, 
+      credentials, 
+      configs, 
+      syncConfigs 
+    });
+  }, [integration, credentials, configs, syncConfigs]);
 
   if (!integration) {
     return (
@@ -80,7 +91,7 @@ const IntegrationDetailPage = () => {
       setNewSyncConfig({
         entity: '',
         direction: 'import',
-        mappings: {}, // This is required by the SyncConfig type
+        mappings: {}, // Required by the SyncConfig type
         enabled: true
       });
     }
@@ -149,6 +160,57 @@ const IntegrationDetailPage = () => {
             </CardHeader>
             <CardContent>
               {/* Form content */}
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="integration-name">Integration Name</Label>
+                  <Input 
+                    id="integration-name" 
+                    value={integration.name}
+                    onChange={(e) => setIntegration({...integration, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="integration-description">Description</Label>
+                  <Input 
+                    id="integration-description" 
+                    value={integration.description}
+                    onChange={(e) => setIntegration({...integration, description: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sync-frequency">Sync Frequency</Label>
+                  <Select 
+                    value={integration.syncFrequency || 'manual'} 
+                    onValueChange={(value: any) => setIntegration({...integration, syncFrequency: value})}
+                  >
+                    <SelectTrigger id="sync-frequency">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="realtime">Realtime</SelectItem>
+                      <SelectItem value="hourly">Hourly</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="manual">Manual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  onClick={() => {
+                    if (integration.id) {
+                      updateIntegration({
+                        id: integration.id,
+                        name: integration.name,
+                        description: integration.description,
+                        syncFrequency: integration.syncFrequency
+                      });
+                    }
+                  }}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -162,6 +224,38 @@ const IntegrationDetailPage = () => {
             </CardHeader>
             <CardContent>
               {/* Credentials form */}
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="api-key">API Key</Label>
+                  <Input id="api-key" type="password" placeholder="Enter API key" />
+                </div>
+                <div>
+                  <Label htmlFor="api-secret">API Secret</Label>
+                  <Input id="api-secret" type="password" placeholder="Enter API secret" />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => testConnection()}
+                    disabled={isTestingConnection}
+                  >
+                    {isTestingConnection ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Test Connection
+                      </>
+                    )}
+                  </Button>
+                  <Button>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Credentials
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -175,6 +269,27 @@ const IntegrationDetailPage = () => {
             </CardHeader>
             <CardContent>
               {/* Sync config form */}
+              {syncConfigs && syncConfigs.length > 0 ? (
+                <div className="space-y-4">
+                  {syncConfigs.map((config, index) => (
+                    <div key={index} className="p-4 border rounded-md">
+                      <div className="flex justify-between mb-2">
+                        <h3 className="font-medium">{config.entity}</h3>
+                        <Badge variant={config.enabled ? "default" : "outline"}>
+                          {config.enabled ? "Enabled" : "Disabled"}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        Direction: {config.direction}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-slate-500">
+                  No sync configurations defined yet
+                </div>
+              )}
             </CardContent>
           </Card>
 

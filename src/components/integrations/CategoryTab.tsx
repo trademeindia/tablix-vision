@@ -23,6 +23,8 @@ const CategoryTab: React.FC<CategoryTabProps> = ({
   onAddIntegration,
   category
 }) => {
+  console.log('CategoryTab rendering:', { integrations, isLoading, category });
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

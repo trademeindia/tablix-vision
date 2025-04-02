@@ -10,13 +10,13 @@ import {
   SyncRequest
 } from './types';
 
-// Mock implementations since 'integrations' table doesn't exist in schema
+// Note: Since 'integrations' table doesn't exist in schema yet, these are mock implementations
 export const getIntegrations = async (restaurantId: string): Promise<Integration[]> => {
   try {
-    // In a real app, this would fetch from Supabase
-    // Since the 'integrations' table doesn't exist in the schema, we return mock data
-    console.log('Would fetch integrations for restaurant:', restaurantId);
-    return []; // Return empty array as this is a mock implementation
+    console.log('Mocked getIntegrations for restaurant:', restaurantId);
+    // In a real implementation, this would query the database
+    // For now, return an empty array since we'll use mock data from the hook
+    return [];
   } catch (error) {
     console.error('Error fetching integrations:', error);
     throw error;
@@ -25,9 +25,8 @@ export const getIntegrations = async (restaurantId: string): Promise<Integration
 
 export const getIntegrationById = async (id: string): Promise<Integration> => {
   try {
-    // In a real app, this would fetch from Supabase
-    // Since the 'integrations' table doesn't exist in the schema, we return a mock integration
-    console.log('Would fetch integration with id:', id);
+    console.log('Mocked getIntegrationById with id:', id);
+    // In a real implementation, this would query the database
     throw new Error('Integration not found');
   } catch (error) {
     console.error(`Error fetching integration with id ${id}:`, error);
@@ -40,8 +39,7 @@ export const createIntegration = async (
   integration: CreateIntegrationRequest
 ): Promise<Integration> => {
   try {
-    // In a real app, this would insert into Supabase
-    console.log('Would create integration for restaurant:', restaurantId, integration);
+    console.log('Mocked createIntegration for restaurant:', restaurantId, integration);
     
     // Return a mock integration
     return {
@@ -63,8 +61,7 @@ export const updateIntegration = async (
   integration: UpdateIntegrationRequest
 ): Promise<Integration> => {
   try {
-    // In a real app, this would update Supabase
-    console.log('Would update integration:', integration);
+    console.log('Mocked updateIntegration:', integration);
     
     // Return a mock updated integration
     return {
@@ -85,8 +82,8 @@ export const updateIntegration = async (
 
 export const deleteIntegration = async (id: string): Promise<void> => {
   try {
-    // In a real app, this would delete from Supabase
-    console.log('Would delete integration:', id);
+    console.log('Mocked deleteIntegration for id:', id);
+    // In a real implementation, this would delete from the database
   } catch (error) {
     console.error(`Error deleting integration with id ${id}:`, error);
     throw error;
@@ -97,8 +94,7 @@ export const saveIntegrationCredential = async (
   credential: SaveCredentialRequest
 ): Promise<IntegrationCredential> => {
   try {
-    // In a real app, this would insert into Supabase
-    console.log('Would save integration credential:', credential);
+    console.log('Mocked saveIntegrationCredential:', credential);
     
     // Return a mock credential
     return {
@@ -119,8 +115,7 @@ export const saveIntegrationConfig = async (
   config: SaveConfigRequest
 ): Promise<IntegrationConfig> => {
   try {
-    // In a real app, this would insert into Supabase
-    console.log('Would save integration config:', config);
+    console.log('Mocked saveIntegrationConfig:', config);
     
     // Return a mock config
     return {
@@ -140,8 +135,7 @@ export const saveSyncConfig = async (
   request: SaveSyncConfigRequest
 ): Promise<SyncConfig> => {
   try {
-    // In a real app, this would insert into Supabase
-    console.log('Would save sync config:', request);
+    console.log('Mocked saveSyncConfig:', request);
     
     // Return the provided sync config 
     return request.syncConfig;
@@ -153,8 +147,9 @@ export const saveSyncConfig = async (
 
 export const triggerSync = async (syncRequest: SyncRequest): Promise<void> => {
   try {
-    // In a real app, this would call an Edge Function to handle the sync
-    console.log('Would trigger sync for integration:', syncRequest);
+    console.log('Mocked triggerSync for integration:', syncRequest);
+    // In a real implementation, this would call an Edge Function
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Fake delay
   } catch (error) {
     console.error('Error triggering sync:', error);
     throw error;
