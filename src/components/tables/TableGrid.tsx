@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { DemoTable } from '@/utils/demo-data/table-data';
 import TableCard from './TableCard';
 import ReservationDialog from './ReservationDialog';
@@ -98,24 +98,26 @@ const TableGrid: React.FC<TableGridProps> = ({
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {tables.map((table) => (
-          <Tooltip key={table.id}>
-            <TooltipTrigger asChild>
-              <div>
-                <TableCard
-                  table={table}
-                  onStatusChange={handleTableClick}
-                  onOpenReservation={openReservationDialog}
-                />
-              </div>
-            </TooltipTrigger>
-            {table.status === 'occupied' && (
-              <TooltipContent>
-                <p>Table must be available to make a reservation</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        ))}
+        <TooltipProvider>
+          {tables.map((table) => (
+            <Tooltip key={table.id}>
+              <TooltipTrigger asChild>
+                <div>
+                  <TableCard
+                    table={table}
+                    onStatusChange={handleTableClick}
+                    onOpenReservation={openReservationDialog}
+                  />
+                </div>
+              </TooltipTrigger>
+              {table.status === 'occupied' && (
+                <TooltipContent>
+                  <p>Table must be available to make a reservation</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          ))}
+        </TooltipProvider>
       </div>
 
       <ReservationDialog

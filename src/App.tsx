@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import Index from './pages/Index';
 import MenuPage from './pages/MenuPage';
 import NotFound from './pages/NotFound';
@@ -43,40 +44,42 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider restaurantId={restaurantId}>
         <ThemeApplier restaurantId={restaurantId}>
-          <Router>
-            <Routes>
-              {/* Admin routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/menu" element={<MenuPage />} />
-              <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/qr-codes" element={<QRCodePage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/tables" element={<TablesPage />} />
-              <Route path="/staff" element={<StaffPage />} />
-              <Route path="/invoices" element={<InvoicesPage />} />
-              <Route path="/invoices/create" element={<CreateInvoicePage />} />
-              <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
-              <Route path="/settings/appearance" element={<AppearancePage />} />
-              <Route path="/marketing" element={<MarketingPage />} />
+          <TooltipProvider>
+            <Router>
+              <Routes>
+                {/* Admin routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/menu" element={<MenuPage />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/qr-codes" element={<QRCodePage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/tables" element={<TablesPage />} />
+                <Route path="/staff" element={<StaffPage />} />
+                <Route path="/invoices" element={<InvoicesPage />} />
+                <Route path="/invoices/create" element={<CreateInvoicePage />} />
+                <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
+                <Route path="/settings/appearance" element={<AppearancePage />} />
+                <Route path="/marketing" element={<MarketingPage />} />
 
-              {/* Customer routes */}
-              <Route path="/customer/menu" element={<CustomerMenuPage />} />
-              <Route path="/customer/profile" element={<CustomerProfilePage />} />
-              <Route path="/customer/checkout" element={<CustomerCheckoutPage />} />
-              <Route path="/customer/call-waiter" element={<CustomerCallWaiterPage />} />
+                {/* Customer routes */}
+                <Route path="/customer/menu" element={<CustomerMenuPage />} />
+                <Route path="/customer/profile" element={<CustomerProfilePage />} />
+                <Route path="/customer/checkout" element={<CustomerCheckoutPage />} />
+                <Route path="/customer/call-waiter" element={<CustomerCallWaiterPage />} />
 
-              {/* Staff routes */}
-              <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
-              <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
-              <Route path="/staff-dashboard/kitchen" element={<StaffKitchenPage />} />
-              <Route path="/staff-dashboard/inventory" element={<StaffInventoryPage />} />
-              <Route path="/staff-dashboard/reports" element={<StaffReportsPage />} />
+                {/* Staff routes */}
+                <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
+                <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
+                <Route path="/staff-dashboard/kitchen" element={<StaffKitchenPage />} />
+                <Route path="/staff-dashboard/inventory" element={<StaffInventoryPage />} />
+                <Route path="/staff-dashboard/reports" element={<StaffReportsPage />} />
 
-              {/* 404 route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </Router>
+                {/* 404 route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+            </Router>
+          </TooltipProvider>
         </ThemeApplier>
       </ThemeProvider>
     </QueryClientProvider>
