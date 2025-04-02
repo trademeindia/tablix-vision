@@ -1,36 +1,23 @@
 
 import { useState, useEffect } from 'react';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { handleError } from '@/utils/errorHandling';
+import { authFormSchema, AuthFormValues } from '@/schemas/auth-schemas';
+import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
+import { preFillDemoCredentials, handleDemoLoginAttempt } from '@/utils/auth-form-utils';
 
-// Demo account credentials - keep these in sync with the Supabase migration
-export const DEMO_EMAIL = 'demo@restaurant.com';
-export const DEMO_PASSWORD = 'demo123456';
-
-// Validation schema with better error messages
-const authFormSchema = z.object({
-  email: z
-    .string()
-    .min(1, { message: 'Email is required' })
-    .email({ message: 'Please enter a valid email address' })
-    .transform(email => email.trim().toLowerCase()),
-  password: z
-    .string()
-    .min(6, { message: 'Password must be at least 6 characters' })
-});
-
-export type AuthFormValues = z.infer<typeof authFormSchema>;
+export { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
+export type { AuthFormValues } from '@/schemas/auth-schemas';
 
 export const useAuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [authError, setAuthError] = useState<string | null>(null);
-  const { signIn, signUp, isAuthenticated } = useAuth();
+  const { signIn, signUp } = useAuth();
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authFormSchema),
@@ -45,15 +32,6 @@ export const useAuthForm = () => {
   useEffect(() => {
     setAuthError(null);
   }, [activeTab, form.watch()]);
-
-  // Pre-fill demo credentials when demo mode is activated
-  const preFillDemoCredentials = () => {
-    form.setValue('email', DEMO_EMAIL);
-    form.setValue('password', DEMO_PASSWORD);
-    
-    // Clear any validation errors
-    form.clearErrors();
-  };
 
   const onSubmit = async (values: AuthFormValues) => {
     if (isLoading) return; // Prevent multiple submissions
@@ -139,7 +117,7 @@ export const useAuthForm = () => {
       console.log(`Attempting demo login with: ${DEMO_EMAIL}`);
       
       // Fill the form with demo credentials for better UX
-      preFillDemoCredentials();
+      preFillDemoCredentials(form, DEMO_EMAIL, DEMO_PASSWORD);
       
       // Short delay to let the form update visually
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -150,42 +128,19 @@ export const useAuthForm = () => {
         description: 'Please wait while we prepare your dashboard...'
       });
       
-      // Try up to 3 times with increasing delays for demo login
-      let success = false;
-      let attempts = 0;
-      let error = '';
+      // Try multiple times for demo login with increasing delays
+      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD);
       
-      while (!success && attempts < 5) {
-        attempts++;
-        console.log(`Demo login attempt ${attempts}`);
-        
-        try {
-          const result = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
-          success = result.success;
-          error = result.error || '';
-          
-          if (success) break;
-          
-          // Wait longer between each retry
-          if (attempts < 5) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-          }
-        } catch (e) {
-          console.error(`Demo login attempt ${attempts} failed with exception:`, e);
-          // Continue to next attempt
-        }
-      }
-      
-      if (success) {
+      if (result.success) {
         toast({
           title: 'Demo Access Granted',
           description: 'You are now using the demo account. Explore all features!'
         });
       } else {
-        console.error('Demo login failed after multiple attempts with error:', error);
+        console.error('Demo login failed after multiple attempts with error:', result.error);
         
         // Show a more helpful error message for demo users
-        setAuthError(`Demo login failed after ${attempts} attempts. Please try again in a few moments or create a new account instead.`);
+        setAuthError(result.error || 'Demo login failed. Please try again in a few moments.');
         
         toast({
           title: 'Demo Access Failed',
@@ -213,6 +168,6 @@ export const useAuthForm = () => {
     authError,
     onSubmit,
     handleDemoLogin,
-    preFillDemoCredentials
+    preFillDemoCredentials: () => preFillDemoCredentials(form, DEMO_EMAIL, DEMO_PASSWORD)
   };
 };

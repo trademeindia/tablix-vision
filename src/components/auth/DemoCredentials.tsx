@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Lock, Copy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { DEMO_EMAIL, DEMO_PASSWORD } from '@/hooks/use-auth-form';
+import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
 
 export const DemoCredentials: React.FC = () => {
   const copyCredentials = (text: string) => {
