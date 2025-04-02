@@ -3,211 +3,150 @@ import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useIntegrations } from '@/hooks/integrations/use-integrations';
-import { ArrowRight, Loader2, ExternalLink, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import IntegrationCard from '@/components/integrations/IntegrationCard';
+import AddIntegrationDialog from '@/components/integrations/AddIntegrationDialog';
+import RealtimeSyncStatus from '@/components/integrations/RealtimeSyncStatus';
+import { Integration } from '@/types/integration';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const IntegrationsPage = () => {
   const { toast } = useToast();
-  const { integrations, isLoading } = useIntegrations();
-  const [activeTab, setActiveTab] = useState('pos');
-  const [webhookUrl, setWebhookUrl] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { 
+    integrations, 
+    isLoading, 
+    createIntegration, 
+    deleteIntegration,
+    syncIntegration,
+    isSyncing
+  } = useIntegrations();
+  const [activeTab, setActiveTab] = useState('all');
+  const [integrationToDelete, setIntegrationToDelete] = useState<string | null>(null);
 
-  const handleConnectZapier = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!webhookUrl) {
-      toast({
-        title: "Error",
-        description: "Please enter your webhook URL",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // In a real app, this would save the webhook URL to the database
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      
-      toast({
-        title: "Success",
-        description: "Zapier webhook connected successfully",
-      });
-      
-      setWebhookUrl('');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to connect Zapier webhook",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+  // Get categories with at least one integration
+  const categories = Array.from(
+    new Set(integrations.map(i => i.category))
+  );
+
+  // Filter integrations based on active tab
+  const filteredIntegrations = activeTab === 'all' 
+    ? integrations 
+    : integrations.filter(i => i.category === activeTab);
+
+  // Handle integration delete confirmation
+  const handleDeleteConfirm = () => {
+    if (integrationToDelete) {
+      deleteIntegration(integrationToDelete);
+      setIntegrationToDelete(null);
     }
   };
 
-  const categories = [
-    { id: 'pos', name: 'POS Systems' },
-    { id: 'delivery', name: 'Food Delivery' },
-    { id: 'automation', name: 'Automation' },
-    { id: 'communication', name: 'Communication' },
-    { id: 'analytics', name: 'Analytics' },
-  ];
-
-  const integrationsByCategory = categories.reduce((acc, category) => {
-    acc[category.id] = integrations.filter(i => i.category === category.id);
-    return acc;
-  }, {} as Record<string, typeof integrations>);
-
   return (
     <DashboardLayout>
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Integrations</h1>
+          <p className="text-slate-500">Connect your restaurant with third-party services</p>
+        </div>
+        <AddIntegrationDialog onAddIntegration={createIntegration} />
+      </div>
+      
+      {/* Realtime sync status */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Integrations</h1>
-        <p className="text-slate-500">Connect your restaurant with third-party services</p>
+        <RealtimeSyncStatus />
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4 flex flex-wrap">
+          <TabsTrigger value="all">
+            All Integrations
+          </TabsTrigger>
           {categories.map(category => (
-            <TabsTrigger key={category.id} value={category.id}>
-              {category.name}
+            <TabsTrigger key={category} value={category}>
+              {getCategoryName(category)}
             </TabsTrigger>
           ))}
         </TabsList>
         
-        {categories.map(category => (
-          <TabsContent key={category.id} value={category.id} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {isLoading ? (
-                Array(2).fill(0).map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-6 w-32 bg-gray-200 rounded"></div>
-                      <div className="h-4 w-48 bg-gray-200 rounded"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-10 w-full bg-gray-200 rounded mb-2"></div>
-                      <div className="h-8 w-24 bg-gray-200 rounded float-right"></div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : integrationsByCategory[category.id]?.length === 0 ? (
-                <Card className="col-span-full">
-                  <CardContent className="pt-6 text-center">
-                    <p>No {category.name} integrations available yet.</p>
+        <TabsContent value={activeTab} className="space-y-4">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array(3).fill(0).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardHeader>
+                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-4 w-48 bg-gray-200 rounded"></div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-10 w-full bg-gray-200 rounded mb-2"></div>
+                    <div className="h-8 w-24 bg-gray-200 rounded float-right"></div>
                   </CardContent>
                 </Card>
-              ) : (
-                integrationsByCategory[category.id]?.map(integration => (
-                  <Card key={integration.id}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        {integration.icon && <integration.icon className="h-5 w-5 mr-2" />}
-                        {integration.name}
-                      </CardTitle>
-                      <CardDescription>{integration.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {integration.status === 'connected' ? (
-                        <div>
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <p className="text-sm text-green-600 font-medium mb-1">Connected</p>
-                              {integration.lastSynced && (
-                                <p className="text-xs text-gray-500">
-                                  Last synced: {new Date(integration.lastSynced).toLocaleTimeString()}
-                                </p>
-                              )}
-                            </div>
-                            <Button size="sm" variant="outline">
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              Sync
-                            </Button>
-                          </div>
-                          <div className="flex justify-between">
-                            <Button variant="outline" size="sm">
-                              Configure
-                            </Button>
-                            <Button variant="destructive" size="sm">
-                              Disconnect
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <Button className="w-full">
-                          Connect
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+              ))}
             </div>
-            
-            {category.id === 'automation' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Zapier Integration</CardTitle>
-                  <CardDescription>
-                    Connect your restaurant with thousands of apps through Zapier
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleConnectZapier}>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="webhook" className="block text-sm font-medium mb-1">
-                          Zapier Webhook URL
-                        </label>
-                        <Input
-                          id="webhook"
-                          placeholder="https://hooks.zapier.com/hooks/catch/..."
-                          value={webhookUrl}
-                          onChange={(e) => setWebhookUrl(e.target.value)}
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Create a webhook trigger in Zapier and paste the URL here
-                        </p>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open('https://zapier.com/apps/webhook', '_blank')}
-                        >
-                          Zapier Documentation
-                          <ExternalLink className="ml-2 h-3 w-3" />
-                        </Button>
-                        
-                        <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Connecting...
-                            </>
-                          ) : (
-                            <>Connect</>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        ))}
+          ) : filteredIntegrations.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <p className="text-sm text-gray-500 mb-3">
+                  {activeTab === 'all' 
+                    ? 'No integrations available yet.' 
+                    : `No ${getCategoryName(activeTab)} integrations available yet.`}
+                </p>
+                <AddIntegrationDialog onAddIntegration={createIntegration} />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredIntegrations.map(integration => (
+                <IntegrationCard 
+                  key={integration.id} 
+                  integration={integration}
+                  onSync={syncIntegration}
+                  onDelete={setIntegrationToDelete}
+                  isSyncing={isSyncing}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
+      
+      <AlertDialog open={!!integrationToDelete} onOpenChange={() => setIntegrationToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will disconnect the integration and remove all associated credentials. 
+              Any data that has already been synchronized will remain in your database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>
+              Disconnect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
+
+// Helper function to get a human-readable category name
+function getCategoryName(category: string): string {
+  const categoryMap: Record<string, string> = {
+    'pos': 'POS Systems',
+    'delivery': 'Food Delivery',
+    'payment': 'Payment',
+    'analytics': 'Analytics',
+    'communication': 'Communication',
+    'documents': 'Documents',
+    'automation': 'Automation',
+    'other': 'Other'
+  };
+  
+  return categoryMap[category] || category;
+}
 
 export default IntegrationsPage;
