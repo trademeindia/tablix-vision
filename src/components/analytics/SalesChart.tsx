@@ -8,12 +8,14 @@ interface SalesChartProps {
   data: Array<{name: string, total: number}>;
   isLoading: boolean;
   currency?: string;
+  height?: number;
 }
 
 const SalesChart: React.FC<SalesChartProps> = ({ 
   data, 
   isLoading,
-  currency = 'USD'
+  currency = 'USD',
+  height = 300
 }) => {
   // Format the date for display
   const formatDate = (dateStr: string) => {
@@ -57,7 +59,7 @@ const SalesChart: React.FC<SalesChartProps> = ({
             No data available
           </div>
         ) : (
-          <div className="h-[300px]">
+          <div style={{ height: `${height}px` }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={data}
