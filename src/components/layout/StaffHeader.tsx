@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { useNavigate } from 'react-router-dom';
+import NotificationsPopover from '@/components/staff/NotificationsPopover';
+import { useRealtimeNotifications } from '@/hooks/use-realtime-notifications';
 
 interface StaffHeaderProps {
   onMenuButtonClick?: () => void;
@@ -17,9 +19,11 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
-  // In a real app, you would fetch the staff name from authentication context
+  // In a real app, you would fetch the staff and restaurant info from authentication context
+  const staffId = 'staff-id-123';
   const staffName = "Jane Smith";
   const staffRole = "Waiter"; // This would come from your user authentication
+  const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
 
   // Navigation items for the mobile drawer
   const navItems = [
@@ -29,6 +33,19 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
     { label: "Inventory", path: "/staff-dashboard/inventory" },
     { label: "Reports", path: "/staff-dashboard/reports" },
   ];
+
+  // Set up real-time notifications
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead,
+    isLoading 
+  } = useRealtimeNotifications({
+    userId: staffId,
+    role: staffRole as any,
+    restaurantId
+  });
 
   return (
     <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-6 bg-white">
@@ -84,10 +101,13 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
           </h2>
           
           <div className="flex items-center">
-            <button className="relative p-2 rounded-full" aria-label="Notifications">
-              <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
-            </button>
+            <NotificationsPopover
+              notifications={notifications}
+              unreadCount={unreadCount}
+              markAsRead={markAsRead}
+              markAllAsRead={markAllAsRead}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       ) : (
@@ -112,10 +132,13 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
           </div>
           
           <div className="flex items-center space-x-3 md:space-x-4">
-            <button className="relative p-2 rounded-full hover:bg-slate-100" aria-label="Notifications">
-              <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
-            </button>
+            <NotificationsPopover
+              notifications={notifications}
+              unreadCount={unreadCount}
+              markAsRead={markAsRead}
+              markAllAsRead={markAllAsRead}
+              isLoading={isLoading}
+            />
             
             <div className="flex items-center">
               <Avatar className="h-8 w-8">
