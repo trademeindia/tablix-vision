@@ -132,13 +132,6 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
   if (item.price === undefined || item.price === null) {
     throw new Error("Item price is required");
   }
-
-  // Start transaction
-  const { error: beginError } = await supabase.rpc('begin_transaction');
-  if (beginError) {
-    console.error('Error beginning transaction:', beginError);
-    throw beginError;
-  }
   
   try {
     // Get current user ID
@@ -172,17 +165,8 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
       .select();
       
     if (error) {
-      // Rollback transaction on error
-      await supabase.rpc('rollback_transaction');
       console.error('Error creating menu item:', error);
       throw error;
-    }
-    
-    // Commit transaction
-    const { error: commitError } = await supabase.rpc('commit_transaction');
-    if (commitError) {
-      console.error('Error committing transaction:', commitError);
-      throw commitError;
     }
     
     return {
@@ -190,10 +174,7 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
       allergens: parseAllergens(data[0].allergens)
     };
   } catch (error) {
-    // Ensure rollback on any error
-    await supabase.rpc('rollback_transaction').catch(e => 
-      console.error('Error in rollback:', e)
-    );
+    console.error('Error in createMenuItem:', error);
     throw error;
   }
 };
