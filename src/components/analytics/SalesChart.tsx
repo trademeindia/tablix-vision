@@ -25,13 +25,21 @@ const SalesChart: React.FC<SalesChartProps> = ({
 
   // Format the tooltip value as currency
   const formatCurrency = (value: number) => {
-    // Ensure valid currency code
-    const validCurrency = currency === '₹' || currency === 'INR' ? 'INR' : currency;
+    // Handle special case for Indian Rupee
+    if (currency === '₹' || currency === 'INR') {
+      return `₹${value.toLocaleString('en-IN')}`;
+    }
     
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: validCurrency,
-    }).format(value);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+      }).format(value);
+    } catch (error) {
+      console.error('Error formatting currency:', error);
+      // Fallback to simple formatting with the currency as prefix
+      return `${currency}${value.toLocaleString()}`;
+    }
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -53,7 +61,12 @@ const SalesChart: React.FC<SalesChartProps> = ({
     if (currency === 'INR' || currency === '₹') {
       return `₹${value}`;
     }
-    return `${currency === 'USD' ? '$' : ''}${value}`;
+    
+    if (currency === 'USD') {
+      return `$${value}`;
+    }
+    
+    return `${currency} ${value}`;
   };
 
   return (
