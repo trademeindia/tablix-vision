@@ -39,3 +39,6 @@ verify_jwt = false
 
 [functions.force-confirm-demo]
 verify_jwt = false
+
+[functions.upload-model]
+verify_jwt = false
