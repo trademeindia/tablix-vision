@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -84,14 +83,12 @@ const InvoicesPage = () => {
   const handleViewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setInvoiceDialogOpen(true);
-    // Update URL without reloading the page
     navigate(`/invoices/${invoice.id}`, { replace: true });
   };
 
   const handleCloseInvoiceDialog = () => {
     setInvoiceDialogOpen(false);
     setSelectedInvoice(null);
-    // Reset URL when closing the dialog
     navigate('/invoices', { replace: true });
   };
 
@@ -111,10 +108,8 @@ const InvoicesPage = () => {
           description: `Invoice marked as ${status}`,
         });
         
-        // Update the invoice in the UI
         setSelectedInvoice(prev => prev ? { ...prev, status } : null);
         
-        // Also update in the invoices list
         setInvoices(prev => 
           prev.map(inv => 
             inv.id === selectedInvoice.id 
@@ -158,7 +153,6 @@ const InvoicesPage = () => {
       
       const imgData = canvas.toDataURL('image/png');
       
-      // Create a download link for the image instead of using jsPDF
       const downloadLink = document.createElement('a');
       downloadLink.href = imgData;
       downloadLink.download = `Invoice-${selectedInvoice.invoice_number}.png`;

@@ -4,7 +4,6 @@ import { Invoice, InvoiceItem, generateInvoiceNumber, calculateTax } from './typ
 import { Order } from '../order/types';
 
 // Create a new invoice with items
-// This is a mock implementation until we have the actual database tables
 export const createInvoice = async (
   data: Omit<Invoice, 'id' | 'invoice_number' | 'created_at' | 'updated_at' | 'items'>,
   items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
@@ -16,18 +15,60 @@ export const createInvoice = async (
     // Generate a unique invoice number
     const invoiceNumber = generateInvoiceNumber(data.restaurant_id);
     
-    // Create a mock invoice for now
+    // Insert the invoice into the database
+    const { data: invoiceData, error: invoiceError } = await supabase
+      .from('invoices')
+      .insert({
+        invoice_number: invoiceNumber,
+        order_id: data.order_id,
+        restaurant_id: data.restaurant_id,
+        customer_id: data.customer_id,
+        customer_name: data.customer_name,
+        total_amount: data.total_amount,
+        tax_amount: data.tax_amount,
+        discount_amount: data.discount_amount,
+        final_amount: data.final_amount,
+        status: data.status,
+        notes: data.notes,
+        payment_method: data.payment_method,
+        payment_reference: data.payment_reference
+      })
+      .select()
+      .single();
+    
+    if (invoiceError) {
+      console.error('Error creating invoice:', invoiceError);
+      return null;
+    }
+    
+    // Insert the invoice items
+    const invoiceItems = items.map(item => ({
+      invoice_id: invoiceData.id,
+      name: item.name,
+      description: item.description || null,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total_price: item.total_price,
+      tax_percentage: item.tax_percentage || 0,
+      discount_percentage: item.discount_percentage || 0
+    }));
+    
+    const { data: itemsData, error: itemsError } = await supabase
+      .from('invoice_items')
+      .insert(invoiceItems)
+      .select();
+    
+    if (itemsError) {
+      console.error('Error creating invoice items:', itemsError);
+      // Attempt to delete the invoice if items fail
+      await supabase.from('invoices').delete().eq('id', invoiceData.id);
+      return null;
+    }
+    
+    // Construct the full invoice object to return
     const invoice: Invoice = {
-      id: `mock-${Date.now()}`,
-      invoice_number: invoiceNumber,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      ...data,
-      items: items.map((item, index) => ({
-        id: `mock-item-${Date.now()}-${index}`,
-        invoice_id: `mock-${Date.now()}`,
-        ...item
-      }))
+      ...invoiceData,
+      items: itemsData
     };
     
     return invoice;
@@ -43,7 +84,26 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
     console.log('Creating invoice from order:', order);
     
     // Check if invoice already exists for this order
-    // For now, just return a mock invoice
+    const { data: existingInvoice } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('order_id', order.id)
+      .maybeSingle();
+    
+    if (existingInvoice) {
+      console.log('Invoice already exists for this order');
+      // Fetch invoice items
+      const { data: items } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', existingInvoice.id);
+      
+      return {
+        ...existingInvoice,
+        items: items || []
+      };
+    }
+    
     const orderItems = order.items || [];
     
     // Calculate totals

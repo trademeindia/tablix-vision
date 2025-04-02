@@ -1,10 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Invoice } from './types';
-import { getInvoiceById } from './getInvoices';
-
-// Mock invoices from getInvoices
-let mockInvoices: Invoice[] = [];
 
 /**
  * Update invoice status
@@ -18,13 +14,6 @@ export const updateInvoiceStatus = async (
   try {
     console.log(`Updating invoice ${invoiceId} status to ${status}`);
     
-    // Get the current invoice data
-    const invoice = await getInvoiceById(invoiceId);
-    if (!invoice) {
-      console.error('Invoice not found');
-      return false;
-    }
-    
     // Update the invoice data
     const updateData: Partial<Invoice> = { 
       status,
@@ -36,10 +25,15 @@ export const updateInvoiceStatus = async (
       updateData.payment_reference = paymentReference || null;
     }
     
-    // Update the invoice in our mock data
-    mockInvoices = mockInvoices.map(inv => 
-      inv.id === invoiceId ? { ...inv, ...updateData } : inv
-    );
+    const { error } = await supabase
+      .from('invoices')
+      .update(updateData)
+      .eq('id', invoiceId);
+    
+    if (error) {
+      console.error('Error updating invoice status:', error);
+      return false;
+    }
     
     return true;
   } catch (error) {
@@ -58,27 +52,63 @@ export const updateInvoice = async (
   try {
     console.log(`Updating invoice ${invoiceId}`, updates);
     
-    // Get the current invoice data
-    const invoice = await getInvoiceById(invoiceId);
-    if (!invoice) {
-      console.error('Invoice not found');
-      return false;
-    }
-    
     // Update the invoice data with the updated_at timestamp
     const updateData = {
       ...updates,
       updated_at: new Date().toISOString()
     };
     
-    // Update the invoice in our mock data
-    mockInvoices = mockInvoices.map(inv => 
-      inv.id === invoiceId ? { ...inv, ...updateData } : inv
-    );
+    const { error } = await supabase
+      .from('invoices')
+      .update(updateData)
+      .eq('id', invoiceId);
+    
+    if (error) {
+      console.error('Error updating invoice:', error);
+      return false;
+    }
     
     return true;
   } catch (error) {
     console.error('Error in updateInvoice:', error);
+    return false;
+  }
+};
+
+/**
+ * Update invoice items
+ */
+export const updateInvoiceItems = async (
+  invoiceId: string,
+  items: Array<Partial<Omit<Invoice['items'][0], 'id' | 'invoice_id'>> & { id: string }>
+): Promise<boolean> => {
+  try {
+    console.log(`Updating items for invoice ${invoiceId}`, items);
+    
+    // Start a transaction by using a batch update
+    const updatePromises = items.map(item => {
+      const { id, ...updateData } = item;
+      return supabase
+        .from('invoice_items')
+        .update(updateData)
+        .eq('id', id)
+        .eq('invoice_id', invoiceId);
+    });
+    
+    const results = await Promise.all(updatePromises);
+    
+    // Check if any updates failed
+    const failed = results.some(result => result.error);
+    
+    if (failed) {
+      console.error('Some invoice items failed to update:', 
+        results.filter(r => r.error).map(r => r.error));
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in updateInvoiceItems:', error);
     return false;
   }
 };

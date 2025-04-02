@@ -42,6 +42,129 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          description: string | null
+          discount_percentage: number | null
+          id: string
+          invoice_id: string
+          name: string
+          quantity: number
+          tax_percentage: number | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          invoice_id: string
+          name: string
+          quantity: number
+          tax_percentage?: number | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          invoice_id?: string
+          name?: string
+          quantity?: number
+          tax_percentage?: number | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          customer_name: string | null
+          discount_amount: number
+          final_amount: number
+          id: string
+          invoice_number: string
+          notes: string | null
+          order_id: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          restaurant_id: string | null
+          status: string
+          tax_amount: number
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          invoice_number: string
+          notes?: string | null
+          order_id?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          restaurant_id?: string | null
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          discount_amount?: number
+          final_amount?: number
+          id?: string
+          invoice_number?: string
+          notes?: string | null
+          order_id?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          restaurant_id?: string | null
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_campaigns: {
         Row: {
           ai_generated: boolean | null
