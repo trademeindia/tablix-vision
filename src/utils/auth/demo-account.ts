@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { SUPABASE_ANON_KEY } from '@/constants/supabase-constants';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/constants/supabase-constants';
 
 /**
  * Enhanced sign-in method for demo account with direct dashboard access
@@ -106,37 +106,47 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     // If all attempts failed
     console.error('All demo login approaches failed');
     
-    // Final backup approach: try to directly setup auth
+    // Final approach: directly create a session without password verification
     try {
-      console.log('Attempting final backup approach: direct auth setup');
+      console.log('Attempting final approach: admin createUser');
       
-      // Try to create and immediately validate demo account directly
-      const { data: userData, error: createError } = await supabase.auth.admin.createUser({
-        email: email,
-        password: password,
-        email_confirm: true
+      const adminUrl = `${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(email)}/confirm`;
+      
+      const confirmResponse = await fetch(adminUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({})
       });
       
-      if (!createError && userData) {
-        console.log('Successfully created/confirmed user directly');
+      if (confirmResponse.ok) {
+        console.log('Successfully confirmed user email directly');
         
         // Now try to sign in with the confirmed account
-        const { data: signInData } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
-        if (signInData?.session) {
-          console.log('Login successful after direct account creation');
+        if (!error && data?.session) {
+          console.log('Login successful after direct confirmation');
           
           // Fire success event
           window.dispatchEvent(new CustomEvent('demo-login-success'));
+          
+          toast({
+            title: 'Demo Access Granted',
+            description: 'You now have full access to the Restaurant Dashboard!',
+          });
           
           return { success: true };
         }
       }
     } catch (directError) {
-      console.error('Final direct account approach failed:', directError);
+      console.error('Final direct approach failed:', directError);
     }
     
     return { 

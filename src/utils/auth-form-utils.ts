@@ -1,6 +1,6 @@
 
 import { UseFormReturn } from 'react-hook-form';
-import { AuthFormValues } from '@/hooks/use-auth-form';
+import { AuthFormValues } from '@/schemas/auth-schemas';
 
 /**
  * Pre-fill the form with demo credentials
@@ -32,23 +32,39 @@ export const handleDemoLoginAttempt = async (
       // First, attempt to force-confirm the demo account directly
       try {
         const baseUrl = window.location.origin;
-        await fetch(`${baseUrl}/api/force-confirm-demo`, {
+        const forceConfirmResponse = await fetch(`${baseUrl}/api/force-confirm-demo`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         });
+        
+        if (!forceConfirmResponse.ok) {
+          console.warn(`Force confirm returned status ${forceConfirmResponse.status}`);
+          // Try the alternative format as fallback
+          await fetch(`${baseUrl}/functions/v1/force-confirm-demo`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+            }
+          });
+        }
       } catch (e) {
         // Ignore force-confirm errors and continue with sign-in
+        console.warn('Force-confirm attempt failed, continuing with login:', e);
       }
       
       // Wait a bit for any confirmation to take effect
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       // Sign in attempt
       const result = await signInFn(email, password);
       
       if (result.success) {
         console.log(`Demo login succeeded on attempt ${attempt}`);
+        // Add a custom event that components can listen for
+        window.dispatchEvent(new CustomEvent('demo-login-success'));
         return { success: true };
       }
       
@@ -70,6 +86,6 @@ export const handleDemoLoginAttempt = async (
   console.error(`Demo login failed after ${maxAttempts} attempts`);
   return { 
     success: false, 
-    error: `Unable to access demo account after multiple attempts. Please try again later.` 
+    error: `Unable to access demo account. Please try again later.` 
   };
 };

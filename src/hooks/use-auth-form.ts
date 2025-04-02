@@ -3,10 +3,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, signupSchema } from '@/schemas/auth-schemas';
+import { loginSchema, signupSchema, AuthFormValues } from '@/schemas/auth-schemas';
 import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
 import { toast } from '@/hooks/use-toast';
+import { preFillDemoCredentials, handleDemoLoginAttempt } from '@/utils/auth-form-utils';
+
+export { AuthFormValues };
 
 export const useAuthForm = () => {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
@@ -18,7 +21,7 @@ export const useAuthForm = () => {
   // Use the appropriate schema based on the active tab
   const schema = activeTab === 'signin' ? loginSchema : signupSchema;
 
-  const form = useForm<z.infer<typeof schema>>({
+  const form = useForm<AuthFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       email: '',
@@ -27,7 +30,7 @@ export const useAuthForm = () => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof schema>) => {
+  const onSubmit = async (values: AuthFormValues) => {
     // Clear previous errors
     setAuthError(null);
     setIsLoading(true);
@@ -67,15 +70,22 @@ export const useAuthForm = () => {
 
   const handleDemoLogin = async () => {
     try {
-      // Clear previous errors
+      // Clear previous errors and set loading state
       setAuthError(null);
       setIsDemoLoading(true);
       
-      console.log('Attempting demo login with:', DEMO_EMAIL);
-
-      // Use the sign-in method from useAuth context
-      const result = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
-
+      // Pre-fill the form with demo credentials for visual feedback
+      preFillDemoCredentials(form, DEMO_EMAIL, DEMO_PASSWORD);
+      
+      // Show initial toast to indicate process has started
+      toast({
+        title: 'Accessing Demo Dashboard',
+        description: 'Setting up your experience...'
+      });
+      
+      // Use the enhanced demo login attempt function with retries
+      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD, 3);
+      
       if (!result.success) {
         setAuthError(result.error || 'Demo login failed');
         toast({
@@ -85,7 +95,7 @@ export const useAuthForm = () => {
         });
       }
     } catch (error: any) {
-      console.error('Error auth:', error);
+      console.error('Error in demo login:', error);
       setAuthError(error.message || 'Demo login failed');
       
       toast({

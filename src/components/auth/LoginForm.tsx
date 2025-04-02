@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, Mail, Lock } from 'lucide-react';
-import { AuthFormValues } from '@/hooks/use-auth-form';
+import { AuthFormValues } from '@/schemas/auth-schemas';
 
 interface LoginFormProps {
   form: UseFormReturn<AuthFormValues>;
@@ -70,6 +70,32 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             </FormItem>
           )}
         />
+        
+        {isSignUp && (
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Confirm Password</FormLabel>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <FormControl>
+                    <Input 
+                      placeholder="Confirm your password" 
+                      type="password" 
+                      className="pl-10" 
+                      {...field} 
+                      disabled={isLoading}
+                      aria-disabled={isLoading}
+                    />
+                  </FormControl>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <Button 
           type="submit" 
