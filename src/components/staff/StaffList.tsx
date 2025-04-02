@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -40,13 +39,10 @@ const StaffList: React.FC<StaffListProps> = ({
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const { toast } = useToast();
 
-  // Filter the staff data based on search term and filter
   const filteredStaff = staffData.filter(staff => {
-    // Filter by status
     if (filter === 'active' && staff.status !== 'active') return false;
     if (filter === 'inactive' && staff.status !== 'inactive') return false;
     
-    // Filter by search term (case insensitive)
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       return (

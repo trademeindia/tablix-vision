@@ -12,6 +12,7 @@ import * as z from 'zod';
 import { StaffFormData, StaffMember } from '@/types/staff';
 import StaffForm from './StaffForm';
 import { supabase } from '@/integrations/supabase/client';
+import { Form } from '@/components/ui/form';
 
 interface EditStaffDialogProps {
   open: boolean;
@@ -98,23 +99,25 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
           <DialogTitle>Edit Staff Member</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <StaffForm form={form} />
-          
-          <DialogFooter className="mt-6">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </DialogFooter>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <StaffForm form={form} />
+            
+            <DialogFooter className="mt-6">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

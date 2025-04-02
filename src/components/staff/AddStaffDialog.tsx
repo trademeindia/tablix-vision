@@ -13,6 +13,7 @@ import * as z from 'zod';
 import { StaffFormData } from '@/types/staff';
 import StaffForm from './StaffForm';
 import { supabase } from '@/integrations/supabase/client';
+import { Form } from '@/components/ui/form';
 
 interface AddStaffDialogProps {
   onStaffAdded: () => void;
@@ -45,16 +46,16 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
   const onSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
     try {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
       
       let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
       
       // If user is authenticated, get their restaurant ID
-      if (session?.user) {
+      if (sessionData && sessionData.session?.user) {
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('restaurant_id')
-          .eq('id', session.user.id)
+          .eq('id', sessionData.session.user.id)
           .single();
           
         if (profile?.restaurant_id) {
@@ -107,23 +108,25 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
           <DialogTitle>Add New Staff Member</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <StaffForm form={form} />
-          
-          <DialogFooter className="mt-6">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setOpen(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Adding...' : 'Add Staff'}
-            </Button>
-          </DialogFooter>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <StaffForm form={form} />
+            
+            <DialogFooter className="mt-6">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Adding...' : 'Add Staff'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

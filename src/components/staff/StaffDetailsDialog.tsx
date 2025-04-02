@@ -1,18 +1,14 @@
 
 import React from 'react';
-import { 
+import {
   Dialog, DialogContent, DialogHeader, 
   DialogTitle, DialogFooter 
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { 
-  MailIcon, PhoneIcon, CalendarIcon, 
-  CheckCircle2Icon, XCircleIcon, UserCogIcon 
-} from 'lucide-react';
 import { StaffMember } from '@/types/staff';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { ChefHat, UserCog, User, HelpCircle } from 'lucide-react';
 
 interface StaffDetailsDialogProps {
   open: boolean;
@@ -20,105 +16,79 @@ interface StaffDetailsDialogProps {
   staff: StaffMember;
 }
 
-const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ 
-  open, 
-  onOpenChange, 
-  staff 
+const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
+  open,
+  onOpenChange,
+  staff
 }) => {
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Never';
     try {
-      return format(new Date(dateString), 'PPpp');
+      return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
     } catch (e) {
       return 'Invalid date';
     }
   };
 
-  // Simulate permissions based on role
-  const getPermissions = (role: string) => {
+  const getRoleIcon = (role: string) => {
     switch (role.toLowerCase()) {
-      case 'manager':
-        return ['View Dashboard', 'Manage Staff', 'Manage Menu', 'View Reports', 'Manage Orders'];
       case 'chef':
-        return ['View Kitchen Dashboard', 'Update Order Status', 'View Menu'];
+        return <ChefHat className="h-4 w-4 mr-1 text-amber-500" />;
+      case 'manager':
+        return <UserCog className="h-4 w-4 mr-1 text-blue-500" />;
       case 'waiter':
-        return ['Take Orders', 'View Tables', 'Call Kitchen'];
-      case 'receptionist':
-        return ['Manage Reservations', 'View Tables', 'Customer Service'];
+        return <User className="h-4 w-4 mr-1 text-green-500" />;
       default:
-        return ['Basic Access'];
+        return <HelpCircle className="h-4 w-4 mr-1 text-gray-500" />;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">{staff.name}</DialogTitle>
+          <DialogTitle>Staff Details</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Badge 
-              variant={staff.status === 'active' ? "default" : "secondary"}
-              className={staff.status === 'active' ? "bg-green-500" : "bg-slate-400"}
-            >
-              {staff.status === 'active' ? 'Active' : 'Inactive'}
-            </Badge>
-            <div>
-              <Badge variant="outline" className="border-blue-300 text-blue-600">
-                {staff.role}
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <h3 className="text-xl font-semibold flex items-center">
+              {staff.name}
+              <Badge 
+                variant={staff.status === 'active' ? "default" : "secondary"}
+                className={`ml-2 ${staff.status === 'active' ? "bg-green-500" : "bg-slate-400"}`}
+              >
+                {staff.status === 'active' ? 'Active' : 'Inactive'}
               </Badge>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex items-center">
-              <MailIcon className="h-4 w-4 mr-2 text-slate-500" />
-              <span>{staff.email}</span>
-            </div>
-            <div className="flex items-center">
-              <PhoneIcon className="h-4 w-4 mr-2 text-slate-500" />
-              <span>{staff.phone}</span>
-            </div>
-            <div className="flex items-center">
-              <CalendarIcon className="h-4 w-4 mr-2 text-slate-500" />
-              <span>Last login: {formatDate(staff.last_login)}</span>
-            </div>
-          </div>
-          
-          <Separator />
-          
-          <div>
-            <h3 className="font-medium mb-2 flex items-center">
-              <UserCogIcon className="h-4 w-4 mr-2" />
-              Permissions
             </h3>
-            <div className="space-y-2">
-              {getPermissions(staff.role).map((permission) => (
-                <div key={permission} className="flex items-center text-sm">
-                  <CheckCircle2Icon className="h-4 w-4 mr-2 text-green-500" />
-                  {permission}
-                </div>
-              ))}
+            <p className="text-sm text-slate-500 flex items-center">
+              {getRoleIcon(staff.role)} {staff.role}
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Contact Information</p>
+              <div className="text-sm space-y-1">
+                <p><span className="text-slate-500">Phone:</span> {staff.phone}</p>
+                <p><span className="text-slate-500">Email:</span> {staff.email}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <p className="text-sm font-medium">System Information</p>
+              <div className="text-sm space-y-1">
+                <p><span className="text-slate-500">Last Login:</span> {formatDate(staff.last_login)}</p>
+                <p><span className="text-slate-500">Created:</span> {formatDate(staff.created_at)}</p>
+                <p><span className="text-slate-500">Updated:</span> {formatDate(staff.updated_at)}</p>
+              </div>
             </div>
           </div>
           
-          <div className="bg-slate-50 p-3 rounded-md text-xs text-slate-500">
-            <div className="flex justify-between">
-              <span>Created:</span>
-              <span>{formatDate(staff.created_at)}</span>
-            </div>
-            {staff.updated_at && (
-              <div className="flex justify-between mt-1">
-                <span>Last Updated:</span>
-                <span>{formatDate(staff.updated_at)}</span>
-              </div>
-            )}
-          </div>
+          {/* Add more sections as needed for notification preferences, etc. */}
         </div>
         
-        <DialogFooter>
+        <DialogFooter className="mt-6">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}

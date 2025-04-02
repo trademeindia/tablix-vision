@@ -488,6 +488,51 @@ export type Database = {
         }
         Relationships: []
       }
+      staff: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          last_login: string | null
+          name: string
+          notification_preference: Json | null
+          phone: string
+          restaurant_id: string | null
+          role: string
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          last_login?: string | null
+          name: string
+          notification_preference?: Json | null
+          phone: string
+          restaurant_id?: string | null
+          role: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          last_login?: string | null
+          name?: string
+          notification_preference?: Json | null
+          phone?: string
+          restaurant_id?: string | null
+          role?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tables: {
         Row: {
           created_at: string | null

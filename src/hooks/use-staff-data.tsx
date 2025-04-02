@@ -12,16 +12,16 @@ export const useStaffData = () => {
   const fetchStaffData = async () => {
     setIsLoading(true);
     try {
-      const { data: session } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
       
       let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
       
       // If user is authenticated, get their restaurant ID
-      if (session?.user) {
+      if (sessionData && sessionData.session?.user) {
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('restaurant_id')
-          .eq('id', session.user.id)
+          .eq('id', sessionData.session.user.id)
           .single();
           
         if (profile?.restaurant_id) {
@@ -38,7 +38,7 @@ export const useStaffData = () => {
         throw error;
       }
       
-      setStaffData(data || []);
+      setStaffData(data as StaffMember[] || []);
     } catch (error) {
       console.error('Error fetching staff data:', error);
       toast({
