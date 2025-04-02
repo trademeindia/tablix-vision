@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, signupSchema, AuthFormValues } from '@/schemas/auth-schemas';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +8,8 @@ import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
 import { toast } from '@/hooks/use-toast';
 import { preFillDemoCredentials, handleDemoLoginAttempt } from '@/utils/auth-form-utils';
 
-export { AuthFormValues };
+// Export the type explicitly to fix the TS1205 error
+export type { AuthFormValues };
 
 export const useAuthForm = () => {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
