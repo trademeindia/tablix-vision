@@ -7,6 +7,10 @@ import RevenueStats from '@/components/analytics/RevenueStats';
 import OrderStats from '@/components/analytics/OrderStats';
 import PopularItems from '@/components/analytics/PopularItems';
 import SalesChart from '@/components/analytics/SalesChart';
+import AIAnalyticsReport from '@/components/analytics/AIAnalyticsReport';
+import CustomerDemographics from '@/components/analytics/CustomerDemographics';
+import AverageOrderValue from '@/components/analytics/AverageOrderValue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 
 const ReportsPage = () => {
@@ -61,7 +65,12 @@ const ReportsPage = () => {
     popularItems,
     popularItemsLoading,
     salesData,
-    salesDataLoading
+    salesDataLoading,
+    demographicsData,
+    demographicsLoading,
+    avgOrderData,
+    avgOrderLoading,
+    generateReport
   } = useAnalytics(restaurantId);
 
   return (
@@ -103,6 +112,26 @@ const ReportsPage = () => {
             currency={currency}
           />
         </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <CustomerDemographics 
+          data={demographicsData}
+          isLoading={demographicsLoading || isLoading}
+        />
+        
+        <AverageOrderValue 
+          data={avgOrderData}
+          isLoading={avgOrderLoading || isLoading}
+          currency={currency}
+        />
+      </div>
+      
+      <div className="mb-6">
+        <AIAnalyticsReport 
+          restaurantId={restaurantId || ''}
+          onGenerateReport={generateReport}
+        />
       </div>
     </StaffDashboardLayout>
   );

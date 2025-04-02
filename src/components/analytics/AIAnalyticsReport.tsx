@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from '@/components/ui/badge';
 
 interface AIAnalyticsReportProps {
   restaurantId: string;
@@ -42,7 +43,13 @@ const AIAnalyticsReport: React.FC<AIAnalyticsReportProps> = ({
     <Card className="h-full">
       <CardContent className="pt-6">
         <CardTitle className="flex items-center justify-between text-xl mb-4">
-          <span>AI Business Insights</span>
+          <div className="flex items-center gap-2">
+            <span>AI Business Insights</span>
+            <Badge className="bg-amber-500 hover:bg-amber-600">
+              <Sparkles className="h-3 w-3 mr-1" />
+              <span className="text-xs">Powered by AI</span>
+            </Badge>
+          </div>
           <Sparkles className="h-5 w-5 text-amber-500" />
         </CardTitle>
         
@@ -65,7 +72,7 @@ const AIAnalyticsReport: React.FC<AIAnalyticsReportProps> = ({
         ) : (
           <div className="text-center py-10 text-slate-500">
             <p className="mb-2">Get AI-generated insights about your restaurant's performance.</p>
-            <p className="text-sm text-slate-400">Press the button below to generate a report.</p>
+            <p className="text-sm text-slate-400">Press the button below to generate a detailed analysis with improvement recommendations.</p>
           </div>
         )}
       </CardContent>
@@ -78,7 +85,7 @@ const AIAnalyticsReport: React.FC<AIAnalyticsReportProps> = ({
           {isLoading ? (
             <>
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Generating Report...
+              Analyzing Business Data...
             </>
           ) : (
             <>
