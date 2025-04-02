@@ -48,14 +48,16 @@ export const handleDemoLoginAttempt = async (
       // Only clear session for subsequent attempts to avoid unnecessary operations
       if (attempts > 1) {
         try {
-          const { data } = await fetch('/api/auth/clear-session', { 
+          // Silently attempt to clear any cached sessions
+          await fetch('/api/auth/clear-session', { 
             method: 'POST',
             credentials: 'include'
-          }).then(res => res.json());
+          }).catch(() => {/* ignore fetch errors */});
           
-          if (data?.success) {
-            console.log('Successfully cleared session before retry');
-          }
+          // Force a signout to clear any local session state
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase.auth.signOut().catch(() => {/* ignore signout errors */});
+          
         } catch (e) {
           // Skip session clearing if it fails - continue with login attempt
           console.warn('Failed to clear session before retry, continuing anyway');

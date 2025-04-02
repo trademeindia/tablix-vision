@@ -58,6 +58,13 @@ BEGIN
       now()
     );
     
+    -- CRITICAL: Ensure the email is considered confirmed
+    UPDATE auth.users 
+    SET email_confirmed_at = now(),
+        confirmed_at = now(),
+        is_confirmed = true
+    WHERE id = user_id;
+    
     RAISE NOTICE 'Demo account created successfully with ID: %', user_id;
   ELSE
     -- If demo user exists, ensure it has all required fields set
@@ -66,6 +73,7 @@ BEGIN
       email_confirmed_at = COALESCE(email_confirmed_at, now()),
       confirmed_at = COALESCE(confirmed_at, now()),
       confirmation_sent_at = COALESCE(confirmation_sent_at, now()),
+      is_confirmed = true,
       raw_user_meta_data = COALESCE(raw_user_meta_data, '{"full_name": "Demo User"}'::jsonb)
     WHERE email = demo_email;
     

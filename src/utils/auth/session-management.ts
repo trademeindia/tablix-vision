@@ -58,16 +58,26 @@ export const checkCurrentSession = async () => {
     if (data.session) {
       console.log('Session check: Found existing session for', data.session.user.email);
       
-      // Do a quick test query to ensure session is valid
-      const { error: testError } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(1);
+      // If this is a demo account, skip the test query to avoid potential RLS issues
+      if (data.session.user.email === 'demo@restaurant.com') {
+        return { session: data.session, error: null };
+      }
       
-      if (testError && testError.code === 'PGRST301') {
-        console.log('Session invalid (JWT expired), clearing session');
-        await supabase.auth.signOut();
-        return { session: null, error: null };
+      // Do a quick test query to ensure session is valid
+      try {
+        const { error: testError } = await supabase
+          .from('profiles')
+          .select('id')
+          .limit(1);
+        
+        if (testError && (testError.code === 'PGRST301' || testError.message.includes('JWT'))) {
+          console.log('Session invalid (JWT expired), clearing session');
+          await supabase.auth.signOut();
+          return { session: null, error: null };
+        }
+      } catch (testErr) {
+        // If test query fails, still return the session
+        console.warn('Session validation query failed, but continuing:', testErr);
       }
       
       return { session: data.session, error: null };

@@ -54,6 +54,33 @@ export const signInDemoAccount = async (email: string, password: string): Promis
       return { success: true };
     }
     
+    // If still failed, try one more approach - login with auto-confirm
+    if (secondAttempt.error && secondAttempt.error.message.includes('Email not confirmed')) {
+      console.log('Trying login with auto-confirmation workaround');
+      
+      // Force a sign-up which might auto-confirm in development
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
+      });
+      
+      if (!signUpError) {
+        // Try login again immediately
+        const thirdAttempt = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (!thirdAttempt.error && thirdAttempt.data?.session) {
+          console.log('Login with auto-confirmation succeeded');
+          return { success: true };
+        }
+      }
+    }
+    
     console.error('All demo login approaches failed');
     return { 
       success: false, 
@@ -80,7 +107,8 @@ const repairDemoAccount = async (email: string, password: string): Promise<void>
       email,
       password,
       options: {
-        data: { full_name: 'Demo User' }
+        data: { full_name: 'Demo User' },
+        emailRedirectTo: window.location.origin
       }
     });
     
