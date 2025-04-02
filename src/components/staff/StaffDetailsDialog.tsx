@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, 
@@ -50,6 +49,10 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
     }
   };
 
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -68,9 +71,9 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
           <TabsContent value="info">
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={staff.avatar_url} alt={staff.name} />
-                  <AvatarFallback>{staff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <Avatar className="h-24 w-24 mx-auto">
+                  <AvatarImage src={staff?.avatar || staff?.image} alt={staff?.name} />
+                  <AvatarFallback>{getInitials(staff?.name || '')}</AvatarFallback>
                 </Avatar>
                 
                 <div className="space-y-1 flex-1">

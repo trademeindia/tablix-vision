@@ -1,263 +1,493 @@
+import React, { useState } from 'react';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Search, 
+  Plus, 
+  MoreVertical, 
+  Filter, 
+  ArrowUpDown, 
+  AlertTriangle, 
+  Package, 
+  Utensils, 
+  Coffee, 
+  Wine, 
+  ShoppingCart 
+} from "lucide-react";
+import StaffDashboardLayout from "@/components/layout/StaffDashboardLayout";
 
-import React, { useState, useEffect } from 'react';
-import StaffDashboardLayout from '@/components/layout/StaffDashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Plus, Filter, AlertTriangle, TrendingDown, Check } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
+// Demo inventory data
+const inventoryItems = [
+  {
+    id: 1,
+    name: "Chicken Breast",
+    category: "Meat",
+    stock_level: 75,
+    unit: "kg",
+    quantity: 25,
+    price_per_unit: 8.99,
+    supplier: "Premium Meats Inc.",
+    last_ordered: "2023-05-15",
+    status: "In Stock"
+  },
+  {
+    id: 2,
+    name: "Basmati Rice",
+    category: "Grains",
+    stock_level: 60,
+    unit: "kg",
+    quantity: 30,
+    price_per_unit: 3.49,
+    supplier: "Global Foods",
+    last_ordered: "2023-05-10",
+    status: "In Stock"
+  },
+  {
+    id: 3,
+    name: "Olive Oil",
+    category: "Oils",
+    stock_level: 25,
+    unit: "liters",
+    quantity: 5,
+    price_per_unit: 12.99,
+    supplier: "Mediterranean Imports",
+    last_ordered: "2023-04-28",
+    status: "Low Stock"
+  },
+  {
+    id: 4,
+    name: "Tomatoes",
+    category: "Vegetables",
+    stock_level: 40,
+    unit: "kg",
+    quantity: 10,
+    price_per_unit: 2.99,
+    supplier: "Local Farms Co-op",
+    last_ordered: "2023-05-17",
+    status: "In Stock"
+  },
+  {
+    id: 5,
+    name: "Heavy Cream",
+    category: "Dairy",
+    stock_level: 15,
+    unit: "liters",
+    quantity: 3,
+    price_per_unit: 4.50,
+    supplier: "Dairy Delights",
+    last_ordered: "2023-05-12",
+    status: "Low Stock"
+  },
+  {
+    id: 6,
+    name: "Salmon Fillet",
+    category: "Seafood",
+    stock_level: 50,
+    unit: "kg",
+    quantity: 15,
+    price_per_unit: 22.99,
+    supplier: "Ocean Harvest",
+    last_ordered: "2023-05-14",
+    status: "In Stock"
+  },
+  {
+    id: 7,
+    name: "Red Wine",
+    category: "Beverages",
+    stock_level: 80,
+    unit: "bottles",
+    quantity: 40,
+    price_per_unit: 18.99,
+    supplier: "Vineyard Selections",
+    last_ordered: "2023-04-20",
+    status: "In Stock"
+  },
+  {
+    id: 8,
+    name: "Garlic",
+    category: "Vegetables",
+    stock_level: 10,
+    unit: "kg",
+    quantity: 2,
+    price_per_unit: 5.99,
+    supplier: "Local Farms Co-op",
+    last_ordered: "2023-05-05",
+    status: "Low Stock"
+  },
+  {
+    id: 9,
+    name: "Chocolate",
+    category: "Baking",
+    stock_level: 65,
+    unit: "kg",
+    quantity: 10,
+    price_per_unit: 9.99,
+    supplier: "Sweet Supplies Inc.",
+    last_ordered: "2023-04-25",
+    status: "In Stock"
+  },
+  {
+    id: 10,
+    name: "Coffee Beans",
+    category: "Beverages",
+    stock_level: 30,
+    unit: "kg",
+    quantity: 5,
+    price_per_unit: 15.99,
+    supplier: "Global Roasters",
+    last_ordered: "2023-05-08",
+    status: "In Stock"
+  }
+];
+
+// Categories with icons
+const categories = [
+  { name: "All", icon: Package },
+  { name: "Meat", icon: Utensils },
+  { name: "Vegetables", icon: Utensils },
+  { name: "Beverages", icon: Coffee },
+  { name: "Dairy", icon: Package },
+  { name: "Seafood", icon: Utensils },
+  { name: "Grains", icon: Package },
+  { name: "Oils", icon: Wine },
+  { name: "Baking", icon: Package }
+];
 
 const InventoryPage = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [inventory, setInventory] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
   
-  // Generate demo inventory data
-  useEffect(() => {
-    const fetchInventory = async () => {
-      setIsLoading(true);
-      
-      // Simulate API call with delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Generate demo inventory data
-      const categories = ['Produce', 'Meat', 'Dairy', 'Grains', 'Beverages', 'Spices', 'Sauces'];
-      const units = ['kg', 'g', 'l', 'ml', 'pcs', 'bottles', 'bags'];
-      const suppliers = ['FreshFarms Inc.', 'Quality Foods', 'OrganicWholesale', 'Metro Supplies', 'FoodCo'];
-      
-      const demoInventory = Array.from({ length: 25 }).map((_, index) => {
-        const name = [
-          'Tomatoes', 'Chicken Breast', 'Olive Oil', 'Rice', 'Flour', 'Milk',
-          'Eggs', 'Bell Peppers', 'Onions', 'Beef', 'Pasta', 'Cheese',
-          'Red Wine', 'Garlic', 'Basil', 'Salt', 'Black Pepper', 'Sugar',
-          'Lemons', 'Potatoes', 'Carrots', 'Butter', 'Coffee', 'Tea', 'Chocolate'
-        ][index];
-        
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        const unit = units[Math.floor(Math.random() * units.length)];
-        const supplier = suppliers[Math.floor(Math.random() * suppliers.length)];
-        
-        // Current quantity between 0 and max quantity
-        const maxQuantity = 100 + Math.floor(Math.random() * 900);
-        const currentQuantity = Math.floor(Math.random() * maxQuantity);
-        const lowThreshold = maxQuantity * 0.15;
-        
-        // Status based on current quantity
-        let status = 'normal';
-        if (currentQuantity <= lowThreshold) status = 'low';
-        if (currentQuantity === 0) status = 'out';
-        
-        // 40% chance of having an expiration date
-        const hasExpiration = Math.random() < 0.4;
-        const expirationDate = hasExpiration ? 
-          new Date(Date.now() + (Math.floor(Math.random() * 90) + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0] :
-          null;
-        
-        return {
-          id: `inv-${index + 1}`,
-          name,
-          category,
-          currentQuantity,
-          maxQuantity,
-          unit,
-          supplier,
-          status,
-          expirationDate,
-          lastRestocked: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        };
-      });
-      
-      setInventory(demoInventory);
-      setIsLoading(false);
-    };
-    
-    fetchInventory();
-  }, []);
+  // Filter items based on search query and category
+  const filteredItems = inventoryItems.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         item.supplier.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
   
-  // Helper function to get status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'low':
-        return <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">Low Stock</Badge>;
-      case 'out':
-        return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">Out of Stock</Badge>;
-      case 'normal':
-      default:
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">In Stock</Badge>;
-    }
-  };
-  
-  // Filter inventory based on search term
-  const filteredInventory = inventory.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  // Calculate inventory stats
-  const totalItems = inventory.length;
-  const lowStockItems = inventory.filter(item => item.status === 'low').length;
-  const outOfStockItems = inventory.filter(item => item.status === 'out').length;
-  const expiringSoonItems = inventory.filter(item => 
-    item.expirationDate && new Date(item.expirationDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  ).length;
+  // Count low stock items
+  const lowStockCount = inventoryItems.filter(item => item.status === "Low Stock").length;
   
   return (
     <StaffDashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Inventory Management</h1>
-        <p className="text-slate-500">Track and manage inventory</p>
-      </div>
-      
-      {/* Inventory Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm font-medium text-muted-foreground">Total Items</p>
-              <Check className="h-4 w-4 text-green-500" />
-            </div>
-            <p className="text-2xl font-bold mt-2">{isLoading ? <Skeleton className="h-8 w-16" /> : totalItems}</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">Inventory Management</h2>
+          <p className="text-muted-foreground">
+            Track and manage your restaurant's inventory items
+          </p>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm font-medium text-muted-foreground">Low Stock</p>
-              <TrendingDown className="h-4 w-4 text-amber-500" />
-            </div>
-            <p className="text-2xl font-bold text-amber-600 mt-2">
-              {isLoading ? <Skeleton className="h-8 w-16" /> : lowStockItems}
-            </p>
-          </CardContent>
-        </Card>
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Items
+              </CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inventoryItems.length}</div>
+              <p className="text-xs text-muted-foreground">
+                across {categories.length - 1} categories
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Low Stock Items
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{lowStockCount}</div>
+              <p className="text-xs text-muted-foreground">
+                items need to be restocked
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Last Order
+              </CardTitle>
+              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">May 17</div>
+              <p className="text-xs text-muted-foreground">
+                3 days ago
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Inventory Value
+              </CardTitle>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                className="h-4 w-4 text-muted-foreground"
+              >
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$12,580</div>
+              <p className="text-xs text-muted-foreground">
+                +2.5% from last month
+              </p>
+            </CardContent>
+          </Card>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm font-medium text-muted-foreground">Out of Stock</p>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-            </div>
-            <p className="text-2xl font-bold text-red-600 mt-2">
-              {isLoading ? <Skeleton className="h-8 w-16" /> : outOfStockItems}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm font-medium text-muted-foreground">Expiring Soon</p>
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-            </div>
-            <p className="text-2xl font-bold text-orange-600 mt-2">
-              {isLoading ? <Skeleton className="h-8 w-16" /> : expiringSoonItems}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle>Inventory Status</CardTitle>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="search" 
-                  placeholder="Search inventory..." 
-                  className="pl-8 w-full sm:w-[250px]"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        {/* Main Content */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-6">
+          {/* Categories Sidebar */}
+          <Card className="md:col-span-1">
+            <CardHeader>
+              <CardTitle>Categories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {categories.map((category) => (
+                  <Button
+                    key={category.name}
+                    variant={selectedCategory === category.name ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setSelectedCategory(category.name)}
+                  >
+                    <category.icon className="mr-2 h-4 w-4" />
+                    {category.name}
+                    {category.name === "All" ? (
+                      <Badge className="ml-auto">{inventoryItems.length}</Badge>
+                    ) : (
+                      <Badge className="ml-auto">
+                        {inventoryItems.filter(item => item.category === category.name).length}
+                      </Badge>
+                    )}
+                  </Button>
+                ))}
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                </Button>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Item
-                </Button>
+            </CardContent>
+          </Card>
+          
+          {/* Inventory Table */}
+          <Card className="md:col-span-5">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Inventory Items</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search items..."
+                      className="w-[200px] pl-8 md:w-[300px]"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={() => setIsAddItemDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Item
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Supplier</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Restocked</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInventory.length === 0 ? (
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
-                        No inventory items found matching your search.
-                      </TableCell>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Stock Level</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
-                  ) : (
-                    filteredInventory.map((item) => (
+                  </TableHeader>
+                  <TableBody>
+                    {filteredItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span>{item.currentQuantity} {item.unit}</span>
-                              <span className="text-muted-foreground">{item.maxQuantity} {item.unit}</span>
-                            </div>
+                          <div className="flex items-center gap-2">
                             <Progress 
-                              value={(item.currentQuantity / item.maxQuantity) * 100} 
-                              className={
-                                item.status === 'out' ? 'bg-red-100' :
-                                item.status === 'low' ? 'bg-amber-100' : 'bg-slate-100'
-                              }
-                              indicatorClassName={
-                                item.status === 'out' ? 'bg-red-500' :
-                                item.status === 'low' ? 'bg-amber-500' : ''
-                              }
+                              value={item.stock_level} 
+                              className="h-2" 
                             />
+                            <span className="text-xs text-muted-foreground">
+                              {item.stock_level}%
+                            </span>
                           </div>
                         </TableCell>
-                        <TableCell>{item.supplier}</TableCell>
-                        <TableCell>{getStatusBadge(item.status)}</TableCell>
-                        <TableCell>{item.lastRestocked}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm">Restock</Button>
+                          {item.quantity} {item.unit}
+                        </TableCell>
+                        <TableCell>${item.price_per_unit}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={item.status === "In Stock" ? "default" : "destructive"}
+                          >
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem>Edit Item</DropdownMenuItem>
+                              <DropdownMenuItem>Order More</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600">
+                                Delete Item
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      
+      {/* Add Item Dialog */}
+      <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Inventory Item</DialogTitle>
+            <DialogDescription>
+              Enter the details of the new inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="name">Item Name</label>
+              <Input id="name" placeholder="Enter item name" />
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="grid gap-2">
+              <label htmlFor="category">Category</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.filter(c => c.name !== "All").map((category) => (
+                    <SelectItem key={category.name} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <label htmlFor="quantity">Quantity</label>
+                <Input id="quantity" type="number" placeholder="0" />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="unit">Unit</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                    <SelectItem value="liters">Liters</SelectItem>
+                    <SelectItem value="units">Units</SelectItem>
+                    <SelectItem value="bottles">Bottles</SelectItem>
+                    <SelectItem value="boxes">Boxes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="price">Price per Unit ($)</label>
+              <Input id="price" type="number" step="0.01" placeholder="0.00" />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="supplier">Supplier</label>
+              <Input id="supplier" placeholder="Enter supplier name" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddItemDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setIsAddItemDialogOpen(false)}>Add Item</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </StaffDashboardLayout>
   );
 };

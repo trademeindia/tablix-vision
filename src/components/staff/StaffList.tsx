@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -121,9 +120,9 @@ const StaffList: React.FC<StaffListProps> = ({
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={staff.avatar_url} alt={staff.name} />
-                        <AvatarFallback>{staff.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={staff.avatar || staff.image} alt={staff.name} />
+                        <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{staff.name}</span>
                     </div>
