@@ -29,7 +29,7 @@ export const useStaffData = () => {
         }
       }
       
-      // Use type assertion to bypass TypeScript error
+      // First cast to unknown, then to the expected type
       const { data, error } = await supabase
         .from('staff' as any)
         .select('*')
@@ -39,8 +39,8 @@ export const useStaffData = () => {
         throw error;
       }
       
-      // Type assertion to ensure correct typing
-      setStaffData(data as StaffMember[] || []);
+      // Proper type assertion with unknown as an intermediate step
+      setStaffData((data as unknown as StaffMember[]) || []);
     } catch (error) {
       console.error('Error fetching staff data:', error);
       toast({
