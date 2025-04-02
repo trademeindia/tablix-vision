@@ -34,8 +34,14 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
         
         console.log("Categories fetched:", data?.length || 0);
         
-        // If no categories found, we'll return an empty array instead of null
-        return (data || []) as MenuCategory[];
+        // If no categories found for this restaurant, show a user-friendly message
+        if (!data || data.length === 0) {
+          console.log("No categories found for restaurant:", restaurantId);
+          // Return empty array instead of null to avoid errors in components
+          return [];
+        }
+        
+        return data as MenuCategory[];
       } catch (error) {
         console.error("Error in categoriesQuery:", error);
         throw error instanceof Error ? error : new Error(String(error));
@@ -68,8 +74,14 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
         
         console.log("Items fetched:", data?.length || 0);
         
+        // If no items found for this restaurant, show a user-friendly message
+        if (!data || data.length === 0) {
+          console.log("No menu items found for restaurant:", restaurantId);
+          return [];
+        }
+        
         // Transform the items data
-        const transformedItems = (data || []).map(item => ({
+        const transformedItems = data.map(item => ({
           ...item,
           allergens: parseAllergens(item.allergens)
         }));
@@ -106,7 +118,7 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
 
   return {
     categories: categoriesQuery.data || [],
-    items: itemsQuery.data || null,
+    items: itemsQuery.data || [],  // Return empty array instead of null
     isLoading: categoriesQuery.isLoading || itemsQuery.isLoading,
     error: categoriesQuery.error || itemsQuery.error,
     refetchCategories

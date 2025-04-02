@@ -79,6 +79,12 @@ export function useQRDataParser(): QRDataParserResult {
           
           // Redirect to customer-menu with parameters
           navigate(`/customer-menu?restaurant=${qrRestaurantId}&table=${qrTableId}`, { replace: true });
+          
+          toast({
+            title: "QR Code Scanned",
+            description: "Loading menu for table " + qrTableId,
+          });
+          
           return;
         }
       } catch (e) {
@@ -101,6 +107,12 @@ export function useQRDataParser(): QRDataParserResult {
           
           // Redirect to customer-menu with parameters
           navigate(`/customer-menu?restaurant=${qrRestaurantId}&table=${qrTableId}`, { replace: true });
+          
+          toast({
+            title: "QR Code Scanned",
+            description: "Loading menu for table " + qrTableId,
+          });
+          
           return;
         }
       } catch (e) {
@@ -119,6 +131,12 @@ export function useQRDataParser(): QRDataParserResult {
           
           // Redirect to customer-menu with parameters
           navigate(`/customer-menu?restaurant=${jsonData.restaurantId}&table=${jsonData.tableId}`, { replace: true });
+          
+          toast({
+            title: "QR Code Scanned",
+            description: "Loading menu for table " + jsonData.tableId,
+          });
+          
           return;
         }
       } catch (e) {
@@ -137,6 +155,12 @@ export function useQRDataParser(): QRDataParserResult {
         
         // Redirect to customer-menu with parameters
         navigate(`/customer-menu?restaurant=${qrRestaurantId}&table=${qrTableId}`, { replace: true });
+        
+        toast({
+          title: "QR Code Scanned",
+          description: "Loading menu for table " + qrTableId,
+        });
+        
         return;
       }
       

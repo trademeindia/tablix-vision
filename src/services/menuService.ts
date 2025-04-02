@@ -27,6 +27,10 @@ export const fetchMenuCategories = async (restaurant_id?: string) => {
     }
     
     console.log('Menu categories fetched:', data?.length || 0);
+    if (data?.length === 0) {
+      console.log("No categories found for restaurant:", restaurant_id);
+    }
+    
     return data || [];
   } catch (error) {
     console.error('Error in fetchMenuCategories:', getErrorMessage(error));
@@ -41,52 +45,67 @@ export const createMenuCategory = async (category: Partial<MenuCategory>) => {
     throw new Error("Category name is required");
   }
   
-  const { data, error } = await supabase
-    .from('menu_categories')
-    .insert({
-      name: category.name,
-      description: category.description,
-      display_order: category.display_order,
-      restaurant_id: category.restaurant_id,
-      user_id: (await supabase.auth.getUser()).data.user?.id
-    })
-    .select();
+  try {
+    const { data, error } = await supabase
+      .from('menu_categories')
+      .insert({
+        name: category.name,
+        description: category.description,
+        display_order: category.display_order,
+        restaurant_id: category.restaurant_id,
+        user_id: (await supabase.auth.getUser()).data.user?.id
+      })
+      .select();
+      
+    if (error) {
+      console.error('Error creating menu category:', error);
+      throw error;
+    }
     
-  if (error) {
-    console.error('Error creating menu category:', error);
+    return data[0];
+  } catch (error) {
+    console.error('Error in createMenuCategory:', getErrorMessage(error));
     throw error;
   }
-  
-  return data[0];
 };
 
 export const updateMenuCategory = async (id: string, updates: Partial<MenuCategory>) => {
-  const { data, error } = await supabase
-    .from('menu_categories')
-    .update(updates)
-    .eq('id', id)
-    .select();
+  try {
+    const { data, error } = await supabase
+      .from('menu_categories')
+      .update(updates)
+      .eq('id', id)
+      .select();
+      
+    if (error) {
+      console.error('Error updating menu category:', error);
+      throw error;
+    }
     
-  if (error) {
-    console.error('Error updating menu category:', error);
+    return data[0];
+  } catch (error) {
+    console.error('Error in updateMenuCategory:', getErrorMessage(error));
     throw error;
   }
-  
-  return data[0];
 };
 
 export const deleteMenuCategory = async (id: string) => {
-  const { error } = await supabase
-    .from('menu_categories')
-    .delete()
-    .eq('id', id);
+  try {
+    const { error } = await supabase
+      .from('menu_categories')
+      .delete()
+      .eq('id', id);
+      
+    if (error) {
+      console.error('Error deleting menu category:', error);
+      throw error;
+    }
     
-  if (error) {
-    console.error('Error deleting menu category:', error);
+    return true;
+  } catch (error) {
+    console.error('Error in deleteMenuCategory:', getErrorMessage(error));
     throw error;
   }
-  
-  return true;
 };
 
 // Menu Items
@@ -236,4 +255,78 @@ export const deleteMenuItem = async (id: string) => {
   }
   
   return true;
+};
+
+// Helper function to generate test data if needed
+export const generateTestMenuData = (restaurant_id: string): { categories: MenuCategory[], items: MenuItem[] } => {
+  console.log("Generating test menu data for restaurant:", restaurant_id);
+  
+  const categories = [
+    {
+      id: "cat-1",
+      name: "Starters",
+      description: "Begin your meal with these delicious options",
+      restaurant_id,
+      display_order: 1
+    },
+    {
+      id: "cat-2",
+      name: "Main Courses",
+      description: "Hearty and satisfying main dishes",
+      restaurant_id,
+      display_order: 2
+    },
+    {
+      id: "cat-3",
+      name: "Desserts",
+      description: "Sweet treats to finish your meal",
+      restaurant_id,
+      display_order: 3
+    }
+  ];
+  
+  const items = [
+    {
+      id: "item-1",
+      name: "Garlic Bread",
+      description: "Freshly baked bread with garlic butter",
+      price: 5.99,
+      category_id: "cat-1",
+      restaurant_id,
+      is_available: true,
+      allergens: { isVegetarian: true, items: ["gluten"] }
+    },
+    {
+      id: "item-2",
+      name: "Caesar Salad",
+      description: "Crisp romaine lettuce with Caesar dressing",
+      price: 8.99,
+      category_id: "cat-1",
+      restaurant_id,
+      is_available: true,
+      allergens: { items: ["eggs", "dairy"] }
+    },
+    {
+      id: "item-3",
+      name: "Margherita Pizza",
+      description: "Classic pizza with tomato sauce and mozzarella",
+      price: 12.99,
+      category_id: "cat-2",
+      restaurant_id,
+      is_available: true,
+      allergens: { isVegetarian: true, items: ["gluten", "dairy"] }
+    },
+    {
+      id: "item-4",
+      name: "Chocolate Cake",
+      description: "Rich chocolate cake with a molten center",
+      price: 7.99,
+      category_id: "cat-3",
+      restaurant_id,
+      is_available: true,
+      allergens: { isVegetarian: true, items: ["gluten", "dairy", "eggs"] }
+    }
+  ];
+  
+  return { categories, items };
 };

@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { useCallback, useState, useEffect } from 'react';
 import { MenuItem } from '@/types/menu';
+import { toast } from '@/hooks/use-toast';
 
 interface OrderItem {
   item: MenuItem;
@@ -12,148 +11,153 @@ interface UseOrderItemsResult {
   orderItems: OrderItem[];
   addToOrder: (item: MenuItem) => void;
   removeFromOrder: (itemId: string) => void;
-  increaseQuantity: (itemId: string) => void;
-  decreaseQuantity: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
   clearOrder: () => void;
   totalItems: number;
   totalPrice: number;
+  placeOrder: (
+    restaurantId: string, 
+    tableId: string, 
+    customerInfo?: { name: string; email: string; phone?: string; }
+  ) => Promise<boolean>;
 }
 
 export function useOrderItems(): UseOrderItemsResult {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   
-  // Load stored order from localStorage on mount
+  // Load saved order from localStorage on initial render
   useEffect(() => {
-    const storedOrder = localStorage.getItem('orderItems');
-    if (storedOrder) {
+    const savedOrder = localStorage.getItem('orderItems');
+    if (savedOrder) {
       try {
-        setOrderItems(JSON.parse(storedOrder));
-      } catch (error) {
-        console.error('Error parsing stored order:', error);
+        const parsedOrder = JSON.parse(savedOrder);
+        if (Array.isArray(parsedOrder)) {
+          setOrderItems(parsedOrder);
+        }
+      } catch (e) {
+        console.error("Error parsing saved order:", e);
       }
     }
   }, []);
   
-  // Persist order changes to localStorage
+  // Save order to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('orderItems', JSON.stringify(orderItems));
   }, [orderItems]);
   
-  // Add item to order
-  const addToOrder = (item: MenuItem) => {
-    setOrderItems(prev => {
-      // Check if item already exists in order
-      const existingItemIndex = prev.findIndex(orderItem => orderItem.item.id === item.id);
+  const addToOrder = useCallback((item: MenuItem) => {
+    setOrderItems(prevItems => {
+      // Check if the item is already in the order
+      const existingItemIndex = prevItems.findIndex(
+        orderItem => orderItem.item.id === item.id
+      );
       
       if (existingItemIndex >= 0) {
-        // Item exists, increment quantity
-        const newItems = [...prev];
-        newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: newItems[existingItemIndex].quantity + 1
+        // If the item exists, increment its quantity
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + 1
         };
-        return newItems;
+        return updatedItems;
       } else {
-        // Item doesn't exist, add it with quantity 1
-        return [...prev, { item, quantity: 1 }];
+        // Otherwise, add it as a new item with quantity 1
+        return [...prevItems, { item, quantity: 1 }];
       }
     });
     
     toast({
-      title: "Added to Order",
-      description: `${item.name} added to your order.`,
+      title: "Added to order",
+      description: `${item.name} has been added to your order.`,
     });
-  };
+  }, []);
   
-  // Remove item from order
-  const removeFromOrder = (itemId: string) => {
-    setOrderItems(prev => {
-      const existingItemIndex = prev.findIndex(orderItem => orderItem.item.id === itemId);
-      
-      if (existingItemIndex >= 0) {
-        const newItems = [...prev];
-        if (newItems[existingItemIndex].quantity > 1) {
-          // Decrement quantity if more than 1
-          newItems[existingItemIndex] = {
-            ...newItems[existingItemIndex],
-            quantity: newItems[existingItemIndex].quantity - 1
-          };
-        } else {
-          // Remove item if quantity is 1
-          newItems.splice(existingItemIndex, 1);
-        }
-        return newItems;
-      }
-      return prev;
-    });
-  };
-
-  // Increase quantity of an item
-  const increaseQuantity = (itemId: string) => {
-    setOrderItems(prev => {
-      const existingItemIndex = prev.findIndex(orderItem => orderItem.item.id === itemId);
-      
-      if (existingItemIndex >= 0) {
-        const newItems = [...prev];
-        newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: newItems[existingItemIndex].quantity + 1
-        };
-        return newItems;
-      }
-      return prev;
-    });
-  };
-
-  // Decrease quantity of an item
-  const decreaseQuantity = (itemId: string) => {
-    setOrderItems(prev => {
-      const existingItemIndex = prev.findIndex(orderItem => orderItem.item.id === itemId);
-      
-      if (existingItemIndex >= 0) {
-        const newItems = [...prev];
-        if (newItems[existingItemIndex].quantity > 1) {
-          // Decrement quantity if more than 1
-          newItems[existingItemIndex] = {
-            ...newItems[existingItemIndex],
-            quantity: newItems[existingItemIndex].quantity - 1
-          };
-        } else {
-          // Remove item if quantity is 1
-          newItems.splice(existingItemIndex, 1);
-        }
-        return newItems;
-      }
-      return prev;
-    });
-  };
+  const removeFromOrder = useCallback((itemId: string) => {
+    setOrderItems(prevItems => 
+      prevItems.filter(orderItem => orderItem.item.id !== itemId)
+    );
+  }, []);
   
-  // Clear the entire order
-  const clearOrder = () => {
+  const updateQuantity = useCallback((itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      // If quantity is 0 or negative, remove the item
+      removeFromOrder(itemId);
+      return;
+    }
+    
+    setOrderItems(prevItems => 
+      prevItems.map(orderItem => 
+        orderItem.item.id === itemId 
+          ? { ...orderItem, quantity } 
+          : orderItem
+      )
+    );
+  }, [removeFromOrder]);
+  
+  const clearOrder = useCallback(() => {
     setOrderItems([]);
     localStorage.removeItem('orderItems');
-  };
+  }, []);
   
-  // Calculate total items
+  // Calculate total number of items
   const totalItems = orderItems.reduce(
-    (total, { quantity }) => total + quantity, 
+    (sum, orderItem) => sum + orderItem.quantity, 
     0
   );
   
   // Calculate total price
   const totalPrice = orderItems.reduce(
-    (total, { item, quantity }) => total + item.price * quantity, 
+    (sum, orderItem) => sum + (orderItem.item.price * orderItem.quantity), 
     0
   );
   
-  return { 
-    orderItems, 
-    addToOrder, 
-    removeFromOrder, 
-    increaseQuantity,
-    decreaseQuantity,
-    clearOrder, 
+  // Mock function to place an order - in a real app this would call a backend API
+  const placeOrder = useCallback(async (
+    restaurantId: string, 
+    tableId: string, 
+    customerInfo?: { name: string; email: string; phone?: string; }
+  ): Promise<boolean> => {
+    try {
+      console.log("Placing order:", {
+        restaurantId,
+        tableId,
+        customerInfo,
+        items: orderItems,
+        total: totalPrice
+      });
+      
+      // Simulate API call with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // This is where you would send the order to the backend
+      toast({
+        title: "Order Placed!",
+        description: "Your order has been successfully placed.",
+      });
+      
+      // Clear the cart after successful order
+      clearOrder();
+      
+      return true;
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast({
+        title: "Failed to place order",
+        description: "There was an error placing your order. Please try again.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [orderItems, totalPrice, clearOrder]);
+  
+  return {
+    orderItems,
+    addToOrder,
+    removeFromOrder,
+    updateQuantity,
+    clearOrder,
     totalItems,
-    totalPrice
+    totalPrice,
+    placeOrder
   };
 }

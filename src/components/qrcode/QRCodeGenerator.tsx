@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Download, Share2 } from 'lucide-react';
+import { Loader2, Download, Share2, Copy } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface QRCodeGeneratorProps {
   restaurantId: string;
@@ -17,8 +18,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
   const [size, setSize] = useState('256');
   const [isGenerating, setIsGenerating] = useState(false);
   const [qrValue, setQrValue] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     if (!tableNumber.trim()) {
       toast({
         title: "Missing Table Number",
@@ -39,23 +41,55 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
     
     setIsGenerating(true);
     
-    // Simulate API call delay
-    setTimeout(() => {
-      // Create a properly formatted URL for QR code scanning
+    try {
+      // Generate the QR code
       const baseUrl = window.location.origin;
-      // Use the newer customer-menu path with query parameters 
+      // Use the right path and query parameters for customer menu
       const value = `${baseUrl}/customer-menu?restaurant=${restaurantId}&table=${tableNumber}`;
       
       console.log("Generated QR code with URL:", value);
       
       setQrValue(value);
-      setIsGenerating(false);
+      
+      // Optionally save the QR code to the database
+      try {
+        setIsSaving(true);
+        const { data, error } = await supabase
+          .from('tables')
+          .upsert({
+            restaurant_id: restaurantId,
+            number: parseInt(tableNumber),
+            qr_code_url: value,
+            seats: 4, // Default number of seats
+            status: 'available',
+          }, { onConflict: 'restaurant_id,number' })
+          .select();
+          
+        if (error) {
+          console.error("Error saving QR code to database:", error);
+        } else {
+          console.log("QR code saved to database:", data);
+        }
+      } catch (err) {
+        console.error("Error in database operation:", err);
+      } finally {
+        setIsSaving(false);
+      }
       
       toast({
         title: "QR Code Generated",
         description: `QR code for Table ${tableNumber} has been generated.`,
       });
-    }, 800);
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      toast({
+        title: "QR Code Generation Failed",
+        description: "There was an error generating the QR code.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   }, [restaurantId, tableNumber]);
 
   const handleDownload = useCallback(() => {
@@ -95,7 +129,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
           description: `QR code for Table ${tableNumber} has been saved.`,
         });
       };
-      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
     } catch (error) {
       console.error('Error downloading QR code:', error);
       toast({
@@ -144,6 +178,18 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
         });
     }
   }, [qrValue, tableNumber]);
+
+  // For direct testing
+  const handleTest = useCallback(() => {
+    if (!qrValue) return;
+    
+    window.open(qrValue, '_blank');
+    
+    toast({
+      title: "Testing QR Code",
+      description: "Opening QR code URL in a new tab for testing.",
+    });
+  }, [qrValue]);
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -203,10 +249,10 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
         
         <Button 
           onClick={handleGenerate} 
-          disabled={isGenerating || !restaurantId} 
+          disabled={isGenerating || !restaurantId || isSaving} 
           className="w-full"
         >
-          {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {(isGenerating || isSaving) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Generate QR Code
         </Button>
         
@@ -227,7 +273,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
       </CardContent>
       
       {qrValue && (
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={handleDownload}>
             <Download className="mr-2 h-4 w-4" />
             Download
@@ -235,6 +281,10 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
           <Button variant="outline" onClick={handleShare}>
             <Share2 className="mr-2 h-4 w-4" />
             Share
+          </Button>
+          <Button variant="default" onClick={handleTest}>
+            <Copy className="mr-2 h-4 w-4" />
+            Test QR Code
           </Button>
         </CardFooter>
       )}

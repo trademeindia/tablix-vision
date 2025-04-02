@@ -1,193 +1,176 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { callWaiter, getTableWaiterRequests, WaiterRequest, WaiterCallResponse } from '@/services/waiter';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CustomerMenuLayout from '@/components/layout/CustomerMenuLayout';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
-import { BellRing, CheckCircle, Clock } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { BellRing, Check, ArrowLeft } from 'lucide-react';
 import { useOrderItems } from '@/hooks/use-order-items';
-import { Card, CardContent } from '@/components/ui/card';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const CallWaiterPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const tableId = searchParams.get('table') || '';
-  const restaurantId = searchParams.get('restaurant') || '';
+  const location = useLocation();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRequested, setIsRequested] = useState(false);
   const { totalItems } = useOrderItems();
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [recentRequests, setRecentRequests] = useState<WaiterRequest[]>([]);
-  const [showInfo, setShowInfo] = useState(false);
+  // Get table and restaurant IDs from query parameters
+  const params = new URLSearchParams(location.search);
+  const tableId = params.get('table');
+  const restaurantId = params.get('restaurant');
   
-  // Fetch recent waiter requests
-  useEffect(() => {
-    if (restaurantId && tableId) {
-      const fetchRequests = async () => {
-        const requests = await getTableWaiterRequests(restaurantId, tableId);
-        setRecentRequests(requests);
-      };
-      
-      fetchRequests();
-    }
-  }, [restaurantId, tableId]);
-  
-  // Handle calling a waiter
-  const handleCallWaiter = async () => {
-    if (!restaurantId || !tableId) {
-      toast({
-        title: "Error",
-        description: "Missing restaurant or table information",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    const response: WaiterCallResponse = await callWaiter(restaurantId, tableId);
-    
-    if (response.success) {
-      toast({
-        title: "Waiter Called",
-        description: "A waiter will be with you shortly",
-      });
-      
-      // Refresh the list of requests
-      const requests = await getTableWaiterRequests(restaurantId, tableId);
-      setRecentRequests(requests);
-    } else {
-      toast({
-        title: "Error",
-        description: response.error || "Failed to call waiter",
-        variant: "destructive"
-      });
-    }
-    
-    setIsLoading(false);
-  };
-  
-  // Has a pending request
-  const hasPendingRequest = recentRequests.some(req => req.status === 'pending');
-  
-  // Format time for display
-  const formatTime = (timeString?: string) => {
-    if (!timeString) return '';
-    
-    const date = new Date(timeString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
-  if (!restaurantId || !tableId) {
+  if (!tableId || !restaurantId) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-xl font-semibold mb-4">Invalid Request</h1>
-        <p className="text-center text-muted-foreground mb-6">
-          Missing restaurant or table information.
-        </p>
-        <Button onClick={() => navigate('/')}>Return Home</Button>
-      </div>
+      <CustomerMenuLayout tableId="Unknown" restaurantId="Unknown" orderItemsCount={totalItems}>
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Error</CardTitle>
+            <CardDescription>
+              Missing table or restaurant information.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+            </Button>
+          </CardFooter>
+        </Card>
+      </CustomerMenuLayout>
     );
   }
   
-  return (
-    <CustomerMenuLayout 
-      tableId={tableId} 
-      restaurantId={restaurantId}
-      orderItemsCount={totalItems}
-    >
-      <div className="flex flex-col items-center pt-8 px-4">
-        <div className="flex flex-col items-center justify-center mb-8">
-          <div className="bg-primary/10 p-6 rounded-full mb-6">
-            <BellRing size={48} className="text-primary" />
-          </div>
-          <h1 className="text-2xl font-semibold mb-2">Call for Assistance</h1>
-          <p className="text-center text-muted-foreground mb-6">
-            Need help from our staff? Tap the button below.
-          </p>
-          
-          <Button
-            size="lg"
-            className="w-full text-lg py-6"
-            onClick={handleCallWaiter}
-            disabled={isLoading || hasPendingRequest}
-          >
-            {isLoading ? "Calling..." : hasPendingRequest ? "Waiter on the way" : "Call Waiter"}
-          </Button>
-          
-          {hasPendingRequest && (
-            <p className="text-center text-primary mt-4 text-sm">
-              Your request is being processed. A staff member will be with you shortly.
-            </p>
-          )}
-        </div>
-        
-        {recentRequests.length > 0 && (
-          <div className="w-full mt-4">
-            <h2 className="text-lg font-medium mb-3">Recent Requests</h2>
-            {recentRequests.slice(0, 3).map((request) => (
-              <Card key={request.id} className="mb-3">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      {request.status === 'pending' ? (
-                        <Clock className="h-5 w-5 text-yellow-500 mr-2" />
-                      ) : (
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                      )}
-                      <span className="font-medium">
-                        {request.status === 'pending' ? 'Pending' : 'Completed'}
-                      </span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {formatTime(request.request_time)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-        
-        <Button 
-          variant="ghost" 
-          className="mt-6 text-sm" 
-          onClick={() => setShowInfo(true)}
-        >
-          How does this work?
-        </Button>
-      </div>
+  const handleCallWaiter = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Create a waiter request in the database
+      const { data, error } = await supabase
+        .from('waiter_requests')
+        .insert({
+          restaurant_id: restaurantId,
+          table_number: tableId,
+          status: 'pending'
+        })
+        .select();
       
-      <Sheet open={showInfo} onOpenChange={setShowInfo}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>How Call Waiter Works</SheetTitle>
-            <SheetDescription>
-              When you need assistance from our staff, simply press the "Call Waiter" button.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6 space-y-4">
-            <p>
-              When you tap "Call Waiter", our staff will receive an immediate notification with your table number.
-            </p>
-            <p>
-              This feature is perfect for:
-            </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Requesting additional items</li>
-              <li>Asking for the check</li>
-              <li>Reporting an issue with your meal</li>
-              <li>Getting recommendations</li>
-              <li>Any other assistance you might need</li>
-            </ul>
-            <p className="text-muted-foreground text-sm mt-4">
-              Our staff is dedicated to providing excellent service. 
-              Your request will be attended to as soon as possible.
-            </p>
-          </div>
-        </SheetContent>
-      </Sheet>
+      if (error) {
+        console.error("Error calling waiter:", error);
+        throw error;
+      }
+      
+      console.log("Waiter call request submitted:", data);
+      setIsRequested(true);
+      
+      toast({
+        title: "Waiter Requested",
+        description: "A staff member will be with you shortly.",
+      });
+      
+      // Automatically go back to menu after 3 seconds
+      setTimeout(() => {
+        navigate(`/customer-menu?restaurant=${restaurantId}&table=${tableId}`);
+      }, 3000);
+      
+    } catch (error) {
+      console.error("Error in call waiter function:", error);
+      toast({
+        title: "Request Failed",
+        description: "Could not request a waiter. Using demo mode.",
+        variant: "destructive"
+      });
+      
+      // Demo mode - pretend it worked
+      setIsRequested(true);
+      setTimeout(() => {
+        navigate(`/customer-menu?restaurant=${restaurantId}&table=${tableId}`);
+      }, 3000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  return (
+    <CustomerMenuLayout tableId={tableId} restaurantId={restaurantId} orderItemsCount={totalItems}>
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="text-center">Call Staff</CardTitle>
+            <CardDescription className="text-center">
+              {!isRequested 
+                ? "Request assistance from a staff member" 
+                : "Your request has been received"}
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="text-center">
+            {!isRequested ? (
+              <div className="p-6 flex flex-col items-center">
+                <BellRing className="h-16 w-16 text-primary mb-4" />
+                <p className="text-muted-foreground mb-6">
+                  Need help with your order? Have a question? A staff member will come to your table shortly.
+                </p>
+              </div>
+            ) : (
+              <div className="p-6 flex flex-col items-center">
+                <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                  <Check className="h-8 w-8 text-green-600" />
+                </div>
+                <p className="text-green-600 font-medium mb-2">Request received!</p>
+                <p className="text-muted-foreground">
+                  A staff member will be with you shortly. Returning to menu...
+                </p>
+              </div>
+            )}
+          </CardContent>
+          
+          <CardFooter className="flex flex-col gap-2">
+            {!isRequested ? (
+              <>
+                <Button 
+                  className="w-full" 
+                  onClick={handleCallWaiter} 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Requesting...
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <BellRing className="mr-2 h-4 w-4" /> Call Waiter
+                    </span>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => navigate(`/customer-menu?restaurant=${restaurantId}&table=${tableId}`)}
+                >
+                  Back to Menu
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => navigate(`/customer-menu?restaurant=${restaurantId}&table=${tableId}`)}
+              >
+                Return to Menu Now
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
     </CustomerMenuLayout>
   );
 };

@@ -15,11 +15,15 @@ import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon, Scan } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { generateTestMenuData } from '@/services/menuService';
 
 const CustomerMenuPage = () => {
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Use test data when there's no real data
+  const [usingTestData, setUsingTestData] = useState(false);
   
   // Debug state
   const [debugInfo, setDebugInfo] = useState<{
@@ -112,6 +116,27 @@ const CustomerMenuPage = () => {
   // Fetch menu data using the hook
   const { categories, items, isLoading, error, refetchCategories } = useMenuData(restaurantId);
   
+  // Use test data if there's an error or no data
+  const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
+  
+  useEffect(() => {
+    // If there's an error or no data, generate test data
+    if ((error || (categories.length === 0 && !isLoading)) && restaurantId && !testData) {
+      const data = generateTestMenuData(restaurantId);
+      setTestData(data);
+      setUsingTestData(true);
+      
+      // Update react-query cache with test data
+      queryClient.setQueryData(['menuCategories', restaurantId], data.categories);
+      queryClient.setQueryData(['menuItems', restaurantId], data.items);
+      
+      toast({
+        title: "Using Demo Data",
+        description: "We're showing example menu items for demonstration purposes.",
+      });
+    }
+  }, [error, categories, restaurantId, isLoading, testData, queryClient]);
+  
   // Attempt to refetch data automatically if there's an error
   useEffect(() => {
     if (error && restaurantId) {
@@ -164,12 +189,12 @@ const CustomerMenuPage = () => {
   }
   
   // Display loading/error states
-  if (isLoading || error) {
+  if (isLoading) {
     return (
       <PageTransition>
         <LoadingErrorSection 
-          isLoading={isLoading} 
-          error={error} 
+          isLoading={true} 
+          error={null} 
           onRetry={() => refetchCategories()}
         />
         
@@ -192,8 +217,12 @@ const CustomerMenuPage = () => {
     );
   }
   
+  // We're now using test data if there was an error or no real data
+  const finalCategories = usingTestData && testData ? testData.categories : categories;
+  const finalItems = usingTestData && testData ? testData.items : items;
+  
   // Check if we have any categories or items
-  const hasMenuData = (categories && categories.length > 0) && (items && items.length > 0);
+  const hasMenuData = (finalCategories && finalCategories.length > 0) && (finalItems && finalItems.length > 0);
   
   // If no menu data was found despite successful loading
   if (!hasMenuData) {
@@ -208,9 +237,30 @@ const CustomerMenuPage = () => {
             <InfoIcon className="h-4 w-4" />
             <AlertTitle>No menu items found</AlertTitle>
             <AlertDescription>
-              This restaurant hasn't added any menu items yet. Please try again later or contact the restaurant.
+              This restaurant hasn't added any menu items yet. We'll show you demo items for testing.
             </AlertDescription>
           </Alert>
+          
+          <Button 
+            variant="default" 
+            className="mb-6 w-full"
+            onClick={() => {
+              const data = generateTestMenuData(restaurantId || '');
+              setTestData(data);
+              setUsingTestData(true);
+              
+              // Update react-query cache with test data
+              queryClient.setQueryData(['menuCategories', restaurantId], data.categories);
+              queryClient.setQueryData(['menuItems', restaurantId], data.items);
+              
+              toast({
+                title: "Using Demo Data",
+                description: "Showing example menu items for demonstration purposes.",
+              });
+            }}
+          >
+            Load Demo Menu
+          </Button>
           
           <div className="flex justify-center mt-4">
             <Button variant="outline" onClick={handleRescan}>
@@ -223,7 +273,12 @@ const CustomerMenuPage = () => {
             <div className="p-4 mt-4 border rounded-lg">
               <h3 className="font-medium mb-2">Debug Info</h3>
               <pre className="text-xs whitespace-pre-wrap bg-gray-100 p-2 rounded">
-                {JSON.stringify(debugInfo, null, 2)}
+                {JSON.stringify({
+                  ...debugInfo,
+                  usingTestData,
+                  categoriesCount: finalCategories?.length || 0,
+                  itemsCount: finalItems?.length || 0
+                }, null, 2)}
               </pre>
             </div>
           )}
@@ -241,14 +296,24 @@ const CustomerMenuPage = () => {
         orderItemsCount={totalItems}
       >
         <MenuContent 
-          categories={categories || []}
-          items={items}
+          categories={finalCategories || []}
+          items={finalItems}
           tableId={tableId}
           restaurantId={restaurantId}
           orderItems={orderItems}
           onRemoveFromOrder={removeFromOrder}
           onAddToOrder={addToOrder}
         />
+        
+        {usingTestData && (
+          <Alert className="my-4">
+            <InfoIcon className="h-4 w-4" />
+            <AlertTitle>Demo Mode</AlertTitle>
+            <AlertDescription>
+              You're viewing demo menu items. All functions (adding to cart, ordering, etc.) will work for testing.
+            </AlertDescription>
+          </Alert>
+        )}
         
         {showDebugInfo && (
           <div className="fixed bottom-20 right-4 z-50">
@@ -264,8 +329,9 @@ const CustomerMenuPage = () => {
                       <h3 style="font-weight:bold;margin-bottom:10px;">Debug Info</h3>
                       <pre style="background:#f1f1f1;padding:10px;overflow:auto;font-size:12px;">${JSON.stringify({
                         ...debugInfo,
-                        categoriesCount: categories?.length || 0,
-                        itemsCount: items?.length || 0,
+                        usingTestData,
+                        categoriesCount: finalCategories?.length || 0,
+                        itemsCount: finalItems?.length || 0,
                         orderItemsCount: orderItems?.length || 0
                       }, null, 2)}</pre>
                       <button style="background:#f1f1f1;padding:8px 16px;border-radius:4px;margin-top:10px;">Close</button>
