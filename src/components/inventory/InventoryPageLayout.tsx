@@ -10,11 +10,12 @@ import InventoryStatsCards from './InventoryStatsCards';
 import InventoryStatsCardsSkeleton from './InventoryStatsCardsSkeleton';
 import InventoryCategorySidebarSkeleton from './InventoryCategorySidebarSkeleton';
 import AddItemDialog from './AddItemDialog';
+import { LucideIcon } from 'lucide-react';
 
-// Define the Category type to match the expected structure
+// Define the Category type to match the expected structure in InventoryCategorySidebar
 interface Category {
   name: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 interface InventoryPageLayoutProps {

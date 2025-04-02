@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import StaffDashboardLayout from "@/components/layout/StaffDashboardLayout";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Package, Utensils, Coffee, Wine } from 'lucide-react';
+import { Package, Utensils, Coffee, Wine, LucideIcon } from 'lucide-react';
 import { InventoryItem } from '@/components/inventory/InventoryItemsTable';
 import InventoryPageLayout from '@/components/inventory/InventoryPageLayout';
 import { StockLevel } from '@/components/inventory/StockLevelFilter';
+
+// Interface for categories
+interface Category {
+  name: string;
+  icon: LucideIcon;
+}
 
 // Demo inventory data - We'll use this initially and then replace with Supabase data
 const initialInventoryItems: InventoryItem[] = [
@@ -131,8 +137,8 @@ const initialInventoryItems: InventoryItem[] = [
   }
 ];
 
-// Categories with icons - Fixed to use React.ElementType
-const categories = [
+// Categories with icons - Fixed to use LucideIcon
+const categories: Category[] = [
   { name: "All", icon: Package },
   { name: "Meat", icon: Utensils },
   { name: "Vegetables", icon: Utensils },
