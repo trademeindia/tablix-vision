@@ -9,158 +9,81 @@ export const usePayrollData = (staffId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchPayrollData = async () => {
-    setIsLoading(true);
-    try {
-      let query = supabase
-        .from('staff_payroll')
-        .select('*')
-        .order('period_end', { ascending: false });
-      
-      if (staffId) {
-        query = query.eq('staff_id', staffId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      // Type assertion with unknown as an intermediate step
-      setPayrollData((data as unknown as PayrollRecord[]) || []);
-    } catch (error) {
-      console.error('Error fetching payroll data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load payroll data',
-        variant: 'destructive',
-      });
-      
-      // Sample data for testing
-      setPayrollData(getSamplePayrollData(staffId));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPayrollData();
-    
-    // Set up realtime subscription for payroll table updates
-    const payrollSubscription = supabase
-      .channel('payroll_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'staff_payroll' }, 
-        (payload) => {
-          console.log('Payroll change detected:', payload);
-          fetchPayrollData();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(payrollSubscription);
+    const fetchPayrollData = async () => {
+      setIsLoading(true);
+      try {
+        // This would normally fetch data from Supabase
+        // Since 'staff_payroll' table doesn't exist yet, we'll use sample data
+        const sampleData = getSamplePayrollData(staffId);
+        setPayrollData(sampleData);
+      } catch (error) {
+        console.error('Error fetching payroll data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load payroll data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    fetchPayrollData();
   }, [staffId, toast]);
 
   return { 
     payrollData, 
-    isLoading,
-    refetchPayroll: fetchPayrollData
+    isLoading 
   };
 };
 
 // Sample data for testing
 const getSamplePayrollData = (staffId?: string): PayrollRecord[] => {
-  const currentDate = new Date();
-  const previousMonth = new Date(currentDate);
-  previousMonth.setMonth(previousMonth.getMonth() - 1);
+  const records: PayrollRecord[] = [];
+  const today = new Date();
   
-  const baseData = [
-    {
-      id: '1',
-      staff_id: '1',
-      period_start: new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1).toISOString(),
-      period_end: new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString(),
-      base_salary: 5000,
-      overtime_hours: 10,
-      overtime_rate: 20,
-      deductions: 500,
-      bonuses: 200,
-      total_amount: 4900,
-      status: 'paid',
-      payment_date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5).toISOString(),
-      notes: null,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      staff_id: '2',
-      period_start: new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1).toISOString(),
-      period_end: new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString(),
-      base_salary: 4500,
-      overtime_hours: 5,
-      overtime_rate: 18,
-      deductions: 450,
-      bonuses: 0,
-      total_amount: 4140,
-      status: 'paid',
-      payment_date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5).toISOString(),
-      notes: null,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '3',
-      staff_id: '3',
-      period_start: new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1).toISOString(),
-      period_end: new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 0).toISOString(),
-      base_salary: 3800,
-      overtime_hours: 12,
-      overtime_rate: 15,
-      deductions: 380,
-      bonuses: 150,
-      total_amount: 3750,
-      status: 'paid',
-      payment_date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5).toISOString(),
-      notes: null,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '4',
-      staff_id: '4',
-      period_start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString(),
-      period_end: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString(),
-      base_salary: 3500,
-      overtime_hours: 0,
-      overtime_rate: 14,
-      deductions: 350,
-      bonuses: 0,
-      total_amount: 3150,
-      status: 'pending',
-      payment_date: null,
-      notes: null,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '5',
-      staff_id: '5',
-      period_start: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString(),
-      period_end: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString(),
-      base_salary: 4200,
-      overtime_hours: 8,
-      overtime_rate: 17,
-      deductions: 420,
-      bonuses: 100,
-      total_amount: 4016,
-      status: 'pending',
-      payment_date: null,
-      notes: null,
-      created_at: new Date().toISOString()
+  // Create 12 months of payroll history
+  for (let i = 0; i < 12; i++) {
+    const periodEnd = new Date(today.getFullYear(), today.getMonth() - i, 0);
+    const periodStart = new Date(periodEnd.getFullYear(), periodEnd.getMonth(), 1);
+    
+    // Randomly determine payment status
+    const statusOptions: ('draft' | 'pending' | 'approved' | 'paid')[] = ['paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'paid', 'pending', 'approved', 'draft'];
+    const status = i === 0 ? 'pending' : (i === 1 ? 'approved' : 'paid');
+    
+    // Create payment date (if paid)
+    let paymentDate = null;
+    if (status === 'paid') {
+      paymentDate = new Date(periodEnd);
+      paymentDate.setDate(periodEnd.getDate() + 5);
     }
-  ] as PayrollRecord[];
-  
-  if (staffId) {
-    return baseData.filter(record => record.staff_id === staffId);
+    
+    // Generate random salary values
+    const baseSalary = 3000 + Math.floor(Math.random() * 500);
+    const overtimeHours = Math.floor(Math.random() * 20);
+    const overtimeRate = 15;
+    const deductions = Math.floor(Math.random() * 200) + 100;
+    const bonuses = Math.floor(Math.random() * 300);
+    const totalAmount = baseSalary + (overtimeHours * overtimeRate) - deductions + bonuses;
+    
+    records.push({
+      id: `pay-${staffId || 'sample'}-${i}`,
+      staff_id: staffId || 'sample',
+      period_start: periodStart.toISOString(),
+      period_end: periodEnd.toISOString(),
+      base_salary: baseSalary,
+      overtime_hours: overtimeHours,
+      overtime_rate: overtimeRate,
+      deductions,
+      bonuses,
+      total_amount: totalAmount,
+      status,
+      payment_date: paymentDate ? paymentDate.toISOString() : null,
+      notes: null,
+      created_at: new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate() - 5).toISOString()
+    });
   }
   
-  return baseData;
+  return records;
 };

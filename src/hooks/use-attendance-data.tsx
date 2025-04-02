@@ -8,7 +8,7 @@ export const useAttendanceData = (staffId?: string) => {
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
   const [attendanceStats, setAttendanceStats] = useState<AttendanceStats>({
     present: 0,
-    absent: 0, 
+    absent: 0,
     late: 0,
     halfDay: 0,
     total: 0
@@ -16,133 +16,84 @@ export const useAttendanceData = (staffId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchAttendanceData = async () => {
-    setIsLoading(true);
-    try {
-      let query = supabase
-        .from('staff_attendance')
-        .select('*')
-        .order('check_in', { ascending: false });
-      
-      if (staffId) {
-        query = query.eq('staff_id', staffId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      // Type assertion with unknown as an intermediate step
-      const typedData = (data as unknown as AttendanceRecord[]) || [];
-      setAttendanceData(typedData);
-      
-      // Calculate attendance stats
-      if (typedData.length > 0) {
-        const stats = {
-          present: typedData.filter(a => a.status === 'present').length,
-          absent: typedData.filter(a => a.status === 'absent').length,
-          late: typedData.filter(a => a.status === 'late').length,
-          halfDay: typedData.filter(a => a.status === 'half-day').length,
-          total: typedData.length
-        };
-        setAttendanceStats(stats);
-      }
-    } catch (error) {
-      console.error('Error fetching attendance data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load attendance data',
-        variant: 'destructive',
-      });
-      
-      // Sample data for testing
-      setAttendanceData(getSampleAttendanceData(staffId));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchAttendanceData();
-    
-    // Set up realtime subscription for attendance table updates
-    const attendanceSubscription = supabase
-      .channel('attendance_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'staff_attendance' }, 
-        (payload) => {
-          console.log('Attendance change detected:', payload);
-          fetchAttendanceData();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(attendanceSubscription);
+    const fetchAttendanceData = async () => {
+      setIsLoading(true);
+      try {
+        // This would normally fetch data from Supabase
+        // Since 'staff_attendance' table doesn't exist yet, we'll use sample data
+        const sampleData = getSampleAttendanceData(staffId);
+        setAttendanceData(sampleData);
+        
+        // Calculate stats
+        const stats: AttendanceStats = {
+          present: sampleData.filter(item => item.status === 'present').length,
+          absent: sampleData.filter(item => item.status === 'absent').length,
+          late: sampleData.filter(item => item.status === 'late').length,
+          halfDay: sampleData.filter(item => item.status === 'half-day').length,
+          total: sampleData.length
+        };
+        
+        setAttendanceStats(stats);
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load attendance data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    fetchAttendanceData();
   }, [staffId, toast]);
 
   return { 
     attendanceData, 
     attendanceStats,
-    isLoading,
-    refetchAttendance: fetchAttendanceData
+    isLoading 
   };
 };
 
 // Sample data for testing
 const getSampleAttendanceData = (staffId?: string): AttendanceRecord[] => {
-  const baseData = [
-    {
-      id: '1',
-      staff_id: '1',
-      check_in: new Date(new Date().setHours(9, 0, 0)).toISOString(),
-      check_out: new Date(new Date().setHours(17, 30, 0)).toISOString(),
-      status: 'present',
-      notes: null,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      staff_id: '1',
-      check_in: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-      check_out: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-      status: 'present',
-      notes: null,
-      created_at: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString()
-    },
-    {
-      id: '3',
-      staff_id: '2',
-      check_in: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
-      check_out: null,
-      status: 'absent',
-      notes: 'Sick leave',
-      created_at: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString()
-    },
-    {
-      id: '4',
-      staff_id: '3',
-      check_in: new Date(new Date().setHours(9, 45, 0)).toISOString(),
-      check_out: new Date(new Date().setHours(18, 0, 0)).toISOString(),
-      status: 'late',
-      notes: 'Traffic',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '5',
-      staff_id: '4',
-      check_in: new Date(new Date().setHours(9, 0, 0)).toISOString(),
-      check_out: new Date(new Date().setHours(13, 0, 0)).toISOString(),
-      status: 'half-day',
-      notes: 'Doctor appointment',
-      created_at: new Date().toISOString()
-    }
-  ] as AttendanceRecord[];
+  // Generate 30 days of attendance records
+  const records: AttendanceRecord[] = [];
+  const today = new Date();
   
-  if (staffId) {
-    return baseData.filter(record => record.staff_id === staffId);
+  for (let i = 0; i < 30; i++) {
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    
+    // Randomly determine status
+    const statusOptions: ('present' | 'absent' | 'late' | 'half-day')[] = ['present', 'present', 'present', 'present', 'absent', 'late', 'half-day'];
+    const status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+    
+    // Create check-in time (9 AM +/- 1 hour)
+    const checkInHour = status === 'late' ? 10 + Math.random() : 8 + Math.random();
+    const checkInDate = new Date(date);
+    checkInDate.setHours(checkInHour, Math.floor(Math.random() * 60), 0);
+    
+    // Create check-out time (5 PM +/- 1 hour) if present or late
+    let checkOutDate = null;
+    if (status !== 'absent') {
+      const checkOutHour = status === 'half-day' ? 13 + Math.random() : 16 + Math.random();
+      checkOutDate = new Date(date);
+      checkOutDate.setHours(checkOutHour, Math.floor(Math.random() * 60), 0);
+    }
+    
+    records.push({
+      id: `att-${staffId || 'sample'}-${i}`,
+      staff_id: staffId || 'sample',
+      check_in: checkInDate.toISOString(),
+      check_out: checkOutDate ? checkOutDate.toISOString() : null,
+      status,
+      notes: status === 'absent' ? 'Sick leave' : null,
+      created_at: date.toISOString()
+    });
   }
   
-  return baseData;
+  return records;
 };

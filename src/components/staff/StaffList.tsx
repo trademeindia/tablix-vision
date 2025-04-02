@@ -7,18 +7,13 @@ import {
 import { StaffMember } from '@/types/staff';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { 
-  ChefHat, HelpCircle, UserCog, User, Pencil, Trash2, Calendar, DollarSign, Clock
-} from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import EditStaffDialog from './EditStaffDialog';
 import DeleteStaffDialog from './DeleteStaffDialog';
 import StaffDetailsDialog from './StaffDetailsDialog';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import StaffStatusBadge from './StaffStatusBadge';
+import StaffActions from './StaffActions';
+import StaffSearch from './StaffSearch';
+import RoleIcon from './RoleIcon';
 
 interface StaffListProps {
   staffData: StaffMember[];
@@ -38,7 +33,6 @@ const StaffList: React.FC<StaffListProps> = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const { toast } = useToast();
 
   const filteredStaff = staffData.filter(staff => {
     if (filter === 'active' && staff.status !== 'active') return false;
@@ -57,32 +51,6 @@ const StaffList: React.FC<StaffListProps> = ({
     return true;
   });
 
-  const handleStatusChange = async (staff: StaffMember, checked: boolean) => {
-    try {
-      const status = checked ? 'active' : 'inactive';
-      const { error } = await supabase
-        .from('staff' as any)
-        .update({ status })
-        .eq('id', staff.id);
-        
-      if (error) throw error;
-      
-      toast({
-        title: 'Status Updated',
-        description: `${staff.name} is now ${status}`,
-      });
-      
-      onStaffUpdated();
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update staff status',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handleEdit = (staff: StaffMember) => {
     setSelectedStaff(staff);
     setShowEditDialog(true);
@@ -96,19 +64,6 @@ const StaffList: React.FC<StaffListProps> = ({
   const handleViewDetails = (staff: StaffMember) => {
     setSelectedStaff(staff);
     setShowDetailsDialog(true);
-  };
-
-  const getRoleIcon = (role: string) => {
-    switch (role.toLowerCase()) {
-      case 'chef':
-        return <ChefHat className="h-4 w-4 mr-1 text-amber-500" />;
-      case 'manager':
-        return <UserCog className="h-4 w-4 mr-1 text-blue-500" />;
-      case 'waiter':
-        return <User className="h-4 w-4 mr-1 text-green-500" />;
-      default:
-        return <HelpCircle className="h-4 w-4 mr-1 text-gray-500" />;
-    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -132,14 +87,10 @@ const StaffList: React.FC<StaffListProps> = ({
 
   return (
     <div>
-      <div className="mb-4">
-        <Input
-          placeholder="Search staff by name, email, or role..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
+      <StaffSearch 
+        searchTerm={searchTerm} 
+        onSearchChange={setSearchTerm} 
+      />
       
       <div className="rounded-md border">
         <Table>
@@ -167,52 +118,24 @@ const StaffList: React.FC<StaffListProps> = ({
                   <TableCell>{staff.phone}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      {getRoleIcon(staff.role)}
+                      <RoleIcon role={staff.role} />
                       {staff.role}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={staff.status === 'active'} 
-                        onCheckedChange={(checked) => handleStatusChange(staff, checked)}
-                      />
-                      <Badge 
-                        variant={staff.status === 'active' ? "default" : "secondary"}
-                        className={staff.status === 'active' ? "bg-green-500" : "bg-slate-400"}
-                      >
-                        {staff.status === 'active' ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
+                    <StaffStatusBadge 
+                      staff={staff} 
+                      onStatusChange={onStaffUpdated} 
+                    />
                   </TableCell>
                   <TableCell>{formatDate(staff.last_login)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <Button 
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewDetails(staff)}
-                        title="View Details"
-                      >
-                        View
-                      </Button>
-                      <Button 
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(staff)}
-                        title="Edit Staff"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(staff)}
-                        title="Delete Staff"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <StaffActions
+                      staff={staff}
+                      onView={handleViewDetails}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
                   </TableCell>
                 </TableRow>
               ))
