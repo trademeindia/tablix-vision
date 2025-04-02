@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bell, Menu, X } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
@@ -8,7 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { useNavigate } from 'react-router-dom';
 import NotificationsPopover from '@/components/staff/NotificationsPopover';
-import { useRealtimeNotifications } from '@/hooks/use-realtime-notifications';
+import { useRealtimeNotifications } from '@/hooks/notifications';
 
 interface StaffHeaderProps {
   onMenuButtonClick?: () => void;

@@ -1,27 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-type NotificationType = 'order' | 'waiter_request' | 'kitchen' | 'system';
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  metadata?: Record<string, any>;
-}
-
-interface UseRealtimeNotificationsProps {
-  userId: string;
-  role?: 'Waiter' | 'Chef' | 'Manager';
-  tableId?: string;
-  restaurantId: string;
-  enabled?: boolean;
-}
+import { 
+  Notification, 
+  UseRealtimeNotificationsProps, 
+  UseRealtimeNotificationsReturn
+} from './types';
+import { 
+  createOrderNotification, 
+  createWaiterRequestNotification, 
+  playNotificationSound, 
+  showNotificationToast,
+  generateMockNotifications
+} from './notification-utils';
 
 export const useRealtimeNotifications = ({
   userId,
@@ -29,11 +20,10 @@ export const useRealtimeNotifications = ({
   tableId,
   restaurantId,
   enabled = true
-}: UseRealtimeNotificationsProps) => {
+}: UseRealtimeNotificationsProps): UseRealtimeNotificationsReturn => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { toast } = useToast();
 
   // Fetch existing notifications
   useEffect(() => {
@@ -47,24 +37,7 @@ export const useRealtimeNotifications = ({
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Sample data
-        const mockNotifications: Notification[] = [
-          {
-            id: '1',
-            type: 'order',
-            title: 'New Order',
-            message: 'Table 5 placed a new order',
-            timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-            read: true
-          },
-          {
-            id: '2',
-            type: 'waiter_request',
-            title: 'Waiter Requested',
-            message: 'Table 3 requested assistance',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            read: false
-          }
-        ];
+        const mockNotifications = generateMockNotifications();
         
         setNotifications(mockNotifications);
         setUnreadCount(mockNotifications.filter(n => !n.read).length);
@@ -134,58 +107,32 @@ export const useRealtimeNotifications = ({
 
   // Handle new order notifications
   const handleNewOrder = (order: any) => {
-    const newNotification: Notification = {
-      id: `order-${order.id}`,
-      type: 'order',
-      title: 'New Order',
-      message: `Table ${order.table_number} placed a new order`,
-      timestamp: new Date().toISOString(),
-      read: false,
-      metadata: { orderId: order.id, tableNumber: order.table_number }
-    };
+    const newNotification = createOrderNotification(order);
     
-    // Play notification sound - in a real app, you'd use a separate hook for this
-    const audio = new Audio('/notification.mp3');
-    audio.play().catch(err => console.error('Error playing notification sound:', err));
+    // Play notification sound
+    playNotificationSound();
     
     // Add to notifications state
     setNotifications(prev => [newNotification, ...prev]);
     setUnreadCount(prev => prev + 1);
     
     // Show toast notification
-    toast({
-      title: 'New Order',
-      description: `Table ${order.table_number} placed a new order`,
-      duration: 5000,
-    });
+    showNotificationToast(newNotification);
   };
 
   // Handle waiter request notifications
   const handleWaiterRequest = (request: any) => {
-    const newNotification: Notification = {
-      id: `request-${request.id}`,
-      type: 'waiter_request',
-      title: 'Waiter Requested',
-      message: `Table ${request.table_number} requested assistance`,
-      timestamp: new Date().toISOString(),
-      read: false,
-      metadata: { requestId: request.id, tableNumber: request.table_number }
-    };
+    const newNotification = createWaiterRequestNotification(request);
     
     // Play notification sound
-    const audio = new Audio('/notification.mp3');
-    audio.play().catch(err => console.error('Error playing notification sound:', err));
+    playNotificationSound();
     
     // Add to notifications state
     setNotifications(prev => [newNotification, ...prev]);
     setUnreadCount(prev => prev + 1);
     
     // Show toast notification
-    toast({
-      title: 'Waiter Requested',
-      description: `Table ${request.table_number} requested assistance`,
-      duration: 5000,
-    });
+    showNotificationToast(newNotification);
   };
 
   // Mark a notification as read
