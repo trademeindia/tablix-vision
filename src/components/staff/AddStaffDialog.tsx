@@ -24,7 +24,11 @@ const formSchema = z.object({
   email: z.string().email('Valid email is required'),
   phone: z.string().min(5, 'Valid phone number is required'),
   role: z.enum(['Waiter', 'Chef', 'Manager', 'Receptionist']),
-  status: z.enum(['active', 'inactive'])
+  status: z.enum(['active', 'inactive']),
+  salary: z.number().optional(),
+  hire_date: z.string().optional(),
+  department: z.string().optional(),
+  emergency_contact: z.string().optional()
 });
 
 const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
@@ -39,7 +43,9 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       email: '',
       phone: '',
       role: 'Waiter',
-      status: 'active'
+      status: 'active',
+      salary: undefined,
+      emergency_contact: ''
     }
   });
 

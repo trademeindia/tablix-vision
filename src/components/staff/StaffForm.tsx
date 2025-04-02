@@ -1,26 +1,12 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { StaffFormData } from '@/types/staff';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage
+import { 
+  FormField, FormItem, FormLabel, FormControl, FormMessage 
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  RadioGroup, 
-  RadioGroupItem 
-} from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StaffFormData } from '@/types/staff';
 
 interface StaffFormProps {
   form: UseFormReturn<StaffFormData>;
@@ -28,7 +14,7 @@ interface StaffFormProps {
 
 const StaffForm: React.FC<StaffFormProps> = ({ form }) => {
   return (
-    <div className="space-y-4 py-2">
+    <>
       <FormField
         control={form.control}
         name="name"
@@ -36,7 +22,21 @@ const StaffForm: React.FC<StaffFormProps> = ({ form }) => {
           <FormItem>
             <FormLabel>Name</FormLabel>
             <FormControl>
-              <Input placeholder="John Smith" {...field} />
+              <Input placeholder="John Doe" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input placeholder="john@example.com" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -59,28 +59,11 @@ const StaffForm: React.FC<StaffFormProps> = ({ form }) => {
       
       <FormField
         control={form.control}
-        name="email"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Email</FormLabel>
-            <FormControl>
-              <Input placeholder="john.smith@example.com" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
         name="role"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Role</FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-            >
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a role" />
@@ -102,37 +85,62 @@ const StaffForm: React.FC<StaffFormProps> = ({ form }) => {
         control={form.control}
         name="status"
         render={({ field }) => (
-          <FormItem className="space-y-3">
+          <FormItem>
             <FormLabel>Status</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="salary"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Salary</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex space-x-4"
-              >
-                <FormItem className="flex items-center space-x-2 space-y-0">
-                  <FormControl>
-                    <RadioGroupItem value="active" />
-                  </FormControl>
-                  <FormLabel className="font-normal">
-                    Active
-                  </FormLabel>
-                </FormItem>
-                <FormItem className="flex items-center space-x-2 space-y-0">
-                  <FormControl>
-                    <RadioGroupItem value="inactive" />
-                  </FormControl>
-                  <FormLabel className="font-normal">
-                    Inactive
-                  </FormLabel>
-                </FormItem>
-              </RadioGroup>
+              <Input 
+                type="number" 
+                placeholder="3000" 
+                {...field} 
+                value={field.value || ''} 
+                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-    </div>
+      
+      <FormField
+        control={form.control}
+        name="emergency_contact"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Emergency Contact</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Contact name and number" 
+                {...field} 
+                value={field.value || ''} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
   );
 };
 

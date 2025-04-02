@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -8,7 +9,7 @@ import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { 
-  ChefHat, HelpCircle, UserCog, User, Pencil, Trash2
+  ChefHat, HelpCircle, UserCog, User, Pencil, Trash2, Calendar, DollarSign, Clock
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -60,7 +61,7 @@ const StaffList: React.FC<StaffListProps> = ({
     try {
       const status = checked ? 'active' : 'inactive';
       const { error } = await supabase
-        .from('staff')
+        .from('staff' as any)
         .update({ status })
         .eq('id', staff.id);
         
@@ -191,6 +192,7 @@ const StaffList: React.FC<StaffListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleViewDetails(staff)}
+                        title="View Details"
                       >
                         View
                       </Button>
@@ -198,6 +200,7 @@ const StaffList: React.FC<StaffListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(staff)}
+                        title="Edit Staff"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -205,6 +208,7 @@ const StaffList: React.FC<StaffListProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(staff)}
+                        title="Delete Staff"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
