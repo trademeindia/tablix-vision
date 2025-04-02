@@ -1,105 +1,94 @@
+
+import { UseFormReturn } from 'react-hook-form';
 import { AuthFormValues } from '@/schemas/auth-schemas';
 
 /**
- * Pre-fills form with demo credentials
+ * Pre-fills the auth form with demo credentials
  */
 export const preFillDemoCredentials = (
-  form: any, 
-  demoEmail: string, 
-  demoPassword: string
-) => {
-  try {
-    form.setValue('email', demoEmail);
-    form.setValue('password', demoPassword);
-    
-    // Clear any validation errors
-    form.clearErrors();
-  } catch (e) {
-    console.error('Error pre-filling demo credentials:', e);
-    // Continue despite errors
-  }
+  form: UseFormReturn<AuthFormValues>,
+  email: string,
+  password: string
+): void => {
+  form.setValue('email', email, { shouldValidate: true });
+  form.setValue('password', password, { shouldValidate: true });
 };
 
 /**
- * Handles login attempt for demo account with reduced retries and optimized timing
+ * Handles demo login attempt with multiple retries and timeouts
  */
 export const handleDemoLoginAttempt = async (
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>,
+  signInFunction: (email: string, password: string) => Promise<{ success: boolean; error?: string }>,
   email: string,
   password: string,
   maxAttempts: number = 3
 ): Promise<{ success: boolean; error?: string }> => {
-  let success = false;
-  let attempts = 0;
-  let lastError = '';
+  console.log(`Attempting demo login with email: ${email}, max attempts: ${maxAttempts}`);
   
-  while (!success && attempts < maxAttempts) {
-    attempts++;
-    console.log(`Demo login attempt ${attempts} of ${maxAttempts}`);
+  // First attempt - try direct login
+  const firstAttempt = await signInFunction(email, password);
+  if (firstAttempt.success) {
+    console.log('Demo login successful on first attempt');
     
-    try {
-      // Add progressively longer delays between attempts, but keep them short
-      if (attempts > 1) {
-        const delayMs = Math.min(500 * attempts, 1500);
-        console.log(`Waiting ${delayMs}ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-      }
-      
-      // Clear any session cookies via the edge function for each attempt
-      try {
-        console.log('Clearing session cookies before attempt', attempts);
-        await fetch('/api/auth/clear-session', { 
-          method: 'POST',
-          credentials: 'include'
-        });
-      } catch (e) {
-        console.warn('Failed to clear session cookies, continuing anyway:', e);
-      }
-      
-      // Force a signout to clear any local session state
-      try {
-        console.log('Forcing signout before attempt', attempts);
-        const { supabase } = await import('@/integrations/supabase/client');
-        await supabase.auth.signOut().catch(() => {/* ignore signout errors */});
-      } catch (e) {
-        console.warn('Failed to sign out before retry, continuing anyway:', e);
-      }
-      
-      // If this is the last attempt, try to force-confirm the demo account
-      if (attempts === maxAttempts - 1) {
-        try {
-          console.log('Using force-confirm endpoint for demo account');
-          await fetch('/api/auth/force-confirm-demo', { 
-            method: 'POST',
-            credentials: 'include'
-          });
-          
-          // Wait a bit for the confirmation to take effect
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (e) {
-          console.warn('Failed to force-confirm demo account, continuing anyway:', e);
-        }
-      }
-      
-      console.log(`Attempting actual login for attempt ${attempts}`);
-      const result = await signIn(email, password);
-      success = result.success;
-      lastError = result.error || '';
-      
-      if (success) {
-        console.log(`Demo login succeeded on attempt ${attempts}`);
-        break;
-      } else {
-        console.log(`Demo login attempt ${attempts} failed: ${lastError}`);
-      }
-    } catch (e) {
-      console.error(`Demo login attempt ${attempts} failed with exception:`, e);
-      lastError = e instanceof Error ? e.message : 'Unknown error occurred';
-    }
+    // Trigger direct navigation event
+    window.dispatchEvent(new CustomEvent('demo-login-success'));
+    
+    return { success: true };
   }
   
+  // Attempt to force demo account confirmation via edge function
+  try {
+    const confirmResult = await fetch('/api/auth/force-confirm-demo', {
+      method: 'POST',
+      credentials: 'include'
+    });
+    await confirmResult.json();
+    console.log('Force-confirmed demo account via edge function');
+  } catch (e) {
+    console.warn('Failed to force-confirm demo account:', e);
+  }
+  
+  // Allow time for confirmation to take effect
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Second attempt after confirmation
+  const secondAttempt = await signInFunction(email, password);
+  if (secondAttempt.success) {
+    console.log('Demo login successful on second attempt after confirmation');
+    
+    // Trigger direct navigation event
+    window.dispatchEvent(new CustomEvent('demo-login-success'));
+    
+    return { success: true };
+  }
+  
+  // If we still have remaining attempts, try with increasing delays
+  let currentAttempt = 2;
+  while (currentAttempt < maxAttempts) {
+    // Calculate delay with exponential backoff
+    const delay = Math.pow(2, currentAttempt) * 500;
+    console.log(`Waiting ${delay}ms before attempt ${currentAttempt + 1}`);
+    
+    await new Promise(resolve => setTimeout(resolve, delay));
+    
+    // Try login again
+    const result = await signInFunction(email, password);
+    if (result.success) {
+      console.log(`Demo login successful on attempt ${currentAttempt + 1}`);
+      
+      // Trigger direct navigation event 
+      window.dispatchEvent(new CustomEvent('demo-login-success'));
+      
+      return { success: true };
+    }
+    
+    currentAttempt++;
+  }
+  
+  // If we get here, all attempts failed
+  console.error(`Demo login failed after ${maxAttempts} attempts`);
   return { 
-    success, 
-    error: success ? '' : `Demo login failed after ${attempts} attempts. Please try again later.` 
+    success: false, 
+    error: 'Unable to access demo account after multiple attempts. Please try again later.' 
   };
 };

@@ -21,6 +21,25 @@ const AuthPage: React.FC = () => {
   // Get the page the user was trying to access
   const from = (location.state as any)?.from?.pathname || '/';
 
+  // Listen for demo login success event
+  useEffect(() => {
+    const handleDemoLoginSuccess = () => {
+      console.log('Demo login success event received, redirecting to dashboard');
+      setIsRedirecting(true);
+      
+      // Short delay before redirect
+      setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 500);
+    };
+    
+    window.addEventListener('demo-login-success', handleDemoLoginSuccess);
+    
+    return () => {
+      window.removeEventListener('demo-login-success', handleDemoLoginSuccess);
+    };
+  }, [navigate]);
+
   // Set a timeout to show additional message if loading takes too long
   useEffect(() => {
     let longLoadingTimeout: NodeJS.Timeout;

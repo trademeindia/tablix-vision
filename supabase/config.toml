@@ -1,4 +1,5 @@
 
+# Project ID should always be first
 project_id = "qofbpjdbmisyxysfcyeb"
 
 [api]
@@ -22,7 +23,6 @@ port = 54324
 
 [auth]
 enabled = true
-port = 9999
 
 [realtime]
 enabled = true
@@ -30,12 +30,12 @@ enabled = true
 [storage]
 enabled = true
 
-[edge-functions]
+# Edge Functions Configuration
+[functions]
 enabled = true
 
-[edge-functions.clear-session]
+[functions.clear-session]
 verify_jwt = false
 
-[edge-functions.force-confirm-demo]
+[functions.force-confirm-demo]
 verify_jwt = false
-
