@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Clock, Utensils, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Table {
   id: string;
@@ -208,30 +208,28 @@ const TableGrid: React.FC<TableGridProps> = ({ tables, onStatusChange, onMakeRes
                     Change Status
                   </Button>
                   
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          variant={table.status === 'available' ? "default" : "secondary"}
-                          size="sm"
-                          className="w-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openReservationDialog(table.id);
-                          }}
-                          disabled={table.status === 'occupied'}
-                        >
-                          <Calendar className="mr-1 h-4 w-4" />
-                          Reserve
-                        </Button>
-                      </TooltipTrigger>
-                      {table.status === 'occupied' && (
-                        <TooltipContent>
-                          <p>Table must be available to make a reservation</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant={table.status === 'available' ? "default" : "secondary"}
+                        size="sm"
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openReservationDialog(table.id);
+                        }}
+                        disabled={table.status === 'occupied'}
+                      >
+                        <Calendar className="mr-1 h-4 w-4" />
+                        Reserve
+                      </Button>
+                    </TooltipTrigger>
+                    {table.status === 'occupied' && (
+                      <TooltipContent>
+                        <p>Table must be available to make a reservation</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </div>
                 
                 {table.nextReservation && (
