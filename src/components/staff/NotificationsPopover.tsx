@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,19 +10,29 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useRealtimeNotifications } from '@/hooks/notifications/use-realtime-notifications';
+import { UseRealtimeNotificationsReturn } from '@/hooks/notifications/types';
 
 interface NotificationsPopoverProps {
-  userId: string;
-  restaurantId: string;
+  userId?: string;
+  restaurantId?: string;
+  // Update to accept the return values from the hook directly
+  unreadCount: number;
+  isLoading: boolean;
+  notifications: any[];
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
 }
 
-const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({ userId, restaurantId }) => {
+const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({ 
+  unreadCount, 
+  isLoading, 
+  notifications, 
+  markAsRead, 
+  markAllAsRead,
+  userId,
+  restaurantId
+}) => {
   const [open, setOpen] = useState(false);
-  const { notifications, isLoading, unreadCount, markAsRead, markAllAsRead } = useRealtimeNotifications({
-    userId: userId,
-    restaurantId: restaurantId,
-  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

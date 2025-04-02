@@ -39,7 +39,7 @@ const IntegrationDetailPage = () => {
   const [newSyncConfig, setNewSyncConfig] = useState<SyncConfig>({
     entity: '',
     direction: 'import',
-    mappings: {},
+    mappings: {}, // This is required by the SyncConfig type
     enabled: true
   });
 
@@ -80,7 +80,7 @@ const IntegrationDetailPage = () => {
       setNewSyncConfig({
         entity: '',
         direction: 'import',
-        mappings: {},
+        mappings: {}, // This is required by the SyncConfig type
         enabled: true
       });
     }

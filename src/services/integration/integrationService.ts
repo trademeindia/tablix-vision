@@ -10,6 +10,7 @@ import {
   SyncRequest
 } from './types';
 
+// Mock implementations since 'integrations' table doesn't exist in schema
 export const getIntegrations = async (restaurantId: string): Promise<Integration[]> => {
   try {
     // In a real app, this would fetch from Supabase
