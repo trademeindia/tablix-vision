@@ -20,36 +20,31 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
       
       console.log("Fetching categories for restaurant:", restaurantId);
       
-      // Ensure we have a current user for RLS
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        console.error("Error getting current user:", userError);
-        throw new Error(`Authentication error: ${userError.message}`);
+      try {
+        const { data, error } = await supabase
+          .from('menu_categories')
+          .select('*')
+          .eq('restaurant_id', restaurantId)
+          .order('display_order', { ascending: true });
+        
+        if (error) {
+          console.error("Error fetching categories:", error);
+          throw new Error(`Error fetching categories: ${error.message}`);
+        }
+        
+        console.log("Categories fetched:", data?.length || 0);
+        
+        // If no categories found, we'll return an empty array instead of null
+        return (data || []) as MenuCategory[];
+      } catch (error) {
+        console.error("Error in categoriesQuery:", error);
+        throw error instanceof Error ? error : new Error(String(error));
       }
-      
-      if (!userData.user) {
-        console.warn("No authenticated user found. RLS policies will restrict data access.");
-      }
-      
-      const { data, error } = await supabase
-        .from('menu_categories')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .order('display_order', { ascending: true });
-      
-      if (error) {
-        console.error("Error fetching categories:", error);
-        throw new Error(`Error fetching categories: ${error.message}`);
-      }
-      
-      console.log("Categories fetched:", data?.length || 0, data);
-      
-      // If no categories found, we'll return an empty array instead of null
-      return (data || []) as MenuCategory[];
     },
     enabled: !!restaurantId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    retry: 2, // Retry failed requests twice
+    retry: 3, // Retry failed requests three times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
   
   const itemsQuery = useQuery({
@@ -58,12 +53,7 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
       if (!restaurantId) throw new Error('Restaurant ID is required');
       
       try {
-        // Check authentication for RLS
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-          console.error("Error getting current user:", userError);
-          throw new Error(`Authentication error: ${userError.message}`);
-        }
+        console.log("Fetching menu items for restaurant:", restaurantId);
         
         const { data, error } = await supabase
           .from('menu_items')
@@ -71,10 +61,15 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
           .eq('restaurant_id', restaurantId)
           .eq('is_available', true);
         
-        if (error) throw new Error(`Error fetching items: ${error.message}`);
+        if (error) {
+          console.error("Error fetching items:", error);
+          throw new Error(`Error fetching items: ${error.message}`);
+        }
+        
+        console.log("Items fetched:", data?.length || 0);
         
         // Transform the items data
-        const transformedItems = data.map(item => ({
+        const transformedItems = (data || []).map(item => ({
           ...item,
           allergens: parseAllergens(item.allergens)
         }));
@@ -87,13 +82,18 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
     },
     enabled: !!restaurantId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    retry: 2, // Retry failed requests twice
+    retry: 3, // Retry failed requests three times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   const refetchCategories = async () => {
     try {
-      await categoriesQuery.refetch();
-      await itemsQuery.refetch();
+      console.log("Manually refetching menu data...");
+      await Promise.all([
+        categoriesQuery.refetch(),
+        itemsQuery.refetch()
+      ]);
+      console.log("Refetch complete");
     } catch (error) {
       console.error("Error refetching data:", error);
       toast({

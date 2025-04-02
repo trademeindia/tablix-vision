@@ -28,14 +28,22 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
       return;
     }
     
+    if (!restaurantId) {
+      toast({
+        title: "Missing Restaurant ID",
+        description: "Restaurant ID is required to generate QR codes",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsGenerating(true);
     
     // Simulate API call delay
     setTimeout(() => {
       // Create a properly formatted URL for QR code scanning
-      // Use a format that the customer app can parse
       const baseUrl = window.location.origin;
-      // Updated to use the correct route path 'customer-menu' instead of 'customer/menu'
+      // Use the newer customer-menu path with query parameters 
       const value = `${baseUrl}/customer-menu?restaurant=${restaurantId}&table=${tableNumber}`;
       
       console.log("Generated QR code with URL:", value);
@@ -177,9 +185,25 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
           </Select>
         </div>
         
+        <div className="space-y-2">
+          <label htmlFor="restaurant-id" className="text-sm font-medium">
+            Restaurant ID
+          </label>
+          <Input
+            id="restaurant-id"
+            type="text"
+            value={restaurantId}
+            readOnly
+            className="w-full bg-gray-100"
+          />
+          <p className="text-xs text-muted-foreground">
+            This is your restaurant's unique identifier
+          </p>
+        </div>
+        
         <Button 
           onClick={handleGenerate} 
-          disabled={isGenerating} 
+          disabled={isGenerating || !restaurantId} 
           className="w-full"
         >
           {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

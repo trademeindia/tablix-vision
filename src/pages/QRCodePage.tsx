@@ -1,13 +1,62 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import QRCodeGenerator from '@/components/qrcode/QRCodeGenerator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const QRCodePage = () => {
-  // In a real app, this would come from authentication or context
-  const restaurantId = 'rest123';
+  const [restaurantId, setRestaurantId] = useState('00000000-0000-0000-0000-000000000000');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Try to get a real restaurant ID if the user is authenticated
+  useEffect(() => {
+    const fetchRestaurantId = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Check if we have a logged in user
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !userData?.user) {
+          console.log("No authenticated user found, using default restaurant ID");
+          return;
+        }
+        
+        // Try to get a restaurant owned by this user
+        const { data: restaurants, error: restError } = await supabase
+          .from('restaurants')
+          .select('id')
+          .eq('owner_id', userData.user.id)
+          .limit(1);
+        
+        if (restError) {
+          console.error("Error fetching restaurant:", restError);
+          return;
+        }
+        
+        if (restaurants && restaurants.length > 0) {
+          console.log("Found user's restaurant:", restaurants[0].id);
+          setRestaurantId(restaurants[0].id);
+        } else {
+          console.log("No restaurants found for user, using default ID");
+          toast({
+            title: "No Restaurant Found",
+            description: "Using a test restaurant ID for demonstration. Create a restaurant first for real QR codes.",
+            variant: "default"
+          });
+        }
+      } catch (error) {
+        console.error("Error in fetchRestaurantId:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRestaurantId();
+  }, []);
   
   return (
     <DashboardLayout>

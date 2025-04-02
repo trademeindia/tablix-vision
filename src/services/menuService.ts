@@ -1,18 +1,23 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuCategory, MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
+import { getErrorMessage } from "@/utils/api-helpers";
 
 // Menu Categories
 export const fetchMenuCategories = async (restaurant_id?: string) => {
   try {
+    console.log("Fetching menu categories for restaurant:", restaurant_id);
+    
+    if (!restaurant_id) {
+      console.error("Restaurant ID is required");
+      return [];
+    }
+    
     let query = supabase
       .from('menu_categories')
       .select('*')
       .order('display_order', { ascending: true });
     
-    if (restaurant_id) {
-      query = query.eq('restaurant_id', restaurant_id);
-    }
+    query = query.eq('restaurant_id', restaurant_id);
     
     const { data, error } = await query;
     
@@ -21,11 +26,12 @@ export const fetchMenuCategories = async (restaurant_id?: string) => {
       throw error;
     }
     
-    console.log('Menu categories fetched:', data && data.length);
+    console.log('Menu categories fetched:', data?.length || 0);
     return data || [];
   } catch (error) {
-    console.error('Error in fetchMenuCategories:', error);
-    throw error;
+    console.error('Error in fetchMenuCategories:', getErrorMessage(error));
+    // Return empty array instead of throwing to prevent app crashes
+    return [];
   }
 };
 
@@ -88,6 +94,11 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
   try {
     console.log("Fetching menu items with restaurant_id:", restaurant_id);
     
+    if (!restaurant_id) {
+      console.error("Restaurant ID is required");
+      return [];
+    }
+    
     let query = supabase
       .from('menu_items')
       .select('*');
@@ -100,6 +111,9 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
       query = query.eq('restaurant_id', restaurant_id);
     }
     
+    // Only fetch available items for public viewing
+    query = query.eq('is_available', true);
+    
     const { data, error } = await query;
     
     if (error) {
@@ -107,7 +121,7 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
       throw error;
     }
     
-    console.log('Menu items fetched:', data && data.length);
+    console.log('Menu items fetched:', data?.length || 0);
     
     if (!data || data.length === 0) {
       console.warn('No menu items found for restaurant_id:', restaurant_id);
@@ -118,8 +132,9 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
       allergens: parseAllergens(item.allergens)
     })) : [];
   } catch (error) {
-    console.error('Error in fetchMenuItems:', error);
-    throw error;
+    console.error('Error in fetchMenuItems:', getErrorMessage(error));
+    // Return empty array instead of throwing to prevent app crashes
+    return [];
   }
 };
 
@@ -174,7 +189,7 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
       allergens: parseAllergens(data[0].allergens)
     };
   } catch (error) {
-    console.error('Error in createMenuItem:', error);
+    console.error('Error in createMenuItem:', getErrorMessage(error));
     throw error;
   }
 };

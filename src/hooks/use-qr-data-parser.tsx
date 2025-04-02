@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface QRDataParserResult {
@@ -11,6 +11,7 @@ interface QRDataParserResult {
 
 export function useQRDataParser(): QRDataParserResult {
   const location = useLocation();
+  const navigate = useNavigate();
   const [tableId, setTableId] = useState<string | null>(null);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
 
@@ -21,12 +22,20 @@ export function useQRDataParser(): QRDataParserResult {
     const tableParam = params.get('table');
     const restaurantParam = params.get('restaurant');
     
+    console.log("Checking URL parameters:", { tableParam, restaurantParam });
+    
     // If URL has parameters, use those
     if (tableParam && restaurantParam) {
+      console.log("Using URL parameters for restaurant/table:", { restaurantParam, tableParam });
       setTableId(tableParam);
       setRestaurantId(restaurantParam);
       localStorage.setItem('tableId', tableParam);
       localStorage.setItem('restaurantId', restaurantParam);
+      
+      // Ensure we're on the correct path
+      if (!location.pathname.includes('/customer-menu')) {
+        navigate(`/customer-menu?restaurant=${restaurantParam}&table=${tableParam}`, { replace: true });
+      }
       return;
     }
     
@@ -35,10 +44,16 @@ export function useQRDataParser(): QRDataParserResult {
     const storedRestaurantId = localStorage.getItem('restaurantId');
     
     if (storedTableId && storedRestaurantId) {
+      console.log("Using stored restaurant/table:", { restaurantId: storedRestaurantId, tableId: storedTableId });
       setTableId(storedTableId);
       setRestaurantId(storedRestaurantId);
+      
+      // Redirect to customer-menu with parameters if we're not already there
+      if (!location.pathname.includes('/customer-menu')) {
+        navigate(`/customer-menu?restaurant=${storedRestaurantId}&table=${storedTableId}`, { replace: true });
+      }
     }
-  }, [location.search]);
+  }, [location.search, location.pathname, navigate]);
 
   const parseQRData = (qrData: string) => {
     if (!qrData) return;
@@ -61,6 +76,9 @@ export function useQRDataParser(): QRDataParserResult {
           setTableId(qrTableId);
           localStorage.setItem('tableId', qrTableId);
           localStorage.setItem('restaurantId', qrRestaurantId);
+          
+          // Redirect to customer-menu with parameters
+          navigate(`/customer-menu?restaurant=${qrRestaurantId}&table=${qrTableId}`, { replace: true });
           return;
         }
       } catch (e) {
@@ -80,6 +98,9 @@ export function useQRDataParser(): QRDataParserResult {
           setTableId(qrTableId);
           localStorage.setItem('tableId', qrTableId);
           localStorage.setItem('restaurantId', qrRestaurantId);
+          
+          // Redirect to customer-menu with parameters
+          navigate(`/customer-menu?restaurant=${qrRestaurantId}&table=${qrTableId}`, { replace: true });
           return;
         }
       } catch (e) {
@@ -95,6 +116,9 @@ export function useQRDataParser(): QRDataParserResult {
           setTableId(jsonData.tableId);
           localStorage.setItem('tableId', jsonData.tableId);
           localStorage.setItem('restaurantId', jsonData.restaurantId);
+          
+          // Redirect to customer-menu with parameters
+          navigate(`/customer-menu?restaurant=${jsonData.restaurantId}&table=${jsonData.tableId}`, { replace: true });
           return;
         }
       } catch (e) {
@@ -110,6 +134,9 @@ export function useQRDataParser(): QRDataParserResult {
         setTableId(qrTableId);
         localStorage.setItem('tableId', qrTableId);
         localStorage.setItem('restaurantId', qrRestaurantId);
+        
+        // Redirect to customer-menu with parameters
+        navigate(`/customer-menu?restaurant=${qrRestaurantId}&table=${qrTableId}`, { replace: true });
         return;
       }
       
