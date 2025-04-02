@@ -1,4 +1,5 @@
 
+
 -- This migration creates a demo account if it doesn't already exist
 
 DO $$
@@ -25,7 +26,8 @@ BEGIN
       raw_app_meta_data,
       raw_user_meta_data,
       confirmed_at,
-      confirmation_sent_at
+      confirmation_sent_at,
+      is_confirmed
     ) VALUES (
       demo_email,
       crypt(demo_password, gen_salt('bf')),
@@ -35,7 +37,8 @@ BEGIN
       '{"provider": "email", "providers": ["email"]}',
       '{"full_name": "Demo User"}',
       now(),
-      now()
+      now(),
+      true
     )
     RETURNING id INTO user_id;
     
@@ -108,5 +111,62 @@ BEGIN
     
     RAISE NOTICE 'Demo account already exists, updated configuration for ID: %', user_id;
   END IF;
+  
+  -- Ensure the demo user has a profile record
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = user_id) THEN
+    INSERT INTO public.profiles (
+      id,
+      full_name,
+      role,
+      created_at,
+      updated_at
+    ) VALUES (
+      user_id,
+      'Demo User',
+      'owner',
+      now(),
+      now()
+    );
+    
+    RAISE NOTICE 'Demo user profile created';
+  END IF;
+  
+  -- Ensure the demo user has a restaurant created
+  DECLARE
+    restaurant_id UUID;
+  BEGIN
+    SELECT id INTO restaurant_id FROM public.restaurants WHERE owner_id = user_id LIMIT 1;
+    
+    IF restaurant_id IS NULL THEN
+      INSERT INTO public.restaurants (
+        name,
+        description,
+        address,
+        phone,
+        email,
+        owner_id,
+        created_at,
+        updated_at
+      ) VALUES (
+        'Demo Restaurant',
+        'A sample restaurant for demonstration purposes',
+        '123 Main Street, Anytown, USA',
+        '555-123-4567',
+        'demo@restaurant.com',
+        user_id,
+        now(),
+        now()
+      )
+      RETURNING id INTO restaurant_id;
+      
+      -- Update the profile to link to this restaurant
+      UPDATE public.profiles
+      SET restaurant_id = restaurant_id
+      WHERE id = user_id;
+      
+      RAISE NOTICE 'Demo restaurant created with ID: %', restaurant_id;
+    END IF;
+  END;
 END
 $$;
+

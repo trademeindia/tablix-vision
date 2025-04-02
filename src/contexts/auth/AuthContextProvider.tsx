@@ -2,11 +2,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-import { checkCurrentSession } from '@/utils/auth';
-import { signInWithEmail, signUpWithEmail, signOutUser } from '@/utils/auth';
+import { checkCurrentSession } from '@/utils/auth/session-management';
+import { signInWithEmail } from '@/utils/auth/sign-in';
+import { signUpWithEmail } from '@/utils/auth/sign-up';
+import { signOutUser } from '@/utils/auth/session-management';
 import { handleError } from '@/utils/errorHandling';
 import AuthContext from './useAuthContext';
 import { AuthProviderProps } from './types';
+import { toast } from '@/hooks/use-toast';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -15,6 +18,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const [sessionCheckCount, setSessionCheckCount] = useState<number>(0);
   const authStateChangeHandler = useRef<((event: string, session: Session | null) => void) | null>(null);
+  const authInitializationTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Handle auth state changes
   const handleAuthChange = useCallback((event: string, currentSession: Session | null) => {
@@ -23,14 +27,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (currentSession) {
       setSession(currentSession);
       setUser(currentSession.user);
+      
+      // Show toast for login success if not silent event
+      if (event === 'SIGNED_IN') {
+        toast({
+          title: 'Signed in successfully',
+          description: `Welcome ${currentSession.user.email?.split('@')[0] || 'back'}!`,
+          variant: 'default'
+        });
+      }
     } else {
       setSession(null);
       setUser(null);
+      
+      // Show toast for logout if not silent event
+      if (event === 'SIGNED_OUT') {
+        toast({
+          title: 'Signed out',
+          description: 'You have been signed out successfully',
+          variant: 'default'
+        });
+      }
     }
     
     setIsLoading(false);
     // Set auth as initialized when auth changes are detected
     setAuthInitialized(true);
+  }, []);
+
+  // Clear resources on component unmount
+  useEffect(() => {
+    return () => {
+      if (authInitializationTimeout.current) {
+        clearTimeout(authInitializationTimeout.current);
+      }
+    };
   }, []);
 
   // Set up auth state listener and check for existing session
@@ -110,17 +141,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkInitialSession();
     
     // Set a safety timeout to ensure authInitialized is set even if session check hangs
-    const safetyTimeout = setTimeout(() => {
+    authInitializationTimeout.current = setTimeout(() => {
       if (mounted && !authInitialized) {
         console.log('Safety timeout triggered for auth initialization');
         setAuthInitialized(true);
         setIsLoading(false);
       }
-    }, 5000);
+    }, 3000);
     
     return () => {
       mounted = false;
-      clearTimeout(safetyTimeout);
+      if (authInitializationTimeout.current) {
+        clearTimeout(authInitializationTimeout.current);
+      }
       subscription.unsubscribe();
     };
   }, [handleAuthChange, authInitialized]);

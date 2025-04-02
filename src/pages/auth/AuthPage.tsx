@@ -7,6 +7,8 @@ import Spinner from '@/components/ui/spinner';
 import { PageTransition } from '@/components/ui/page-transition';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
   const { isLoading, isAuthenticated, authInitialized, checkSession, signIn } = useAuth();
@@ -26,7 +28,7 @@ const AuthPage: React.FC = () => {
     if (isLoading && !isLongLoadingState) {
       longLoadingTimeout = setTimeout(() => {
         setIsLongLoadingState(true);
-      }, 5000);
+      }, 3000);
     }
     
     return () => {
@@ -62,7 +64,7 @@ const AuthPage: React.FC = () => {
           console.log('Attempting auto demo login');
           toast({
             title: 'Auto Demo Login',
-            description: 'Attempting to log in with demo account...'
+            description: 'Logging in with the demo account...'
           });
           
           await signIn(DEMO_EMAIL, DEMO_PASSWORD);
@@ -108,9 +110,20 @@ const AuthPage: React.FC = () => {
       localStorage.clear();
       sessionStorage.clear();
       console.log('Emergency reset: Storage cleared');
+      
+      // Also attempt to clear cookies
+      try {
+        await fetch('/api/auth/clear-session', { 
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (e) {
+        console.warn('Failed to clear session via API:', e);
+      }
+      
       toast({
         title: 'Storage Reset',
-        description: 'Local storage cleared. Please try signing in again.'
+        description: 'Browser storage cleared. Please try signing in again.'
       });
       window.location.reload();
     } catch (error) {
@@ -129,12 +142,13 @@ const AuthPage: React.FC = () => {
         {isLongLoadingState && (
           <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg max-w-sm text-center">
             <p className="text-amber-800 mb-3">Taking longer than expected?</p>
-            <button 
+            <Button 
               onClick={handleEmergencyReset}
               className="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 px-4 py-2 rounded-md border border-amber-300"
             >
+              <RefreshCw className="h-4 w-4 mr-2" />
               Reset Authentication
-            </button>
+            </Button>
           </div>
         )}
       </div>

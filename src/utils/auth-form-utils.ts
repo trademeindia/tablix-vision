@@ -45,25 +45,43 @@ export const handleDemoLoginAttempt = async (
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
       
-      // Only clear session for subsequent attempts to avoid unnecessary operations
-      if (attempts > 1) {
+      // Clear any session cookies via the edge function for each attempt
+      try {
+        console.log('Clearing session cookies before attempt', attempts);
+        await fetch('/api/auth/clear-session', { 
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (e) {
+        console.warn('Failed to clear session cookies, continuing anyway:', e);
+      }
+      
+      // Force a signout to clear any local session state
+      try {
+        console.log('Forcing signout before attempt', attempts);
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase.auth.signOut().catch(() => {/* ignore signout errors */});
+      } catch (e) {
+        console.warn('Failed to sign out before retry, continuing anyway:', e);
+      }
+      
+      // If this is the last attempt, try to force-confirm the demo account
+      if (attempts === maxAttempts - 1) {
         try {
-          // Silently attempt to clear any cached sessions
-          await fetch('/api/auth/clear-session', { 
+          console.log('Using force-confirm endpoint for demo account');
+          await fetch('/api/auth/force-confirm-demo', { 
             method: 'POST',
             credentials: 'include'
-          }).catch(() => {/* ignore fetch errors */});
+          });
           
-          // Force a signout to clear any local session state
-          const { supabase } = await import('@/integrations/supabase/client');
-          await supabase.auth.signOut().catch(() => {/* ignore signout errors */});
-          
+          // Wait a bit for the confirmation to take effect
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (e) {
-          // Skip session clearing if it fails - continue with login attempt
-          console.warn('Failed to clear session before retry, continuing anyway');
+          console.warn('Failed to force-confirm demo account, continuing anyway:', e);
         }
       }
       
+      console.log(`Attempting actual login for attempt ${attempts}`);
       const result = await signIn(email, password);
       success = result.success;
       lastError = result.error || '';
@@ -82,6 +100,6 @@ export const handleDemoLoginAttempt = async (
   
   return { 
     success, 
-    error: success ? '' : `Demo login failed after ${attempts} attempts. ${lastError}` 
+    error: success ? '' : `Demo login failed after ${attempts} attempts. Please try again later.` 
   };
 };

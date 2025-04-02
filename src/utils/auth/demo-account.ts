@@ -19,7 +19,21 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     await supabase.auth.signOut();
     
     // Wait a moment for session cleanup
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Clear any session cookies via the edge function
+    try {
+      const clearResult = await fetch('/api/auth/clear-session', { 
+        method: 'POST',
+        credentials: 'include'
+      });
+      console.log('Session cookies cleared:', await clearResult.json());
+    } catch (e) {
+      console.warn('Failed to clear session cookies, continuing anyway:', e);
+    }
+    
+    // Wait a moment for cookie cleanup
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     // Try direct login with demo credentials
     console.log('Attempting direct demo login');
@@ -40,7 +54,7 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     await repairDemoAccount(email, password);
     
     // Wait a moment for account repair to take effect
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Try login again after repair
     console.log('Retrying login after account repair');
@@ -54,31 +68,32 @@ export const signInDemoAccount = async (email: string, password: string): Promis
       return { success: true };
     }
     
-    // If still failed, try one more approach - login with auto-confirm
-    if (secondAttempt.error && secondAttempt.error.message.includes('Email not confirmed')) {
-      console.log('Trying login with auto-confirmation workaround');
+    // If still failed, try one last approach
+    console.log('Trying final login approach with forceful email confirmation');
       
-      // Force a sign-up which might auto-confirm in development
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
+    try {
+      // This is a direct database approach that the edge function provides
+      const finalAttempt = await fetch('/api/auth/force-confirm-demo', { 
+        method: 'POST',
+        credentials: 'include'
       });
       
-      if (!signUpError) {
-        // Try login again immediately
-        const thirdAttempt = await supabase.auth.signInWithPassword({
+      if (finalAttempt.ok) {
+        console.log('Demo account email confirmed via edge function');
+        
+        // Try login one more time
+        const lastAttempt = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
-        if (!thirdAttempt.error && thirdAttempt.data?.session) {
-          console.log('Login with auto-confirmation succeeded');
+        if (!lastAttempt.error && lastAttempt.data?.session) {
+          console.log('Final login attempt succeeded');
           return { success: true };
         }
       }
+    } catch (e) {
+      console.warn('Force confirm approach failed:', e);
     }
     
     console.error('All demo login approaches failed');

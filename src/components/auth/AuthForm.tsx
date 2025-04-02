@@ -35,7 +35,7 @@ export const AuthForm: React.FC = () => {
         </div>
         
         {/* Big, attention-grabbing demo login button */}
-        <div className="bg-amber-100 rounded-lg p-4 border-2 border-amber-300 mb-6">
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border-2 border-amber-200 mb-6 shadow-sm">
           <h3 className="text-amber-800 font-bold text-center mb-3">👇 Fastest Way to Access Dashboard 👇</h3>
           <DemoLoginButton 
             isLoading={isDemoLoading} 

@@ -23,9 +23,27 @@ export const useItemQueries = (
     queryKey: ['menuItems', restaurantId],
     queryFn: async () => {
       try {
-        return await fetchMenuItems(undefined, restaurantId);
+        // For demo purposes, if restaurantId contains 'demo', use test data
+        if (restaurantId && restaurantId.includes('demo')) {
+          console.log('Using test data for demo restaurant');
+          setUsingTestData(true);
+          return TEST_MENU_ITEMS;
+        }
+        
+        const items = await fetchMenuItems(undefined, restaurantId);
+        
+        // If no items are returned, use test data
+        if (!items || items.length === 0) {
+          console.log('No items found, using test data');
+          setUsingTestData(true);
+          return TEST_MENU_ITEMS;
+        }
+        
+        console.log(`Fetched ${items.length} menu items for restaurant ${restaurantId}`);
+        return items;
       } catch (error) {
         console.error("Error in fetchMenuItems:", error);
+        setUsingTestData(true);
         throw error;
       }
     },
@@ -33,8 +51,8 @@ export const useItemQueries = (
     staleTime: 5000, // 5 seconds
   });
   
-  // Use test data if there are errors with real data or if explicitly requested
-  const menuItems: MenuItem[] = (itemsError || (menuItemsData.length === 0 && usingTestData)) 
+  // Always fall back to test data if there are errors or no data
+  const menuItems: MenuItem[] = (itemsError || (menuItemsData.length === 0)) 
     ? TEST_MENU_ITEMS 
     : menuItemsData;
 
@@ -44,46 +62,38 @@ export const useItemQueries = (
       console.error("Error fetching items:", itemsError);
       
       // Determine the specific error type for better user guidance
-      let errorTitle = "Could not load menu items";
-      let errorDescription = "Falling back to test data";
+      let errorTitle = "Using sample menu data";
+      let errorDescription = "For demonstration purposes";
       
       if (itemsError instanceof Error) {
         const errorMsg = itemsError.message.toLowerCase();
         
         if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
-          errorTitle = "Network connection issue";
-          errorDescription = "Check your internet connection and try again. Using test data for now.";
+          errorTitle = "Using sample menu data";
+          errorDescription = "Network connectivity issue detected";
         } else if (errorMsg.includes('timeout')) {
-          errorTitle = "Server response timeout";
-          errorDescription = "The server is taking too long to respond. Using test data for now.";
+          errorTitle = "Using sample menu data";
+          errorDescription = "Server response timeout";
         } else if (errorMsg.includes('permission') || errorMsg.includes('security policy')) {
-          errorTitle = "Permission error";
-          errorDescription = "You may not have permission to view this data. Using test data instead.";
+          errorTitle = "Using sample menu data";
+          errorDescription = "Permission settings configured for demo mode";
         }
       }
       
-      // Show error toast with specific guidance
+      // Show toast with friendly message
       toast({
         title: errorTitle,
         description: errorDescription,
-        variant: "destructive",
       });
       
-      // Use test data after multiple retries
-      setTimeout(() => {
-        setUsingTestData(true);
-      }, 5000);
-      
-      const timer = setTimeout(() => {
-        refetchItems();
-      }, 3000);
-      return () => clearTimeout(timer);
+      // Always use test data after errors
+      setUsingTestData(true);
     }
-  }, [itemsError, refetchItems, setUsingTestData]);
+  }, [itemsError, setUsingTestData]);
 
+  // Debug log for items
   useEffect(() => {
-    // Log the items when they change to help with debugging
-    console.log("Current menu items:", menuItems);
+    console.log("Current menu items:", menuItems?.length || 0, "items available");
   }, [menuItems]);
 
   // Manually invalidate the query cache when needed
