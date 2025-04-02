@@ -14,33 +14,32 @@ export const PageTransition: React.FC<PageTransitionProps> = ({
   duration = 300
 }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [isDomReady, setIsDomReady] = useState(false);
   
   useEffect(() => {
-    // First, mark that DOM content is ready
-    setIsDomReady(true);
+    // Using requestAnimationFrame to ensure the DOM has fully rendered
+    // before applying transitions for smoother performance
+    const timeoutId = requestAnimationFrame(() => {
+      // Adding a small delay to ensure CSS transitions have time to initialize
+      setTimeout(() => {
+        setIsVisible(true);
+      }, 10);
+    });
     
-    // Wait a frame to ensure the DOM is fully rendered
-    const timeoutId = setTimeout(() => {
-      setIsVisible(true);
-    }, 20); // Small delay to ensure CSS transitions work properly
-    
-    return () => clearTimeout(timeoutId);
+    return () => {
+      cancelAnimationFrame(timeoutId);
+    };
   }, []);
   
   return (
     <div
       className={cn(
-        'transition-all',
-        isDomReady ? `duration-${duration} ease-in-out` : '',
-        isDomReady ? (isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2') : 'opacity-0',
+        'transition-opacity transition-transform',
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
         className
       )}
       style={{
-        willChange: 'opacity, transform',
-        transitionProperty: 'opacity, transform',
         transitionDuration: `${duration}ms`,
-        minHeight: '100vh' // Ensure consistent height during transitions
+        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
       {children}

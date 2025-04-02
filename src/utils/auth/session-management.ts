@@ -39,7 +39,7 @@ export const signOutUser = async (): Promise<{ success: boolean; error?: string 
 };
 
 /**
- * Check if there's an existing session with error handling and retries
+ * Check if there's an existing session with optimized performance
  */
 export const checkCurrentSession = async () => {
   try {
@@ -58,26 +58,8 @@ export const checkCurrentSession = async () => {
     if (data.session) {
       console.log('Session check: Found existing session for', data.session.user.email);
       
-      // Validate the session has required properties
-      if (!data.session.access_token) {
-        console.warn('Session missing access token, may be invalid');
-      }
-      
-      // Test a simple database query to verify the session is valid
-      try {
-        const { error: testError } = await supabase.from('menu_categories').select('count').limit(1);
-        if (testError) {
-          console.warn('Session appears invalid, test query failed:', testError.message);
-          if (testError.message.includes('JWT')) {
-            console.log('JWT issue detected, clearing session');
-            await supabase.auth.signOut();
-            return { session: null, error: new Error('Session token expired or invalid') };
-          }
-        }
-      } catch (testErr) {
-        console.warn('Error testing session validity:', testErr);
-      }
-      
+      // Skip test query for better performance - we'll catch any invalid sessions
+      // when making actual data requests
       return { session: data.session, error: null };
     } else {
       console.log('Session check: No existing session found');

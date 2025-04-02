@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, ReactNode } from 'react';
+
+import React, { useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { signInWithEmail, signUpWithEmail, signOutUser, checkCurrentSession } from '@/utils/auth';
@@ -13,6 +14,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const [sessionCheckCount, setSessionCheckCount] = useState<number>(0);
+  const authStateChangeHandler = useRef<((event: string, session: Session | null) => void) | null>(null);
 
   // Handle auth state changes
   const handleAuthChange = useCallback((event: string, currentSession: Session | null) => {
@@ -37,11 +39,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Mark that we're checking auth
     setIsLoading(true);
     
+    // Store the handler in ref to avoid recreating the subscription when it changes
+    authStateChangeHandler.current = (event, currentSession) => {
+      if (mounted) {
+        handleAuthChange(event, currentSession);
+      }
+    };
+    
     // 1. Set up the auth state listener FIRST (to catch any auth events during initialization)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        if (mounted) {
-          handleAuthChange(event, currentSession);
+        if (authStateChangeHandler.current) {
+          authStateChangeHandler.current(event, currentSession);
         }
       }
     );
@@ -49,49 +58,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 2. Check for existing session immediately after setting up listener
     const checkInitialSession = async () => {
       try {
-        // Try multiple times to ensure we get a valid session (helps with flaky connections)
-        let retryCount = 0;
-        const maxRetries = 3;
-        let sessionData = null;
-        let sessionError = null;
+        // Try just once for better performance
+        const { data, error } = await supabase.auth.getSession();
         
-        // Keep trying until we get a session or reach max retries
-        while (retryCount < maxRetries && !sessionData && mounted) {
-          if (retryCount > 0) {
-            console.log(`Retry attempt ${retryCount} checking for session...`);
-            // Add increasing delay between retries
-            await new Promise(r => setTimeout(r, retryCount * 500));
-          }
-          
-          const { data, error } = await supabase.auth.getSession();
-          if (error) {
-            sessionError = error;
-          } else if (data.session) {
-            sessionData = data.session;
-            break;
-          }
-          
-          retryCount++;
-        }
-        
-        if (sessionError && !sessionData && mounted) {
-          handleError(sessionError, { 
+        if (error) {
+          handleError(error, { 
             context: 'Checking initial session',
             category: 'auth',
             showToast: false
           });
-          setIsLoading(false);
-          setAuthInitialized(true);
+          if (mounted) {
+            setIsLoading(false);
+            setAuthInitialized(true);
+          }
           return;
         }
         
         if (mounted) {
-          if (sessionData) {
-            console.log('Found existing session for user:', sessionData.user.email);
-            setSession(sessionData);
-            setUser(sessionData.user);
+          if (data.session) {
+            console.log('Found existing session for user:', data.session.user.email);
+            setSession(data.session);
+            setUser(data.session.user);
           } else {
-            console.log('No existing session found after', retryCount, 'attempts');
+            console.log('No existing session found');
             setSession(null);
             setUser(null);
           }
@@ -161,25 +150,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await signInWithEmail(email, password);
       
       if (result.success) {
-        // Refresh the session immediately after successful login with potential retries
-        let sessionFound = false;
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (!sessionFound && attempts < maxAttempts) {
-          attempts++;
-          console.log(`Post-login session check attempt ${attempts}`);
-          
-          // Add small delay between attempts (longer for later attempts)
-          await new Promise(r => setTimeout(r, attempts * 300));
-          
-          sessionFound = await checkSession();
-          if (sessionFound) break;
-        }
-        
-        if (!sessionFound) {
-          console.warn('Could not verify session after successful login');
-        }
+        // Single session check after successful login
+        await checkSession();
       }
       
       return result;

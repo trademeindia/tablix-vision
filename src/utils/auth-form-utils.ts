@@ -1,4 +1,3 @@
-
 import { AuthFormValues } from '@/schemas/auth-schemas';
 
 /**
@@ -22,13 +21,13 @@ export const preFillDemoCredentials = (
 };
 
 /**
- * Handles login attempt for demo account with multiple retries
+ * Handles login attempt for demo account with reduced retries and optimized timing
  */
 export const handleDemoLoginAttempt = async (
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>,
   email: string,
   password: string,
-  maxAttempts: number = 5
+  maxAttempts: number = 3
 ): Promise<{ success: boolean; error?: string }> => {
   let success = false;
   let attempts = 0;
@@ -39,14 +38,14 @@ export const handleDemoLoginAttempt = async (
     console.log(`Demo login attempt ${attempts} of ${maxAttempts}`);
     
     try {
-      // Add progressively longer delays between attempts
+      // Add progressively longer delays between attempts, but keep them short
       if (attempts > 1) {
-        const delayMs = Math.min(1000 * attempts, 3000);
+        const delayMs = Math.min(500 * attempts, 1500);
         console.log(`Waiting ${delayMs}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
       
-      // Clear existing session before trying again
+      // Only clear session for subsequent attempts to avoid unnecessary operations
       if (attempts > 1) {
         try {
           const { data } = await fetch('/api/auth/clear-session', { 
@@ -58,8 +57,8 @@ export const handleDemoLoginAttempt = async (
             console.log('Successfully cleared session before retry');
           }
         } catch (e) {
-          console.warn('Failed to clear session before retry:', e);
-          // Continue anyway
+          // Skip session clearing if it fails - continue with login attempt
+          console.warn('Failed to clear session before retry, continuing anyway');
         }
       }
       
@@ -76,7 +75,6 @@ export const handleDemoLoginAttempt = async (
     } catch (e) {
       console.error(`Demo login attempt ${attempts} failed with exception:`, e);
       lastError = e instanceof Error ? e.message : 'Unknown error occurred';
-      // Continue to next attempt
     }
   }
   

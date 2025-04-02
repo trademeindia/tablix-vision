@@ -9,56 +9,61 @@ import { PageTransition } from '@/components/ui/page-transition';
 const AuthPage: React.FC = () => {
   const { isLoading, isAuthenticated, authInitialized, checkSession } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [hasCheckedSession, setHasCheckedSession] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Get the page the user was trying to access
   const from = (location.state as any)?.from?.pathname || '/';
 
-  // Verify session when component mounts
+  // Check session only once on initial render
   useEffect(() => {
-    const verifyAuth = async () => {
-      if (!isAuthenticated && !isLoading && authInitialized) {
-        setIsVerifying(true);
+    let mounted = true;
+    
+    // Only check session if authentication is initialized but user is not authenticated yet
+    if (authInitialized && !isAuthenticated && !isLoading && !hasCheckedSession) {
+      const verifyAuth = async () => {
         try {
           await checkSession();
         } finally {
-          setIsVerifying(false);
+          if (mounted) {
+            setHasCheckedSession(true);
+          }
         }
-      }
-    };
+      };
+      
+      verifyAuth();
+    }
     
-    verifyAuth();
-  }, [authInitialized, isAuthenticated, isLoading, checkSession]);
+    return () => {
+      mounted = false;
+    };
+  }, [authInitialized, isAuthenticated, isLoading, checkSession, hasCheckedSession]);
 
-  // Handle redirect after authentication
+  // Handle redirect after authentication with debouncing
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
     
     // Only proceed with redirect logic once auth is initialized and not loading
-    if (authInitialized && !isLoading && !isVerifying) {
-      if (isAuthenticated) {
-        console.log(`User is authenticated, preparing to redirect to ${from}`);
-        
-        // Set a flag to show redirect UI
+    if (authInitialized && !isLoading && hasCheckedSession) {
+      if (isAuthenticated && !isRedirecting) {
+        // Set a flag to show redirect UI and prevent duplicate redirects
         setIsRedirecting(true);
         
         // Add a small delay before redirecting to avoid UI flickering
         redirectTimeout = setTimeout(() => {
-          console.log(`Executing redirect to ${from}`);
           navigate(from, { replace: true });
-        }, 500);
+        }, 800); // Longer delay to allow animations to complete
       }
     }
     
     return () => {
       if (redirectTimeout) clearTimeout(redirectTimeout);
     };
-  }, [isAuthenticated, navigate, from, isLoading, authInitialized, isVerifying]);
+  }, [isAuthenticated, navigate, from, isLoading, authInitialized, hasCheckedSession, isRedirecting]);
 
   // Show loading state while authentication is initializing or verifying
-  if (!authInitialized || isLoading || isVerifying) {
+  if (!authInitialized || isLoading || (!hasCheckedSession && !isAuthenticated)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
         <Spinner size="lg" className="mb-4" />
@@ -81,7 +86,7 @@ const AuthPage: React.FC = () => {
 
   // Show the auth form
   return (
-    <PageTransition>
+    <PageTransition duration={400}>
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
