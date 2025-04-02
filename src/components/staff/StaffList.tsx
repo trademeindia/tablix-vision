@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -14,6 +15,15 @@ import StaffStatusBadge from './StaffStatusBadge';
 import StaffActions from './StaffActions';
 import StaffSearch from './StaffSearch';
 import RoleIcon from './RoleIcon';
+
+// Add the getInitials function
+const getInitials = (name: string): string => {
+  return name
+    .split(' ')
+    .map(part => part.charAt(0))
+    .join('')
+    .toUpperCase();
+};
 
 interface StaffListProps {
   staffData: StaffMember[];

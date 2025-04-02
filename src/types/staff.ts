@@ -1,4 +1,3 @@
-
 export interface StaffMember {
   id: string;
   restaurant_id: string;
@@ -17,6 +16,8 @@ export interface StaffMember {
   department?: string;
   manager_id?: string;
   emergency_contact?: string;
+  avatar?: string;
+  image?: string;
 }
 
 export type StaffRole = 'Waiter' | 'Chef' | 'Manager' | 'Receptionist';
