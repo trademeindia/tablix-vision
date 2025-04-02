@@ -134,7 +134,7 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
       discount_amount: discountAmount,
       final_amount: finalAmount,
       status: 'issued',
-      notes: order.special_instructions || ''
+      notes: order.special_instructions || order.notes || ''
     };
     
     return createInvoice(invoiceData, invoiceItems);

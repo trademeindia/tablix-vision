@@ -55,9 +55,9 @@ const OrdersPage = () => {
       case 'preparing':
         return <Badge variant="secondary">Preparing</Badge>;
       case 'ready':
-        return <Badge variant="warning">Ready</Badge>;
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Ready</Badge>;
       case 'served':
-        return <Badge variant="primary">Served</Badge>;
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Served</Badge>;
       case 'completed':
         return <Badge variant="default">Completed</Badge>;
       case 'cancelled':

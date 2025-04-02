@@ -1,3 +1,4 @@
+
 import { Json } from '@/integrations/supabase/types';
 
 export interface OrderItem {
@@ -29,6 +30,7 @@ export interface Order {
   user_id?: string;
   created_at?: string;
   updated_at?: string;
+  special_instructions?: string;
 }
 
 // Type guard to check if the status is a valid Order status

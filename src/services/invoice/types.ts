@@ -68,8 +68,8 @@ export const ensureInvoiceProperties = (invoiceData: any, itemsData: any[]): Inv
   };
 };
 
-// Database table names
+// Define database table names as literal types to match Supabase type system
 export const TABLES = {
-  INVOICES: 'invoices',
-  INVOICE_ITEMS: 'invoice_items'
+  INVOICES: 'invoices' as const,
+  INVOICE_ITEMS: 'invoice_items' as const
 };
