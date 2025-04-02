@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { handleError } from './errorHandling';
 
 /**
  * Sign in a user with email and password
@@ -23,7 +24,11 @@ export const signInWithEmail = async (email: string, password: string): Promise<
     });
 
     if (error) {
-      console.error('Error signing in:', error.message);
+      handleError(error, { 
+        context: 'Sign in',
+        category: 'auth',
+        showToast: false
+      });
       return { success: false, error: error.message };
     }
 
@@ -35,7 +40,11 @@ export const signInWithEmail = async (email: string, password: string): Promise<
       return { success: false, error: 'Authentication failed. Please try again.' };
     }
   } catch (error: any) {
-    console.error('Unexpected error in signIn:', error);
+    handleError(error, { 
+      context: 'Unexpected error in signIn',
+      category: 'auth',
+      showToast: false
+    });
     return { 
       success: false, 
       error: error?.message || 'An unexpected error occurred during sign in' 
@@ -68,7 +77,11 @@ export const signUpWithEmail = async (email: string, password: string, userData?
     });
 
     if (error) {
-      console.error('Error signing up:', error);
+      handleError(error, { 
+        context: 'Sign up',
+        category: 'auth',
+        showToast: false
+      });
       return { success: false, error: error.message };
     }
 
@@ -88,7 +101,11 @@ export const signUpWithEmail = async (email: string, password: string, userData?
     
     return { success: true };
   } catch (error: any) {
-    console.error('Unexpected error in signUp:', error);
+    handleError(error, { 
+      context: 'Unexpected error in signUp',
+      category: 'auth',
+      showToast: false
+    });
     return { 
       success: false, 
       error: error?.message || 'An unexpected error occurred during sign up' 
@@ -104,11 +121,10 @@ export const signOutUser = async (): Promise<{ success: boolean; error?: string 
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      console.error('Error signing out:', error);
-      toast({
-        title: "Sign out failed",
-        description: "There was an error signing out. Please try again.",
-        variant: "destructive"
+      handleError(error, { 
+        context: 'Sign out',
+        category: 'auth',
+        showToast: true
       });
       return { success: false, error: error.message };
     }
@@ -116,11 +132,10 @@ export const signOutUser = async (): Promise<{ success: boolean; error?: string 
     console.log('User signed out successfully');
     return { success: true };
   } catch (error: any) {
-    console.error('Unexpected error signing out:', error);
-    toast({
-      title: "Sign out failed",
-      description: "There was an error signing out. Please try again.",
-      variant: "destructive"
+    handleError(error, { 
+      context: 'Unexpected error signing out',
+      category: 'auth',
+      showToast: true
     });
     return { success: false, error: error?.message };
   }
@@ -134,7 +149,11 @@ export const checkCurrentSession = async () => {
     const { data, error } = await supabase.auth.getSession();
     
     if (error) {
-      console.error('Error checking session:', error);
+      handleError(error, { 
+        context: 'Checking session',
+        category: 'auth',
+        showToast: false
+      });
       return { session: null, error };
     }
     
@@ -146,7 +165,11 @@ export const checkCurrentSession = async () => {
       return { session: null, error: null };
     }
   } catch (error) {
-    console.error('Unexpected error in checkSession:', error);
+    handleError(error, { 
+      context: 'Unexpected error in checkSession',
+      category: 'auth',
+      showToast: false
+    });
     return { session: null, error };
   }
 };

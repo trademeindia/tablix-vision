@@ -13,8 +13,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredAuth = true // Default behavior is to require auth
 }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, checkSession } = useAuth();
   const location = useLocation();
+
+  // On mount, check if session is valid
+  useEffect(() => {
+    if (requiredAuth && !isAuthenticated && !isLoading) {
+      console.log('ProtectedRoute: Verifying session...');
+      checkSession();
+    }
+  }, [requiredAuth, isAuthenticated, isLoading, checkSession]);
 
   useEffect(() => {
     // Log authentication status for debugging

@@ -5,6 +5,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { signInWithEmail, signUpWithEmail, signOutUser, checkCurrentSession } from '@/utils/auth-utils';
 import AuthContext from './auth/useAuthContext';
 import { AuthProviderProps } from './auth/types';
+import { handleError } from '@/utils/errorHandling';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -38,7 +39,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error checking initial session:', error);
+          handleError(error, { 
+            context: 'Checking initial session',
+            category: 'auth',
+            showToast: false
+          });
           return;
         }
         
@@ -52,15 +57,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
         }
       } catch (error) {
-        console.error('Unexpected error checking initial session:', error);
+        handleError(error, { 
+          context: 'Unexpected error checking initial session',
+          category: 'auth',
+          showToast: false
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Run session check and cleanup subscription when component unmounts
     checkInitialSession();
-
-    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
@@ -72,7 +80,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { session: currentSession, error } = await checkCurrentSession();
       
       if (error) {
-        console.error('Error checking session:', error);
+        handleError(error, { 
+          context: 'Checking session',
+          category: 'auth',
+          showToast: false
+        });
         return false;
       }
       

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { handleError } from '@/utils/errorHandling';
 
 // Demo account credentials - keep these in sync with the Supabase migration
 export const DEMO_EMAIL = 'demo@restaurant.com';
@@ -28,7 +29,7 @@ export const useAuthForm = () => {
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [authError, setAuthError] = useState<string | null>(null);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isAuthenticated } = useAuth();
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authFormSchema),
@@ -42,6 +43,12 @@ export const useAuthForm = () => {
   useEffect(() => {
     setAuthError(null);
   }, [activeTab, form.watch()]);
+
+  // Pre-fill demo credentials when demo mode is activated
+  const preFillDemoCredentials = () => {
+    form.setValue('email', DEMO_EMAIL);
+    form.setValue('password', DEMO_PASSWORD);
+  };
 
   const onSubmit = async (values: AuthFormValues) => {
     setIsLoading(true);
@@ -88,13 +95,11 @@ export const useAuthForm = () => {
         }
       }
     } catch (error) {
-      console.error('Authentication error:', error);
-      setAuthError('An unexpected error occurred. Please try again later.');
-      toast({
-        title: 'Authentication error',
-        description: 'An unexpected error occurred. Please try again later.',
-        variant: 'destructive'
+      handleError(error, {
+        context: 'Authentication form submission',
+        category: 'auth'
       });
+      setAuthError('An unexpected error occurred. Please try again later.');
     } finally {
       setIsLoading(false);
     }
@@ -108,8 +113,7 @@ export const useAuthForm = () => {
       console.log(`Attempting demo login with: ${DEMO_EMAIL}`);
       
       // Fill the form with demo credentials for better UX
-      form.setValue('email', DEMO_EMAIL);
-      form.setValue('password', DEMO_PASSWORD);
+      preFillDemoCredentials();
       
       const { success, error } = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
       
@@ -128,13 +132,11 @@ export const useAuthForm = () => {
         });
       }
     } catch (error) {
-      console.error('Demo login error:', error);
-      setAuthError('An unexpected error occurred with the demo login. Please try again.');
-      toast({
-        title: 'Demo Access Error',
-        description: 'An unexpected error occurred. Please try again later.',
-        variant: 'destructive'
+      handleError(error, {
+        context: 'Demo login',
+        category: 'auth'
       });
+      setAuthError('An unexpected error occurred with the demo login. Please try again.');
     } finally {
       setIsDemoLoading(false);
     }
@@ -148,6 +150,7 @@ export const useAuthForm = () => {
     setActiveTab,
     authError,
     onSubmit,
-    handleDemoLogin
+    handleDemoLogin,
+    preFillDemoCredentials
   };
 };
