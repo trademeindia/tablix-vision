@@ -7,7 +7,7 @@ import Spinner from '@/components/ui/spinner';
 import { PageTransition } from '@/components/ui/page-transition';
 
 const AuthPage: React.FC = () => {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, authInitialized } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -15,14 +15,14 @@ const AuthPage: React.FC = () => {
   const from = (location.state as any)?.from?.pathname || '/';
 
   useEffect(() => {
-    // Redirect to dashboard if already authenticated
-    if (isAuthenticated && !isLoading) {
+    // Redirect to dashboard if already authenticated, but only after auth is initialized
+    if (isAuthenticated && authInitialized && !isLoading) {
       console.log(`User is authenticated, redirecting to ${from}`);
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, from, isLoading]);
+  }, [isAuthenticated, navigate, from, isLoading, authInitialized]);
 
-  if (isLoading) {
+  if (!authInitialized || isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
         <Spinner size="lg" className="mb-4" />
@@ -42,7 +42,7 @@ const AuthPage: React.FC = () => {
             </h1>
             <p className="text-gray-600 mb-3">Sign in to manage your restaurant operations</p>
             <div className="inline-block bg-amber-100 text-amber-800 px-4 py-2 rounded-lg text-sm font-medium">
-              Use the demo credentials below for instant access!
+              Use the "Try Demo Account" button below for instant access!
             </div>
           </div>
           

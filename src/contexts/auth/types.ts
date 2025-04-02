@@ -6,6 +6,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   session: Session | null;
   user: User | null;
+  authInitialized: boolean;
   checkSession: () => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, userData?: any) => Promise<{ success: boolean; error?: string }>;

@@ -38,14 +38,14 @@ export const AuthForm: React.FC = () => {
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Authentication Error</AlertTitle>
-            <AlertDescription>{authError}</AlertDescription>
+            <AlertDescription className="text-sm">{authError}</AlertDescription>
           </Alert>
         )}
         
         {/* Demo Credentials Card */}
         <DemoCredentials />
 
-        {/* Demo Login Button */}
+        {/* Demo Login Button - Most reliable way to access the demo */}
         <DemoLoginButton 
           isLoading={isDemoLoading} 
           onDemoLogin={handleDemoLogin} 

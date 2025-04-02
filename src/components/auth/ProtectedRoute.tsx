@@ -13,29 +13,33 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredAuth = true // Default behavior is to require auth
 }) => {
-  const { isAuthenticated, isLoading, checkSession } = useAuth();
-  const [isVerifying, setIsVerifying] = useState(requiredAuth && !isAuthenticated && !isLoading);
+  const { isAuthenticated, isLoading, checkSession, authInitialized } = useAuth();
+  const [isVerifying, setIsVerifying] = useState(false);
   const location = useLocation();
 
   // On mount, check if session is valid only if needed
   useEffect(() => {
     let mounted = true;
     
-    if (requiredAuth && !isAuthenticated && !isLoading) {
-      console.log('ProtectedRoute: Verifying session...');
-      setIsVerifying(true);
-      
-      checkSession().finally(() => {
+    const verifySession = async () => {
+      if (requiredAuth && !isAuthenticated && authInitialized && !isLoading) {
+        console.log('ProtectedRoute: Verifying session...');
+        setIsVerifying(true);
+        
+        await checkSession();
+        
         if (mounted) {
           setIsVerifying(false);
         }
-      });
-    }
+      }
+    };
+    
+    verifySession();
     
     return () => {
       mounted = false;
     };
-  }, [requiredAuth, isAuthenticated, isLoading, checkSession]);
+  }, [requiredAuth, isAuthenticated, isLoading, checkSession, authInitialized]);
 
   // For development/testing - bypass authentication if not required
   if (!requiredAuth) {
@@ -43,8 +47,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <>{children}</>;
   }
 
-  // Show loading spinner while checking authentication
-  if (isLoading || isVerifying) {
+  // Show loading spinner while auth is initializing or checking authentication
+  if (isLoading || isVerifying || !authInitialized) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Spinner size="lg" />

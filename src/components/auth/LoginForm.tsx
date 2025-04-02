@@ -37,6 +37,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     type="email" 
                     className="pl-10" 
                     {...field} 
+                    disabled={isLoading}
+                    aria-disabled={isLoading}
                   />
                 </FormControl>
               </div>
@@ -59,6 +61,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     type="password" 
                     className="pl-10" 
                     {...field} 
+                    disabled={isLoading}
+                    aria-disabled={isLoading}
                   />
                 </FormControl>
               </div>
@@ -81,6 +85,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             isSignUp ? "Create Account" : "Sign In"
           )}
         </Button>
+        
+        {isSignUp && (
+          <p className="text-xs text-gray-500 mt-1">
+            By creating an account, you agree to our Terms of Service and Privacy Policy.
+          </p>
+        )}
       </form>
     </Form>
   );

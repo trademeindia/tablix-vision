@@ -58,7 +58,14 @@ BEGIN
     
     RAISE NOTICE 'Demo account created successfully with ID: %', user_id;
   ELSE
-    RAISE NOTICE 'Demo account already exists';
+    -- If demo user exists, ensure it's confirmed
+    UPDATE auth.users
+    SET 
+      email_confirmed_at = COALESCE(email_confirmed_at, now()),
+      confirmed_at = COALESCE(confirmed_at, now())
+    WHERE email = demo_email;
+    
+    RAISE NOTICE 'Demo account already exists, ensured confirmation is set';
   END IF;
 END
 $$;

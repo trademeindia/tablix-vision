@@ -1,40 +1,47 @@
 
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { signInWithEmail, signUpWithEmail, signOutUser, checkCurrentSession } from '@/utils/auth-utils';
 import AuthContext from './auth/useAuthContext';
 import { AuthProviderProps } from './auth/types';
 import { handleError } from '@/utils/errorHandling';
+import { toast } from '@/hooks/use-toast';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
+
+  // Handle auth state changes
+  const handleAuthChange = useCallback((event: string, currentSession: Session | null) => {
+    console.log('Auth state changed:', event, 'Session:', currentSession?.user?.email ?? 'No user');
+    
+    if (currentSession) {
+      setSession(currentSession);
+      setUser(currentSession.user);
+    } else {
+      setSession(null);
+      setUser(null);
+    }
+    
+    setIsLoading(false);
+  }, []);
 
   // Set up auth state listener and check for existing session
   useEffect(() => {
     console.log('Setting up auth state listener');
     let mounted = true;
     
+    // Mark that we're checking auth
+    setIsLoading(true);
+    
     // 1. Set up the auth state listener FIRST (to catch any auth events during initialization)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log('Auth state changed:', event, 'Session:', currentSession?.user?.email ?? 'No user');
-        
-        if (!mounted) return;
-        
-        if (currentSession) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-        } else {
-          setSession(null);
-          setUser(null);
-        }
-        
-        // Only update loading state if the component is still mounted
         if (mounted) {
-          setIsLoading(false);
+          handleAuthChange(event, currentSession);
         }
       }
     );
@@ -50,22 +57,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             category: 'auth',
             showToast: false
           });
-          if (mounted) setIsLoading(false);
+          if (mounted) {
+            setIsLoading(false);
+          }
           return;
         }
         
-        if (data.session) {
-          console.log('Found existing session for user:', data.session.user.email);
-          if (mounted) {
+        if (mounted) {
+          if (data.session) {
+            console.log('Found existing session for user:', data.session.user.email);
             setSession(data.session);
             setUser(data.session.user);
-          }
-        } else {
-          console.log('No existing session found');
-          if (mounted) {
+          } else {
+            console.log('No existing session found');
             setSession(null);
             setUser(null);
           }
+          
+          setIsLoading(false);
+          setAuthInitialized(true);
         }
       } catch (error) {
         handleError(error, { 
@@ -73,10 +83,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           category: 'auth',
           showToast: false
         });
-      } finally {
-        // Only update loading state if the component is still mounted
         if (mounted) {
           setIsLoading(false);
+          setAuthInitialized(true);
         }
       }
     };
@@ -88,9 +97,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [handleAuthChange]);
 
-  const checkSession = async (): Promise<boolean> => {
+  const checkSession = useCallback(async (): Promise<boolean> => {
     try {
       setIsLoading(true);
       const { session: currentSession, error } = await checkCurrentSession();
@@ -116,23 +125,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     const result = await signInWithEmail(email, password);
-    setIsLoading(false);
+    
+    if (result.success) {
+      // Refresh the session immediately after successful login
+      await checkSession();
+    } else {
+      setIsLoading(false);
+    }
+    
     return result;
-  };
+  }, [checkSession]);
 
-  const signUp = async (email: string, password: string, userData?: any) => {
+  const signUp = useCallback(async (email: string, password: string, userData?: any) => {
     setIsLoading(true);
     const result = await signUpWithEmail(email, password, userData);
     setIsLoading(false);
     return result;
-  };
+  }, []);
 
-  const signOut = async (): Promise<void> => {
+  const signOut = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     const { success } = await signOutUser();
     
@@ -142,7 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     setIsLoading(false);
-  };
+  }, []);
 
   // Provide auth context to children
   return (
@@ -155,7 +171,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkSession,
         signIn,
         signUp,
-        signOut
+        signOut,
+        authInitialized
       }}
     >
       {children}

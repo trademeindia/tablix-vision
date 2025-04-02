@@ -73,7 +73,13 @@ export const useAuthForm = () => {
           });
         } else {
           console.error('Sign in failed with error:', error);
-          setAuthError(error || 'Authentication failed. Please check your credentials and try again.');
+          // For demo purposes, show a more specific message for email confirmation errors
+          if (error && error.includes('Email not confirmed')) {
+            setAuthError('Demo account email is not confirmed. Using the "Try Demo Account" button is recommended for testing.');
+          } else {
+            setAuthError(error || 'Authentication failed. Please check your credentials and try again.');
+          }
+          
           toast({
             title: 'Sign in failed',
             description: error || 'Please check your credentials and try again',
@@ -91,6 +97,16 @@ export const useAuthForm = () => {
             title: 'Sign up successful',
             description: 'Welcome to Restaurant Management Dashboard!'
           });
+          
+          // After successful signup, switch to signin tab
+          setActiveTab('signin');
+          
+          // For better UX, set a timeout before trying to sign in with new credentials
+          setTimeout(() => {
+            signIn(values.email, values.password).catch(() => {
+              /* Ignore error, will be captured by login form */
+            });
+          }, 1000);
         } else {
           console.error('Sign up failed with error:', error);
           setAuthError(error || 'Registration failed. Please try again.');
@@ -127,7 +143,22 @@ export const useAuthForm = () => {
       // Short delay to let the form update visually
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const { success, error } = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+      // Try up to 3 times with increasing delays for demo login
+      let success = false;
+      let error = '';
+      
+      for (let attempt = 1; attempt <= 3 && !success; attempt++) {
+        console.log(`Demo login attempt ${attempt}`);
+        
+        const result = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+        success = result.success;
+        error = result.error || '';
+        
+        if (!success && attempt < 3) {
+          // Wait longer between each retry
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
       
       if (success) {
         toast({
@@ -136,7 +167,14 @@ export const useAuthForm = () => {
         });
       } else {
         console.error('Demo login failed with error:', error);
-        setAuthError(`Demo login failed: ${error || 'Unable to access demo account. Please try again.'}`);
+        
+        // Show a more helpful error message for demo users
+        if (error.includes('Email not confirmed')) {
+          setAuthError('The demo account email needs confirmation. Please contact the administrator to confirm the demo account email or create a new account.');
+        } else {
+          setAuthError(`Demo login failed: ${error || 'Unable to access demo account. Please try again.'}`);
+        }
+        
         toast({
           title: 'Demo Access Failed',
           description: error || 'Unable to access demo account. Please try again.',
