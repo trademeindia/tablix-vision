@@ -8,6 +8,7 @@ import { Plus, Box, ImageOff } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { lazy, Suspense } from 'react';
 import { toast } from '@/hooks/use-toast';
+import Spinner from '@/components/ui/spinner';
 
 const ModelViewer = lazy(() => import('./ModelViewer'));
 
@@ -49,9 +50,8 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
   
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error("Image failed to load:", e.currentTarget.src);
-    e.currentTarget.src = ''; // Clear the source to show fallback
-    e.currentTarget.classList.add('image-error');
-    e.currentTarget.parentElement?.classList.add('image-error-container');
+    e.currentTarget.classList.add('hidden');
+    e.currentTarget.parentElement?.classList.add('image-error');
   };
   
   return (
@@ -69,7 +69,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
                     onError={handleImageError}
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 image-fallback">
+                  <div className="absolute inset-0 flex items-center justify-center image-error-fallback opacity-0">
                     <ImageOff className="h-8 w-8 text-slate-400" />
                   </div>
                 </div>
@@ -137,7 +137,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
             {modelViewerOpen && selectedModel && (
               <Suspense fallback={
                 <div className="h-full w-full flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <Spinner size="lg" />
                   <span className="ml-2">Loading 3D model...</span>
                 </div>
               }>
@@ -151,11 +151,11 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
       {/* Add styles for image error handling */}
       <style>
         {`
-          .image-error-container .image-fallback {
+          .image-error .image-error-fallback {
             opacity: 1 !important;
           }
-          .image-error {
-            opacity: 0;
+          .hidden {
+            display: none;
           }
         `}
       </style>

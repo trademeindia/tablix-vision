@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye, Box } from 'lucide-react';
+import { Edit, Trash2, Eye, Box, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MenuItemCardProps {
@@ -35,6 +35,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   onDelete,
 }) => {
   const has3DModel = mediaType === '3d';
+  
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error("Image failed to load:", e.currentTarget.src);
+    e.currentTarget.classList.add('hidden');
+    e.currentTarget.parentElement?.classList.add('image-error');
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
@@ -46,7 +52,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 src={image} 
                 alt={name} 
                 className="w-full h-full object-cover"
+                onError={handleImageError}
+                loading="lazy"
               />
+              <div className="absolute inset-0 flex items-center justify-center image-error-fallback opacity-0">
+                <ImageOff className="h-8 w-8 text-slate-400" />
+              </div>
               {has3DModel && (
                 <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full flex items-center">
                   <Box className="h-3 w-3 mr-1" />
@@ -65,7 +76,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                   </div>
                 </>
               ) : (
-                <span>No Image</span>
+                <ImageOff className="h-8 w-8 text-slate-400" />
               )}
             </div>
           )}
@@ -129,6 +140,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           </Button>
         </div>
       </CardContent>
+
+      <style>{`
+        .image-error .image-error-fallback {
+          opacity: 1;
+        }
+      `}</style>
     </Card>
   );
 };
