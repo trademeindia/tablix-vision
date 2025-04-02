@@ -20,6 +20,9 @@ import { ThemeProvider } from './hooks/use-theme';
 import ThemeApplier from './components/layout/ThemeProvider';
 import AppearancePage from './pages/settings/AppearancePage';
 import MarketingPage from './pages/MarketingPage';
+import CustomersPage from './pages/CustomersPage';
+import SettingsPage from './pages/settings/SettingsPage';
+import NotificationsPage from './pages/settings/NotificationsPage';
 
 // Customer pages
 import CustomerMenuPage from './pages/customer/MenuPage';
@@ -55,12 +58,17 @@ function App() {
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/tables" element={<TablesPage />} />
                 <Route path="/staff" element={<StaffPage />} />
+                <Route path="/customers" element={<CustomersPage />} />
                 <Route path="/invoices" element={<InvoicesPage />} />
                 <Route path="/invoices/create" element={<CreateInvoicePage />} />
                 <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
-                <Route path="/settings/appearance" element={<AppearancePage />} />
                 <Route path="/marketing" element={<MarketingPage />} />
-
+                
+                {/* Settings routes */}
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/settings/appearance" element={<AppearancePage />} />
+                <Route path="/settings/notifications" element={<NotificationsPage />} />
+                
                 {/* Customer routes */}
                 <Route path="/customer/menu" element={<CustomerMenuPage />} />
                 <Route path="/customer/profile" element={<CustomerProfilePage />} />
