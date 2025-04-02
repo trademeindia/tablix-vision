@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,20 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PlusCircle, CalendarDays, BarChart3, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Campaign {
-  id: string;
-  campaign_name: string;
-  campaign_text: string;
-  campaign_image?: string;
-  scheduled_time: string;
-  platform_selection: {
-    facebook?: boolean;
-    instagram?: boolean;
-    twitter?: boolean;
-  };
-  status: 'scheduled' | 'sent' | 'draft' | 'failed';
-}
+import { Campaign, CampaignStatus } from '@/types/marketing';
 
 const MarketingPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,25 +29,30 @@ const MarketingPage = () => {
         setCampaigns([
           {
             id: '1',
+            restaurant_id: '123',
             campaign_name: 'Weekend Special',
             campaign_text: 'Enjoy 20% off on all desserts this weekend!',
             campaign_image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b',
             scheduled_time: '2023-09-15T18:00:00Z',
             platform_selection: {
               facebook: true,
-              instagram: true
+              instagram: true,
+              twitter: false,
+              linkedin: false
             },
             status: 'sent'
           },
           {
             id: '2',
+            restaurant_id: '123',
             campaign_name: 'New Menu Launch',
             campaign_text: 'Exciting new dishes added to our menu. Come try them out!',
             scheduled_time: '2023-09-22T12:00:00Z',
             platform_selection: {
               facebook: true,
               instagram: true,
-              twitter: true
+              twitter: true,
+              linkedin: false
             },
             status: 'scheduled'
           }
@@ -85,16 +76,22 @@ const MarketingPage = () => {
     setIsSaving(true);
     try {
       // Prepare campaign data for Supabase
-      const campaignData = {
+      const campaignData: Campaign = {
+        id: Math.random().toString(36).substr(2, 9),
+        restaurant_id: '123e4567-e89b-12d3-a456-426614174000', // In a real app, get from auth context
         campaign_name: formData.campaignName,
         campaign_text: formData.campaignText,
         campaign_image: formData.campaignImage,
         scheduled_time: new Date(
           `${formData.scheduledDate.toISOString().split('T')[0]}T${formData.scheduledTime}:00`
         ).toISOString(),
-        platform_selection: formData.platforms,
-        status: 'scheduled',
-        restaurant_id: '123e4567-e89b-12d3-a456-426614174000' // In a real app, get from auth context
+        platform_selection: {
+          facebook: formData.platforms.facebook || false,
+          instagram: formData.platforms.instagram || false,
+          twitter: formData.platforms.twitter || false,
+          linkedin: false // Default value as it wasn't in the form
+        },
+        status: 'scheduled' as CampaignStatus // Explicitly cast to CampaignStatus
       };
       
       // Mock API call - in a real app, you'd use Supabase
@@ -106,13 +103,7 @@ const MarketingPage = () => {
       
       // if (error) throw error;
       
-      // Mock successful response
-      const newCampaign: Campaign = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...campaignData
-      };
-      
-      setCampaigns(prev => [newCampaign, ...prev]);
+      setCampaigns(prev => [campaignData, ...prev]);
       
       toast({
         title: 'Campaign Created',
