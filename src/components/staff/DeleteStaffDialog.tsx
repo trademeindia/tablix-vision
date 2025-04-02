@@ -33,8 +33,9 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      // Use type assertion to bypass TypeScript error
       const { error } = await supabase
-        .from('staff')
+        .from('staff' as any)
         .delete()
         .eq('id', staff.id);
       
