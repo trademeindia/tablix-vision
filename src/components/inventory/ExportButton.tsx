@@ -23,7 +23,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
   const { exportInventory, defaultHeaders } = useInventoryExport();
   
   const handleExport = () => {
-    exportInventory(data, headers || defaultHeaders, fileName);
+    // Use the generic type parameter to match the data type
+    exportInventory<Record<string, any>>(data, headers || defaultHeaders, fileName);
   };
 
   return (

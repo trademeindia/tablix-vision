@@ -23,8 +23,9 @@ const defaultInventoryHeaders: ExportHeader[] = [
 
 export function useInventoryExport() {
   // Export inventory data to CSV
-  const exportInventory = (
-    data: InventoryItem[], 
+  // Make the function generic to accept any record type, not just InventoryItem
+  const exportInventory = <T extends Record<string, any>>(
+    data: T[], 
     headers: ExportHeader[] = defaultInventoryHeaders,
     fileName: string = 'inventory-data.csv'
   ) => {
