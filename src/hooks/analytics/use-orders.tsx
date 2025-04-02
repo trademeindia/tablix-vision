@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getOrderCount } from '@/services/analyticsService';
+import { getOrderCount } from '@/services/analytics';
 
 export function useOrderCounts(restaurantId: string | undefined) {
   const [orderCounts, setOrderCounts] = useState({

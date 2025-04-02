@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getAverageOrderValue } from '@/services/analyticsService';
+import { getAverageOrderValue } from '@/services/analytics';
 
 export function useAverageOrderValue(restaurantId: string | undefined) {
   const [avgOrderData, setAvgOrderData] = useState<Array<{name: string, value: number}>>([]);

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getRevenue } from '@/services/analyticsService';
+import { getRevenue } from '@/services/analytics';
 
 export function useRevenueData(restaurantId: string | undefined) {
   const [revenueData, setRevenueData] = useState({

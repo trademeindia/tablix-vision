@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getCustomerDemographics } from '@/services/analyticsService';
+import { getCustomerDemographics } from '@/services/analytics';
 
 export function useCustomerDemographics(restaurantId: string | undefined) {
   const [demographicsData, setDemographicsData] = useState<Array<{name: string, value: number, color: string}>>([]);

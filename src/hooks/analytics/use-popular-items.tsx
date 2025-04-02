@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getPopularItems } from '@/services/analyticsService';
+import { getPopularItems } from '@/services/analytics';
 
 export function usePopularItems(restaurantId: string | undefined) {
   const [popularItems, setPopularItems] = useState<Array<{name: string, count: number}>>([]);

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getPeakHoursData } from '@/services/analyticsService';
+import { getPeakHoursData } from '@/services/analytics';
 
 export function usePeakHoursData(restaurantId: string | undefined) {
   const [peakHoursData, setPeakHoursData] = useState<Array<{hour: string, orders: number, revenue: number}>>([]);

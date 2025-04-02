@@ -1,5 +1,5 @@
 
-import { generateAIAnalyticsReport } from '@/services/analyticsService';
+import { generateAIAnalyticsReport } from '@/services/analytics';
 
 export function useAIReport() {
   const generateReport = async (restaurantId: string | undefined) => {

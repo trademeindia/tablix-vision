@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getSalesData } from '@/services/analyticsService';
+import { getSalesData } from '@/services/analytics';
 
 export function useSalesData(restaurantId: string | undefined) {
   const [salesData, setSalesData] = useState<Array<{name: string, total: number}>>([]);
