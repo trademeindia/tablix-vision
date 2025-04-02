@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuthForm, DEMO_EMAIL, DEMO_PASSWORD } from '@/hooks/use-auth-form';
+import { useAuthForm } from '@/hooks/use-auth-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -8,8 +8,6 @@ import { AlertCircle } from 'lucide-react';
 import { DemoCredentials } from './DemoCredentials';
 import { DemoLoginButton } from './DemoLoginButton';
 import { LoginForm } from './LoginForm';
-
-export { DEMO_EMAIL, DEMO_PASSWORD };
 
 export const AuthForm: React.FC = () => {
   const {
