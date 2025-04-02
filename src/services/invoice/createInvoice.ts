@@ -65,9 +65,10 @@ export const createInvoice = async (
       return null;
     }
     
-    // Construct the full invoice object to return
+    // Construct the full invoice object to return, ensuring the status is properly typed
     const invoice: Invoice = {
       ...invoiceData,
+      status: invoiceData.status as Invoice['status'],
       items: itemsData as InvoiceItem[]
     };
     
@@ -100,6 +101,7 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
       
       return {
         ...existingInvoice,
+        status: existingInvoice.status as Invoice['status'],
         items: items || []
       } as Invoice;
     }
