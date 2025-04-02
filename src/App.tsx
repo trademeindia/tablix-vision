@@ -4,6 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+
+// Pages
 import Index from "./pages/Index";
 import MenuPage from "./pages/MenuPage";
 import QRCodePage from "./pages/QRCodePage";
@@ -14,6 +18,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import OrdersPage from "./pages/OrdersPage";
 import GoogleDriveTestPage from "./pages/GoogleDriveTestPage";
+import AuthPage from "./pages/auth/AuthPage";
 
 // Import placeholder pages for staff dashboard sections
 import StaffOrdersPage from "./pages/staff/OrdersPage";
@@ -39,45 +44,47 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log("Rendering App component - Authentication removed");
+  console.log("Rendering App component");
   
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            {/* All routes now accessible without authentication */}
-            <Route path="/" element={<Index />} />
-            <Route path="/menu" element={<MenuPage />} />
-            <Route path="/qr-codes" element={<QRCodePage />} />
-            <Route path="/tables" element={<TablesPage />} />
-            <Route path="/staff" element={<StaffPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            
-            {/* Staff Dashboard Routes */}
-            <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
-            <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
-            <Route path="/staff-dashboard/kitchen" element={<KitchenPage />} />
-            <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
-            <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
-            
-            {/* Public Customer Facing Routes */}
-            <Route path="/customer-menu" element={<CustomerMenuPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/call-waiter" element={<CallWaiterPage />} />
-            <Route path="/profile" element={<CustomerProfilePage />} />
-            
-            {/* Redirect auth to home */}
-            <Route path="/auth" element={<Navigate to="/" replace />} />
-            
-            {/* Catch-all and redirect */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {/* Authentication page */}
+              <Route path="/auth" element={<AuthPage />} />
+              
+              {/* Restaurant management routes - protected but bypassed for development */}
+              <Route path="/" element={<ProtectedRoute requiredAuth={false}><Index /></ProtectedRoute>} />
+              <Route path="/menu" element={<ProtectedRoute requiredAuth={false}><MenuPage /></ProtectedRoute>} />
+              <Route path="/qr-codes" element={<ProtectedRoute requiredAuth={false}><QRCodePage /></ProtectedRoute>} />
+              <Route path="/tables" element={<ProtectedRoute requiredAuth={false}><TablesPage /></ProtectedRoute>} />
+              <Route path="/staff" element={<ProtectedRoute requiredAuth={false}><StaffPage /></ProtectedRoute>} />
+              <Route path="/orders" element={<ProtectedRoute requiredAuth={false}><OrdersPage /></ProtectedRoute>} />
+              <Route path="/google-drive-test" element={<ProtectedRoute requiredAuth={false}><GoogleDriveTestPage /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute requiredAuth={false}><AnalyticsPage /></ProtectedRoute>} />
+              
+              {/* Staff Dashboard Routes - protected but bypassed for development */}
+              <Route path="/staff-dashboard" element={<ProtectedRoute requiredAuth={false}><StaffDashboardPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/orders" element={<ProtectedRoute requiredAuth={false}><StaffOrdersPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/kitchen" element={<ProtectedRoute requiredAuth={false}><KitchenPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/inventory" element={<ProtectedRoute requiredAuth={false}><InventoryPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/reports" element={<ProtectedRoute requiredAuth={false}><ReportsPage /></ProtectedRoute>} />
+              
+              {/* Public Customer Facing Routes */}
+              <Route path="/customer-menu" element={<CustomerMenuPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/call-waiter" element={<CallWaiterPage />} />
+              <Route path="/profile" element={<CustomerProfilePage />} />
+              
+              {/* Catch-all and redirect */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
