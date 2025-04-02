@@ -5,16 +5,34 @@ import { AuthForm } from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
 import Spinner from '@/components/ui/spinner';
 import { PageTransition } from '@/components/ui/page-transition';
+import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
+import { toast } from '@/hooks/use-toast';
 
 const AuthPage: React.FC = () => {
-  const { isLoading, isAuthenticated, authInitialized, checkSession } = useAuth();
+  const { isLoading, isAuthenticated, authInitialized, checkSession, signIn } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
+  const [isLongLoadingState, setIsLongLoadingState] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Get the page the user was trying to access
   const from = (location.state as any)?.from?.pathname || '/';
+
+  // Set a timeout to show additional message if loading takes too long
+  useEffect(() => {
+    let longLoadingTimeout: NodeJS.Timeout;
+    
+    if (isLoading && !isLongLoadingState) {
+      longLoadingTimeout = setTimeout(() => {
+        setIsLongLoadingState(true);
+      }, 5000);
+    }
+    
+    return () => {
+      if (longLoadingTimeout) clearTimeout(longLoadingTimeout);
+    };
+  }, [isLoading, isLongLoadingState]);
 
   // Check session only once on initial render
   useEffect(() => {
@@ -24,6 +42,7 @@ const AuthPage: React.FC = () => {
     if (authInitialized && !isAuthenticated && !isLoading && !hasCheckedSession) {
       const verifyAuth = async () => {
         try {
+          console.log('AuthPage: Verifying session...');
           await checkSession();
         } finally {
           if (mounted) {
@@ -35,10 +54,30 @@ const AuthPage: React.FC = () => {
       verifyAuth();
     }
     
+    // For testing: Auto sign-in with demo account in development
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get('autoDemo') === 'true' && !isAuthenticated && !isLoading && hasCheckedSession) {
+      const tryAutoDemo = async () => {
+        try {
+          console.log('Attempting auto demo login');
+          toast({
+            title: 'Auto Demo Login',
+            description: 'Attempting to log in with demo account...'
+          });
+          
+          await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+        } catch (error) {
+          console.error('Auto demo login failed:', error);
+        }
+      };
+      
+      setTimeout(tryAutoDemo, 1000);
+    }
+    
     return () => {
       mounted = false;
     };
-  }, [authInitialized, isAuthenticated, isLoading, checkSession, hasCheckedSession]);
+  }, [authInitialized, isAuthenticated, isLoading, checkSession, hasCheckedSession, location.search, signIn]);
 
   // Handle redirect after authentication with debouncing
   useEffect(() => {
@@ -52,6 +91,7 @@ const AuthPage: React.FC = () => {
         
         // Add a small delay before redirecting to avoid UI flickering
         redirectTimeout = setTimeout(() => {
+          console.log('Authentication successful, redirecting to:', from);
           navigate(from, { replace: true });
         }, 800); // Longer delay to allow animations to complete
       }
@@ -62,6 +102,22 @@ const AuthPage: React.FC = () => {
     };
   }, [isAuthenticated, navigate, from, isLoading, authInitialized, hasCheckedSession, isRedirecting]);
 
+  // Emergency reset option for users stuck in loading state
+  const handleEmergencyReset = async () => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      console.log('Emergency reset: Storage cleared');
+      toast({
+        title: 'Storage Reset',
+        description: 'Local storage cleared. Please try signing in again.'
+      });
+      window.location.reload();
+    } catch (error) {
+      console.error('Error during emergency reset:', error);
+    }
+  };
+
   // Show loading state while authentication is initializing or verifying
   if (!authInitialized || isLoading || (!hasCheckedSession && !isAuthenticated)) {
     return (
@@ -69,6 +125,18 @@ const AuthPage: React.FC = () => {
         <Spinner size="lg" className="mb-4" />
         <p className="text-gray-600 font-medium">Checking authentication status...</p>
         <p className="text-gray-500 text-sm mt-2">Just a moment, please</p>
+        
+        {isLongLoadingState && (
+          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg max-w-sm text-center">
+            <p className="text-amber-800 mb-3">Taking longer than expected?</p>
+            <button 
+              onClick={handleEmergencyReset}
+              className="text-sm bg-amber-100 hover:bg-amber-200 text-amber-900 px-4 py-2 rounded-md border border-amber-300"
+            >
+              Reset Authentication
+            </button>
+          </div>
+        )}
       </div>
     );
   }

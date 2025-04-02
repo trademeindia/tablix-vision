@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Spinner from '@/components/ui/spinner';
+import { toast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { isAuthenticated, isLoading, checkSession, authInitialized } = useAuth();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationAttempts, setVerificationAttempts] = useState(0);
   const location = useLocation();
 
   // On mount, check if session is valid only if needed
@@ -22,14 +24,35 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     let mounted = true;
     
     const verifySession = async () => {
+      // Limit verification attempts to prevent loops
+      if (verificationAttempts >= 2) {
+        console.log('ProtectedRoute: Max verification attempts reached, stopping checks');
+        if (mounted) {
+          setIsVerifying(false);
+        }
+        return;
+      }
+      
       if (requiredAuth && !isAuthenticated && authInitialized && !isLoading) {
         console.log('ProtectedRoute: Verifying session...');
         setIsVerifying(true);
         
-        await checkSession();
-        
-        if (mounted) {
-          setIsVerifying(false);
+        try {
+          const isValid = await checkSession();
+          
+          if (!isValid && mounted && verificationAttempts === 0) {
+            // If on first attempt we failed, show toast
+            toast({
+              title: "Authentication Required",
+              description: "Please sign in to access this page",
+              variant: "default"
+            });
+          }
+        } finally {
+          if (mounted) {
+            setVerificationAttempts(prev => prev + 1);
+            setIsVerifying(false);
+          }
         }
       }
     };
@@ -39,7 +62,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return () => {
       mounted = false;
     };
-  }, [requiredAuth, isAuthenticated, isLoading, checkSession, authInitialized]);
+  }, [requiredAuth, isAuthenticated, isLoading, checkSession, authInitialized, verificationAttempts]);
 
   // For development/testing - bypass authentication if not required
   if (!requiredAuth) {

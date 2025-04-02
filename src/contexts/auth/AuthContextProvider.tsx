@@ -29,12 +29,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     setIsLoading(false);
+    // Set auth as initialized when auth changes are detected
+    setAuthInitialized(true);
   }, []);
 
   // Set up auth state listener and check for existing session
   useEffect(() => {
     console.log('Setting up auth state listener');
     let mounted = true;
+    let initialCheckDone = false;
     
     // Mark that we're checking auth
     setIsLoading(true);
@@ -58,8 +61,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 2. Check for existing session immediately after setting up listener
     const checkInitialSession = async () => {
       try {
-        // Try just once for better performance
+        if (initialCheckDone) return;
+        
         const { data, error } = await supabase.auth.getSession();
+        initialCheckDone = true;
         
         if (error) {
           handleError(error, { 
@@ -104,13 +109,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Run session check and cleanup subscription when component unmounts
     checkInitialSession();
     
+    // Set a safety timeout to ensure authInitialized is set even if session check hangs
+    const safetyTimeout = setTimeout(() => {
+      if (mounted && !authInitialized) {
+        console.log('Safety timeout triggered for auth initialization');
+        setAuthInitialized(true);
+        setIsLoading(false);
+      }
+    }, 5000);
+    
     return () => {
       mounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
-  }, [handleAuthChange]);
+  }, [handleAuthChange, authInitialized]);
 
   const checkSession = useCallback(async (): Promise<boolean> => {
+    // Prevent excessive session checks
+    if (sessionCheckCount > 3 && session === null) {
+      console.log('Skipping redundant session check after 3 attempts');
+      return false;
+    }
+    
     try {
       setIsLoading(true);
       setSessionCheckCount(prev => prev + 1);
@@ -141,7 +162,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [sessionCheckCount]);
+  }, [sessionCheckCount, session]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setIsLoading(true);

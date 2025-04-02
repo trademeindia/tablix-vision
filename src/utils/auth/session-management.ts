@@ -58,8 +58,18 @@ export const checkCurrentSession = async () => {
     if (data.session) {
       console.log('Session check: Found existing session for', data.session.user.email);
       
-      // Skip test query for better performance - we'll catch any invalid sessions
-      // when making actual data requests
+      // Do a quick test query to ensure session is valid
+      const { error: testError } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+      
+      if (testError && testError.code === 'PGRST301') {
+        console.log('Session invalid (JWT expired), clearing session');
+        await supabase.auth.signOut();
+        return { session: null, error: null };
+      }
+      
       return { session: data.session, error: null };
     } else {
       console.log('Session check: No existing session found');

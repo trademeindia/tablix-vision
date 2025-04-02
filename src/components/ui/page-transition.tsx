@@ -16,16 +16,25 @@ export const PageTransition: React.FC<PageTransitionProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
-    // Using requestAnimationFrame to ensure the DOM has fully rendered
-    // before applying transitions for smoother performance
+    // Adding a state variable to track mount status
+    let isMounted = true;
+    
+    // Using requestAnimationFrame for smoother transitions
     const timeoutId = requestAnimationFrame(() => {
       // Adding a small delay to ensure CSS transitions have time to initialize
-      setTimeout(() => {
-        setIsVisible(true);
+      const transitionTimeout = setTimeout(() => {
+        if (isMounted) {
+          setIsVisible(true);
+        }
       }, 10);
+      
+      return () => {
+        clearTimeout(transitionTimeout);
+      };
     });
     
     return () => {
+      isMounted = false;
       cancelAnimationFrame(timeoutId);
     };
   }, []);
@@ -40,6 +49,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({
       style={{
         transitionDuration: `${duration}ms`,
         transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        willChange: 'opacity, transform'
       }}
     >
       {children}

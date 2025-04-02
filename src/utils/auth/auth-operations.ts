@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { handleError } from '../errorHandling';
+import { toast } from '@/hooks/use-toast';
 
 /**
  * Sign in a user with email and password
@@ -17,22 +18,21 @@ export const signInWithEmail = async (email: string, password: string): Promise<
     
     console.log(`Attempting to sign in with email: ${normalizedEmail}`);
     
-    // For demo account, directly bypass email confirmation check
+    // For demo account, use enhanced flow
     const isDemo = normalizedEmail === 'demo@restaurant.com';
     
-    // Use the standard sign-in method first
+    if (isDemo) {
+      console.log('Demo account detected, using enhanced sign-in flow');
+      return await signInDemoAccount(normalizedEmail, password);
+    }
+    
+    // Use the standard sign-in method
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password
     });
 
     if (error) {
-      // For demo account, try a special direct login flow if there's an error
-      if (isDemo) {
-        console.log('Demo account sign-in with regular method failed, trying enhanced demo flow...');
-        return await signInDemoAccount(normalizedEmail, password);
-      }
-      
       handleError(error, { 
         context: 'Sign in',
         category: 'auth',
@@ -68,41 +68,55 @@ export const signInDemoAccount = async (email: string, password: string): Promis
   try {
     console.log('Starting enhanced demo account login flow');
     
-    // First, try a direct login with existing credentials - this might work if the account exists
-    const directLoginResult = await tryDirectLogin(email, password);
-    if (directLoginResult.success) {
-      console.log('Direct login for demo account succeeded');
-      return directLoginResult;
+    // Show toast to indicate process has started
+    toast({
+      title: 'Accessing Demo Account',
+      description: 'Please wait while we authenticate you...'
+    });
+    
+    // First, try to sign out to clear any existing session issues
+    await supabase.auth.signOut();
+    
+    // Wait a moment for session cleanup
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Try direct login with demo credentials
+    console.log('Attempting direct demo login');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (!error && data?.session) {
+      console.log('Demo login successful');
+      return { success: true };
     }
     
-    console.log('Direct login failed, attempting account recovery...');
+    console.log('Direct login failed, error:', error?.message);
     
-    // Try to create or "repair" the demo account if it doesn't exist or is in a bad state
+    // If direct login failed, try account repair
+    console.log('Attempting account repair...');
     await repairDemoAccount(email, password);
     
-    // Now try again with the repaired account
-    const secondAttemptResult = await tryDirectLogin(email, password);
-    if (secondAttemptResult.success) {
-      console.log('Login after account repair succeeded');
-      return secondAttemptResult;
-    }
-    
-    // If we're still failing, try one final approach: reset the session entirely
-    console.log('Login still failing after repair, trying final approach with session reset...');
-    await supabase.auth.signOut();
+    // Wait a moment for account repair to take effect
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const finalAttemptResult = await tryDirectLogin(email, password);
-    if (finalAttemptResult.success) {
-      console.log('Final login attempt succeeded after session reset');
-      return finalAttemptResult;
+    // Try login again after repair
+    console.log('Retrying login after account repair');
+    const secondAttempt = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (!secondAttempt.error && secondAttempt.data?.session) {
+      console.log('Login after account repair succeeded');
+      return { success: true };
     }
     
-    // If we get here, all our attempts have failed
     console.error('All demo login approaches failed');
     return { 
       success: false, 
-      error: 'Unable to access demo account after multiple attempts. Please try again later.' 
+      error: 'Unable to access demo account. Please try again later.' 
     };
   } catch (error: any) {
     console.error('Error in enhanced demo account sign in:', error);
@@ -114,51 +128,41 @@ export const signInDemoAccount = async (email: string, password: string): Promis
 };
 
 /**
- * Helper function to try direct login for demo account
- */
-const tryDirectLogin = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-  try {
-    // Try a simple sign in first
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
-    if (!error && data?.session) {
-      return { success: true };
-    }
-    
-    return { success: false, error: error?.message };
-  } catch (error: any) {
-    return { success: false, error: error?.message };
-  }
-};
-
-/**
  * Helper function to repair/recreate demo account if needed
  */
 const repairDemoAccount = async (email: string, password: string): Promise<void> => {
   try {
+    console.log('Attempting to repair demo account');
+    
     // Try signing up without email confirmation (for demo account only)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: 'Demo User' },
-        emailRedirectTo: window.location.origin + '/auth'
+        data: { full_name: 'Demo User' }
       }
     });
     
     if (error) {
       console.log('Account repair attempt gave error:', error.message);
+      
+      // If the error is about email already in use, try to force reset the password
+      if (error.message.includes('email already registered')) {
+        console.log('Email already registered, trying password reset flow');
+        
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth`
+        });
+        
+        if (resetError) {
+          console.log('Password reset attempt failed:', resetError.message);
+        }
+      }
     } else if (data?.user) {
       console.log('Account repair/creation attempt succeeded');
-      // Wait a moment for the account to register in the system
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   } catch (e) {
     console.log('Exception during account repair attempt:', e);
-    // We ignore errors here - we're just trying to ensure the account exists
   }
 };
 
@@ -181,8 +185,7 @@ export const signUpWithEmail = async (email: string, password: string, userData?
       email: normalizedEmail,
       password,
       options: {
-        data: userData,
-        emailRedirectTo: window.location.origin + '/auth'
+        data: userData
       }
     });
 
