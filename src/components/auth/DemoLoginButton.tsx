@@ -45,7 +45,8 @@ export const DemoLoginButton: React.FC<DemoLoginButtonProps> = ({
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
-              'apikey': supabase.supabaseKey
+              // Use the SUPABASE_PUBLISHABLE_KEY from client.ts instead of accessing protected property
+              'apikey': process.env.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvZmJwamRibWlzeXh5c2ZjeWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTUxMzIsImV4cCI6MjA1ODQ5MTEzMn0.RqUyHPLxCWUATAufUkXCUN9yczZNBKMQD_wYF4Q3VVA'
             }
           });
           
