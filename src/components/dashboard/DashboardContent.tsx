@@ -7,6 +7,7 @@ import PopularItems from './PopularItems';
 import RecentOrders from './RecentOrders';
 import TableAvailability from './tables/TableAvailability';
 import CustomerSegmentsCard from './customer/CustomerSegmentsCard';
+import IntegrationsSection from './integrations/IntegrationsSection';
 
 const DashboardContent = () => {
   // In a real application, you would get this from auth or context
@@ -52,6 +53,11 @@ const DashboardContent = () => {
         <div className="lg:col-span-1">
           <PopularItems />
         </div>
+      </div>
+      
+      {/* Integrations Section */}
+      <div className="mb-6">
+        <IntegrationsSection />
       </div>
       
       {/* Recent Orders and Tables Section */}
