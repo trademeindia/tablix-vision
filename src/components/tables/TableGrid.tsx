@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { DemoTable } from '@/utils/demo-data/table-data';
@@ -37,11 +36,9 @@ const TableGrid: React.FC<TableGridProps> = ({
   const [isReservationDialogOpen, setIsReservationDialogOpen] = useState(false);
 
   const handleTableClick = (tableId: string) => {
-    // Get the current table
     const table = tables.find(t => t.id === tableId);
     if (!table) return;
     
-    // Cycle through statuses: available -> occupied -> reserved -> available
     let newStatus: 'available' | 'occupied' | 'reserved';
     
     switch (table.status) {
@@ -88,19 +85,17 @@ const TableGrid: React.FC<TableGridProps> = ({
       });
     }
     
-    // Also change the status to reserved
     onStatusChange(reservationData.tableId, 'reserved');
     
-    // Close the dialog
     setIsReservationDialogOpen(false);
   };
 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <TooltipProvider>
-          {tables.map((table) => (
-            <Tooltip key={table.id}>
+        {tables.map((table) => (
+          <TooltipProvider key={table.id}>
+            <Tooltip>
               <TooltipTrigger asChild>
                 <div>
                   <TableCard
@@ -116,8 +111,8 @@ const TableGrid: React.FC<TableGridProps> = ({
                 </TooltipContent>
               )}
             </Tooltip>
-          ))}
-        </TooltipProvider>
+          </TooltipProvider>
+        ))}
       </div>
 
       <ReservationDialog
