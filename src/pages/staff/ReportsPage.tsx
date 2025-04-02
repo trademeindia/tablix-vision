@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 const ReportsPage = () => {
   const { toast } = useToast();
   const [restaurantId, setRestaurantId] = useState<string | undefined>(undefined);
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('INR');
   const [isLoading, setIsLoading] = useState(true);
   
   // Fetch restaurant ID from the authenticated user's profile

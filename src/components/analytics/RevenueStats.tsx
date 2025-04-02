@@ -17,10 +17,10 @@ const RevenueStats: React.FC<RevenueStatsProps> = ({
   monthlyRevenue,
   yearlyRevenue,
   isLoading,
-  currency = 'USD'
+  currency = 'INR'
 }) => {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 2

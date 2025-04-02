@@ -1,11 +1,11 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentOrders from '@/components/dashboard/RecentOrders';
 import PopularItems from '@/components/dashboard/PopularItems';
 import { 
-  ShoppingCart, Users, Utensils, DollarSign, 
+  ShoppingCart, Users, Utensils, IndianRupee, 
   Calendar, ArrowUpRight, TrendingUp, CreditCard 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import PageTransition from '@/components/ui/page-transition';
 import { Button } from '@/components/ui/button';
 import SalesChart from '@/components/analytics/SalesChart';
 import { useAnalytics } from '@/hooks/use-analytics';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Index = () => {
   // Add logging to track component render
@@ -43,6 +44,28 @@ const Index = () => {
     { id: 10, occupied: true, number: '110' },
   ];
 
+  // Sample metrics data for different time periods
+  const metricsData = {
+    daily: {
+      revenue: '₹12,458.32',
+      orders: 42,
+      tables: `${tables.filter(t => t.occupied).length}/${tables.length}`,
+      newCustomers: 18,
+    },
+    weekly: {
+      revenue: '₹78,921.50',
+      orders: 285,
+      tables: '45/50',
+      newCustomers: 76,
+    },
+    monthly: {
+      revenue: '₹3,24,458.75',
+      orders: 1258,
+      tables: '48/50',
+      newCustomers: 312,
+    }
+  };
+
   return (
     <DashboardLayout>
       <PageTransition>
@@ -51,32 +74,101 @@ const Index = () => {
           <p className="text-sm md:text-base text-slate-500">Welcome back! Here's an overview of your restaurant.</p>
         </div>
         
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6">
-          <StatsCard 
-            title="Today's Revenue"
-            value="$2,458.32"
-            icon={<DollarSign className="h-5 w-5 text-green-600" />}
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatsCard 
-            title="Today's Orders"
-            value={42}
-            icon={<ShoppingCart className="h-5 w-5 text-blue-600" />}
-            trend={{ value: 8, isPositive: true }}
-          />
-          <StatsCard 
-            title="Active Tables"
-            value={`${tables.filter(t => t.occupied).length}/${tables.length}`}
-            icon={<CreditCard className="h-5 w-5 text-purple-600" />}
-          />
-          <StatsCard 
-            title="New Customers"
-            value={18}
-            icon={<Users className="h-5 w-5 text-orange-600" />}
-            trend={{ value: 24, isPositive: true }}
-          />
-        </div>
+        {/* KPI Cards with Time Period Tabs */}
+        <Tabs defaultValue="daily" className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Performance Metrics</h2>
+            <TabsList>
+              <TabsTrigger value="daily">Daily</TabsTrigger>
+              <TabsTrigger value="weekly">Weekly</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="daily">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              <StatsCard 
+                title="Today's Revenue"
+                value={metricsData.daily.revenue}
+                icon={<IndianRupee className="h-5 w-5 text-green-600" />}
+                trend={{ value: 12, isPositive: true }}
+              />
+              <StatsCard 
+                title="Today's Orders"
+                value={metricsData.daily.orders}
+                icon={<ShoppingCart className="h-5 w-5 text-blue-600" />}
+                trend={{ value: 8, isPositive: true }}
+              />
+              <StatsCard 
+                title="Active Tables"
+                value={metricsData.daily.tables}
+                icon={<CreditCard className="h-5 w-5 text-purple-600" />}
+              />
+              <StatsCard 
+                title="New Customers"
+                value={metricsData.daily.newCustomers}
+                icon={<Users className="h-5 w-5 text-orange-600" />}
+                trend={{ value: 24, isPositive: true }}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="weekly">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              <StatsCard 
+                title="Weekly Revenue"
+                value={metricsData.weekly.revenue}
+                icon={<IndianRupee className="h-5 w-5 text-green-600" />}
+                trend={{ value: 8, isPositive: true }}
+              />
+              <StatsCard 
+                title="Weekly Orders"
+                value={metricsData.weekly.orders}
+                icon={<ShoppingCart className="h-5 w-5 text-blue-600" />}
+                trend={{ value: 5, isPositive: true }}
+              />
+              <StatsCard 
+                title="Tables Utilized"
+                value={metricsData.weekly.tables}
+                icon={<CreditCard className="h-5 w-5 text-purple-600" />}
+              />
+              <StatsCard 
+                title="New Customers"
+                value={metricsData.weekly.newCustomers}
+                icon={<Users className="h-5 w-5 text-orange-600" />}
+                trend={{ value: 15, isPositive: true }}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="monthly">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+              <StatsCard 
+                title="Monthly Revenue"
+                value={metricsData.monthly.revenue}
+                icon={<IndianRupee className="h-5 w-5 text-green-600" />}
+                trend={{ value: 18, isPositive: true }}
+              />
+              <StatsCard 
+                title="Monthly Orders"
+                value={metricsData.monthly.orders}
+                icon={<ShoppingCart className="h-5 w-5 text-blue-600" />}
+                trend={{ value: 12, isPositive: true }}
+              />
+              <StatsCard 
+                title="Tables Utilized"
+                value={metricsData.monthly.tables}
+                icon={<CreditCard className="h-5 w-5 text-purple-600" />}
+              />
+              <StatsCard 
+                title="New Customers"
+                value={metricsData.monthly.newCustomers}
+                icon={<Users className="h-5 w-5 text-orange-600" />}
+                trend={{ value: 30, isPositive: true }}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
         
         {/* Charts and Data Visualization */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -96,6 +188,7 @@ const Index = () => {
                   data={salesData} 
                   isLoading={salesDataLoading}
                   height={250}
+                  currency="₹"
                 />
               </CardContent>
             </Card>
