@@ -1,28 +1,71 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Invoice, TABLES } from './types';
+import { Invoice, InvoiceItem, TABLES, ensureInvoiceProperties } from './types';
 
-/**
- * Get an invoice by ID
- */
+// Get all invoices for a restaurant
+export const getRestaurantInvoices = async (restaurantId: string): Promise<Invoice[]> => {
+  try {
+    console.log('Fetching restaurant invoices:', restaurantId);
+    
+    // Get all invoices for the restaurant
+    const { data: invoices, error } = await supabase
+      .from(TABLES.INVOICES)
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching restaurant invoices:', error);
+      return [];
+    }
+    
+    // Get invoice items for all invoices
+    const invoiceIds = invoices.map(inv => inv.id);
+    let items: InvoiceItem[] = [];
+    
+    if (invoiceIds.length > 0) {
+      const { data: invoiceItems, error: itemsError } = await supabase
+        .from(TABLES.INVOICE_ITEMS)
+        .select('*')
+        .in('invoice_id', invoiceIds);
+      
+      if (itemsError) {
+        console.error('Error fetching invoice items:', itemsError);
+        return [];
+      }
+      
+      items = invoiceItems || [];
+    }
+    
+    // Construct full invoice objects with items
+    const fullInvoices = invoices.map(inv => {
+      const invoiceItems = items.filter(item => item.invoice_id === inv.id);
+      return {
+        ...inv,
+        status: inv.status as Invoice['status'],
+        items: invoiceItems
+      };
+    });
+    
+    return fullInvoices as Invoice[];
+  } catch (error) {
+    console.error('Error in getRestaurantInvoices:', error);
+    return [];
+  }
+};
+
+// Get a single invoice by ID
 export const getInvoiceById = async (invoiceId: string): Promise<Invoice | null> => {
   try {
-    console.log('Fetching invoice by ID:', invoiceId);
-    
     // Get the invoice
     const { data: invoice, error } = await supabase
       .from(TABLES.INVOICES)
       .select('*')
       .eq('id', invoiceId)
-      .maybeSingle();
+      .single();
     
     if (error) {
       console.error('Error fetching invoice:', error);
-      return null;
-    }
-    
-    if (!invoice) {
-      console.log('Invoice not found');
       return null;
     }
     
@@ -37,72 +80,73 @@ export const getInvoiceById = async (invoiceId: string): Promise<Invoice | null>
       return null;
     }
     
-    return {
+    // Construct the full invoice object
+    const fullInvoice: Invoice = {
       ...invoice,
+      status: invoice.status as Invoice['status'],
       items: items || []
-    } as Invoice;
+    };
+    
+    return fullInvoice;
   } catch (error) {
     console.error('Error in getInvoiceById:', error);
     return null;
   }
 };
 
-/**
- * Get all invoices for a restaurant
- */
-export const getRestaurantInvoices = async (restaurantId: string): Promise<Invoice[]> => {
+// Get all invoices for a specific order
+export const getInvoicesByOrderId = async (orderId: string): Promise<Invoice[]> => {
   try {
-    console.log('Fetching restaurant invoices:', restaurantId);
-    
-    // Get all invoices for the restaurant
+    // Get all invoices for the order
     const { data: invoices, error } = await supabase
       .from(TABLES.INVOICES)
       .select('*')
-      .eq('restaurant_id', restaurantId)
+      .eq('order_id', orderId)
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching invoices:', error);
+      console.error('Error fetching order invoices:', error);
       return [];
     }
     
-    // For each invoice, get its items
-    const invoicesWithItems = await Promise.all(
-      invoices.map(async (invoice) => {
-        const { data: items, error: itemsError } = await supabase
-          .from(TABLES.INVOICE_ITEMS)
-          .select('*')
-          .eq('invoice_id', invoice.id);
-        
-        if (itemsError) {
-          console.error(`Error fetching items for invoice ${invoice.id}:`, itemsError);
-          return {
-            ...invoice,
-            items: []
-          };
-        }
-        
-        return {
-          ...invoice,
-          items: items || []
-        };
-      })
-    );
+    // Get invoice items for all invoices
+    const invoiceIds = invoices.map(inv => inv.id);
+    let items: InvoiceItem[] = [];
     
-    return invoicesWithItems as Invoice[];
+    if (invoiceIds.length > 0) {
+      const { data: invoiceItems, error: itemsError } = await supabase
+        .from(TABLES.INVOICE_ITEMS)
+        .select('*')
+        .in('invoice_id', invoiceIds);
+      
+      if (itemsError) {
+        console.error('Error fetching invoice items:', itemsError);
+        return [];
+      }
+      
+      items = invoiceItems || [];
+    }
+    
+    // Construct full invoice objects with items
+    const fullInvoices = invoices.map(inv => {
+      const invoiceItems = items.filter(item => item.invoice_id === inv.id);
+      return {
+        ...inv,
+        status: inv.status as Invoice['status'],
+        items: invoiceItems
+      };
+    });
+    
+    return fullInvoices as Invoice[];
   } catch (error) {
-    console.error('Error in getRestaurantInvoices:', error);
+    console.error('Error in getInvoicesByOrderId:', error);
     return [];
   }
 };
 
-/**
- * Get invoices for a customer
- */
-export const getCustomerInvoices = async (customerId: string): Promise<Invoice[]> => {
+// Get all invoices for a specific customer
+export const getInvoicesByCustomerId = async (customerId: string): Promise<Invoice[]> => {
   try {
-    console.log('Fetching customer invoices:', customerId);
-    
     // Get all invoices for the customer
     const { data: invoices, error } = await supabase
       .from(TABLES.INVOICES)
@@ -115,77 +159,37 @@ export const getCustomerInvoices = async (customerId: string): Promise<Invoice[]
       return [];
     }
     
-    // For each invoice, get its items
-    const invoicesWithItems = await Promise.all(
-      invoices.map(async (invoice) => {
-        const { data: items, error: itemsError } = await supabase
-          .from(TABLES.INVOICE_ITEMS)
-          .select('*')
-          .eq('invoice_id', invoice.id);
-        
-        if (itemsError) {
-          console.error(`Error fetching items for invoice ${invoice.id}:`, itemsError);
-          return {
-            ...invoice,
-            items: []
-          };
-        }
-        
-        return {
-          ...invoice,
-          items: items || []
-        };
-      })
-    );
+    // Get invoice items for all invoices
+    const invoiceIds = invoices.map(inv => inv.id);
+    let items: InvoiceItem[] = [];
     
-    return invoicesWithItems as Invoice[];
+    if (invoiceIds.length > 0) {
+      const { data: invoiceItems, error: itemsError } = await supabase
+        .from(TABLES.INVOICE_ITEMS)
+        .select('*')
+        .in('invoice_id', invoiceIds);
+      
+      if (itemsError) {
+        console.error('Error fetching invoice items:', itemsError);
+        return [];
+      }
+      
+      items = invoiceItems || [];
+    }
+    
+    // Construct full invoice objects with items
+    const fullInvoices = invoices.map(inv => {
+      const invoiceItems = items.filter(item => item.invoice_id === inv.id);
+      return {
+        ...inv,
+        status: inv.status as Invoice['status'],
+        items: invoiceItems
+      };
+    });
+    
+    return fullInvoices as Invoice[];
   } catch (error) {
-    console.error('Error in getCustomerInvoices:', error);
+    console.error('Error in getInvoicesByCustomerId:', error);
     return [];
-  }
-};
-
-/**
- * Get invoice for a specific order
- */
-export const getInvoiceByOrderId = async (orderId: string): Promise<Invoice | null> => {
-  try {
-    console.log('Fetching invoice for order:', orderId);
-    
-    // Get the invoice
-    const { data: invoice, error } = await supabase
-      .from(TABLES.INVOICES)
-      .select('*')
-      .eq('order_id', orderId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error fetching invoice by order ID:', error);
-      return null;
-    }
-    
-    if (!invoice) {
-      console.log('No invoice found for order');
-      return null;
-    }
-    
-    // Get the invoice items
-    const { data: items, error: itemsError } = await supabase
-      .from(TABLES.INVOICE_ITEMS)
-      .select('*')
-      .eq('invoice_id', invoice.id);
-    
-    if (itemsError) {
-      console.error('Error fetching invoice items:', itemsError);
-      return null;
-    }
-    
-    return {
-      ...invoice,
-      items: items || []
-    } as Invoice;
-  } catch (error) {
-    console.error('Error in getInvoiceByOrderId:', error);
-    return null;
   }
 };

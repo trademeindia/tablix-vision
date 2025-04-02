@@ -94,7 +94,12 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({
           <TableBody>
             {invoice.items.map((item, index) => (
               <TableRow key={item.id || index}>
-                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell className="font-medium">
+                  {item.name}
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">{item.quantity}</TableCell>
                 <TableCell className="text-right">{formatCurrency(item.unit_price)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(item.total_price)}</TableCell>

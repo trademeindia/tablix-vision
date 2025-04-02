@@ -2,66 +2,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Invoice, TABLES } from './types';
 
-/**
- * Update invoice status
- */
-export const updateInvoiceStatus = async (
-  invoiceId: string, 
-  status: 'draft' | 'issued' | 'paid' | 'cancelled',
-  paymentMethod?: string,
-  paymentReference?: string
-): Promise<boolean> => {
-  try {
-    console.log(`Updating invoice ${invoiceId} status to ${status}`);
-    
-    // Update the invoice data
-    const updateData: Partial<Invoice> = { 
-      status,
-      updated_at: new Date().toISOString()
-    };
-    
-    if (status === 'paid') {
-      updateData.payment_method = paymentMethod || 'cash';
-      updateData.payment_reference = paymentReference || null;
-    }
-    
-    const { error } = await supabase
-      .from(TABLES.INVOICES)
-      .update(updateData)
-      .eq('id', invoiceId);
-    
-    if (error) {
-      console.error('Error updating invoice status:', error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error in updateInvoiceStatus:', error);
-    return false;
-  }
-};
-
-/**
- * Update invoice details
- */
+// Update an invoice
 export const updateInvoice = async (
-  invoiceId: string,
-  updates: Partial<Omit<Invoice, 'id' | 'items'>>
+  id: string,
+  data: Partial<Omit<Invoice, 'id' | 'invoice_number' | 'created_at' | 'items'>>
 ): Promise<boolean> => {
   try {
-    console.log(`Updating invoice ${invoiceId}`, updates);
-    
-    // Update the invoice data with the updated_at timestamp
-    const updateData = {
-      ...updates,
-      updated_at: new Date().toISOString()
-    };
-    
     const { error } = await supabase
       .from(TABLES.INVOICES)
-      .update(updateData)
-      .eq('id', invoiceId);
+      .update({
+        ...data,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
     
     if (error) {
       console.error('Error updating invoice:', error);
@@ -75,40 +28,80 @@ export const updateInvoice = async (
   }
 };
 
-/**
- * Update invoice items
- */
-export const updateInvoiceItems = async (
-  invoiceId: string,
-  items: Array<Partial<Omit<Invoice['items'][0], 'id' | 'invoice_id'>> & { id: string }>
+// Update invoice status
+export const updateInvoiceStatus = async (
+  id: string,
+  status: Invoice['status']
 ): Promise<boolean> => {
   try {
-    console.log(`Updating items for invoice ${invoiceId}`, items);
+    const { error } = await supabase
+      .from(TABLES.INVOICES)
+      .update({
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
     
-    // Start a transaction by using a batch update
-    const updatePromises = items.map(item => {
-      const { id, ...updateData } = item;
-      return supabase
-        .from(TABLES.INVOICE_ITEMS)
-        .update(updateData)
-        .eq('id', id)
-        .eq('invoice_id', invoiceId);
-    });
-    
-    const results = await Promise.all(updatePromises);
-    
-    // Check if any updates failed
-    const failed = results.some(result => result.error);
-    
-    if (failed) {
-      console.error('Some invoice items failed to update:', 
-        results.filter(r => r.error).map(r => r.error));
+    if (error) {
+      console.error('Error updating invoice status:', error);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error('Error in updateInvoiceItems:', error);
+    console.error('Error in updateInvoiceStatus:', error);
+    return false;
+  }
+};
+
+// Mark invoice as paid
+export const markInvoiceAsPaid = async (
+  id: string, 
+  paymentMethod?: string, 
+  paymentReference?: string
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from(TABLES.INVOICES)
+      .update({
+        status: 'paid',
+        payment_method: paymentMethod,
+        payment_reference: paymentReference,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error marking invoice as paid:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in markInvoiceAsPaid:', error);
+    return false;
+  }
+};
+
+// Mark invoice as cancelled
+export const cancelInvoice = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from(TABLES.INVOICES)
+      .update({
+        status: 'cancelled',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error cancelling invoice:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in cancelInvoice:', error);
     return false;
   }
 };

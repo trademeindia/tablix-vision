@@ -13,10 +13,13 @@ import { toast } from '@/hooks/use-toast';
 import { createInvoice } from '@/services/invoice';
 import { Invoice, InvoiceItem } from '@/services/invoice/types';
 import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const CreateInvoicePage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Mock restaurant data - in a real app, get this from context or API
   const restaurantData = {
@@ -105,6 +108,7 @@ const CreateInvoicePage = () => {
   // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     // Validate form
     if (!invoiceData.customer_name) {
@@ -151,6 +155,7 @@ const CreateInvoicePage = () => {
         // Navigate to the invoice page
         navigate(`/invoices/${invoice.id}`);
       } else {
+        setError("Failed to create invoice. Please check your input and try again.");
         toast({
           title: "Error",
           description: "Failed to create invoice",
@@ -159,6 +164,7 @@ const CreateInvoicePage = () => {
       }
     } catch (error) {
       console.error('Error creating invoice:', error);
+      setError("An unexpected error occurred. Please try again.");
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -178,6 +184,14 @@ const CreateInvoicePage = () => {
         </Button>
         <h1 className="text-2xl font-bold">Create New Invoice</h1>
       </div>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -206,6 +220,7 @@ const CreateInvoicePage = () => {
                     name="customer_id"
                     value={invoiceData.customer_id}
                     onChange={handleInputChange}
+                    placeholder="Use valid UUID or leave empty"
                   />
                 </div>
               </div>
@@ -218,6 +233,7 @@ const CreateInvoicePage = () => {
                     name="order_id"
                     value={invoiceData.order_id}
                     onChange={handleInputChange}
+                    placeholder="Use valid UUID or leave empty"
                   />
                 </div>
                 <div className="space-y-2">

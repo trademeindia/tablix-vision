@@ -15,23 +15,30 @@ export const createInvoice = async (
     // Generate a unique invoice number
     const invoiceNumber = generateInvoiceNumber(data.restaurant_id);
     
+    // Validate customer_id and order_id - if provided they should be valid UUIDs
+    const validatedData = {
+      ...data,
+      customer_id: data.customer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.customer_id) ? data.customer_id : null,
+      order_id: data.order_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.order_id) ? data.order_id : null
+    };
+    
     // Insert the invoice into the database
     const { data: invoiceData, error: invoiceError } = await supabase
       .from(TABLES.INVOICES)
       .insert({
         invoice_number: invoiceNumber,
-        order_id: data.order_id,
-        restaurant_id: data.restaurant_id,
-        customer_id: data.customer_id,
-        customer_name: data.customer_name,
-        total_amount: data.total_amount,
-        tax_amount: data.tax_amount,
-        discount_amount: data.discount_amount,
-        final_amount: data.final_amount,
-        status: data.status,
-        notes: data.notes,
-        payment_method: data.payment_method,
-        payment_reference: data.payment_reference
+        order_id: validatedData.order_id,
+        restaurant_id: validatedData.restaurant_id,
+        customer_id: validatedData.customer_id,
+        customer_name: validatedData.customer_name,
+        total_amount: validatedData.total_amount,
+        tax_amount: validatedData.tax_amount,
+        discount_amount: validatedData.discount_amount,
+        final_amount: validatedData.final_amount,
+        status: validatedData.status,
+        notes: validatedData.notes,
+        payment_method: validatedData.payment_method,
+        payment_reference: validatedData.payment_reference
       })
       .select()
       .single();
@@ -136,7 +143,9 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
       discount_amount: discountAmount,
       final_amount: finalAmount,
       status: 'issued',
-      notes: order.special_instructions || order.notes || ''
+      notes: order.special_instructions || order.notes || '',
+      payment_method: order.payment_method,
+      payment_reference: order.payment_reference
     };
     
     return createInvoice(invoiceData, invoiceItems);
