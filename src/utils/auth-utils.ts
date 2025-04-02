@@ -18,17 +18,20 @@ export const signInWithEmail = async (email: string, password: string): Promise<
     
     console.log(`Attempting to sign in with email: ${normalizedEmail}`);
     
+    // For demo account, directly bypass email confirmation check
+    const isDemo = normalizedEmail === 'demo@restaurant.com';
+    
+    // Use the standard sign-in method first
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password
     });
 
     if (error) {
-      // Special handling for "Email not confirmed" error
-      if (error.message === 'Email not confirmed') {
-        console.log('Email not confirmed. Trying to auto-confirm for demo purposes...');
-        // For demo purposes, we'll allow login even without confirmation
-        return await signInWithoutConfirmation(normalizedEmail, password);
+      // For demo account, try a special direct login flow if there's an error
+      if (isDemo) {
+        console.log('Demo account sign-in with regular method failed, trying special flow...');
+        return await signInDemoAccount(normalizedEmail, password);
       }
       
       handleError(error, { 
@@ -39,7 +42,7 @@ export const signInWithEmail = async (email: string, password: string): Promise<
       return { success: false, error: error.message };
     }
 
-    if (data.session && data.user) {
+    if (data?.session && data?.user) {
       console.log('Sign in successful for user:', data.user.email);
       return { success: true };
     } else {
@@ -60,65 +63,63 @@ export const signInWithEmail = async (email: string, password: string): Promise<
 };
 
 /**
- * Alternative sign in method for demo purposes when email is not confirmed
+ * Special sign-in method for demo account
  */
-export const signInWithoutConfirmation = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+export const signInDemoAccount = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    // For demo accounts only, try a workaround for unconfirmed emails
-    console.log('Attempting alternative sign in method for demo account');
+    console.log('Attempting special sign-in flow for demo account');
     
-    // Try to sign in directly with password since getUserByEmail and createSession are not available
-    console.log('Trying direct sign in for demo account');
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    // Try signing up without email confirmation (for demo account only)
+    // This will either create the account or fail silently if it exists
+    try {
+      await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: 'Demo User' }
+        }
+      });
+      // Wait a moment for the account to register
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (e) {
+      // Ignore errors here - the account might already exist
+      console.log('Demo account signup attempt completed');
+    }
     
-    if (error) {
-      // If login failed, try to auto-confirm the email first (for demo purposes only)
-      console.log('Direct login failed, trying to sign up again to auto-confirm');
+    // Now try to sign in directly
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      console.log(`Demo direct login attempt ${attempt}`);
       
-      // Try to sign up again (this may auto-confirm the email in development)
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (signUpError) {
-        console.error('Could not auto-confirm email:', signUpError);
-        return { success: false, error: 'Demo login failed. Please use a regular account.' };
-      }
-      
-      // Try signing in one more time
-      const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (retryError) {
-        console.error('Retry login failed:', retryError);
-        return { success: false, error: 'Demo authentication failed. Please try again or contact support.' };
-      }
-      
-      if (retryData?.session) {
-        console.log('Alternative sign in successful after auto-confirmation');
+      if (!error && data?.session) {
+        console.log('Demo login successful!');
         return { success: true };
       }
       
-      return { success: false, error: 'Could not authenticate demo account' };
+      if (error) {
+        console.log(`Demo login attempt ${attempt} failed:`, error.message);
+        
+        // Only wait between attempts, not after the last one
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
     }
     
-    if (data?.session) {
-      console.log('Alternative sign in successful for demo user');
-      return { success: true };
-    }
-    
-    return { success: false, error: 'Could not authenticate demo account' };
-  } catch (error: any) {
-    console.error('Error in alternative sign in:', error);
+    // If we couldn't log in after multiple attempts, return error
     return { 
       success: false, 
-      error: 'Demo account login failed. You can create a new account instead.' 
+      error: 'Could not access demo account. Please try again or contact support.' 
+    };
+  } catch (error: any) {
+    console.error('Error in demo account sign in:', error);
+    return { 
+      success: false, 
+      error: 'Demo account login failed. Please try again.' 
     };
   }
 };

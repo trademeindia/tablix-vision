@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -143,37 +144,52 @@ export const useAuthForm = () => {
       // Short delay to let the form update visually
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      // Show toast to indicate demo login is in progress
+      toast({
+        title: 'Accessing Demo Account',
+        description: 'Please wait while we prepare your dashboard...'
+      });
+      
       // Try up to 3 times with increasing delays for demo login
       let success = false;
+      let attempts = 0;
       let error = '';
       
-      for (let attempt = 1; attempt <= 3 && !success; attempt++) {
-        console.log(`Demo login attempt ${attempt}`);
+      while (!success && attempts < 5) {
+        attempts++;
+        console.log(`Demo login attempt ${attempts}`);
         
-        const result = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
-        success = result.success;
-        error = result.error || '';
-        
-        if (!success && attempt < 3) {
+        try {
+          const result = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+          success = result.success;
+          error = result.error || '';
+          
+          if (success) break;
+          
           // Wait longer between each retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          if (attempts < 5) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+          }
+        } catch (e) {
+          console.error(`Demo login attempt ${attempts} failed with exception:`, e);
+          // Continue to next attempt
         }
       }
       
       if (success) {
         toast({
           title: 'Demo Access Granted',
-          description: 'You are now using the demo account. Explore the features!'
+          description: 'You are now using the demo account. Explore all features!'
         });
       } else {
-        console.error('Demo login failed with error:', error);
+        console.error('Demo login failed after multiple attempts with error:', error);
         
         // Show a more helpful error message for demo users
-        setAuthError(`Demo login failed: ${error || 'Unable to access demo account.'} Please try again or create a new account.`);
+        setAuthError(`Demo login failed after ${attempts} attempts. Please try again in a few moments or create a new account instead.`);
         
         toast({
           title: 'Demo Access Failed',
-          description: error || 'Unable to access demo account. Please try again.',
+          description: 'Unable to access demo account. Please try again.',
           variant: 'destructive'
         });
       }

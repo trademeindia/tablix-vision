@@ -24,7 +24,8 @@ BEGIN
       updated_at,
       raw_app_meta_data,
       raw_user_meta_data,
-      confirmed_at
+      confirmed_at,
+      confirmation_sent_at
     ) VALUES (
       demo_email,
       crypt(demo_password, gen_salt('bf')),
@@ -33,6 +34,7 @@ BEGIN
       now(),
       '{"provider": "email", "providers": ["email"]}',
       '{"full_name": "Demo User"}',
+      now(),
       now()
     )
     RETURNING id INTO user_id;
@@ -58,14 +60,45 @@ BEGIN
     
     RAISE NOTICE 'Demo account created successfully with ID: %', user_id;
   ELSE
-    -- If demo user exists, ensure it's confirmed
+    -- If demo user exists, ensure it has all required fields set
     UPDATE auth.users
     SET 
       email_confirmed_at = COALESCE(email_confirmed_at, now()),
-      confirmed_at = COALESCE(confirmed_at, now())
+      confirmed_at = COALESCE(confirmed_at, now()),
+      confirmation_sent_at = COALESCE(confirmation_sent_at, now()),
+      raw_user_meta_data = COALESCE(raw_user_meta_data, '{"full_name": "Demo User"}'::jsonb)
     WHERE email = demo_email;
     
-    RAISE NOTICE 'Demo account already exists, ensured confirmation is set';
+    -- Make sure encrypted_password is set properly
+    UPDATE auth.users
+    SET encrypted_password = crypt(demo_password, gen_salt('bf'))
+    WHERE email = demo_email 
+    AND (encrypted_password IS NULL OR encrypted_password = '');
+    
+    SELECT id INTO user_id FROM auth.users WHERE email = demo_email;
+    
+    -- Make sure the identity exists
+    IF NOT EXISTS (SELECT 1 FROM auth.identities WHERE user_id = user_id) THEN
+      INSERT INTO auth.identities (
+        id,
+        user_id,
+        identity_data,
+        provider,
+        created_at,
+        updated_at,
+        last_sign_in_at
+      ) VALUES (
+        user_id,
+        user_id,
+        format('{"sub": "%s", "email": "%s"}', user_id::text, demo_email)::jsonb,
+        'email',
+        now(),
+        now(),
+        now()
+      );
+    END IF;
+    
+    RAISE NOTICE 'Demo account already exists, updated configuration for ID: %', user_id;
   END IF;
 END
 $$;

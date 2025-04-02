@@ -29,9 +29,18 @@ export const AuthForm: React.FC = () => {
   return (
     <div className="w-full max-w-md overflow-hidden bg-white rounded-xl shadow-lg border border-gray-100">
       <div className="px-6 py-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-400 bg-clip-text text-transparent">Restaurant Manager</h1>
           <p className="text-gray-500 mt-2">Manage your restaurant with ease</p>
+        </div>
+        
+        {/* Big, attention-grabbing demo login button */}
+        <div className="bg-amber-100 rounded-lg p-4 border-2 border-amber-300 mb-6">
+          <h3 className="text-amber-800 font-bold text-center mb-3">👇 Fastest Way to Access Dashboard 👇</h3>
+          <DemoLoginButton 
+            isLoading={isDemoLoading} 
+            onDemoLogin={handleDemoLogin} 
+          />
         </div>
         
         {authError && (
@@ -45,13 +54,9 @@ export const AuthForm: React.FC = () => {
         {/* Demo Credentials Card */}
         <DemoCredentials />
 
-        {/* Demo Login Button - Most reliable way to access the demo */}
-        <DemoLoginButton 
-          isLoading={isDemoLoading} 
-          onDemoLogin={handleDemoLogin} 
-        />
-
         <Separator className="my-6" />
+        
+        <p className="text-sm text-gray-500 mb-4 text-center">Or sign in with your own account</p>
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'signin' | 'signup')} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8 rounded-lg bg-gray-100 p-1">
