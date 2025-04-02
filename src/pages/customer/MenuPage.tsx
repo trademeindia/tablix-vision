@@ -25,6 +25,7 @@ const CustomerMenuPage = () => {
   // Customer menu hook for QR and menu data management
   const {
     isScanning,
+    startScanning,
     handleQRScan,
     tableId,
     restaurantId,
@@ -46,7 +47,7 @@ const CustomerMenuPage = () => {
       <PageTransition>
         <QRScannerSection 
           isScanning={isScanning}
-          startScanning={isScanning}
+          startScanning={startScanning}
           handleScan={handleQRScan}
         />
         
