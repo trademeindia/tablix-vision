@@ -21,50 +21,56 @@ export function useIntegrations(restaurantId?: string) {
   const { 
     data: integrations = [], 
     isLoading, 
-    error 
+    error,
+    isError 
   } = useQuery({
     queryKey: ['integrations', restaurantId],
     queryFn: async () => {
       console.log('Fetching integrations for restaurant:', restaurantId);
-      if (!restaurantId) {
-        // In demo mode, return sample data
-        console.log('Using mock integrations data');
-        return getMockIntegrations();
-      }
       
+      // For development/demo mode, use mock data
       try {
-        const data = await getIntegrations(restaurantId);
-        console.log('Fetched integrations data:', data);
-        return data;
+        // Mock delay to simulate network request
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Get mock integrations
+        const mockData = getMockIntegrations();
+        console.log('Using mock integrations data:', mockData);
+        return mockData;
       } catch (err) {
-        console.error("Error fetching integrations:", err);
-        // Return mock data as fallback in case of error
-        console.log('Using mock integrations as fallback due to error');
-        return getMockIntegrations();
+        console.error("Error creating mock integrations:", err);
+        throw new Error("Failed to load integrations data");
       }
     },
-    enabled: true,
+    retry: 1,
   });
 
   // Log state changes for debugging
   useEffect(() => {
-    console.log('useIntegrations state:', { 
+    console.log('useIntegrations hook state:', { 
       integrations, 
+      integrationsCount: integrations?.length || 0,
       isLoading, 
+      isError,
       error,
       isSyncing 
     });
-  }, [integrations, isLoading, error, isSyncing]);
+  }, [integrations, isLoading, error, isSyncing, isError]);
 
   // Wrap the sync function to manage local sync state
   const syncIntegration = async (integrationId: string) => {
     setIsSyncing(true);
-    await triggerSync(integrationId);
-    setIsSyncing(false);
+    try {
+      await triggerSync(integrationId);
+    } catch (error) {
+      console.error('Error syncing integration:', error);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return {
-    integrations,
+    integrations: integrations || [],
     isLoading,
     error,
     isSyncing: isSyncing || isSyncMutating,

@@ -23,7 +23,7 @@ import MarketingPage from './pages/MarketingPage';
 import CustomersPage from './pages/CustomersPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import NotificationsPage from './pages/settings/NotificationsPage';
-import IntegrationsPage from './pages/settings/IntegrationsPage';
+import IntegrationsPage from './pages/settings/integrations';
 import IntegrationDetailPage from './pages/settings/integration/IntegrationDetailPage';
 
 // Customer pages
@@ -39,7 +39,14 @@ import StaffInventoryPage from './pages/staff/InventoryPage';
 import StaffReportsPage from './pages/staff/ReportsPage';
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   // In a real app, you would get the restaurant ID from authentication

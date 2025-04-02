@@ -1,4 +1,2 @@
 
-import IntegrationsPage from './IntegrationsPage';
-
-export default IntegrationsPage;
+export { default } from './IntegrationsPage';

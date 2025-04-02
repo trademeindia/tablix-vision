@@ -3,6 +3,9 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Integration } from '@/types/integration';
 import IntegrationCard from '@/components/integrations/IntegrationCard';
+import { getCategoryName } from '@/utils/integration-categories';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface CategoryTabProps {
   integrations: Integration[];
@@ -23,7 +26,12 @@ const CategoryTab: React.FC<CategoryTabProps> = ({
   onAddIntegration,
   category
 }) => {
-  console.log('CategoryTab rendering:', { integrations, isLoading, category });
+  console.log('CategoryTab rendering:', { 
+    integrations, 
+    isLoading, 
+    category, 
+    integrationCount: integrations.length 
+  });
 
   if (isLoading) {
     return (
@@ -45,18 +53,16 @@ const CategoryTab: React.FC<CategoryTabProps> = ({
   if (integrations.length === 0) {
     return (
       <Card>
-        <CardContent className="pt-6 text-center">
+        <CardContent className="pt-6 text-center p-8">
           <p className="text-sm text-gray-500 mb-3">
             {category === undefined || category === 'all'
               ? 'No integrations available yet.'
               : `No ${getCategoryName(category)} integrations available yet.`}
           </p>
-          <button
-            onClick={onAddIntegration}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3"
-          >
+          <Button onClick={onAddIntegration} className="mt-2">
+            <Plus className="h-4 w-4 mr-2" />
             Add Integration
-          </button>
+          </Button>
         </CardContent>
       </Card>
     );
@@ -77,21 +83,4 @@ const CategoryTab: React.FC<CategoryTabProps> = ({
   );
 };
 
-// Helper function to get a human-readable category name
-function getCategoryName(category: string): string {
-  const categoryMap: Record<string, string> = {
-    'pos': 'POS Systems',
-    'delivery': 'Food Delivery',
-    'payment': 'Payment',
-    'analytics': 'Analytics',
-    'communication': 'Communication',
-    'documents': 'Documents',
-    'automation': 'Automation',
-    'other': 'Other'
-  };
-  
-  return categoryMap[category] || category;
-}
-
-export { getCategoryName };
 export default CategoryTab;

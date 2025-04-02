@@ -21,6 +21,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   onDelete,
   isSyncing 
 }) => {
+  console.log('Rendering IntegrationCard for:', integration.name);
   const isConnected = integration.status === 'connected';
   
   // Format last synced date if available
@@ -33,7 +34,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
     : '';
     
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center">
           {integration.icon && <integration.icon className="h-5 w-5 mr-2" />}
@@ -41,9 +42,9 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
         </CardTitle>
         <CardDescription>{integration.description}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow flex flex-col justify-between">
         {isConnected ? (
-          <div>
+          <div className="flex-grow flex flex-col justify-between">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-green-600 font-medium mb-1 flex items-center">
@@ -74,7 +75,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
                 Sync Now
               </Button>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between mt-auto">
               <Button variant="outline" size="sm" asChild>
                 <Link to={`/settings/integrations/${integration.id}`}>
                   <Settings className="h-4 w-4 mr-2" />
@@ -93,7 +94,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
           </div>
         ) : (
           <Button 
-            className="w-full" 
+            className="w-full mt-auto" 
             asChild
           >
             <Link to={`/settings/integrations/${integration.id}/setup`}>

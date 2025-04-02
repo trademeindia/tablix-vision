@@ -15,7 +15,7 @@ import {
 // Mock integrations for demo purposes
 export function getMockIntegrations(): Integration[] {
   console.log('Creating mock integrations');
-  return [
+  const mockIntegrations: Integration[] = [
     {
       id: 'pos1',
       name: 'Square POS',
@@ -75,4 +75,7 @@ export function getMockIntegrations(): Integration[] {
       icon: MessageCircle
     }
   ];
+  
+  console.log(`Generated ${mockIntegrations.length} mock integrations`);
+  return mockIntegrations;
 }
