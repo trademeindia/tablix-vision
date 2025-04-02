@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import MenuPage from "./pages/MenuPage";
 import QRCodePage from "./pages/QRCodePage";
@@ -63,11 +63,14 @@ const App = () => {
             <Route path="/staff-dashboard/inventory" element={<InventoryPage />} />
             <Route path="/staff-dashboard/reports" element={<ReportsPage />} />
             
-            {/* Customer Facing Routes */}
+            {/* Customer Facing Routes - With consistent naming and proper redirects */}
             <Route path="/customer-menu" element={<CustomerMenuPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/call-waiter" element={<CallWaiterPage />} />
             <Route path="/profile" element={<CustomerProfilePage />} />
+            
+            {/* Add redirect from old path format to new format */}
+            <Route path="/customer/menu" element={<Navigate to="/customer-menu" replace />} />
             
             <Route path="/analytics" element={<AnalyticsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

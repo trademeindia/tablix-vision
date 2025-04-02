@@ -33,7 +33,8 @@ const CustomerMenuPage = () => {
     
     if (tableParam && restaurantParam) {
       console.log("Found params in URL:", { table: tableParam, restaurant: restaurantParam });
-      parseQRData(`${location.pathname}?table=${tableParam}&restaurant=${restaurantParam}`);
+      // Using the full URL with search parameters to ensure proper parsing
+      parseQRData(window.location.href);
     }
   }, [location, parseQRData]);
   

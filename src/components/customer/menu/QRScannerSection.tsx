@@ -31,9 +31,14 @@ const QRScannerSection: React.FC<QRScannerSectionProps> = ({
           onClose={() => navigate('/')}
         />
       ) : (
-        <Button onClick={startScanning} size="lg">
-          Scan QR Code
-        </Button>
+        <div className="flex flex-col items-center gap-4">
+          <Button onClick={startScanning} size="lg">
+            Scan QR Code
+          </Button>
+          <p className="text-sm text-muted-foreground text-center">
+            Scan the QR code on your restaurant table to view the menu
+          </p>
+        </div>
       )}
     </div>
   );

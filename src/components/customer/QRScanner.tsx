@@ -35,7 +35,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
         (decodedText) => {
           // On successful scan
           if (decodedText) {
-            console.log('QR Code scanned:', decodedText);
+            console.log('QR Code scanned successfully:', decodedText);
             toast({
               title: "QR Code Scanned",
               description: "Loading menu...",

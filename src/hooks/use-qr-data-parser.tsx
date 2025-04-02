@@ -44,16 +44,19 @@ export function useQRDataParser(): QRDataParserResult {
     if (!qrData) return;
     
     try {
+      console.log("Parsing QR data:", qrData);
+      
       // Try different QR code formats
       
-      // Format 1: https://restaurant.app/menu/{restaurantId}?table={tableId}
+      // Format 1: URL with query parameters (e.g. https://domain.com/customer-menu?restaurant=xyz&table=123)
       try {
         const url = new URL(qrData);
-        const pathParts = url.pathname.split('/');
-        const qrRestaurantId = pathParts[pathParts.length - 1];
-        const qrTableId = url.searchParams.get('table');
+        const params = new URLSearchParams(url.search);
+        const qrTableId = params.get('table');
+        const qrRestaurantId = params.get('restaurant');
         
         if (qrRestaurantId && qrTableId) {
+          console.log("Found URL parameters:", { restaurant: qrRestaurantId, table: qrTableId });
           setRestaurantId(qrRestaurantId);
           setTableId(qrTableId);
           localStorage.setItem('tableId', qrTableId);
@@ -61,13 +64,33 @@ export function useQRDataParser(): QRDataParserResult {
           return;
         }
       } catch (e) {
-        // Not a URL format, try other formats
+        console.log("Not a URL format, trying other formats");
       }
       
-      // Format 2: JSON string {"restaurantId": "xxx", "tableId": "yyy"}
+      // Format 2: Old URL path format (https://restaurant.app/menu/{restaurantId}?table={tableId})
+      try {
+        const url = new URL(qrData);
+        const pathParts = url.pathname.split('/');
+        const qrRestaurantId = pathParts[pathParts.length - 1];
+        const qrTableId = url.searchParams.get('table');
+        
+        if (qrRestaurantId && qrTableId) {
+          console.log("Found path format:", { restaurant: qrRestaurantId, table: qrTableId });
+          setRestaurantId(qrRestaurantId);
+          setTableId(qrTableId);
+          localStorage.setItem('tableId', qrTableId);
+          localStorage.setItem('restaurantId', qrRestaurantId);
+          return;
+        }
+      } catch (e) {
+        console.log("Not a path format URL, trying other formats");
+      }
+      
+      // Format 3: JSON string {"restaurantId": "xxx", "tableId": "yyy"}
       try {
         const jsonData = JSON.parse(qrData);
         if (jsonData.restaurantId && jsonData.tableId) {
+          console.log("Found JSON format:", jsonData);
           setRestaurantId(jsonData.restaurantId);
           setTableId(jsonData.tableId);
           localStorage.setItem('tableId', jsonData.tableId);
@@ -75,13 +98,14 @@ export function useQRDataParser(): QRDataParserResult {
           return;
         }
       } catch (e) {
-        // Not JSON format, try other formats
+        console.log("Not JSON format, trying other formats");
       }
       
-      // Format 3: Simple text format "restaurantId:tableId"
+      // Format 4: Simple text format "restaurantId:tableId"
       const parts = qrData.split(':');
       if (parts.length === 2) {
         const [qrRestaurantId, qrTableId] = parts;
+        console.log("Found simple text format:", { restaurant: qrRestaurantId, table: qrTableId });
         setRestaurantId(qrRestaurantId);
         setTableId(qrTableId);
         localStorage.setItem('tableId', qrTableId);
@@ -98,6 +122,11 @@ export function useQRDataParser(): QRDataParserResult {
       
     } catch (error) {
       console.error('Error parsing QR data:', error);
+      toast({
+        title: "Error Reading QR Code",
+        description: "There was a problem processing the QR code. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
