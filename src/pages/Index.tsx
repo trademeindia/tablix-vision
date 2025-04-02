@@ -4,8 +4,15 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentOrders from '@/components/dashboard/RecentOrders';
 import PopularItems from '@/components/dashboard/PopularItems';
-import { ShoppingCart, Users, Utensils, DollarSign } from 'lucide-react';
+import { 
+  ShoppingCart, Users, Utensils, DollarSign, 
+  Calendar, ArrowUpRight, TrendingUp, CreditCard 
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PageTransition from '@/components/ui/page-transition';
+import { Button } from '@/components/ui/button';
+import SalesChart from '@/components/analytics/SalesChart';
+import { useAnalytics } from '@/hooks/use-analytics';
 
 const Index = () => {
   // Add logging to track component render
@@ -13,48 +20,146 @@ const Index = () => {
     console.log("Index page rendered");
   }, []);
 
+  // In a real application, you would get this from auth or context
+  const restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Placeholder restaurant ID
+  
+  const {
+    salesData,
+    salesDataLoading,
+    popularItems
+  } = useAnalytics(restaurantId);
+
+  // Sample table data for availability visualization
+  const tables = [
+    { id: 1, occupied: false, number: '101' },
+    { id: 2, occupied: true, number: '102' },
+    { id: 3, occupied: false, number: '103' },
+    { id: 4, occupied: false, number: '104' },
+    { id: 5, occupied: true, number: '105' },
+    { id: 6, occupied: false, number: '106' },
+    { id: 7, occupied: true, number: '107' },
+    { id: 8, occupied: false, number: '108' },
+    { id: 9, occupied: false, number: '109' },
+    { id: 10, occupied: true, number: '110' },
+  ];
+
   return (
     <DashboardLayout>
       <PageTransition>
-        <div className="mb-4 md:mb-6">
-          <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm md:text-base text-slate-500">Welcome back! Here's an overview of your restaurant</p>
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm md:text-base text-slate-500">Welcome back! Here's an overview of your restaurant.</p>
         </div>
         
-        {/* Adjusted grid for better mobile display */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-4 md:mb-6">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6">
           <StatsCard 
-            title="Today's Orders"
-            value={42}
-            icon={<ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />}
+            title="Today's Revenue"
+            value="$2,458.32"
+            icon={<DollarSign className="h-5 w-5 text-green-600" />}
             trend={{ value: 12, isPositive: true }}
           />
           <StatsCard 
-            title="Total Customers"
-            value={248}
-            icon={<Users className="h-4 w-4 md:h-5 md:w-5 text-green-600" />}
-            trend={{ value: 18, isPositive: true }}
-          />
-          <StatsCard 
-            title="Menu Items"
-            value={64}
-            icon={<Utensils className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />}
-          />
-          <StatsCard 
-            title="Revenue Today"
-            value="$1,248.42"
-            icon={<DollarSign className="h-4 w-4 md:h-5 md:w-5 text-orange-600" />}
+            title="Today's Orders"
+            value={42}
+            icon={<ShoppingCart className="h-5 w-5 text-blue-600" />}
             trend={{ value: 8, isPositive: true }}
+          />
+          <StatsCard 
+            title="Active Tables"
+            value={`${tables.filter(t => t.occupied).length}/${tables.length}`}
+            icon={<CreditCard className="h-5 w-5 text-purple-600" />}
+          />
+          <StatsCard 
+            title="New Customers"
+            value={18}
+            icon={<Users className="h-5 w-5 text-orange-600" />}
+            trend={{ value: 24, isPositive: true }}
           />
         </div>
         
-        {/* Adjusted grid for better mobile display */}
-        <div className="grid grid-cols-1 gap-3 md:gap-6">
-          <div className="w-full">
+        {/* Charts and Data Visualization */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-md font-medium">Revenue Trend</CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" className="h-8">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    This Month
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <SalesChart 
+                  data={salesData} 
+                  isLoading={salesDataLoading}
+                  height={250}
+                />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-1">
+            <PopularItems />
+          </div>
+        </div>
+        
+        {/* Recent Orders and Tables Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <RecentOrders />
           </div>
-          <div className="w-full">
-            <PopularItems />
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-md font-medium">Table Availability</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-5 gap-3">
+                  {tables.map(table => (
+                    <div 
+                      key={table.id} 
+                      className={`flex items-center justify-center h-14 rounded-lg border ${
+                        table.occupied 
+                          ? 'bg-blue-600 text-white border-blue-700' 
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{table.number}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-md font-medium">Customer Segments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">New Customers</p>
+                      <p className="text-2xl font-bold">38%</p>
+                    </div>
+                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Returning Customers</p>
+                      <p className="text-2xl font-bold">62%</p>
+                    </div>
+                    <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <ArrowUpRight className="h-6 w-6 text-green-600" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </PageTransition>

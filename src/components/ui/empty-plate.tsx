@@ -14,7 +14,7 @@ export const EmptyPlate = React.forwardRef<SVGSVGElement, EmptyPlateProps>(
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
         className={cn('', className)}
@@ -22,7 +22,9 @@ export const EmptyPlate = React.forwardRef<SVGSVGElement, EmptyPlateProps>(
         {...props}
       >
         <circle cx="12" cy="12" r="10" />
-        <path d="M7 9.5a5 5 0 0 1 10 0" />
+        <circle cx="12" cy="12" r="7" strokeDasharray="3 3" />
+        <path d="M7 9a5 5 0 0 1 10 0" />
+        <path d="M16 14a2 2 0 0 1-8 0" />
       </svg>
     );
   }
