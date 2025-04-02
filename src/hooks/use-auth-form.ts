@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,7 @@ export const useAuthForm = () => {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [authError, setAuthError] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
+  const submitInProgressRef = useRef(false);
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authFormSchema),
@@ -33,10 +34,23 @@ export const useAuthForm = () => {
     setAuthError(null);
   }, [activeTab, form.watch()]);
 
+  // Reset loading state if component unmounts during a login attempt
+  useEffect(() => {
+    return () => {
+      submitInProgressRef.current = false;
+      setIsLoading(false);
+      setIsDemoLoading(false);
+    };
+  }, []);
+
   const onSubmit = async (values: AuthFormValues) => {
-    if (isLoading) return; // Prevent multiple submissions
+    if (isLoading || submitInProgressRef.current) {
+      console.log('Submission already in progress, ignoring duplicate submission');
+      return; // Prevent multiple submissions
+    }
     
     setIsLoading(true);
+    submitInProgressRef.current = true;
     setAuthError(null);
     
     try {
@@ -104,13 +118,18 @@ export const useAuthForm = () => {
       setAuthError('An unexpected error occurred. Please try again later.');
     } finally {
       setIsLoading(false);
+      submitInProgressRef.current = false;
     }
   };
 
   const handleDemoLogin = async () => {
-    if (isDemoLoading) return; // Prevent multiple submissions
+    if (isDemoLoading || submitInProgressRef.current) {
+      console.log('Demo login already in progress, ignoring duplicate request');
+      return; // Prevent multiple submissions
+    }
     
     setIsDemoLoading(true);
+    submitInProgressRef.current = true;
     setAuthError(null);
     
     try {
@@ -129,7 +148,7 @@ export const useAuthForm = () => {
       });
       
       // Try multiple times for demo login with increasing delays
-      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD);
+      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD, 5); // Increased max attempts
       
       if (result.success) {
         toast({
@@ -156,6 +175,7 @@ export const useAuthForm = () => {
       setAuthError('An unexpected error occurred with the demo login. Please try again.');
     } finally {
       setIsDemoLoading(false);
+      submitInProgressRef.current = false;
     }
   };
 

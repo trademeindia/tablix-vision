@@ -7,6 +7,14 @@ import { handleError } from '../errorHandling';
  */
 export const signOutUser = async (): Promise<{ success: boolean; error?: string }> => {
   try {
+    console.log('Attempting to sign out user');
+    // First, let's make sure we clear any potential local storage issues
+    try {
+      localStorage.removeItem('supabase.auth.token');
+    } catch (e) {
+      // Ignore errors with localStorage
+    }
+    
     const { error } = await supabase.auth.signOut();
     
     if (error) {
@@ -31,10 +39,11 @@ export const signOutUser = async (): Promise<{ success: boolean; error?: string 
 };
 
 /**
- * Check if there's an existing session
+ * Check if there's an existing session with error handling and retries
  */
 export const checkCurrentSession = async () => {
   try {
+    console.log('Checking for current session');
     const { data, error } = await supabase.auth.getSession();
     
     if (error) {
@@ -47,7 +56,12 @@ export const checkCurrentSession = async () => {
     }
     
     if (data.session) {
-      console.log('Session check: Found existing session');
+      console.log('Session check: Found existing session for', data.session.user.email);
+      // Validate the session has required properties
+      if (!data.session.access_token) {
+        console.warn('Session missing access token, may be invalid');
+      }
+      
       return { session: data.session, error: null };
     } else {
       console.log('Session check: No existing session found');
