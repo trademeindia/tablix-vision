@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Invoice, ensureInvoiceProperties } from './types';
+import { Invoice, TABLES } from './types';
 
 /**
  * Get an invoice by ID
@@ -11,7 +11,7 @@ export const getInvoiceById = async (invoiceId: string): Promise<Invoice | null>
     
     // Get the invoice
     const { data: invoice, error } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .select('*')
       .eq('id', invoiceId)
       .maybeSingle();
@@ -28,7 +28,7 @@ export const getInvoiceById = async (invoiceId: string): Promise<Invoice | null>
     
     // Get the invoice items
     const { data: items, error: itemsError } = await supabase
-      .from('invoice_items')
+      .from(TABLES.INVOICE_ITEMS)
       .select('*')
       .eq('invoice_id', invoiceId);
     
@@ -40,7 +40,7 @@ export const getInvoiceById = async (invoiceId: string): Promise<Invoice | null>
     return {
       ...invoice,
       items: items || []
-    };
+    } as Invoice;
   } catch (error) {
     console.error('Error in getInvoiceById:', error);
     return null;
@@ -56,7 +56,7 @@ export const getRestaurantInvoices = async (restaurantId: string): Promise<Invoi
     
     // Get all invoices for the restaurant
     const { data: invoices, error } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .select('*')
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false });
@@ -70,7 +70,7 @@ export const getRestaurantInvoices = async (restaurantId: string): Promise<Invoi
     const invoicesWithItems = await Promise.all(
       invoices.map(async (invoice) => {
         const { data: items, error: itemsError } = await supabase
-          .from('invoice_items')
+          .from(TABLES.INVOICE_ITEMS)
           .select('*')
           .eq('invoice_id', invoice.id);
         
@@ -89,7 +89,7 @@ export const getRestaurantInvoices = async (restaurantId: string): Promise<Invoi
       })
     );
     
-    return invoicesWithItems;
+    return invoicesWithItems as Invoice[];
   } catch (error) {
     console.error('Error in getRestaurantInvoices:', error);
     return [];
@@ -105,7 +105,7 @@ export const getCustomerInvoices = async (customerId: string): Promise<Invoice[]
     
     // Get all invoices for the customer
     const { data: invoices, error } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .select('*')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
@@ -119,7 +119,7 @@ export const getCustomerInvoices = async (customerId: string): Promise<Invoice[]
     const invoicesWithItems = await Promise.all(
       invoices.map(async (invoice) => {
         const { data: items, error: itemsError } = await supabase
-          .from('invoice_items')
+          .from(TABLES.INVOICE_ITEMS)
           .select('*')
           .eq('invoice_id', invoice.id);
         
@@ -138,7 +138,7 @@ export const getCustomerInvoices = async (customerId: string): Promise<Invoice[]
       })
     );
     
-    return invoicesWithItems;
+    return invoicesWithItems as Invoice[];
   } catch (error) {
     console.error('Error in getCustomerInvoices:', error);
     return [];
@@ -154,7 +154,7 @@ export const getInvoiceByOrderId = async (orderId: string): Promise<Invoice | nu
     
     // Get the invoice
     const { data: invoice, error } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .select('*')
       .eq('order_id', orderId)
       .maybeSingle();
@@ -171,7 +171,7 @@ export const getInvoiceByOrderId = async (orderId: string): Promise<Invoice | nu
     
     // Get the invoice items
     const { data: items, error: itemsError } = await supabase
-      .from('invoice_items')
+      .from(TABLES.INVOICE_ITEMS)
       .select('*')
       .eq('invoice_id', invoice.id);
     
@@ -183,7 +183,7 @@ export const getInvoiceByOrderId = async (orderId: string): Promise<Invoice | nu
     return {
       ...invoice,
       items: items || []
-    };
+    } as Invoice;
   } catch (error) {
     console.error('Error in getInvoiceByOrderId:', error);
     return null;

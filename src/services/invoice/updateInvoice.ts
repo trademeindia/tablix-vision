@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Invoice } from './types';
+import { Invoice, TABLES } from './types';
 
 /**
  * Update invoice status
@@ -26,7 +26,7 @@ export const updateInvoiceStatus = async (
     }
     
     const { error } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .update(updateData)
       .eq('id', invoiceId);
     
@@ -59,7 +59,7 @@ export const updateInvoice = async (
     };
     
     const { error } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .update(updateData)
       .eq('id', invoiceId);
     
@@ -89,7 +89,7 @@ export const updateInvoiceItems = async (
     const updatePromises = items.map(item => {
       const { id, ...updateData } = item;
       return supabase
-        .from('invoice_items')
+        .from(TABLES.INVOICE_ITEMS)
         .update(updateData)
         .eq('id', id)
         .eq('invoice_id', invoiceId);

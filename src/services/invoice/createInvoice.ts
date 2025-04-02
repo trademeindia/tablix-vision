@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Invoice, InvoiceItem, generateInvoiceNumber, calculateTax } from './types';
+import { Invoice, InvoiceItem, generateInvoiceNumber, calculateTax, TABLES } from './types';
 import { Order } from '../order/types';
 
 // Create a new invoice with items
@@ -17,7 +17,7 @@ export const createInvoice = async (
     
     // Insert the invoice into the database
     const { data: invoiceData, error: invoiceError } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .insert({
         invoice_number: invoiceNumber,
         order_id: data.order_id,
@@ -54,21 +54,21 @@ export const createInvoice = async (
     }));
     
     const { data: itemsData, error: itemsError } = await supabase
-      .from('invoice_items')
+      .from(TABLES.INVOICE_ITEMS)
       .insert(invoiceItems)
       .select();
     
     if (itemsError) {
       console.error('Error creating invoice items:', itemsError);
       // Attempt to delete the invoice if items fail
-      await supabase.from('invoices').delete().eq('id', invoiceData.id);
+      await supabase.from(TABLES.INVOICES).delete().eq('id', invoiceData.id);
       return null;
     }
     
     // Construct the full invoice object to return
     const invoice: Invoice = {
       ...invoiceData,
-      items: itemsData
+      items: itemsData as InvoiceItem[]
     };
     
     return invoice;
@@ -85,7 +85,7 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
     
     // Check if invoice already exists for this order
     const { data: existingInvoice } = await supabase
-      .from('invoices')
+      .from(TABLES.INVOICES)
       .select('*')
       .eq('order_id', order.id)
       .maybeSingle();
@@ -94,14 +94,14 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
       console.log('Invoice already exists for this order');
       // Fetch invoice items
       const { data: items } = await supabase
-        .from('invoice_items')
+        .from(TABLES.INVOICE_ITEMS)
         .select('*')
         .eq('invoice_id', existingInvoice.id);
       
       return {
         ...existingInvoice,
         items: items || []
-      };
+      } as Invoice;
     }
     
     const orderItems = order.items || [];
@@ -115,7 +115,7 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
     // Create invoice items
     const invoiceItems: Omit<InvoiceItem, 'id' | 'invoice_id'>[] = orderItems.map(item => ({
       name: item.name,
-      description: item.notes || '',
+      description: item.special_instructions || '',
       quantity: item.quantity,
       unit_price: item.price,
       total_price: item.price * item.quantity,
@@ -134,7 +134,7 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
       discount_amount: discountAmount,
       final_amount: finalAmount,
       status: 'issued',
-      notes: order.special_instructions
+      notes: order.special_instructions || ''
     };
     
     return createInvoice(invoiceData, invoiceItems);

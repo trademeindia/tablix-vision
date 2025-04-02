@@ -48,8 +48,28 @@ export const calculateTax = (amount: number, taxRate: number = 5): number => {
 // Helper function to ensure invoice has required properties
 export const ensureInvoiceProperties = (invoiceData: any, itemsData: any[]): Invoice => {
   return {
-    ...invoiceData,
-    items: itemsData || [],
+    id: invoiceData.id,
+    order_id: invoiceData.order_id,
+    invoice_number: invoiceData.invoice_number,
+    restaurant_id: invoiceData.restaurant_id,
+    customer_id: invoiceData.customer_id,
+    customer_name: invoiceData.customer_name,
+    total_amount: invoiceData.total_amount,
+    tax_amount: invoiceData.tax_amount,
+    discount_amount: invoiceData.discount_amount,
+    final_amount: invoiceData.final_amount,
     status: invoiceData.status as Invoice['status'],
+    payment_method: invoiceData.payment_method,
+    payment_reference: invoiceData.payment_reference,
+    notes: invoiceData.notes,
+    created_at: invoiceData.created_at,
+    updated_at: invoiceData.updated_at,
+    items: itemsData || [],
   };
+};
+
+// Database table names
+export const TABLES = {
+  INVOICES: 'invoices',
+  INVOICE_ITEMS: 'invoice_items'
 };

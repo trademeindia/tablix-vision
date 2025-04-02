@@ -14,6 +14,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import OrdersPage from "./pages/OrdersPage";
 import InvoicesPage from "./pages/InvoicesPage";
+import CreateInvoicePage from "./pages/CreateInvoicePage";
 import GoogleDriveTestPage from "./pages/GoogleDriveTestPage";
 
 // Import placeholder pages for staff dashboard sections
@@ -57,6 +58,7 @@ const App = () => {
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/invoices" element={<InvoicesPage />} />
             <Route path="/invoices/:invoiceId" element={<InvoicesPage />} />
+            <Route path="/create-invoice" element={<CreateInvoicePage />} />
             <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
             
             {/* Staff Dashboard Routes */}

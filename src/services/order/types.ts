@@ -1,4 +1,3 @@
-
 import { Json } from '@/integrations/supabase/types';
 
 export interface OrderItem {
@@ -14,20 +13,22 @@ export interface OrderItem {
 
 export interface Order {
   id?: string;
-  restaurant_id: string;
-  table_number: string;
+  restaurant_id?: string;
+  table_number?: string;
   customer_id?: string;
-  status: 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
-  total_amount: number;
-  created_at?: string;
-  payment_status?: 'unpaid' | 'paid';
+  customer_name?: string;
+  total_amount?: number;
+  status?: 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+  payment_status?: 'unpaid' | 'paid' | 'refunded';
   payment_method?: string;
   payment_reference?: string;
   notes?: string;
-  items: OrderItem[];
+  items?: OrderItem[];
   estimated_ready_time?: string;
   actual_ready_time?: string;
   user_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Type guard to check if the status is a valid Order status
