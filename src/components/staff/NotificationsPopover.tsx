@@ -10,15 +10,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { UseRealtimeNotificationsReturn } from '@/hooks/notifications/types';
+import { Notification } from '@/hooks/notifications/types';
 
 interface NotificationsPopoverProps {
   userId?: string;
   restaurantId?: string;
-  // Update to accept the return values from the hook directly
+  // Include the notifications property in the interface
+  notifications: Notification[];
   unreadCount: number;
   isLoading: boolean;
-  notifications: any[];
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
 }

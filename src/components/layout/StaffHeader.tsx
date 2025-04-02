@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Bell, Menu, X } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
@@ -106,6 +107,8 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
               markAsRead={markAsRead}
               markAllAsRead={markAllAsRead}
               isLoading={isLoading}
+              userId={staffId}
+              restaurantId={restaurantId}
             />
           </div>
         </div>
@@ -137,6 +140,8 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
               markAsRead={markAsRead}
               markAllAsRead={markAllAsRead}
               isLoading={isLoading}
+              userId={staffId}
+              restaurantId={restaurantId}
             />
             
             <div className="flex items-center">
