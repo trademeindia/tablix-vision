@@ -53,7 +53,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <>
       {points > 0 && (
         <div className="mb-4 flex items-center justify-between bg-primary/10 rounded-lg p-3">
           <div className="flex items-center">
@@ -70,7 +70,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
         </div>
       )}
       
-      <div className="mb-4 sticky top-16 bg-background z-10 pb-2 pt-2">
+      <div className="mb-4 sticky top-16 bg-background z-10 pb-2 pt-4">
         <MenuCategories 
           categories={categories || []} 
           selectedCategory={selectedCategory} 
@@ -78,12 +78,10 @@ const MenuContent: React.FC<MenuContentProps> = ({
         />
       </div>
       
-      <div className="flex-grow overflow-auto pb-24">
-        <MenuItems 
-          items={filteredItems} 
-          onAddToOrder={onAddToOrder} 
-        />
-      </div>
+      <MenuItems 
+        items={filteredItems} 
+        onAddToOrder={onAddToOrder} 
+      />
       
       {orderItems.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 pb-safe z-50">
@@ -95,7 +93,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
           />
         </div>
       )}
-    </div>
+    </>
   );
 };
 

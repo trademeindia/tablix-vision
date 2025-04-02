@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuCategory, MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
-import { handleError } from '@/utils/errorHandling';
 
 interface UseMenuDataResult {
   categories: MenuCategory[];
@@ -17,36 +16,36 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
   const categoriesQuery = useQuery({
     queryKey: ['menuCategories', restaurantId],
     queryFn: async () => {
-      try {
-        if (!restaurantId) {
-          throw new Error('Restaurant ID is required');
-        }
-        
-        console.log("Fetching categories for restaurant:", restaurantId);
-        
-        const { data, error } = await supabase
-          .from('menu_categories')
-          .select('*')
-          .eq('restaurant_id', restaurantId)
-          .order('display_order', { ascending: true });
-        
-        if (error) {
-          throw new Error(`Error fetching categories: ${error.message}`);
-        }
-        
-        console.log("Categories fetched:", data?.length || 0, data);
-        
-        // If no categories found, we'll return an empty array instead of null
-        return (data || []) as MenuCategory[];
-      } catch (error) {
-        // Here's the issue - handleError returns an object but we need to throw the error
-        // so the query hook can handle it properly
-        handleError(error, { 
-          context: 'fetchCategories',
-          showToast: false // We'll handle toast in the component
-        });
-        throw error; // Throw the error so React Query can handle it
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      
+      console.log("Fetching categories for restaurant:", restaurantId);
+      
+      // Ensure we have a current user for RLS
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error("Error getting current user:", userError);
+        throw new Error(`Authentication error: ${userError.message}`);
       }
+      
+      if (!userData.user) {
+        console.warn("No authenticated user found. RLS policies will restrict data access.");
+      }
+      
+      const { data, error } = await supabase
+        .from('menu_categories')
+        .select('*')
+        .eq('restaurant_id', restaurantId)
+        .order('display_order', { ascending: true });
+      
+      if (error) {
+        console.error("Error fetching categories:", error);
+        throw new Error(`Error fetching categories: ${error.message}`);
+      }
+      
+      console.log("Categories fetched:", data?.length || 0, data);
+      
+      // If no categories found, we'll return an empty array instead of null
+      return (data || []) as MenuCategory[];
     },
     enabled: !!restaurantId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -56,9 +55,14 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
   const itemsQuery = useQuery({
     queryKey: ['menuItems', restaurantId],
     queryFn: async () => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      
       try {
-        if (!restaurantId) {
-          throw new Error('Restaurant ID is required');
+        // Check authentication for RLS
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting current user:", userError);
+          throw new Error(`Authentication error: ${userError.message}`);
         }
         
         const { data, error } = await supabase
@@ -67,9 +71,7 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
           .eq('restaurant_id', restaurantId)
           .eq('is_available', true);
         
-        if (error) {
-          throw new Error(`Error fetching items: ${error.message}`);
-        }
+        if (error) throw new Error(`Error fetching items: ${error.message}`);
         
         // Transform the items data
         const transformedItems = data.map(item => ({
@@ -79,12 +81,8 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
         
         return transformedItems as MenuItem[];
       } catch (error) {
-        // Same issue here - we need to throw the error after handling it
-        handleError(error, {
-          context: 'fetchMenuItems',
-          showToast: false // We'll handle toast in the component
-        });
-        throw error; // Throw the error so React Query can handle it
+        console.error("Error in fetchMenuItems query:", error);
+        throw error instanceof Error ? error : new Error(String(error));
       }
     },
     enabled: !!restaurantId,
@@ -97,9 +95,11 @@ export function useMenuData(restaurantId: string | null): UseMenuDataResult {
       await categoriesQuery.refetch();
       await itemsQuery.refetch();
     } catch (error) {
-      handleError(error, {
-        context: 'refetchMenuData',
-        showToast: true
+      console.error("Error refetching data:", error);
+      toast({
+        title: "Failed to refresh data",
+        description: "Please try again or check your connection",
+        variant: "destructive"
       });
     }
   };

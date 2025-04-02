@@ -7,30 +7,13 @@ import MenuAlerts from '@/components/menu/MenuAlerts';
 import MenuContent from '@/components/menu/MenuContent';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 
 const MenuPage = () => {
   // Use a state for restaurant ID in case we want to make it dynamic in the future
   const [restaurantId] = useState("00000000-0000-0000-0000-000000000000");
   const [isErrorVisible, setIsErrorVisible] = useState(false);
-  const { isAuthenticated, checkSession } = useAuth();
-  
-  // Verify auth status on mount
-  useEffect(() => {
-    const verifyAuth = async () => {
-      if (isAuthenticated) {
-        console.log("User is authenticated, verifying session");
-        await checkSession();
-      } else {
-        console.log("User not authenticated in MenuPage");
-      }
-    };
-    
-    verifyAuth();
-  }, [isAuthenticated, checkSession]);
   
   useEffect(() => {
     // Check for database errors and show a helpful message after a short delay
@@ -86,20 +69,10 @@ const MenuPage = () => {
     handleViewItem,
     
     // Test data status
-    usingTestData,
-    setUsingTestData
+    usingTestData
   } = useMenuPageData(restaurantId);
 
-  // Function to handle auth verification and refresh
-  const handleVerifyAndRefresh = async () => {
-    try {
-      await checkSession();
-      handleRefreshCategories();
-    } catch (err) {
-      console.error("Error during verification and refresh:", err);
-    }
-  };
-
+  // Defensive rendering to ensure the page loads even if some data is missing
   return (
     <DashboardLayout>
       <div className="container mx-auto py-6">
@@ -113,25 +86,9 @@ const MenuPage = () => {
         {isErrorVisible && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Database Connection Issue</AlertTitle>
-            <AlertDescription className="mt-2">
-              <p>There appears to be a database connection issue. This might be caused by:</p>
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li>Authentication session expired</li>
-                <li>Network connectivity issues</li>
-                <li>Supabase configuration problems</li>
-              </ul>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button variant="outline" onClick={handleVerifyAndRefresh}>
-                  Verify Auth & Refresh
-                </Button>
-                <Button 
-                  variant={usingTestData ? "default" : "outline"} 
-                  onClick={() => setUsingTestData(!usingTestData)}
-                >
-                  {usingTestData ? "Using Test Data" : "Use Test Data Instead"}
-                </Button>
-              </div>
+            <AlertDescription>
+              There appears to be a database connection issue. Please check your Supabase configuration and permissions.
+              You can continue to use the interface with test data.
             </AlertDescription>
           </Alert>
         )}

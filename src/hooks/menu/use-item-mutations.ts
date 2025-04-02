@@ -16,15 +16,13 @@ const getErrorMessage = (error: any): string => {
     } else if (message.includes('not found')) {
       return "The menu category couldn't be found. It may have been deleted.";
     } else if (message.includes('violates row level security')) {
-      return "You don't have permission to perform this action. Please verify you're logged in correctly.";
+      return "You don't have permission to perform this action. Please contact an administrator.";
     } else if (message.includes('network')) {
       return "Network error. Please check your internet connection and try again.";
     } else if (message.includes('timeout')) {
       return "The request timed out. Please try again later.";
     } else if (message.includes('required')) {
       return "Please fill in all required fields: name, price, and category.";
-    } else if (message.includes('JWT')) {
-      return "Your session has expired. Please log in again.";
     }
     
     return message;
@@ -70,18 +68,14 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         console.log("Would create item with test data:", formattedData);
         return Promise.resolve({
           ...formattedData,
-          id: `test-${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
+          id: `00000000-0000-0000-0000-${Math.floor(Math.random() * 1000000).toString().padStart(9, '0')}`,
           created_at: new Date().toISOString()
         } as MenuItem);
       }
-      
       return createMenuItem(formattedData);
     },
     onSuccess: () => {
-      // Force invalidate both menuItems and categories to ensure proper refresh
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
-      queryClient.invalidateQueries({ queryKey: ['menuCategories'] });
-      
       toast({
         title: "Item created",
         description: "The menu item has been created successfully.",
@@ -90,12 +84,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
     onError: (error: any) => {
       console.error("Create item error:", error);
       const errorMessage = getErrorMessage(error);
-      
-      // Check if it's a JWT error and redirect to login
-      if (error?.message?.includes('JWT')) {
-        window.location.href = '/auth';
-        return;
-      }
       
       toast({
         title: "Failed to create item",
@@ -134,14 +122,10 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           updated_at: new Date().toISOString()
         } as MenuItem);
       }
-      
       return updateMenuItem(id, formattedUpdates);
     },
     onSuccess: () => {
-      // Force invalidate both menuItems and categories to ensure proper refresh
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
-      queryClient.invalidateQueries({ queryKey: ['menuCategories'] });
-      
       toast({
         title: "Item updated",
         description: "The menu item has been updated successfully.",
@@ -150,12 +134,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
     onError: (error: any) => {
       console.error("Update item error:", error);
       const errorMessage = getErrorMessage(error);
-      
-      // Check if it's a JWT error and redirect to login
-      if (error?.message?.includes('JWT')) {
-        window.location.href = '/auth';
-        return;
-      }
       
       toast({
         title: "Failed to update item",
@@ -175,14 +153,10 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         console.log("Would delete item with test data:", id);
         return Promise.resolve(true);
       }
-      
       return deleteMenuItem(id);
     },
     onSuccess: () => {
-      // Force invalidate both menuItems and categories to ensure proper refresh
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
-      queryClient.invalidateQueries({ queryKey: ['menuCategories'] });
-      
       toast({
         title: "Item deleted",
         description: "The menu item has been deleted successfully.",
@@ -191,12 +165,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
     onError: (error: any) => {
       console.error("Delete item error:", error);
       const errorMessage = getErrorMessage(error);
-      
-      // Check if it's a JWT error and redirect to login
-      if (error?.message?.includes('JWT')) {
-        window.location.href = '/auth';
-        return;
-      }
       
       toast({
         title: "Failed to delete item",
