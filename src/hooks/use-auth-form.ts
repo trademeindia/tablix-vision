@@ -147,16 +147,39 @@ export const useAuthForm = () => {
         description: 'Please wait while we prepare your dashboard...'
       });
       
+      // Sign out first to clear any existing sessions
+      await useAuth().signOut();
+      
       // Try multiple times for demo login with increasing delays
-      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD, 5); // Increased max attempts
+      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD, 5);
       
       if (result.success) {
         toast({
           title: 'Demo Access Granted',
-          description: 'You are now using the demo account. Explore all features!'
+          description: 'You now have full access to the Restaurant Dashboard!',
         });
+        
+        // Force dispatch success event to ensure redirect happens
+        window.dispatchEvent(new CustomEvent('demo-login-success'));
       } else {
         console.error('Demo login failed after multiple attempts with error:', result.error);
+        
+        // One last direct sign-in attempt
+        try {
+          const lastAttempt = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+          if (lastAttempt.success) {
+            toast({
+              title: 'Demo Access Granted',
+              description: 'You now have access to the Restaurant Dashboard!',
+            });
+            
+            // Force dispatch success event to ensure redirect happens
+            window.dispatchEvent(new CustomEvent('demo-login-success'));
+            return;
+          }
+        } catch (lastError) {
+          console.error('Final login attempt failed:', lastError);
+        }
         
         // Show a more helpful error message for demo users
         setAuthError(result.error || 'Demo login failed. Please try again in a few moments.');

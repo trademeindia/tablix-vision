@@ -22,10 +22,11 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     // Slight delay to ensure signout is processed
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Attempt to force-confirm the demo account
+    // Attempt to force-confirm the demo account with absolute path to fix 404 error
     console.log('Calling force-confirm-demo endpoint');
     try {
-      const confirmResult = await fetch('/api/force-confirm-demo', {
+      const baseUrl = window.location.origin;
+      const confirmResult = await fetch(`${baseUrl}/api/force-confirm-demo`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -35,6 +36,25 @@ export const signInDemoAccount = async (email: string, password: string): Promis
       
       if (!confirmResult.ok) {
         console.warn(`Force confirm returned status ${confirmResult.status}`);
+        
+        // Try alternative format as fallback
+        try {
+          const fallbackResult = await fetch(`${baseUrl}/functions/v1/force-confirm-demo`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabase.supabaseKey
+            }
+          });
+          
+          if (fallbackResult.ok) {
+            const fallbackData = await fallbackResult.json();
+            console.log('Force confirm fallback succeeded:', fallbackData);
+          }
+        } catch (fallbackError) {
+          console.warn('Force confirm fallback failed:', fallbackError);
+        }
       } else {
         const confirmData = await confirmResult.json();
         console.log('Force confirm response:', confirmData);
@@ -45,11 +65,11 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     }
     
     // Allow a moment for confirmation to take effect
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 600));
     
     // Try multiple sign-in attempts with increasing delays
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      console.log(`Login attempt ${attempt}/3`);
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      console.log(`Login attempt ${attempt}/5`);
       
       // Sign in attempt
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -75,7 +95,7 @@ export const signInDemoAccount = async (email: string, password: string): Promis
       console.log(`Attempt ${attempt} failed:`, error?.message);
       
       // If we have more attempts to go, wait with increasing delay
-      if (attempt < 3) {
+      if (attempt < 5) {
         const delay = attempt * 800;
         console.log(`Waiting ${delay}ms before next attempt`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -85,21 +105,37 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     // If all attempts failed
     console.error('All demo login approaches failed');
     
-    // Final backup approach: try to directly get a session
+    // Final backup approach: try to directly setup auth
     try {
-      console.log('Attempting final backup approach: get session directly');
-      const { data } = await supabase.auth.getSession();
+      console.log('Attempting final backup approach: direct auth setup');
       
-      if (data?.session) {
-        console.log('Successfully retrieved session after failed logins');
+      // Try to create and immediately validate demo account directly
+      const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+        email: email,
+        password: password,
+        email_confirm: true
+      });
+      
+      if (!createError && userData) {
+        console.log('Successfully created/confirmed user directly');
         
-        // Fire success event
-        window.dispatchEvent(new CustomEvent('demo-login-success'));
+        // Now try to sign in with the confirmed account
+        const { data: signInData } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
         
-        return { success: true };
+        if (signInData?.session) {
+          console.log('Login successful after direct account creation');
+          
+          // Fire success event
+          window.dispatchEvent(new CustomEvent('demo-login-success'));
+          
+          return { success: true };
+        }
       }
-    } catch (sessionError) {
-      console.error('Final session retrieval failed:', sessionError);
+    } catch (directError) {
+      console.error('Final direct account approach failed:', directError);
     }
     
     return { 

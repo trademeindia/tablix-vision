@@ -25,10 +25,11 @@ export const DemoLoginButton: React.FC<DemoLoginButtonProps> = ({
         description: "Setting up your demo experience...",
       });
       
-      // First, try to force-confirm the demo account
+      // First, try to force-confirm the demo account using absolute path to fix 404 error
       console.log('Attempting to force-confirm demo account before login');
       try {
-        const forceConfirmResponse = await fetch('/api/force-confirm-demo', {
+        const baseUrl = window.location.origin;
+        const forceConfirmResponse = await fetch(`${baseUrl}/api/force-confirm-demo`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -36,31 +37,83 @@ export const DemoLoginButton: React.FC<DemoLoginButtonProps> = ({
           }
         });
         
-        const forceConfirmData = await forceConfirmResponse.json();
-        console.log('Force confirm response:', forceConfirmData);
+        if (!forceConfirmResponse.ok) {
+          console.warn(`Force confirm returned status ${forceConfirmResponse.status}`);
+          // Try the alternative format as fallback
+          const fallbackResponse = await fetch(`${baseUrl}/functions/v1/force-confirm-demo`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabase.supabaseKey
+            }
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            console.log('Force confirm fallback response:', fallbackData);
+          } else {
+            console.warn(`Force confirm fallback returned status ${fallbackResponse.status}`);
+          }
+        } else {
+          const forceConfirmData = await forceConfirmResponse.json();
+          console.log('Force confirm response:', forceConfirmData);
+        }
       } catch (confirmError) {
         console.warn('Force confirm demo had an issue, but continuing:', confirmError);
       }
       
       // Wait a bit for the confirmation to take effect
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Sign out first to clear any existing sessions
+      await supabase.auth.signOut();
+      console.log('Signed out any existing sessions');
       
       // Call the parent's onDemoLogin function to trigger the login
       await onDemoLogin();
       
-      // Show success toast
-      toast({
-        title: "Demo Access Granted",
-        description: "Welcome to the Restaurant Dashboard!",
-      });
-      
-      // Force navigation to dashboard
-      console.log('Forcing navigation to dashboard');
-      
       // Additional delay to ensure auth state is fully processed
       setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 800);
+        // Check if actually authenticated
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            console.log('Successfully authenticated, redirecting to dashboard');
+            
+            // Show success toast
+            toast({
+              title: "Demo Access Granted",
+              description: "Welcome to the Restaurant Dashboard!",
+            });
+            
+            // Force navigation to dashboard
+            navigate('/', { replace: true });
+          } else {
+            console.log('Not authenticated after login attempt, trying one more time');
+            // Try one more direct login attempt
+            supabase.auth.signInWithPassword({
+              email: 'demo@restaurant.com',
+              password: 'demo123456'
+            }).then(({ data, error }) => {
+              if (error) {
+                console.error('Final login attempt failed:', error);
+                toast({
+                  title: "Demo Login Issue",
+                  description: "Please try clicking the button again",
+                  variant: "destructive"
+                });
+              } else if (data.session) {
+                console.log('Final login attempt succeeded');
+                toast({
+                  title: "Demo Access Granted",
+                  description: "Welcome to the Restaurant Dashboard!",
+                });
+                navigate('/', { replace: true });
+              }
+            });
+          }
+        });
+      }, 1000);
     } catch (error) {
       console.error('Demo login failed:', error);
       toast({
