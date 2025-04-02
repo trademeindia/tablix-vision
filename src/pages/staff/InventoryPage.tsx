@@ -131,7 +131,7 @@ const initialInventoryItems: InventoryItem[] = [
   }
 ];
 
-// Categories with icons
+// Categories with icons - Fixed to use React.ElementType
 const categories = [
   { name: "All", icon: Package },
   { name: "Meat", icon: Utensils },

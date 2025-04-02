@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StockLevelFilter, { StockLevel } from './StockLevelFilter';
+import ExportButton from './ExportButton';
+import { InventoryItem } from './InventoryItemsTable';
 
 interface InventoryPageFiltersProps {
   searchQuery: string;
@@ -13,6 +15,7 @@ interface InventoryPageFiltersProps {
   setSelectedStockLevel: (level: StockLevel) => void;
   isLoading: boolean;
   onAddItemClick: () => void;
+  inventoryItems?: InventoryItem[];
 }
 
 const InventoryPageFilters: React.FC<InventoryPageFiltersProps> = ({
@@ -21,8 +24,22 @@ const InventoryPageFilters: React.FC<InventoryPageFiltersProps> = ({
   selectedStockLevel,
   setSelectedStockLevel,
   isLoading,
-  onAddItemClick
+  onAddItemClick,
+  inventoryItems = []
 }) => {
+  // Define CSV headers for export
+  const csvHeaders = [
+    { key: 'name', label: 'Name' },
+    { key: 'category', label: 'Category' },
+    { key: 'stock_level', label: 'Stock Level (%)' },
+    { key: 'quantity', label: 'Quantity' },
+    { key: 'unit', label: 'Unit' },
+    { key: 'price_per_unit', label: 'Price Per Unit' },
+    { key: 'supplier', label: 'Supplier' },
+    { key: 'last_ordered', label: 'Last Ordered' },
+    { key: 'status', label: 'Status' }
+  ];
+
   return (
     <Card className="md:col-span-1 h-fit">
       <CardHeader className="pb-3">
@@ -49,8 +66,18 @@ const InventoryPageFilters: React.FC<InventoryPageFiltersProps> = ({
           isLoading={isLoading}
         />
 
-        {/* Add Item Button (Mobile) */}
-        <div className="mt-6 block md:hidden">
+        {/* Mobile Actions */}
+        <div className="mt-6 space-y-2 block md:hidden">
+          <ExportButton 
+            data={inventoryItems}
+            headers={csvHeaders}
+            fileName="inventory-data.csv"
+            variant="outline"
+            className="w-full"
+            disabled={isLoading || inventoryItems.length === 0}
+          >
+            Export CSV
+          </ExportButton>
           <Button 
             className="w-full" 
             onClick={onAddItemClick} 

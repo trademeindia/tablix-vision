@@ -11,6 +11,12 @@ import InventoryStatsCardsSkeleton from './InventoryStatsCardsSkeleton';
 import InventoryCategorySidebarSkeleton from './InventoryCategorySidebarSkeleton';
 import AddItemDialog from './AddItemDialog';
 
+// Define the Category type to match the expected structure
+interface Category {
+  name: string;
+  icon: React.ElementType;
+}
+
 interface InventoryPageLayoutProps {
   inventoryItems: InventoryItem[];
   filteredItems: InventoryItem[];
@@ -21,7 +27,7 @@ interface InventoryPageLayoutProps {
   setSelectedCategory: (category: string) => void;
   selectedStockLevel: StockLevel;
   setSelectedStockLevel: (level: StockLevel) => void;
-  categories: Array<{ name: string; icon: React.ElementType }>;
+  categories: Category[];
   getCategoryCount: (categoryName: string) => number;
   isAddItemDialogOpen: boolean;
   setIsAddItemDialogOpen: (isOpen: boolean) => void;
@@ -110,6 +116,7 @@ const InventoryPageLayout: React.FC<InventoryPageLayoutProps> = ({
               setSearchQuery={setSearchQuery}
               isLoading={isLoading}
               onAddItemClick={() => setIsAddItemDialogOpen(true)}
+              inventoryItems={filteredItems}
             />
           </CardHeader>
           <CardContent>
