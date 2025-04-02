@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Utensils, QrCode, Users, BarChart, ShoppingCart, CloudUpload, FileText, Settings, CalendarDays, MessageSquare, PieChart, Palette, Bell, BookOpen, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Utensils, QrCode, Users, BarChart, ShoppingCart, CloudUpload, FileText, Settings, CalendarDays, MessageSquare, PieChart, Palette, Bell, BookOpen, Megaphone, Database } from 'lucide-react';
+
 const Sidebar = () => {
   // Group links by section for better organization
   const sections = [{
@@ -68,6 +69,10 @@ const Sidebar = () => {
   }, {
     title: "Settings",
     links: [{
+      to: '/settings/integrations',
+      icon: <Database className="h-5 w-5" />,
+      label: 'Integrations'
+    }, {
       to: '/settings/appearance',
       icon: <Palette className="h-5 w-5" />,
       label: 'Appearance'
@@ -81,6 +86,7 @@ const Sidebar = () => {
       label: 'General Settings'
     }]
   }];
+  
   return <div className="w-64 flex-shrink-0 h-full bg-[#1A2942] text-white shadow-lg overflow-y-auto">
       <div className="px-6 py-5 flex items-center border-b border-slate-700/50">
         <h1 className="text-xl font-bold text-center">Resturant Management</h1>
@@ -102,4 +108,5 @@ const Sidebar = () => {
       </div>
     </div>;
 };
+
 export default Sidebar;

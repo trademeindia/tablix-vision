@@ -23,6 +23,7 @@ import MarketingPage from './pages/MarketingPage';
 import CustomersPage from './pages/CustomersPage';
 import SettingsPage from './pages/settings/SettingsPage';
 import NotificationsPage from './pages/settings/NotificationsPage';
+import IntegrationsPage from './pages/settings/IntegrationsPage';
 
 // Customer pages
 import CustomerMenuPage from './pages/customer/MenuPage';
@@ -68,6 +69,7 @@ function App() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/appearance" element={<AppearancePage />} />
                 <Route path="/settings/notifications" element={<NotificationsPage />} />
+                <Route path="/settings/integrations" element={<IntegrationsPage />} />
                 
                 {/* Customer routes */}
                 <Route path="/customer/menu" element={<CustomerMenuPage />} />
