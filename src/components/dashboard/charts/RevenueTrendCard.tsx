@@ -1,16 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, ChevronDown } from 'lucide-react';
 import SalesChart from '@/components/analytics/SalesChart';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useSalesData } from '@/hooks/analytics/use-sales-data';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,22 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface RevenueTrendCardProps {
-  salesData: Array<{name: string, total: number}>;
-  salesDataLoading: boolean;
+  restaurantId?: string;
 }
 
 const RevenueTrendCard: React.FC<RevenueTrendCardProps> = ({ 
-  salesData, 
-  salesDataLoading 
+  restaurantId 
 }) => {
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('week');
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>('week');
+  const { salesData, salesDataLoading } = useSalesData(restaurantId, timeRange);
   
   const getTimeRangeLabel = () => {
     switch(timeRange) {
       case 'week': return 'This Week';
       case 'month': return 'This Month';
       case 'quarter': return 'This Quarter';
-      default: return 'This Month';
+      case 'year': return 'This Year';
+      default: return 'This Week';
     }
   };
 
@@ -60,6 +54,9 @@ const RevenueTrendCard: React.FC<RevenueTrendCardProps> = ({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setTimeRange('quarter')}>
                 This Quarter
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTimeRange('year')}>
+                This Year
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

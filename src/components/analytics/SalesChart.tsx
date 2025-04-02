@@ -18,7 +18,7 @@ interface SalesChartProps {
   isLoading: boolean;
   currency?: string;
   height?: number;
-  timeRange?: 'week' | 'month' | 'quarter';
+  timeRange?: 'week' | 'month' | 'quarter' | 'year';
 }
 
 const SalesChart: React.FC<SalesChartProps> = ({ 
@@ -38,8 +38,11 @@ const SalesChart: React.FC<SalesChartProps> = ({
     } else if (timeRange === 'month') {
       // For monthly view
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } else {
+    } else if (timeRange === 'quarter') {
       // For quarterly view
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } else {
+      // For yearly view
       return date.toLocaleDateString('en-US', { month: 'short' });
     }
   };
@@ -128,6 +131,12 @@ const SalesChart: React.FC<SalesChartProps> = ({
                 data={data}
                 margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
               >
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis 
                   dataKey="name" 
@@ -135,6 +144,7 @@ const SalesChart: React.FC<SalesChartProps> = ({
                   tick={{ fontSize: 12 }}
                   tickMargin={10}
                   stroke="#94a3b8"
+                  interval={timeRange === 'year' ? 30 : timeRange === 'quarter' ? 7 : 'preserveStartEnd'}
                 />
                 <YAxis 
                   tickFormatter={formatYAxis} 
@@ -158,8 +168,9 @@ const SalesChart: React.FC<SalesChartProps> = ({
                   type="monotone" 
                   dataKey="total" 
                   stroke="#10b981" 
+                  strokeWidth={2}
                   fillOpacity={0.2}
-                  fill="#10b981" 
+                  fill="url(#colorTotal)" 
                 />
               </AreaChart>
             </ResponsiveContainer>

@@ -43,7 +43,8 @@ export function useSalesData(
         const today = new Date();
         const dataPoints = timeRange === 'week' ? 7 : 
                            timeRange === 'month' ? 30 : 
-                           timeRange === 'quarter' ? 90 : 14;
+                           timeRange === 'quarter' ? 90 : 
+                           timeRange === 'year' ? 365 : 14;
                            
         const sampleData = Array(dataPoints).fill(0).map((_, index) => {
           const date = new Date();
