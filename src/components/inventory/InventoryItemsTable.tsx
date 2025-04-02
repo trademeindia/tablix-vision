@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Table, 
@@ -18,8 +19,9 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Package, MoreVertical, Loader2 } from 'lucide-react';
+import { Package, MoreVertical } from 'lucide-react';
 import InventoryItemsTableSkeleton from './InventoryItemsTableSkeleton';
+import { StockLevel } from './StockLevelFilter';
 
 export interface InventoryItem {
   id: number;
@@ -39,6 +41,7 @@ interface InventoryItemsTableProps {
   isLoading: boolean;
   searchQuery: string;
   selectedCategory: string;
+  selectedStockLevel?: StockLevel;
   onAddItem: () => void;
 }
 
@@ -47,6 +50,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
   isLoading,
   searchQuery,
   selectedCategory,
+  selectedStockLevel = "all",
   onAddItem,
 }) => {
   if (isLoading) {
@@ -63,7 +67,9 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
             "No items match your search query." : 
             selectedCategory !== "All" ? 
               `No items in the ${selectedCategory} category.` : 
-              "Your inventory is empty. Add some items to get started."}
+              selectedStockLevel !== "all" ?
+                `No items with ${selectedStockLevel} stock level.` :
+                "Your inventory is empty. Add some items to get started."}
         </p>
         <Button onClick={onAddItem}>
           <span className="mr-2">+</span>
@@ -99,7 +105,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
                       value={item.stock_level} 
                       className={`h-2 w-16 sm:w-24 ${
                         item.stock_level <= 25 ? "bg-red-200" :
-                        item.stock_level <= 50 ? "bg-amber-200" : 
+                        item.stock_level <= 75 ? "bg-amber-200" : 
                         "bg-green-200"
                       }`}
                     />
@@ -109,7 +115,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
                         width: `${item.stock_level}%`,
                         maxWidth: "24rem",
                         backgroundColor: item.stock_level <= 25 ? "#ef4444" :
-                                        item.stock_level <= 50 ? "#f59e0b" : 
+                                        item.stock_level <= 75 ? "#f59e0b" : 
                                         "#22c55e",
                       }}
                     />

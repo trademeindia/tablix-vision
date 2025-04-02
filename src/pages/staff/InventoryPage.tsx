@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import InventoryCategorySidebar from '@/components/inventory/InventoryCategorySi
 import InventoryCategorySidebarSkeleton from '@/components/inventory/InventoryCategorySidebarSkeleton';
 import InventoryItemsTable, { InventoryItem } from '@/components/inventory/InventoryItemsTable';
 import AddItemDialog from '@/components/inventory/AddItemDialog';
+import StockLevelFilter, { StockLevel } from '@/components/inventory/StockLevelFilter';
 
 // Demo inventory data - We'll use this initially and then replace with Supabase data
 const initialInventoryItems: InventoryItem[] = [
@@ -155,6 +157,7 @@ const categories = [
 const InventoryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStockLevel, setSelectedStockLevel] = useState<StockLevel>("all");
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -191,12 +194,19 @@ const InventoryPage = () => {
     fetchInventoryItems();
   }, [toast]);
   
-  // Filter items based on search query and category
+  // Filter items based on search query, category, and stock level
   const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.supplier.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    
+    // Filter by stock level
+    const matchesStockLevel = selectedStockLevel === "all" || 
+                             (selectedStockLevel === "low" && item.stock_level <= 25) ||
+                             (selectedStockLevel === "medium" && item.stock_level > 25 && item.stock_level <= 75) ||
+                             (selectedStockLevel === "high" && item.stock_level > 75);
+    
+    return matchesSearch && matchesCategory && matchesStockLevel;
   });
   
   // Count items in each category
@@ -263,12 +273,28 @@ const InventoryPage = () => {
           {isLoading ? (
             <InventoryCategorySidebarSkeleton />
           ) : (
-            <InventoryCategorySidebar
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              getCategoryCount={getCategoryCount}
-            />
+            <div className="flex flex-col space-y-6">
+              <InventoryCategorySidebar
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                getCategoryCount={getCategoryCount}
+              />
+              
+              {/* Stock Level Filter */}
+              <Card className="md:col-span-1 h-fit">
+                <CardHeader className="pb-3">
+                  <CardTitle>Filter</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <StockLevelFilter 
+                    selectedStockLevel={selectedStockLevel}
+                    onSelectStockLevel={setSelectedStockLevel}
+                    isLoading={isLoading}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           )}
           
           {/* Inventory Table */}
@@ -301,6 +327,7 @@ const InventoryPage = () => {
                 isLoading={isLoading}
                 searchQuery={searchQuery}
                 selectedCategory={selectedCategory}
+                selectedStockLevel={selectedStockLevel}
                 onAddItem={() => setIsAddItemDialogOpen(true)}
               />
             </CardContent>
