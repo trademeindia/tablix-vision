@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -36,7 +37,8 @@ export const useAuthForm = () => {
     defaultValues: {
       email: '',
       password: ''
-    }
+    },
+    mode: 'onBlur' // Validate on blur for better UX
   });
 
   // Clear error when tab changes or form is edited
@@ -48,9 +50,14 @@ export const useAuthForm = () => {
   const preFillDemoCredentials = () => {
     form.setValue('email', DEMO_EMAIL);
     form.setValue('password', DEMO_PASSWORD);
+    
+    // Clear any validation errors
+    form.clearErrors();
   };
 
   const onSubmit = async (values: AuthFormValues) => {
+    if (isLoading) return; // Prevent multiple submissions
+    
     setIsLoading(true);
     setAuthError(null);
     
@@ -106,6 +113,8 @@ export const useAuthForm = () => {
   };
 
   const handleDemoLogin = async () => {
+    if (isDemoLoading) return; // Prevent multiple submissions
+    
     setIsDemoLoading(true);
     setAuthError(null);
     
@@ -114,6 +123,9 @@ export const useAuthForm = () => {
       
       // Fill the form with demo credentials for better UX
       preFillDemoCredentials();
+      
+      // Short delay to let the form update visually
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const { success, error } = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
       

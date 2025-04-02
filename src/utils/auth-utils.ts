@@ -91,15 +91,17 @@ export const signUpWithEmail = async (email: string, password: string, userData?
         title: "Account created",
         description: "Please check your email to verify your account before signing in.",
       });
+      return { success: true };
     } else if (data.session) {
       // User was created and automatically signed in
       toast({
         title: "Sign up successful",
         description: "You've been automatically signed in.",
       });
+      return { success: true };
+    } else {
+      return { success: false, error: 'Something went wrong during signup. Please try again.' };
     }
-    
-    return { success: true };
   } catch (error: any) {
     handleError(error, { 
       context: 'Unexpected error in signUp',

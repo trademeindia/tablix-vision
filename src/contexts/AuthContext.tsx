@@ -15,11 +15,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Set up auth state listener and check for existing session
   useEffect(() => {
     console.log('Setting up auth state listener');
+    let mounted = true;
     
     // 1. Set up the auth state listener FIRST (to catch any auth events during initialization)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event, 'Session:', currentSession?.user?.email ?? 'No user');
+        
+        if (!mounted) return;
         
         if (currentSession) {
           setSession(currentSession);
@@ -29,7 +32,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
         }
         
-        setIsLoading(false);
+        // Only update loading state if the component is still mounted
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     );
 
@@ -44,17 +50,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             category: 'auth',
             showToast: false
           });
+          if (mounted) setIsLoading(false);
           return;
         }
         
         if (data.session) {
           console.log('Found existing session for user:', data.session.user.email);
-          setSession(data.session);
-          setUser(data.session.user);
+          if (mounted) {
+            setSession(data.session);
+            setUser(data.session.user);
+          }
         } else {
           console.log('No existing session found');
-          setSession(null);
-          setUser(null);
+          if (mounted) {
+            setSession(null);
+            setUser(null);
+          }
         }
       } catch (error) {
         handleError(error, { 
@@ -63,13 +74,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           showToast: false
         });
       } finally {
-        setIsLoading(false);
+        // Only update loading state if the component is still mounted
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     // Run session check and cleanup subscription when component unmounts
     checkInitialSession();
+    
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);

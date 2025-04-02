@@ -57,22 +57,22 @@ const App = () => {
               {/* Authentication page */}
               <Route path="/auth" element={<AuthPage />} />
               
-              {/* Restaurant management routes - protected but bypassed for development */}
-              <Route path="/" element={<ProtectedRoute requiredAuth={false}><Index /></ProtectedRoute>} />
-              <Route path="/menu" element={<ProtectedRoute requiredAuth={false}><MenuPage /></ProtectedRoute>} />
-              <Route path="/qr-codes" element={<ProtectedRoute requiredAuth={false}><QRCodePage /></ProtectedRoute>} />
-              <Route path="/tables" element={<ProtectedRoute requiredAuth={false}><TablesPage /></ProtectedRoute>} />
-              <Route path="/staff" element={<ProtectedRoute requiredAuth={false}><StaffPage /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute requiredAuth={false}><OrdersPage /></ProtectedRoute>} />
-              <Route path="/google-drive-test" element={<ProtectedRoute requiredAuth={false}><GoogleDriveTestPage /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute requiredAuth={false}><AnalyticsPage /></ProtectedRoute>} />
+              {/* Restaurant management routes */}
+              <Route path="/" element={<ProtectedRoute requiredAuth={true}><Index /></ProtectedRoute>} />
+              <Route path="/menu" element={<ProtectedRoute requiredAuth={true}><MenuPage /></ProtectedRoute>} />
+              <Route path="/qr-codes" element={<ProtectedRoute requiredAuth={true}><QRCodePage /></ProtectedRoute>} />
+              <Route path="/tables" element={<ProtectedRoute requiredAuth={true}><TablesPage /></ProtectedRoute>} />
+              <Route path="/staff" element={<ProtectedRoute requiredAuth={true}><StaffPage /></ProtectedRoute>} />
+              <Route path="/orders" element={<ProtectedRoute requiredAuth={true}><OrdersPage /></ProtectedRoute>} />
+              <Route path="/google-drive-test" element={<ProtectedRoute requiredAuth={true}><GoogleDriveTestPage /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute requiredAuth={true}><AnalyticsPage /></ProtectedRoute>} />
               
-              {/* Staff Dashboard Routes - protected but bypassed for development */}
-              <Route path="/staff-dashboard" element={<ProtectedRoute requiredAuth={false}><StaffDashboardPage /></ProtectedRoute>} />
-              <Route path="/staff-dashboard/orders" element={<ProtectedRoute requiredAuth={false}><StaffOrdersPage /></ProtectedRoute>} />
-              <Route path="/staff-dashboard/kitchen" element={<ProtectedRoute requiredAuth={false}><KitchenPage /></ProtectedRoute>} />
-              <Route path="/staff-dashboard/inventory" element={<ProtectedRoute requiredAuth={false}><InventoryPage /></ProtectedRoute>} />
-              <Route path="/staff-dashboard/reports" element={<ProtectedRoute requiredAuth={false}><ReportsPage /></ProtectedRoute>} />
+              {/* Staff Dashboard Routes */}
+              <Route path="/staff-dashboard" element={<ProtectedRoute requiredAuth={true}><StaffDashboardPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/orders" element={<ProtectedRoute requiredAuth={true}><StaffOrdersPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/kitchen" element={<ProtectedRoute requiredAuth={true}><KitchenPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/inventory" element={<ProtectedRoute requiredAuth={true}><InventoryPage /></ProtectedRoute>} />
+              <Route path="/staff-dashboard/reports" element={<ProtectedRoute requiredAuth={true}><ReportsPage /></ProtectedRoute>} />
               
               {/* Public Customer Facing Routes */}
               <Route path="/customer-menu" element={<CustomerMenuPage />} />

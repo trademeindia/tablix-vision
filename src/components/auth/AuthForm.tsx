@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuthForm } from '@/hooks/use-auth-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -20,6 +20,11 @@ export const AuthForm: React.FC = () => {
     onSubmit,
     handleDemoLogin
   } = useAuthForm();
+
+  // Reset form validation state when tab changes
+  useEffect(() => {
+    form.reset();
+  }, [activeTab, form]);
 
   return (
     <div className="w-full max-w-md overflow-hidden bg-white rounded-xl shadow-lg border border-gray-100">
