@@ -1,21 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Plus, Package, Utensils, Coffee, Wine } from 'lucide-react';
 import StaffDashboardLayout from "@/components/layout/StaffDashboardLayout";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-// Component imports
-import InventoryStatsCards from '@/components/inventory/InventoryStatsCards';
-import InventoryStatsCardsSkeleton from '@/components/inventory/InventoryStatsCardsSkeleton';
-import InventoryCategorySidebar from '@/components/inventory/InventoryCategorySidebar';
-import InventoryCategorySidebarSkeleton from '@/components/inventory/InventoryCategorySidebarSkeleton';
-import InventoryItemsTable, { InventoryItem } from '@/components/inventory/InventoryItemsTable';
-import AddItemDialog from '@/components/inventory/AddItemDialog';
-import StockLevelFilter, { StockLevel } from '@/components/inventory/StockLevelFilter';
+import { Package, Utensils, Coffee, Wine } from 'lucide-react';
+import { InventoryItem } from '@/components/inventory/InventoryItemsTable';
+import InventoryPageLayout from '@/components/inventory/InventoryPageLayout';
+import { StockLevel } from '@/components/inventory/StockLevelFilter';
 
 // Demo inventory data - We'll use this initially and then replace with Supabase data
 const initialInventoryItems: InventoryItem[] = [
@@ -242,105 +232,35 @@ const InventoryPage = () => {
       description: `${formData.name} has been added to inventory`,
     });
   };
+
+  // Prepare stats data
+  const statsData = {
+    totalItems: inventoryItems.length,
+    categoryCount: categories.length - 1, // Subtract 'All' category
+    lowStockCount,
+    lastOrderDate: "May 17",
+    inventoryValue: "$12,580",
+    inventoryTrend: "+2.5% from last month"
+  };
   
   return (
     <StaffDashboardLayout>
-      <div className="flex flex-col space-y-6">
-        <div className="flex flex-col space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Inventory Management</h2>
-          <p className="text-muted-foreground">
-            Track and manage your restaurant's inventory items
-          </p>
-        </div>
-        
-        {/* Stats Cards */}
-        {isLoading ? (
-          <InventoryStatsCardsSkeleton />
-        ) : (
-          <InventoryStatsCards
-            totalItems={inventoryItems.length}
-            categoryCount={categories.length - 1}
-            lowStockCount={lowStockCount}
-            lastOrderDate="May 17"
-            inventoryValue="$12,580"
-            inventoryTrend="+2.5% from last month"
-          />
-        )}
-        
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-          {/* Categories Sidebar */}
-          {isLoading ? (
-            <InventoryCategorySidebarSkeleton />
-          ) : (
-            <div className="flex flex-col space-y-6">
-              <InventoryCategorySidebar
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                getCategoryCount={getCategoryCount}
-              />
-              
-              {/* Stock Level Filter */}
-              <Card className="md:col-span-1 h-fit">
-                <CardHeader className="pb-3">
-                  <CardTitle>Filter</CardTitle>
-                </CardHeader>
-                <CardContent className="px-4">
-                  <StockLevelFilter 
-                    selectedStockLevel={selectedStockLevel}
-                    onSelectStockLevel={setSelectedStockLevel}
-                    isLoading={isLoading}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          )}
-          
-          {/* Inventory Table */}
-          <Card className="md:col-span-3">
-            <CardHeader className="pb-4">
-              <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                <CardTitle>Inventory Items</CardTitle>
-                <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search items..."
-                      className="pl-8 w-full sm:w-[200px] md:w-[250px]"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <Button onClick={() => setIsAddItemDialogOpen(true)} disabled={isLoading}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <InventoryItemsTable
-                items={filteredItems}
-                isLoading={isLoading}
-                searchQuery={searchQuery}
-                selectedCategory={selectedCategory}
-                selectedStockLevel={selectedStockLevel}
-                onAddItem={() => setIsAddItemDialogOpen(true)}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      
-      {/* Add Item Dialog */}
-      <AddItemDialog
-        isOpen={isAddItemDialogOpen}
-        onClose={() => setIsAddItemDialogOpen(false)}
-        onAddItem={handleAddItem}
+      <InventoryPageLayout
+        inventoryItems={inventoryItems}
+        filteredItems={filteredItems}
+        isLoading={isLoading}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        selectedStockLevel={selectedStockLevel}
+        setSelectedStockLevel={setSelectedStockLevel}
         categories={categories}
+        getCategoryCount={getCategoryCount}
+        isAddItemDialogOpen={isAddItemDialogOpen}
+        setIsAddItemDialogOpen={setIsAddItemDialogOpen}
+        handleAddItem={handleAddItem}
+        statsData={statsData}
       />
     </StaffDashboardLayout>
   );
