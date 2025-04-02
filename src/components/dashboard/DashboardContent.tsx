@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAnalytics } from '@/hooks/use-analytics';
+import { useAnalytics } from '@/hooks/analytics';
 import PerformanceMetricsTabs from './performance/PerformanceMetricsTabs';
 import RevenueTrendCard from './charts/RevenueTrendCard';
 import PopularItems from './PopularItems';

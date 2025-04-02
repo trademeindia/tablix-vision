@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { useAnalytics } from '@/hooks/use-analytics';
+import { useAnalytics } from '@/hooks/analytics';
 import RevenueStats from '@/components/analytics/RevenueStats';
 import OrderStats from '@/components/analytics/OrderStats';
 import PopularItems from '@/components/analytics/PopularItems';

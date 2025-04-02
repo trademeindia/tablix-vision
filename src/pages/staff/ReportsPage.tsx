@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import StaffDashboardLayout from '@/components/layout/StaffDashboardLayout';
-import { useAnalytics } from '@/hooks/use-analytics';
+import { useAnalytics } from '@/hooks/analytics';
 import RevenueStats from '@/components/analytics/RevenueStats';
 import OrderStats from '@/components/analytics/OrderStats';
 import PopularItems from '@/components/analytics/PopularItems';
