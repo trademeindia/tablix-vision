@@ -54,14 +54,14 @@ export const ThemeProvider = ({ children, restaurantId }: { children: React.Reac
         
         const { data, error } = await supabase
           .from('restaurants')
-          .select('theme_colors')
+          .select('theme_settings')
           .eq('id', restaurantId)
           .single();
         
         if (error) throw error;
         
-        if (data && data.theme_colors) {
-          setThemeState(data.theme_colors as ThemeColors);
+        if (data && data.theme_settings) {
+          setThemeState(data.theme_settings as ThemeColors);
         }
       } catch (err) {
         console.error('Error fetching theme:', err);
@@ -84,7 +84,7 @@ export const ThemeProvider = ({ children, restaurantId }: { children: React.Reac
 
       const { error } = await supabase
         .from('restaurants')
-        .update({ theme_colors: newTheme })
+        .update({ theme_settings: newTheme })
         .eq('id', restaurantId);
 
       if (error) throw error;
