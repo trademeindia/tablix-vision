@@ -32,7 +32,6 @@ enabled = true
 
 # Edge Functions Configuration
 [functions]
-enabled = true
 
 [functions.clear-session]
 verify_jwt = false
