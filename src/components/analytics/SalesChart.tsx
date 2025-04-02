@@ -2,25 +2,46 @@
 import React from 'react';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  ReferenceLine 
+} from 'recharts';
 
 interface SalesChartProps {
   data: Array<{name: string, total: number}>;
   isLoading: boolean;
   currency?: string;
   height?: number;
+  timeRange?: 'week' | 'month' | 'quarter';
 }
 
 const SalesChart: React.FC<SalesChartProps> = ({ 
   data, 
   isLoading,
   currency = 'USD',
-  height = 300
+  height = 300,
+  timeRange = 'week'
 }) => {
-  // Format the date for display
+  // Format the date for display based on time range
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    
+    if (timeRange === 'week') {
+      // For weekly view, show day of week
+      return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+    } else if (timeRange === 'month') {
+      // For monthly view
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } else {
+      // For quarterly view
+      return date.toLocaleDateString('en-US', { month: 'short' });
+    }
   };
 
   // Format the tooltip value as currency
@@ -42,6 +63,15 @@ const SalesChart: React.FC<SalesChartProps> = ({
     }
   };
 
+  // Calculate the average value for the reference line
+  const calculateAverage = () => {
+    if (data.length === 0) return 0;
+    const sum = data.reduce((acc, curr) => acc + curr.total, 0);
+    return sum / data.length;
+  };
+  
+  const average = calculateAverage();
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -50,6 +80,15 @@ const SalesChart: React.FC<SalesChartProps> = ({
           <p className="text-emerald-600 font-bold">
             {formatCurrency(payload[0].value)}
           </p>
+          {payload[0].value > average ? (
+            <p className="text-xs text-green-500">
+              {Math.round((payload[0].value - average) / average * 100)}% above average
+            </p>
+          ) : (
+            <p className="text-xs text-red-500">
+              {Math.round((average - payload[0].value) / average * 100)}% below average
+            </p>
+          )}
         </div>
       );
     }
@@ -104,6 +143,17 @@ const SalesChart: React.FC<SalesChartProps> = ({
                   stroke="#94a3b8"
                 />
                 <Tooltip content={<CustomTooltip />} />
+                <ReferenceLine 
+                  y={average} 
+                  stroke="#94a3b8" 
+                  strokeDasharray="3 3" 
+                  label={{ 
+                    value: "Avg", 
+                    position: "insideTopRight",
+                    fill: "#94a3b8",
+                    fontSize: 10
+                  }} 
+                />
                 <Area 
                   type="monotone" 
                   dataKey="total" 
