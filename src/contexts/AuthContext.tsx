@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-import { signInWithEmail, signUpWithEmail, signOutUser, checkCurrentSession } from '@/utils/auth-utils';
+import { signInWithEmail, signUpWithEmail, signOutUser, checkCurrentSession } from '@/utils/auth';
 import AuthContext from './auth/useAuthContext';
 import { AuthProviderProps } from './auth/types';
 import { handleError } from '@/utils/errorHandling';
