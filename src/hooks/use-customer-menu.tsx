@@ -5,7 +5,7 @@ import { useQRCode } from '@/hooks/use-qr-code';
 import { useQRDataParser } from '@/hooks/use-qr-data-parser';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { generateTestMenuData } from '@/services/menuService';
+import { generateTestMenuData } from '@/services/menu';
 import { toast } from '@/hooks/use-toast';
 
 export function useCustomerMenu() {

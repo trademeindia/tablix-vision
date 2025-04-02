@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchMenuCategories, createMenuCategory } from '@/services/menuService';
+import { fetchMenuCategories, createMenuCategory } from '@/services/menu';
 import { MenuCategory } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 import { TEST_CATEGORIES } from './test-data';

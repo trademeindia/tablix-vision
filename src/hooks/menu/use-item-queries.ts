@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchMenuItems } from '@/services/menuService';
+import { fetchMenuItems } from '@/services/menu';
 import { MenuItem } from '@/types/menu';
 import { TEST_MENU_ITEMS } from './test-data';
 import { toast } from '@/hooks/use-toast';
