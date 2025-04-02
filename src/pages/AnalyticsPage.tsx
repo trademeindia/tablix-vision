@@ -33,6 +33,7 @@ const AnalyticsPage = () => {
           monthlyRevenue={revenueData.month}
           yearlyRevenue={revenueData.year}
           isLoading={revenueData.isLoading}
+          currency="INR"
         />
         
         <OrderStats
@@ -54,7 +55,8 @@ const AnalyticsPage = () => {
         <div className="lg:col-span-2">
           <SalesChart 
             data={salesData} 
-            isLoading={salesDataLoading} 
+            isLoading={salesDataLoading}
+            currency="INR"
           />
         </div>
       </div>

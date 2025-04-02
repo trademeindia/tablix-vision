@@ -25,9 +25,12 @@ const SalesChart: React.FC<SalesChartProps> = ({
 
   // Format the tooltip value as currency
   const formatCurrency = (value: number) => {
+    // Ensure valid currency code
+    const validCurrency = currency === '₹' || currency === 'INR' ? 'INR' : currency;
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: validCurrency,
     }).format(value);
   };
 
@@ -43,6 +46,14 @@ const SalesChart: React.FC<SalesChartProps> = ({
       );
     }
     return null;
+  };
+
+  // Format Y-axis labels with appropriate currency symbol
+  const formatYAxis = (value: number) => {
+    if (currency === 'INR' || currency === '₹') {
+      return `₹${value}`;
+    }
+    return `${currency === 'USD' ? '$' : ''}${value}`;
   };
 
   return (
@@ -74,7 +85,7 @@ const SalesChart: React.FC<SalesChartProps> = ({
                   stroke="#94a3b8"
                 />
                 <YAxis 
-                  tickFormatter={(value) => `${currency === 'USD' ? '$' : ''}${value}`} 
+                  tickFormatter={formatYAxis} 
                   tick={{ fontSize: 12 }}
                   tickMargin={10}
                   stroke="#94a3b8"

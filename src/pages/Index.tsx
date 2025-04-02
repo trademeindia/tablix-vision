@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentOrders from '@/components/dashboard/RecentOrders';
@@ -188,7 +187,7 @@ const Index = () => {
                   data={salesData} 
                   isLoading={salesDataLoading}
                   height={250}
-                  currency="₹"
+                  currency="INR"
                 />
               </CardContent>
             </Card>
