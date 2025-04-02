@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -40,28 +41,38 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Search, 
   Plus, 
   MoreVertical, 
-  Filter, 
-  ArrowUpDown, 
-  AlertTriangle, 
   Package, 
+  AlertTriangle, 
+  ShoppingCart, 
   Utensils, 
   Coffee, 
-  Wine, 
-  ShoppingCart 
+  Wine
 } from "lucide-react";
 import StaffDashboardLayout from "@/components/layout/StaffDashboardLayout";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-// Demo inventory data
-const inventoryItems = [
+// Type definitions
+interface InventoryItem {
+  id: number;
+  name: string;
+  category: string;
+  stock_level: number;
+  unit: string;
+  quantity: number;
+  price_per_unit: number;
+  supplier: string;
+  last_ordered: string;
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+}
+
+// Demo inventory data - We'll use this initially and then replace with Supabase data
+const initialInventoryItems: InventoryItem[] = [
   {
     id: 1,
     name: "Chicken Breast",
@@ -185,7 +196,13 @@ const inventoryItems = [
 ];
 
 // Categories with icons
-const categories = [
+interface Category {
+  name: string;
+  icon: React.ElementType;
+  count?: number;
+}
+
+const categories: Category[] = [
   { name: "All", icon: Package },
   { name: "Meat", icon: Utensils },
   { name: "Vegetables", icon: Utensils },
@@ -201,6 +218,40 @@ const InventoryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  
+  // In a real app, we would fetch data from Supabase
+  useEffect(() => {
+    const fetchInventoryItems = async () => {
+      setIsLoading(true);
+      try {
+        // This would be replaced with actual Supabase query
+        // const { data, error } = await supabase
+        //   .from('inventory_items')
+        //   .select('*');
+        
+        // if (error) throw error;
+        // if (data) setInventoryItems(data);
+        
+        // For now, we'll use the demo data
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+        setInventoryItems(initialInventoryItems);
+      } catch (error) {
+        console.error('Error fetching inventory items:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load inventory items',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchInventoryItems();
+  }, [toast]);
   
   // Filter items based on search query and category
   const filteredItems = inventoryItems.filter(item => {
@@ -210,8 +261,39 @@ const InventoryPage = () => {
     return matchesSearch && matchesCategory;
   });
   
+  // Count items in each category
+  const getCategoryCount = (categoryName: string) => {
+    if (categoryName === "All") return inventoryItems.length;
+    return inventoryItems.filter(item => item.category === categoryName).length;
+  };
+  
   // Count low stock items
   const lowStockCount = inventoryItems.filter(item => item.status === "Low Stock").length;
+  
+  const handleAddItem = (formData: any) => {
+    // In a real app, this would send data to Supabase
+    // For demo purposes, we'll just add it to the local state
+    const newItem: InventoryItem = {
+      id: inventoryItems.length + 1,
+      name: formData.name,
+      category: formData.category,
+      stock_level: 100, // New items start at 100%
+      unit: formData.unit,
+      quantity: parseInt(formData.quantity),
+      price_per_unit: parseFloat(formData.price),
+      supplier: formData.supplier,
+      last_ordered: new Date().toISOString().split('T')[0],
+      status: "In Stock"
+    };
+    
+    setInventoryItems([...inventoryItems, newItem]);
+    setIsAddItemDialogOpen(false);
+    
+    toast({
+      title: 'Success',
+      description: `${formData.name} has been added to inventory`,
+    });
+  };
   
   return (
     <StaffDashboardLayout>
@@ -298,14 +380,14 @@ const InventoryPage = () => {
         </div>
         
         {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
           {/* Categories Sidebar */}
-          <Card className="md:col-span-1">
-            <CardHeader>
+          <Card className="md:col-span-1 h-fit">
+            <CardHeader className="pb-3">
               <CardTitle>Categories</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+            <CardContent className="px-2">
+              <div className="space-y-1">
                 {categories.map((category) => (
                   <Button
                     key={category.name}
@@ -315,13 +397,9 @@ const InventoryPage = () => {
                   >
                     <category.icon className="mr-2 h-4 w-4" />
                     {category.name}
-                    {category.name === "All" ? (
-                      <Badge className="ml-auto">{inventoryItems.length}</Badge>
-                    ) : (
-                      <Badge className="ml-auto">
-                        {inventoryItems.filter(item => item.category === category.name).length}
-                      </Badge>
-                    )}
+                    <Badge className="ml-auto" variant="secondary">
+                      {getCategoryCount(category.name)}
+                    </Badge>
                   </Button>
                 ))}
               </div>
@@ -329,17 +407,17 @@ const InventoryPage = () => {
           </Card>
           
           {/* Inventory Table */}
-          <Card className="md:col-span-5">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+          <Card className="md:col-span-3">
+            <CardHeader className="pb-4">
+              <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                 <CardTitle>Inventory Items</CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Search items..."
-                      className="w-[200px] pl-8 md:w-[300px]"
+                      className="pl-8 w-full sm:w-[200px] md:w-[250px]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -352,70 +430,100 @@ const InventoryPage = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Stock Level</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{item.category}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress 
-                              value={item.stock_level} 
-                              className="h-2" 
-                            />
-                            <span className="text-xs text-muted-foreground">
-                              {item.stock_level}%
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {item.quantity} {item.unit}
-                        </TableCell>
-                        <TableCell>${item.price_per_unit}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={item.status === "In Stock" ? "default" : "destructive"}
-                          >
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>Edit Item</DropdownMenuItem>
-                              <DropdownMenuItem>Order More</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                Delete Item
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <p>Loading inventory items...</p>
+                </div>
+              ) : filteredItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No items found</h3>
+                  <p className="text-muted-foreground mb-4 max-w-md">
+                    {searchQuery ? 
+                      "No items match your search query." : 
+                      selectedCategory !== "All" ? 
+                        `No items in the ${selectedCategory} category.` : 
+                        "Your inventory is empty. Add some items to get started."}
+                  </p>
+                  <Button onClick={() => setIsAddItemDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Item
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead className="hidden md:table-cell">Category</TableHead>
+                          <TableHead>Stock Level</TableHead>
+                          <TableHead className="hidden sm:table-cell">Quantity</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell className="font-medium">{item.name}</TableCell>
+                            <TableCell className="hidden md:table-cell">{item.category}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress 
+                                  value={item.stock_level} 
+                                  className="h-2 w-16 sm:w-24" 
+                                  indicatorColor={
+                                    item.stock_level <= 25 ? "bg-red-500" :
+                                    item.stock_level <= 50 ? "bg-amber-500" : 
+                                    "bg-green-500"
+                                  }
+                                />
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                  {item.stock_level}%
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell whitespace-nowrap">
+                              {item.quantity} {item.unit}
+                            </TableCell>
+                            <TableCell>${item.price_per_unit.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={item.status === "In Stock" ? "default" : "destructive"}
+                                className="whitespace-nowrap"
+                              >
+                                {item.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem>Edit Item</DropdownMenuItem>
+                                  <DropdownMenuItem>Order More</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    Delete Item
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -430,62 +538,75 @@ const InventoryPage = () => {
               Enter the details of the new inventory item.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="name">Item Name</label>
-              <Input id="name" placeholder="Enter item name" />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="category">Category</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.filter(c => c.name !== "All").map((category) => (
-                    <SelectItem key={category.name} value={category.name}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleAddItem({
+              name: formData.get('name'),
+              category: formData.get('category'),
+              quantity: formData.get('quantity'),
+              unit: formData.get('unit'),
+              price: formData.get('price'),
+              supplier: formData.get('supplier')
+            });
+          }}>
+            <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <label htmlFor="quantity">Quantity</label>
-                <Input id="quantity" type="number" placeholder="0" />
+                <label htmlFor="name" className="text-sm font-medium">Item Name</label>
+                <Input id="name" name="name" placeholder="Enter item name" required />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="unit">Unit</label>
-                <Select>
+                <label htmlFor="category" className="text-sm font-medium">Category</label>
+                <Select name="category" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                    <SelectItem value="liters">Liters</SelectItem>
-                    <SelectItem value="units">Units</SelectItem>
-                    <SelectItem value="bottles">Bottles</SelectItem>
-                    <SelectItem value="boxes">Boxes</SelectItem>
+                    {categories.filter(c => c.name !== "All").map((category) => (
+                      <SelectItem key={category.name} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <label htmlFor="quantity" className="text-sm font-medium">Quantity</label>
+                  <Input id="quantity" name="quantity" type="number" placeholder="0" min="1" required />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="unit" className="text-sm font-medium">Unit</label>
+                  <Select name="unit" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                      <SelectItem value="liters">Liters</SelectItem>
+                      <SelectItem value="units">Units</SelectItem>
+                      <SelectItem value="bottles">Bottles</SelectItem>
+                      <SelectItem value="boxes">Boxes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="price" className="text-sm font-medium">Price per Unit ($)</label>
+                <Input id="price" name="price" type="number" step="0.01" placeholder="0.00" min="0.01" required />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="supplier" className="text-sm font-medium">Supplier</label>
+                <Input id="supplier" name="supplier" placeholder="Enter supplier name" required />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <label htmlFor="price">Price per Unit ($)</label>
-              <Input id="price" type="number" step="0.01" placeholder="0.00" />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="supplier">Supplier</label>
-              <Input id="supplier" placeholder="Enter supplier name" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddItemDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => setIsAddItemDialogOpen(false)}>Add Item</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button variant="outline" type="button" onClick={() => setIsAddItemDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Add Item</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </StaffDashboardLayout>
