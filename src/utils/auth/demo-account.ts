@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { SUPABASE_ANON_KEY } from '@/constants/supabase-constants';
 
 /**
  * Enhanced sign-in method for demo account with direct dashboard access
@@ -44,8 +45,7 @@ export const signInDemoAccount = async (email: string, password: string): Promis
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
-              // Use a hardcoded key instead of accessing protected property
-              'apikey': process.env.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvZmJwamRibWlzeXh5c2ZjeWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTUxMzIsImV4cCI6MjA1ODQ5MTEzMn0.RqUyHPLxCWUATAufUkXCUN9yczZNBKMQD_wYF4Q3VVA'
+              'apikey': SUPABASE_ANON_KEY
             }
           });
           

@@ -5,6 +5,7 @@ import { Loader2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { SUPABASE_ANON_KEY } from '@/constants/supabase-constants';
 
 interface DemoLoginButtonProps {
   isLoading: boolean;
@@ -45,8 +46,7 @@ export const DemoLoginButton: React.FC<DemoLoginButtonProps> = ({
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
-              // Use the SUPABASE_PUBLISHABLE_KEY from client.ts instead of accessing protected property
-              'apikey': process.env.SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvZmJwamRibWlzeXh5c2ZjeWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTUxMzIsImV4cCI6MjA1ODQ5MTEzMn0.RqUyHPLxCWUATAufUkXCUN9yczZNBKMQD_wYF4Q3VVA'
+              'apikey': SUPABASE_ANON_KEY
             }
           });
           

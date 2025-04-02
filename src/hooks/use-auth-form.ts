@@ -1,204 +1,100 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, signupSchema } from '@/schemas/auth-schemas';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
-import { handleError } from '@/utils/errorHandling';
-import { authFormSchema, AuthFormValues } from '@/schemas/auth-schemas';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
-import { preFillDemoCredentials, handleDemoLoginAttempt } from '@/utils/auth-form-utils';
-
-export { DEMO_EMAIL, DEMO_PASSWORD } from '@/constants/auth-constants';
-export type { AuthFormValues } from '@/schemas/auth-schemas';
+import { toast } from '@/hooks/use-toast';
 
 export const useAuthForm = () => {
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [authError, setAuthError] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
-  const submitInProgressRef = useRef(false);
 
-  const form = useForm<AuthFormValues>({
-    resolver: zodResolver(authFormSchema),
+  // Use the appropriate schema based on the active tab
+  const schema = activeTab === 'signin' ? loginSchema : signupSchema;
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
       email: '',
-      password: ''
+      password: '',
+      confirmPassword: '', // Only used for signup
     },
-    mode: 'onBlur' // Validate on blur for better UX
   });
 
-  // Clear error when tab changes or form is edited
-  useEffect(() => {
+  const onSubmit = async (values: z.infer<typeof schema>) => {
+    // Clear previous errors
     setAuthError(null);
-  }, [activeTab, form.watch()]);
-
-  // Reset loading state if component unmounts during a login attempt
-  useEffect(() => {
-    return () => {
-      submitInProgressRef.current = false;
-      setIsLoading(false);
-      setIsDemoLoading(false);
-    };
-  }, []);
-
-  const onSubmit = async (values: AuthFormValues) => {
-    if (isLoading || submitInProgressRef.current) {
-      console.log('Submission already in progress, ignoring duplicate submission');
-      return; // Prevent multiple submissions
-    }
-    
     setIsLoading(true);
-    submitInProgressRef.current = true;
-    setAuthError(null);
-    
+
     try {
+      // Different logic for signin vs signup
       if (activeTab === 'signin') {
-        console.log(`Attempting to sign in with email: ${values.email}`);
-        const { success, error } = await signIn(values.email, values.password);
-        
-        if (success) {
-          toast({
-            title: 'Sign in successful',
-            description: 'Welcome back!'
-          });
-        } else {
-          console.error('Sign in failed with error:', error);
-          
-          // For demo purposes, suggest using the demo button if there's an error
-          if (values.email === DEMO_EMAIL) {
-            setAuthError('For demo access, please use the "Try Demo Account" button above for a more reliable experience.');
-          } else {
-            setAuthError(error || 'Authentication failed. Please check your credentials and try again.');
-          }
-          
-          toast({
-            title: 'Sign in failed',
-            description: error || 'Please check your credentials and try again',
-            variant: 'destructive'
-          });
+        const { email, password } = values;
+        const result = await signIn(email, password);
+
+        if (!result.success) {
+          setAuthError(result.error || 'Sign in failed');
         }
       } else {
-        console.log(`Attempting to sign up with email: ${values.email}`);
-        const { success, error } = await signUp(values.email, values.password, {
-          full_name: values.email.split('@')[0]
-        });
-        
-        if (success) {
+        // For signup tab
+        const { email, password } = values;
+        const result = await signUp(email, password);
+
+        if (result.success) {
           toast({
-            title: 'Sign up successful',
-            description: 'Welcome to Restaurant Management Dashboard!'
+            title: 'Account created',
+            description: 'Please check your email to confirm your account',
           });
-          
-          // After successful signup, switch to signin tab
+          // Switch to the signin tab after successful signup
           setActiveTab('signin');
-          
-          // For better UX, set a timeout before trying to sign in with new credentials
-          setTimeout(() => {
-            signIn(values.email, values.password).catch(() => {
-              /* Ignore error, will be captured by login form */
-            });
-          }, 1000);
         } else {
-          console.error('Sign up failed with error:', error);
-          setAuthError(error || 'Registration failed. Please try again.');
-          toast({
-            title: 'Sign up failed',
-            description: error || 'An error occurred during sign up',
-            variant: 'destructive'
-          });
+          setAuthError(result.error || 'Sign up failed');
         }
       }
-    } catch (error) {
-      handleError(error, {
-        context: 'Authentication form submission',
-        category: 'auth'
-      });
-      setAuthError('An unexpected error occurred. Please try again later.');
+    } catch (error: any) {
+      console.error('Auth form submission error:', error);
+      setAuthError(error.message || 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
-      submitInProgressRef.current = false;
     }
   };
 
   const handleDemoLogin = async () => {
-    if (isDemoLoading || submitInProgressRef.current) {
-      console.log('Demo login already in progress, ignoring duplicate request');
-      return; // Prevent multiple submissions
-    }
-    
-    setIsDemoLoading(true);
-    submitInProgressRef.current = true;
-    setAuthError(null);
-    
     try {
-      console.log(`Attempting demo login with: ${DEMO_EMAIL}`);
+      // Clear previous errors
+      setAuthError(null);
+      setIsDemoLoading(true);
       
-      // Fill the form with demo credentials for better UX
-      preFillDemoCredentials(form, DEMO_EMAIL, DEMO_PASSWORD);
-      
-      // Short delay to let the form update visually
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Show toast to indicate demo login is in progress
-      toast({
-        title: 'Accessing Demo Account',
-        description: 'Please wait while we prepare your dashboard...'
-      });
-      
-      // Sign out first to clear any existing sessions
-      await useAuth().signOut();
-      
-      // Try multiple times for demo login with increasing delays
-      const result = await handleDemoLoginAttempt(signIn, DEMO_EMAIL, DEMO_PASSWORD, 5);
-      
-      if (result.success) {
+      console.log('Attempting demo login with:', DEMO_EMAIL);
+
+      // Use the sign-in method from useAuth context
+      const result = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+
+      if (!result.success) {
+        setAuthError(result.error || 'Demo login failed');
         toast({
-          title: 'Demo Access Granted',
-          description: 'You now have full access to the Restaurant Dashboard!',
-        });
-        
-        // Force dispatch success event to ensure redirect happens
-        window.dispatchEvent(new CustomEvent('demo-login-success'));
-      } else {
-        console.error('Demo login failed after multiple attempts with error:', result.error);
-        
-        // One last direct sign-in attempt
-        try {
-          const lastAttempt = await signIn(DEMO_EMAIL, DEMO_PASSWORD);
-          if (lastAttempt.success) {
-            toast({
-              title: 'Demo Access Granted',
-              description: 'You now have access to the Restaurant Dashboard!',
-            });
-            
-            // Force dispatch success event to ensure redirect happens
-            window.dispatchEvent(new CustomEvent('demo-login-success'));
-            return;
-          }
-        } catch (lastError) {
-          console.error('Final login attempt failed:', lastError);
-        }
-        
-        // Show a more helpful error message for demo users
-        setAuthError(result.error || 'Demo login failed. Please try again in a few moments.');
-        
-        toast({
-          title: 'Demo Access Failed',
-          description: 'Unable to access demo account. Please try again.',
-          variant: 'destructive'
+          title: 'Demo Login Failed',
+          description: result.error || 'Please try again',
+          variant: 'destructive',
         });
       }
-    } catch (error) {
-      handleError(error, {
-        context: 'Demo login',
-        category: 'auth'
+    } catch (error: any) {
+      console.error('Error auth:', error);
+      setAuthError(error.message || 'Demo login failed');
+      
+      toast({
+        title: 'Demo Login Error',
+        description: 'Please try again in a moment',
+        variant: 'destructive',
       });
-      setAuthError('An unexpected error occurred with the demo login. Please try again.');
     } finally {
       setIsDemoLoading(false);
-      submitInProgressRef.current = false;
     }
   };
 
@@ -211,6 +107,5 @@ export const useAuthForm = () => {
     authError,
     onSubmit,
     handleDemoLogin,
-    preFillDemoCredentials: () => preFillDemoCredentials(form, DEMO_EMAIL, DEMO_PASSWORD)
   };
 };
