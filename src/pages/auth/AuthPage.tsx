@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthForm } from '@/components/auth/AuthForm';
-import { useAuthStatus } from '@/hooks/use-auth-status';
+import { useAuth } from '@/contexts/AuthContext';
 import Spinner from '@/components/ui/spinner';
 
 const AuthPage: React.FC = () => {
-  const { isLoading, isAuthenticated, checkSession } = useAuthStatus();
+  const { isLoading, isAuthenticated, checkSession } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();

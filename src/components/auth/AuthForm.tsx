@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuthStatus } from '@/hooks/use-auth-status';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -36,7 +35,7 @@ export const AuthForm: React.FC = () => {
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [authError, setAuthError] = useState<string | null>(null);
-  const { signIn, signUp } = useAuthStatus();
+  const { signIn, signUp } = useAuth();
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authFormSchema),
