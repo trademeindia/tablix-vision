@@ -57,9 +57,25 @@ export const checkCurrentSession = async () => {
     
     if (data.session) {
       console.log('Session check: Found existing session for', data.session.user.email);
+      
       // Validate the session has required properties
       if (!data.session.access_token) {
         console.warn('Session missing access token, may be invalid');
+      }
+      
+      // Test a simple database query to verify the session is valid
+      try {
+        const { error: testError } = await supabase.from('menu_categories').select('count').limit(1);
+        if (testError) {
+          console.warn('Session appears invalid, test query failed:', testError.message);
+          if (testError.message.includes('JWT')) {
+            console.log('JWT issue detected, clearing session');
+            await supabase.auth.signOut();
+            return { session: null, error: new Error('Session token expired or invalid') };
+          }
+        }
+      } catch (testErr) {
+        console.warn('Error testing session validity:', testErr);
       }
       
       return { session: data.session, error: null };

@@ -7,20 +7,37 @@ import Spinner from '@/components/ui/spinner';
 import { PageTransition } from '@/components/ui/page-transition';
 
 const AuthPage: React.FC = () => {
-  const { isLoading, isAuthenticated, authInitialized } = useAuth();
+  const { isLoading, isAuthenticated, authInitialized, checkSession } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
   // Get the page the user was trying to access
   const from = (location.state as any)?.from?.pathname || '/';
 
-  // Wait for auth to initialize before attempting any redirects
+  // Verify session when component mounts
+  useEffect(() => {
+    const verifyAuth = async () => {
+      if (!isAuthenticated && !isLoading && authInitialized) {
+        setIsVerifying(true);
+        try {
+          await checkSession();
+        } finally {
+          setIsVerifying(false);
+        }
+      }
+    };
+    
+    verifyAuth();
+  }, [authInitialized, isAuthenticated, isLoading, checkSession]);
+
+  // Handle redirect after authentication
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
     
-    // Only proceed with redirect logic once auth is initialized
-    if (authInitialized && !isLoading) {
+    // Only proceed with redirect logic once auth is initialized and not loading
+    if (authInitialized && !isLoading && !isVerifying) {
       if (isAuthenticated) {
         console.log(`User is authenticated, preparing to redirect to ${from}`);
         
@@ -38,10 +55,10 @@ const AuthPage: React.FC = () => {
     return () => {
       if (redirectTimeout) clearTimeout(redirectTimeout);
     };
-  }, [isAuthenticated, navigate, from, isLoading, authInitialized]);
+  }, [isAuthenticated, navigate, from, isLoading, authInitialized, isVerifying]);
 
-  // Show loading state while authentication is initializing
-  if (!authInitialized || isLoading) {
+  // Show loading state while authentication is initializing or verifying
+  if (!authInitialized || isLoading || isVerifying) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
         <Spinner size="lg" className="mb-4" />

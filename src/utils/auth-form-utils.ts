@@ -46,6 +46,23 @@ export const handleDemoLoginAttempt = async (
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
       
+      // Clear existing session before trying again
+      if (attempts > 1) {
+        try {
+          const { data } = await fetch('/api/auth/clear-session', { 
+            method: 'POST',
+            credentials: 'include'
+          }).then(res => res.json());
+          
+          if (data?.success) {
+            console.log('Successfully cleared session before retry');
+          }
+        } catch (e) {
+          console.warn('Failed to clear session before retry:', e);
+          // Continue anyway
+        }
+      }
+      
       const result = await signIn(email, password);
       success = result.success;
       lastError = result.error || '';
