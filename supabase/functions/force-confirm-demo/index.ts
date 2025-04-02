@@ -11,6 +11,7 @@ serve(async (req) => {
   }
 
   try {
+    console.log('force-confirm-demo function called')
     // Create a Supabase client with the service role key which has admin privileges
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -26,22 +27,15 @@ serve(async (req) => {
     // Demo account email
     const demoEmail = 'demo@restaurant.com'
     
-    // Find demo user by email
-    const { data: users, error: userError } = await supabaseAdmin
-      .from('auth.users')
-      .select('id, email, email_confirmed_at, is_confirmed')
-      .eq('email', demoEmail)
-      .maybeSingle()
-    
-    if (userError) {
-      console.error('Error finding demo user:', userError)
-      throw new Error('Failed to find demo user')
-    }
-    
-    if (!users) {
-      console.error('Demo user not found')
-      
-      // If demo user doesn't exist, we should create it
+    // Try to directly sign in the demo user if they exist
+    const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.signInWithEmail(
+      demoEmail,
+      'demo123456'
+    )
+
+    if (signInError) {
+      console.log('Could not directly sign in demo user:', signInError.message)
+      // Demo user might not exist, create it
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: demoEmail,
         password: 'demo123456',
@@ -50,35 +44,57 @@ serve(async (req) => {
       })
       
       if (createError) {
+        console.error('Failed to create demo user:', createError.message)
         throw new Error(`Failed to create demo user: ${createError.message}`)
       }
       
       console.log('Created new demo user:', newUser)
     } else {
-      console.log('Found demo user:', users)
-      
-      // Force confirm email if not already confirmed
-      const now = new Date().toISOString()
-      
-      // Update directly in auth.users table
-      const { error: updateError } = await supabaseAdmin
-        .from('auth.users')
-        .update({
-          email_confirmed_at: now,
-          confirmed_at: now,
-          is_confirmed: true,
-          last_sign_in_at: now,
-          raw_user_meta_data: { full_name: 'Demo User' },
-          raw_app_meta_data: { provider: 'email', providers: ['email'] }
-        })
-        .eq('email', demoEmail)
-      
-      if (updateError) {
-        console.error('Error confirming demo user:', updateError)
-        throw new Error('Failed to confirm demo user email')
+      console.log('Successfully signed in demo user')
+    }
+    
+    // Force confirm email regardless of sign-in outcome
+    const now = new Date().toISOString()
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      signInData?.user?.id || '', 
+      { 
+        email_confirm: true,
+        user_metadata: { full_name: 'Demo User' }
       }
+    )
+    
+    if (updateError) {
+      console.error('Error updating demo user via admin API:', updateError)
       
-      console.log('Successfully confirmed demo user email and updated metadata')
+      // Fallback: try direct database update if admin API fails
+      try {
+        const { error: directUpdateError } = await supabaseAdmin
+          .rpc('force_confirm_user', { user_email: demoEmail })
+        
+        if (directUpdateError) {
+          console.error('Error with direct update too:', directUpdateError)
+          throw new Error('Failed to confirm demo user via all methods')
+        }
+        
+        console.log('Successfully confirmed demo user via RPC')
+      } catch (rpcError) {
+        console.error('RPC call failed:', rpcError)
+        // Last resort: try direct table update
+        try {
+          const { data: userData } = await supabaseAdmin
+            .from('profiles')
+            .select('id')
+            .eq('email', demoEmail)
+            .maybeSingle()
+            
+          if (userData?.id) {
+            console.log('Found user in profiles, ensuring demo data is set up')
+            await ensureDemoData(supabaseAdmin, demoEmail)
+          }
+        } catch (profileError) {
+          console.error('Even profile lookup failed:', profileError)
+        }
+      }
     }
     
     // Ensure demo account has a restaurant and data
@@ -115,16 +131,17 @@ async function ensureDemoData(supabase, demoEmail) {
   try {
     // Get demo user ID
     const { data: userData } = await supabase
-      .from('auth.users')
-      .select('id')
-      .eq('email', demoEmail)
-      .single()
+      .auth.admin.listUsers({ 
+        filters: { email: demoEmail }
+      })
     
-    if (!userData) {
-      throw new Error('Could not find demo user ID')
+    if (!userData || !userData.users || userData.users.length === 0) {
+      console.log('Could not find demo user in auth.users')
+      return
     }
     
-    const userId = userData.id
+    const userId = userData.users[0].id
+    console.log('Found demo user ID:', userId)
     
     // Check if user has a profile
     const { data: profile } = await supabase

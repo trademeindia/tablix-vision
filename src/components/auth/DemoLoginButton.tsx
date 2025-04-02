@@ -3,6 +3,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface DemoLoginButtonProps {
   isLoading: boolean;
@@ -16,17 +18,57 @@ export const DemoLoginButton: React.FC<DemoLoginButtonProps> = ({
   const navigate = useNavigate();
   
   const handleDemoLogin = async () => {
-    // Call the onDemoLogin function provided by the parent
-    await onDemoLogin();
-    
-    // After a short delay to ensure the login process has started
-    // Force navigation to the dashboard to bypass any potential verification steps
-    setTimeout(() => {
-      if (!window.location.pathname.startsWith('/')) {
-        console.log('Forcing navigation to dashboard after demo login');
-        navigate('/', { replace: true });
+    try {
+      // Show loading toast
+      toast({
+        title: "Accessing Demo",
+        description: "Setting up your demo experience...",
+      });
+      
+      // First, try to force-confirm the demo account
+      console.log('Attempting to force-confirm demo account before login');
+      try {
+        const forceConfirmResponse = await fetch('/api/force-confirm-demo', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        const forceConfirmData = await forceConfirmResponse.json();
+        console.log('Force confirm response:', forceConfirmData);
+      } catch (confirmError) {
+        console.warn('Force confirm demo had an issue, but continuing:', confirmError);
       }
-    }, 1500);
+      
+      // Wait a bit for the confirmation to take effect
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Call the parent's onDemoLogin function to trigger the login
+      await onDemoLogin();
+      
+      // Show success toast
+      toast({
+        title: "Demo Access Granted",
+        description: "Welcome to the Restaurant Dashboard!",
+      });
+      
+      // Force navigation to dashboard
+      console.log('Forcing navigation to dashboard');
+      
+      // Additional delay to ensure auth state is fully processed
+      setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 800);
+    } catch (error) {
+      console.error('Demo login failed:', error);
+      toast({
+        title: "Demo Access Failed",
+        description: "Please try again in a moment",
+        variant: "destructive"
+      });
+    }
   };
   
   return (

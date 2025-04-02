@@ -15,36 +15,30 @@ export const signInDemoAccount = async (email: string, password: string): Promis
       description: 'Please wait while we prepare your experience...'
     });
     
-    // First, try to sign out to clear any existing session issues
+    // First, sign out to clear any existing sessions
     await supabase.auth.signOut();
+    console.log('Signed out any existing sessions');
     
-    // Wait a moment for session cleanup
+    // Slight delay to ensure signout is processed
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Clear any session cookies via the edge function
+    // Attempt to force-confirm the demo account
+    console.log('Calling force-confirm-demo endpoint');
     try {
-      const clearResult = await fetch('/api/auth/clear-session', { 
+      const confirmResult = await fetch('/api/force-confirm-demo', {
         method: 'POST',
-        credentials: 'include'
-      });
-      console.log('Session cookies cleared:', await clearResult.json());
-    } catch (e) {
-      console.warn('Failed to clear session cookies, continuing anyway:', e);
-    }
-    
-    // Force confirm the demo account email via edge function
-    console.log('Forcing demo account confirmation');
-    try {
-      const confirmResult = await fetch('/api/auth/force-confirm-demo', {
-        method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
       
       if (!confirmResult.ok) {
-        throw new Error('Failed to confirm demo account');
+        console.warn(`Force confirm returned status ${confirmResult.status}`);
+      } else {
+        const confirmData = await confirmResult.json();
+        console.log('Force confirm response:', confirmData);
       }
-      
-      console.log('Demo account confirmed successfully');
     } catch (e) {
       console.warn('Force confirm approach failed:', e);
       // Continue anyway as we'll try direct login
@@ -53,43 +47,61 @@ export const signInDemoAccount = async (email: string, password: string): Promis
     // Allow a moment for confirmation to take effect
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Try direct login with demo credentials
-    console.log('Attempting direct demo login');
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
-    if (!error && data?.session) {
-      console.log('Demo login successful, redirecting to dashboard');
+    // Try multiple sign-in attempts with increasing delays
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      console.log(`Login attempt ${attempt}/3`);
       
-      // Fire a custom event to signal successful demo login
-      window.dispatchEvent(new CustomEvent('demo-login-success'));
+      // Sign in attempt
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      return { success: true };
+      if (!error && data?.session) {
+        console.log('Demo login successful on attempt', attempt);
+        
+        // Fire a custom event to signal successful demo login
+        window.dispatchEvent(new CustomEvent('demo-login-success'));
+        
+        // Show success toast
+        toast({
+          title: 'Demo Access Granted',
+          description: 'You now have full access to the Restaurant Dashboard!',
+        });
+        
+        return { success: true };
+      }
+      
+      console.log(`Attempt ${attempt} failed:`, error?.message);
+      
+      // If we have more attempts to go, wait with increasing delay
+      if (attempt < 3) {
+        const delay = attempt * 800;
+        console.log(`Waiting ${delay}ms before next attempt`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
     
-    console.log('Direct login failed, error:', error?.message);
-    
-    // If login failed, try one more approach - admin login
-    console.log('Trying final admin login approach');
-    
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
-    if (!signInError) {
-      console.log('Admin login successful');
-      
-      // Fire a custom event to signal successful demo login
-      window.dispatchEvent(new CustomEvent('demo-login-success'));
-      
-      return { success: true };
-    }
-    
-    // If all approaches failed
+    // If all attempts failed
     console.error('All demo login approaches failed');
+    
+    // Final backup approach: try to directly get a session
+    try {
+      console.log('Attempting final backup approach: get session directly');
+      const { data } = await supabase.auth.getSession();
+      
+      if (data?.session) {
+        console.log('Successfully retrieved session after failed logins');
+        
+        // Fire success event
+        window.dispatchEvent(new CustomEvent('demo-login-success'));
+        
+        return { success: true };
+      }
+    } catch (sessionError) {
+      console.error('Final session retrieval failed:', sessionError);
+    }
+    
     return { 
       success: false, 
       error: 'Unable to access demo account. Please try again later.' 
