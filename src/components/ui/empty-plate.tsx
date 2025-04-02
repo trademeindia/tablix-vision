@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { LucideProps } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface EmptyPlateProps extends React.HTMLAttributes<SVGElement> {
@@ -30,3 +29,6 @@ export const EmptyPlate = React.forwardRef<SVGSVGElement, EmptyPlateProps>(
 );
 
 EmptyPlate.displayName = 'EmptyPlate';
+
+// Add a default export as well to ensure it can be imported correctly
+export default EmptyPlate;
