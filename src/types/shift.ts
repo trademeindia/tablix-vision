@@ -1,11 +1,14 @@
 
-export interface ShiftSchedule {
+export interface StaffShift {
   id: string;
-  staff_id: string;
-  shift_date: string;
+  date: string;
+  type: 'Morning' | 'Afternoon' | 'Evening' | 'Night';
   start_time: string;
   end_time: string;
-  status: 'scheduled' | 'completed' | 'missed' | 'swapped';
-  notes: string | null;
-  created_at: string;
+}
+
+export interface StaffShiftSummary {
+  shifts: StaffShift[];
+  totalHoursThisWeek: number;
+  totalShiftsThisWeek: number;
 }

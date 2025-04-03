@@ -1,31 +1,17 @@
 
-import { useState, useEffect } from 'react';
+import { useStaffDataFetcher } from './use-staff-data-fetcher';
+import { StaffShiftSummary } from '@/types/shift';
 import { generateStaffShifts } from '@/utils/demo-data/staff-shifts';
 
 export const useShiftData = (staffCount: number = 10) => {
-  const [shiftData, setShiftData] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    // In a real app, we would fetch this data from an API
-    // For now, we'll use the demo data generator
-    const fetchData = () => {
-      setIsLoading(true);
-      try {
-        const data = generateStaffShifts(staffCount);
-        setShiftData(data);
-      } catch (error) {
-        console.error('Error generating shift data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [staffCount]);
+  const { data, isLoading, error } = useStaffDataFetcher<StaffShiftSummary>({
+    fetchFunction: generateStaffShifts,
+    staffCount
+  });
   
   return {
-    shiftData,
-    isLoading
+    shiftData: data,
+    isLoading,
+    error
   };
 };
