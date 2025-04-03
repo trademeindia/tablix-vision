@@ -4,18 +4,21 @@ import { ChefHat, HelpCircle, UserCog, User } from 'lucide-react';
 
 interface RoleIconProps {
   role: string;
+  className?: string; // Make className optional
 }
 
-const RoleIcon: React.FC<RoleIconProps> = ({ role }) => {
+const RoleIcon: React.FC<RoleIconProps> = ({ role, className }) => {
+  const baseClass = className || "h-4 w-4 mr-1";
+  
   switch (role.toLowerCase()) {
     case 'chef':
-      return <ChefHat className="h-4 w-4 mr-1 text-amber-500" />;
+      return <ChefHat className={`${baseClass} text-amber-500`} />;
     case 'manager':
-      return <UserCog className="h-4 w-4 mr-1 text-blue-500" />;
+      return <UserCog className={`${baseClass} text-blue-500`} />;
     case 'waiter':
-      return <User className="h-4 w-4 mr-1 text-green-500" />;
+      return <User className={`${baseClass} text-green-500`} />;
     default:
-      return <HelpCircle className="h-4 w-4 mr-1 text-gray-500" />;
+      return <HelpCircle className={`${baseClass} text-gray-500`} />;
   }
 };
 
