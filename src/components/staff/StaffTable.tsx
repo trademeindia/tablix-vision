@@ -57,16 +57,16 @@ const StaffTable: React.FC<StaffTableProps> = ({
   };
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-hidden">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-slate-50">
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Login</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="font-semibold">Name</TableHead>
+            <TableHead className="font-semibold">Phone</TableHead>
+            <TableHead className="font-semibold">Role</TableHead>
+            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="font-semibold">Last Login</TableHead>
+            <TableHead className="text-right font-semibold">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -80,33 +80,36 @@ const StaffTable: React.FC<StaffTableProps> = ({
             filteredStaff.map((staff) => (
               <TableRow 
                 key={staff.id}
-                className="cursor-pointer hover:bg-slate-50"
+                className="cursor-pointer hover:bg-slate-50 transition-colors"
                 onClick={() => onViewDetails(staff)}
               >
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-9 w-9">
+                    <Avatar className="h-10 w-10 border-2 border-slate-100 shadow-sm">
                       {getStaffImageUrl(staff) && (
                         <AvatarImage 
                           src={getStaffImageUrl(staff)} 
                           alt={staff.name} 
+                          className="object-cover"
                           onError={(e) => {
-                            console.log(`Failed to load image for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
+                            console.log(`Failed to load image for staff: ${staff.name}`);
                             // Hide the image on error so fallback appears
                             (e.target as HTMLImageElement).style.display = 'none';
                           }}
                         />
                       )}
-                      <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                        {getInitials(staff.name)}
+                      </AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{staff.name}</span>
                   </div>
                 </TableCell>
                 <TableCell>{staff.phone}</TableCell>
                 <TableCell>
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <RoleIcon role={staff.role} />
-                    {staff.role}
+                    <span className="capitalize">{staff.role}</span>
                   </div>
                 </TableCell>
                 <TableCell>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
@@ -12,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import AttendanceTab from './AttendanceTab';
 import PayrollTab from './PayrollTab';
 import ShiftsTab from './ShiftsTab';
+import RoleIcon from './RoleIcon';
 
 interface StaffDetailsDialogProps {
   open: boolean;
@@ -33,7 +33,6 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
     }
   };
   
-  // Helper function to get initials
   const getInitials = (name: string): string => {
     return name
       .split(' ')
@@ -42,14 +41,11 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
       .toUpperCase();
   };
   
-  // Get the most reliable image URL from multiple possible fields
   const getStaffImageUrl = (staff: StaffMember): string => {
-    // If no image fields are present, return empty string
     if (!staff.avatar_url && !staff.avatar && !staff.image) {
       return '';
     }
     
-    // Prefer avatar_url, then fall back to the others
     return staff.avatar_url || staff.avatar || staff.image || '';
   };
 
@@ -57,29 +53,35 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[800px] max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <Avatar className="h-16 w-16">
+          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-center">
+            <Avatar className="h-20 w-20 border-2 border-slate-100 shadow-md">
               {getStaffImageUrl(staff) && (
                 <AvatarImage 
                   src={getStaffImageUrl(staff)} 
-                  alt={staff.name} 
+                  alt={staff.name}
+                  className="object-cover" 
                   onError={(e) => {
-                    console.log(`Failed to load image in StaffDetailsDialog for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
+                    console.log(`Failed to load image in StaffDetailsDialog for staff: ${staff.name}`);
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               )}
-              <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-medium">
+                {getInitials(staff.name)}
+              </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="text-center sm:text-left">
               <DialogTitle className="text-xl">{staff.name}</DialogTitle>
-              <p className="text-slate-500">{staff.role}</p>
+              <p className="text-slate-500 capitalize flex items-center justify-center sm:justify-start gap-1">
+                <RoleIcon role={staff.role} className="h-4 w-4" />
+                {staff.role}
+              </p>
             </div>
           </div>
         </DialogHeader>
         
         <Tabs defaultValue="details" className="px-6 mt-4">
-          <TabsList>
+          <TabsList className="grid grid-cols-4 mb-4">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="payroll">Payroll</TabsTrigger>
@@ -88,46 +90,46 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
           
           <TabsContent value="details" className="py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="p-4">
-                <div className="space-y-2">
+              <Card className="p-4 shadow-sm">
+                <div className="space-y-3">
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Email</h3>
-                    <p>{staff.email}</p>
+                    <p className="font-medium">{staff.email}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Phone</h3>
-                    <p>{staff.phone}</p>
+                    <p className="font-medium">{staff.phone}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Department</h3>
-                    <p>{staff.department || 'Not specified'}</p>
+                    <p className="font-medium">{staff.department || 'Not specified'}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Status</h3>
-                    <p className={staff.status === 'active' ? 'text-green-600' : 'text-slate-500'}>
+                    <p className={`font-medium ${staff.status === 'active' ? 'text-green-600' : 'text-slate-500'}`}>
                       {staff.status.charAt(0).toUpperCase() + staff.status.slice(1)}
                     </p>
                   </div>
                 </div>
               </Card>
               
-              <Card className="p-4">
-                <div className="space-y-2">
+              <Card className="p-4 shadow-sm">
+                <div className="space-y-3">
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Hire Date</h3>
-                    <p>{staff.hire_date ? formatDate(staff.hire_date) : 'Not specified'}</p>
+                    <p className="font-medium">{staff.hire_date ? formatDate(staff.hire_date) : 'Not specified'}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Salary</h3>
-                    <p>{staff.salary ? `$${staff.salary.toLocaleString()}` : 'Not specified'}</p>
+                    <p className="font-medium">{staff.salary ? `$${staff.salary.toLocaleString()}` : 'Not specified'}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Emergency Contact</h3>
-                    <p>{staff.emergency_contact || 'Not specified'}</p>
+                    <p className="font-medium">{staff.emergency_contact || 'Not specified'}</p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-500">Last Login</h3>
-                    <p>{staff.last_login ? formatDate(staff.last_login) : 'Never'}</p>
+                    <p className="font-medium">{staff.last_login ? formatDate(staff.last_login) : 'Never'}</p>
                   </div>
                 </div>
               </Card>
@@ -147,7 +149,7 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
           </TabsContent>
         </Tabs>
         
-        <DialogFooter className="px-6 pb-6">
+        <DialogFooter className="px-6 pb-6 pt-2">
           <Button 
             type="button" 
             variant="outline"

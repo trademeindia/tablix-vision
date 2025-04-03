@@ -13,6 +13,7 @@ interface StaffStatusBadgeProps {
 
 const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChange }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isActive, setIsActive] = useState(staff.status === 'active');
   const { toast } = useToast();
   
   const handleStatusToggle = async (e: React.MouseEvent) => {
@@ -21,7 +22,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
     if (isUpdating) return;
     
     setIsUpdating(true);
-    const newStatus = staff.status === 'active' ? 'inactive' : 'active';
+    const newStatus = isActive ? 'inactive' : 'active';
     
     try {
       console.log(`Updating status for staff ID ${staff.id} to ${newStatus}`);
@@ -30,6 +31,8 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
       if (staff.id.startsWith('staff-')) {
         // Wait a moment to simulate server processing
         await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setIsActive(!isActive);
         
         toast({
           title: 'Status Updated (Demo)',
@@ -55,6 +58,8 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         throw error;
       }
       
+      setIsActive(!isActive);
+      
       toast({
         title: 'Status Updated',
         description: `${staff.name} is now ${newStatus}`,
@@ -78,18 +83,19 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
       <Badge 
         variant="outline"
         className={`${
-          staff.status === 'active' 
+          isActive 
             ? 'bg-green-100 text-green-800 hover:bg-green-100' 
             : 'bg-slate-100 text-slate-800 hover:bg-slate-100'
-        } cursor-default`}
+        } font-medium cursor-default transition-colors`}
       >
-        {staff.status === 'active' ? 'Active' : 'Inactive'}
+        {isActive ? 'Active' : 'Inactive'}
       </Badge>
       
       <Switch 
-        checked={staff.status === 'active'} 
+        checked={isActive}
         onClick={handleStatusToggle}
         disabled={isUpdating}
+        className={isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
       />
     </div>
   );
