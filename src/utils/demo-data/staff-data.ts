@@ -13,7 +13,8 @@ const statuses = ['active', 'inactive'];
 
 // Sample avatar URLs from UI Avatars API
 const generateAvatarUrl = (name: string) => {
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
+  // Ensure we encode the name properly for the URL
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=256`;
 };
 
 // Function to generate a random date within the last 2 years
@@ -70,6 +71,9 @@ export const generateDemoStaffData = (count: number): StaffMember[] => {
       ? `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]} (${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000})`
       : undefined;
     
+    // For better avatar quality, use a larger size
+    console.log(`Generated avatar URL for ${name}: ${avatarUrl}`);
+    
     staffList.push({
       id: uuidv4(),
       name,
@@ -81,8 +85,8 @@ export const generateDemoStaffData = (count: number): StaffMember[] => {
       salary,
       hire_date: hireDate,
       avatar_url: avatarUrl,
-      avatar: avatarUrl,
-      image: avatarUrl,
+      avatar: avatarUrl, // Ensure all image fields have the same URL
+      image: avatarUrl,  // Ensure all image fields have the same URL
       created_at: createdAt,
       updated_at: new Date().toISOString(),
       last_login: lastLogin,

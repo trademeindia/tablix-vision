@@ -56,22 +56,24 @@ export const useStaffData = () => {
         
         // Enhanced normalization and data handling
         const normalizedData = supabaseData.map(staff => {
-          // Debug each staff record's image URLs
+          // Log all image related fields for debugging
           console.log(`Image fields for staff ${staff.name}:`, {
             avatar_url: staff.avatar_url, 
             avatar: staff.avatar, 
             image: staff.image
           });
           
+          // Ensure all image fields have consistent values
+          const imageUrl = staff.avatar_url || staff.avatar || staff.image;
+          
           return {
             ...staff,
             // Ensure status is always 'active' or 'inactive'
             status: staff.status === 'active' ? 'active' : 'inactive',
-            // Normalize image fields
-            avatar_url: staff.avatar_url || staff.avatar || staff.image || undefined,
-            // Ensure backwards compatibility
-            avatar: staff.avatar_url || staff.avatar || staff.image || undefined,
-            image: staff.avatar_url || staff.avatar || staff.image || undefined
+            // Normalize all image fields to have the same value for maximum compatibility
+            avatar_url: imageUrl,
+            avatar: imageUrl,
+            image: imageUrl
           };
         }) as StaffMember[];
         

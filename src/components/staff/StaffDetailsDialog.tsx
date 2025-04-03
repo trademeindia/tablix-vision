@@ -19,6 +19,17 @@ interface StaffDetailsDialogProps {
 }
 
 const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenChange, staff }) => {
+  // Log the avatar URL for debugging
+  console.log('Staff details avatar URL:', {
+    staff_name: staff.name,
+    avatar_url: staff.avatar_url,
+    avatar: staff.avatar,
+    image: staff.image
+  });
+  
+  // Get the most appropriate image URL from the available options
+  const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -31,7 +42,14 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenCha
         
         <div className="flex flex-col items-center mb-4">
           <Avatar className="h-32 w-32">
-            <AvatarImage src={staff.avatar_url || ''} alt={staff.name} />
+            <AvatarImage 
+              src={imageUrl} 
+              alt={staff.name} 
+              onError={(e) => {
+                console.error(`Failed to load image for ${staff.name}:`, imageUrl);
+                // Let fallback kick in naturally
+              }}
+            />
             <AvatarFallback>{staff.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="text-lg font-semibold mt-2">{staff.name}</div>
