@@ -16,13 +16,17 @@ interface ProfileImageUploadProps {
 
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingImage }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fallbackVisible, setFallbackVisible] = useState(false);
   
   // Set preview URL from existing image if available
   useEffect(() => {
     if (existingImage) {
       setPreviewUrl(existingImage);
+      // Reset fallback visibility when existingImage changes
+      setFallbackVisible(false);
     } else {
       setPreviewUrl(null);
+      setFallbackVisible(true);
     }
   }, [existingImage]);
   
@@ -39,8 +43,9 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     // Create preview URL for the selected image
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
+    setFallbackVisible(false);
     
-    // Clean up the object URL when no longer needed
+    // Clean up the object URL when component unmounts
     return () => URL.revokeObjectURL(objectUrl);
   };
   
@@ -51,6 +56,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(null);
+    setFallbackVisible(true);
   };
 
   // Generate initials for avatar fallback
@@ -60,17 +66,22 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Handle image load error
+  const handleImageError = () => {
+    console.log(`Failed to load avatar image: ${previewUrl || existingImage}`);
+    setFallbackVisible(true);
+  };
+
   return (
     <div className="mb-6 flex flex-col items-center">
       <Avatar className="h-24 w-24 mb-3">
-        <AvatarImage 
-          src={previewUrl || existingImage || ''} 
-          alt="Staff avatar" 
-          onError={(e) => {
-            console.log(`Failed to load avatar image: ${previewUrl || existingImage}`);
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
+        {!fallbackVisible && (previewUrl || existingImage) && (
+          <AvatarImage 
+            src={previewUrl || existingImage || ''} 
+            alt="Staff avatar" 
+            onError={handleImageError}
+          />
+        )}
         <AvatarFallback>{getInitials()}</AvatarFallback>
       </Avatar>
       
@@ -98,7 +109,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
                     />
                   </label>
                   
-                  {previewUrl && (
+                  {(previewUrl || existingImage) && (
                     <Button 
                       type="button"
                       variant="outline"

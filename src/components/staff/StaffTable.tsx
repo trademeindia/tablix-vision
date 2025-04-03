@@ -79,15 +79,17 @@ const StaffTable: React.FC<StaffTableProps> = ({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage 
-                        src={getStaffImageUrl(staff)} 
-                        alt={staff.name} 
-                        onError={(e) => {
-                          console.log(`Failed to load image for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
-                          // Let fallback kick in naturally
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
+                      {getStaffImageUrl(staff) && (
+                        <AvatarImage 
+                          src={getStaffImageUrl(staff)} 
+                          alt={staff.name} 
+                          onError={(e) => {
+                            console.log(`Failed to load image for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
+                            // Hide the image on error so fallback appears
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      )}
                       <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{staff.name}</span>

@@ -21,41 +21,6 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
     try {
       console.log('Form data submitted:', data);
       
-      // Get session data for restaurant ID
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Error getting session:', sessionError);
-        throw new Error('Authentication error: ' + sessionError.message);
-      }
-      
-      let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
-      let userId = null;
-      
-      // If user is authenticated, get their restaurant ID
-      if (sessionData && sessionData.session) {
-        userId = sessionData.session.user.id;
-        console.log('Authenticated user ID:', userId);
-        
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('restaurant_id')
-          .eq('id', sessionData.session.user.id)
-          .single();
-          
-        if (error && error.code !== 'PGRST116') { // PGRST116 means "no rows returned", which is fine
-          console.error('Error fetching profile:', error);
-          // Continue with default restaurant ID
-        } else if (profile?.restaurant_id) {
-          restaurantId = profile.restaurant_id;
-          console.log('Using restaurant ID from profile:', restaurantId);
-        } else {
-          console.log('No restaurant ID found in profile, using default');
-        }
-      } else {
-        console.log('No active session found, using default restaurant ID');
-      }
-
       // Handle profile image upload if it exists
       let avatarUrl = null;
       if (data.profile_image) {
@@ -69,6 +34,33 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
         }
       }
       
+      // Get session data for restaurant ID
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
+      let userId = null;
+      
+      // If user is authenticated, get their restaurant ID
+      if (sessionData && sessionData.session) {
+        userId = sessionData.session.user.id;
+        console.log('Authenticated user ID:', userId);
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('restaurant_id')
+          .eq('id', sessionData.session.user.id)
+          .single();
+          
+        if (profile?.restaurant_id) {
+          restaurantId = profile.restaurant_id;
+          console.log('Using restaurant ID from profile:', restaurantId);
+        } else {
+          console.log('No restaurant ID found in profile, using default');
+        }
+      } else {
+        console.log('No active session found, using default restaurant ID');
+      }
+
       // Prepare data for insertion - exclude profile_image as it's not a DB field
       const { profile_image, emergency_contact, ...restData } = data;
       
