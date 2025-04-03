@@ -30,9 +30,7 @@ export const useStaffData = () => {
         const normalizedData = supabaseData.map(staff => ({
           ...staff,
           // Ensure status is always 'active' or 'inactive'
-          status: staff.status === 'active' ? 'active' : 'inactive',
-          // Ensure role is one of the allowed types
-          role: validateRole(staff.role)
+          status: staff.status === 'active' ? 'active' : 'inactive'
         })) as StaffMember[];
         
         setStaffData(normalizedData);
@@ -54,12 +52,6 @@ export const useStaffData = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Helper function to validate role
-  const validateRole = (role: string): StaffMember['role'] => {
-    const validRoles: StaffMember['role'][] = ['Waiter', 'Chef', 'Manager', 'Receptionist'];
-    return validRoles.includes(role as any) ? (role as StaffMember['role']) : 'Waiter';
   };
 
   useEffect(() => {

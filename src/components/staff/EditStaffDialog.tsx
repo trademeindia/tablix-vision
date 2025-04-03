@@ -48,7 +48,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       name: staff.name,
       email: staff.email,
       phone: staff.phone,
-      role: staff.role,
+      role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
       emergency_contact: staff.emergency_contact || ''
@@ -61,7 +61,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       name: staff.name,
       email: staff.email,
       phone: staff.phone,
-      role: staff.role,
+      role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
       emergency_contact: staff.emergency_contact || ''
