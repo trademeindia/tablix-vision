@@ -616,9 +616,12 @@ export type Database = {
       }
       staff: {
         Row: {
+          avatar: string | null
+          avatar_url: string | null
           created_at: string | null
           email: string
           id: string
+          image: string | null
           last_login: string | null
           name: string
           notification_preference: Json | null
@@ -630,9 +633,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          avatar?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           email: string
           id?: string
+          image?: string | null
           last_login?: string | null
           name: string
           notification_preference?: Json | null
@@ -644,9 +650,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          avatar?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           email?: string
           id?: string
+          image?: string | null
           last_login?: string | null
           name?: string
           notification_preference?: Json | null

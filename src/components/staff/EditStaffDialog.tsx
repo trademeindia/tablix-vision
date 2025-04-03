@@ -78,19 +78,23 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       // Generate a unique filename to avoid collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `staff-profiles/${fileName}`;
-
-      // Check if the bucket exists, if not create it
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
       
-      if (!staffBucket) {
-        console.log('Creating staff-profiles bucket');
-        await supabase.storage.createBucket('staff-profiles', {
-          public: true,
-          fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-        });
+      // Try to create the bucket if it doesn't exist
+      try {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
+        
+        if (!staffBucket) {
+          console.log('Creating staff-profiles bucket');
+          await supabase.storage.createBucket('staff-profiles', {
+            public: true,
+            fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+          });
+        }
+      } catch (error) {
+        console.warn('Error checking/creating bucket', error);
+        // Continue anyway, as the bucket might already exist
       }
 
       // Upload the file
@@ -98,7 +102,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         .from('staff-profiles')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true // Changed to true to avoid conflicts
         });
 
       if (error) {
@@ -124,7 +128,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       console.log('Updating staff with ID:', staff.id, 'New data:', data);
       
       // Handle profile image upload if it exists
-      let avatarUrl = staff.avatar_url;
+      let avatarUrl = staff.avatar_url || staff.avatar || staff.image;
       if (data.profile_image) {
         console.log('Uploading new profile image...');
         const newAvatarUrl = await uploadProfileImage(data.profile_image);
@@ -132,6 +136,8 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         if (newAvatarUrl) {
           avatarUrl = newAvatarUrl;
           console.log('Profile image uploaded successfully:', avatarUrl);
+        } else {
+          console.warn('Failed to upload profile image, continuing with existing image');
         }
       }
       
@@ -143,6 +149,8 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         .update({
           ...staffData,
           avatar_url: avatarUrl,
+          avatar: avatarUrl, // For backward compatibility
+          image: avatarUrl, // For further compatibility
           updated_at: new Date().toISOString()
         })
         .eq('id', staff.id)

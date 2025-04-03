@@ -59,19 +59,23 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       // Generate a unique filename to avoid collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `staff-profiles/${fileName}`;
-
-      // Check if the bucket exists, if not create it
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
       
-      if (!staffBucket) {
-        console.log('Creating staff-profiles bucket');
-        await supabase.storage.createBucket('staff-profiles', {
-          public: true,
-          fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-        });
+      // Try to create the bucket if it doesn't exist
+      try {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
+        
+        if (!staffBucket) {
+          console.log('Creating staff-profiles bucket');
+          await supabase.storage.createBucket('staff-profiles', {
+            public: true,
+            fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
+            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+          });
+        }
+      } catch (error) {
+        console.warn('Error checking/creating bucket', error);
+        // Continue anyway, as the bucket might already exist
       }
 
       // Upload the file
@@ -79,7 +83,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
         .from('staff-profiles')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true // Changed to true to avoid conflicts
         });
 
       if (error) {
@@ -132,11 +136,11 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
         console.log('Uploading profile image...');
         avatarUrl = await uploadProfileImage(data.profile_image);
         
-        if (!avatarUrl) {
-          throw new Error('Failed to upload profile image');
+        if (avatarUrl) {
+          console.log('Profile image uploaded successfully:', avatarUrl);
+        } else {
+          console.warn('Failed to upload profile image, continuing without image');
         }
-        
-        console.log('Profile image uploaded successfully:', avatarUrl);
       }
       
       // Prepare data for insertion - exclude profile_image as it's not a DB field
@@ -158,6 +162,8 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           avatar_url: avatarUrl, // Use the uploaded image URL
+          avatar: avatarUrl, // For backward compatibility
+          image: avatarUrl, // For further compatibility
         }])
         .select();
       

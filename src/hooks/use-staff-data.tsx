@@ -31,9 +31,8 @@ export const useStaffData = () => {
           ...staff,
           // Ensure status is always 'active' or 'inactive'
           status: staff.status === 'active' ? 'active' : 'inactive',
-          // Map avatar_url to avatar for backward compatibility
-          avatar: (staff as any).avatar_url || (staff as any).avatar || undefined,
-          image: (staff as any).avatar_url || (staff as any).image || undefined
+          // Ensure avatar_url field is prioritized, with fallbacks to other fields
+          avatar_url: staff.avatar_url || staff.avatar || staff.image || undefined
         })) as StaffMember[];
         
         setStaffData(normalizedData);
