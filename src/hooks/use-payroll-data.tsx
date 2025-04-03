@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { StaffPayrollSummary, StaffPayrollRecord } from '@/types/staff';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +18,8 @@ export const usePayrollData = (staffId: string) => {
     const fetchPayroll = async () => {
       setIsLoading(true);
       try {
-        // Try to get data from Supabase first
+        // Since the staff_payroll table might not be in the types, 
+        // we'll use a more generic approach with the underlying client
         const { data, error } = await supabase
           .from('staff_payroll')
           .select('*')
@@ -33,15 +33,16 @@ export const usePayrollData = (staffId: string) => {
         if (data && data.length > 0) {
           // Use actual data from Supabase
           console.log(`Loaded ${data.length} payroll records for staff ${staffId}`);
-          // Transform data to match our expected format
+          
+          // Transform data safely with type assertions
           const records: StaffPayrollRecord[] = data.map(record => ({
-            id: record.id,
-            period: record.period,
-            base_salary: record.base_salary,
-            bonus: record.bonus,
-            deductions: record.deductions,
-            net_salary: record.net_salary,
-            payment_date: record.payment_date,
+            id: record.id as string,
+            period: record.period as string,
+            base_salary: record.base_salary as number,
+            bonus: record.bonus as number,
+            deductions: record.deductions as number,
+            net_salary: record.net_salary as number,
+            payment_date: record.payment_date as string,
             status: record.status as 'paid' | 'pending'
           }));
           

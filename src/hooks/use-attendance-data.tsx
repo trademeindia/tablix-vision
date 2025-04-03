@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { StaffAttendanceStats, StaffAttendanceRecord } from '@/types/staff';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,7 +19,8 @@ export const useAttendanceData = (staffId: string) => {
     const fetchAttendance = async () => {
       setIsLoading(true);
       try {
-        // Try to get data from Supabase first
+        // Since the staff_attendance table might not be in the types, 
+        // we'll use a more generic approach with the underlying client
         const { data, error } = await supabase
           .from('staff_attendance')
           .select('*')
@@ -34,14 +34,14 @@ export const useAttendanceData = (staffId: string) => {
         if (data && data.length > 0) {
           // Use actual data from Supabase
           console.log(`Loaded ${data.length} attendance records for staff ${staffId}`);
-          // Transform data to match our expected format
+          // Transform data safely with type assertions
           const records: StaffAttendanceRecord[] = data.map(record => ({
-            id: record.id,
-            date: record.date,
+            id: record.id as string,
+            date: record.date as string,
             status: record.status as 'present' | 'absent' | 'late',
-            check_in: record.check_in || undefined,
-            check_out: record.check_out || undefined,
-            notes: record.notes || undefined
+            check_in: record.check_in as string | undefined,
+            check_out: record.check_out as string | undefined,
+            notes: record.notes as string | undefined
           }));
           
           // Calculate statistics

@@ -53,7 +53,7 @@ export const useStaffData = () => {
       if (supabaseData && supabaseData.length > 0) {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
         
-        // Enhanced normalization and data handling
+        // Enhanced normalization and data handling with proper type handling
         const normalizedData = supabaseData.map(staff => {
           // Make sure all image-related fields are properly normalized
           const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
@@ -61,7 +61,7 @@ export const useStaffData = () => {
           // Log the image URL for debugging
           console.log(`Staff ${staff.name} image URL:`, imageUrl);
           
-          // Create a properly typed staff member with default values for potentially missing fields
+          // Create a properly typed staff member with safe type assertions
           const normalizedStaff: StaffMember = {
             id: staff.id || '',
             restaurant_id: staff.restaurant_id || '',
@@ -75,12 +75,15 @@ export const useStaffData = () => {
             last_login: staff.last_login,
             created_at: staff.created_at,
             updated_at: staff.updated_at,
-            // Handle fields that were just added to the database schema
-            salary: staff.salary ? parseFloat(String(staff.salary)) : undefined,
+            
+            // Safely handle new fields that might not be in the types yet
+            salary: typeof staff.salary === 'number' ? staff.salary : 
+                   typeof staff.salary === 'string' ? parseFloat(staff.salary) : undefined,
             hire_date: staff.hire_date || undefined,
             department: staff.department || undefined,
             manager_id: staff.manager_id || undefined,
             emergency_contact: staff.emergency_contact || undefined,
+            
             // Normalize all image fields to have the same value for maximum compatibility
             avatar_url: imageUrl,
             avatar: imageUrl,

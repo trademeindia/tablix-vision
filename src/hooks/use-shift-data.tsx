@@ -15,7 +15,8 @@ export const useShiftData = (staffId: string) => {
     const fetchShifts = async () => {
       setIsLoading(true);
       try {
-        // Try to get data from Supabase first
+        // Since the staff_shifts table might not be in the types, 
+        // we'll use a more generic approach without relying on type definitions
         const { data, error } = await supabase
           .from('staff_shifts')
           .select('*')
@@ -29,16 +30,17 @@ export const useShiftData = (staffId: string) => {
         if (data && data.length > 0) {
           // Use actual data from Supabase
           console.log(`Loaded ${data.length} shift records for staff ${staffId}`);
-          // Transform data to match our expected format
+          
+          // Transform data to match our expected format with type assertions for safety
           const shifts: StaffShift[] = data.map(shift => ({
-            id: shift.id,
-            staff_id: shift.staff_id,
-            date: shift.date,
-            start_time: shift.start_time,
-            end_time: shift.end_time,
-            position: shift.position,
+            id: shift.id as string,
+            staff_id: shift.staff_id as string,
+            date: shift.date as string,
+            start_time: shift.start_time as string,
+            end_time: shift.end_time as string,
+            position: shift.position as string,
             status: shift.status as 'scheduled' | 'completed' | 'canceled',
-            notes: shift.notes
+            notes: (shift.notes as string) || undefined
           }));
           
           // Sort shifts into upcoming and past
