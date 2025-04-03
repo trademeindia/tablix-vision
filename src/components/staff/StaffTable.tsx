@@ -83,7 +83,7 @@ const StaffTable: React.FC<StaffTableProps> = ({
                         src={getStaffImageUrl(staff)} 
                         alt={staff.name} 
                         onError={(e) => {
-                          console.log(`Failed to load image for staff: ${staff.name}`);
+                          console.log(`Failed to load image for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
                           // Let fallback kick in naturally
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}

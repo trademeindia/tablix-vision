@@ -52,6 +52,7 @@ export const useStaffData = () => {
       
       if (supabaseData && supabaseData.length > 0) {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
+        console.log('Sample staff data:', supabaseData[0]);
         
         // Enhanced normalization and data handling with proper type handling
         const normalizedData = supabaseData.map((staff: any) => {
@@ -123,6 +124,7 @@ export const useStaffData = () => {
   }, []);
 
   const refetchStaff = () => {
+    console.log('Refetching staff data...');
     fetchData();
   };
 

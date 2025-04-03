@@ -1,99 +1,62 @@
 
-import { StaffMember } from '@/types/staff';
 import { v4 as uuidv4 } from 'uuid';
+import { StaffMember } from '@/types/staff';
+import { addDays, subDays, format } from 'date-fns';
 
-// Sample role options
-const roles = ['Waiter', 'Chef', 'Manager', 'Receptionist'];
+// Helper function to generate a random date within a range
+const randomDate = (start: Date, end: Date) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+};
 
-// Sample department options
-const departments = ['Kitchen', 'Front of House', 'Administration', 'Bar'];
-
-// Sample status options
-const statuses = ['active', 'inactive'];
-
-// Sample avatar URLs from UI Avatars API
+// Helper to generate avatar URLs
 const generateAvatarUrl = (name: string) => {
-  // Ensure we encode the name properly for the URL
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=256`;
+  const encodedName = encodeURIComponent(name);
+  const url = `https://ui-avatars.com/api/?name=${encodedName}&background=random&color=fff&size=256`;
+  console.log(`Generated avatar URL for ${name}: ${url}`);
+  return url;
 };
 
-// Function to generate a random date within the last 2 years
-const generateRandomDate = (yearsBack = 2) => {
+// Generate demo staff data
+export const generateDemoStaffData = (count: number = 10): StaffMember[] => {
+  const roles = ['Waiter', 'Chef', 'Manager', 'Receptionist'];
+  const statuses = ['active', 'inactive'];
+  const departments = ['Front of House', 'Kitchen', 'Administration', 'Bar'];
+  
   const now = new Date();
-  const pastDate = new Date(now);
-  pastDate.setFullYear(now.getFullYear() - yearsBack);
+  const oneYearAgo = subDays(now, 365);
   
-  const randomTimestamp = pastDate.getTime() + Math.random() * (now.getTime() - pastDate.getTime());
-  return new Date(randomTimestamp).toISOString();
-};
-
-// Function to generate random staff data
-export const generateDemoStaffData = (count: number): StaffMember[] => {
-  const staffList: StaffMember[] = [];
+  const firstNames = ['John', 'Emma', 'James', 'Olivia', 'Matthew', 'Sophia', 'William', 'Emily', 'Alexander', 'Harper', 'Charlotte'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Miller', 'Davis', 'Garcia', 'Rodriguez', 'Wilson', 'Martinez', 'Taylor', 'Thomas', 'Moore', 'Jackson', 'Thomas', 'Perez'];
   
-  const firstNames = [
-    'John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 
-    'James', 'Emma', 'Robert', 'Olivia', 'William', 'Sophia',
-    'Richard', 'Ava', 'Joseph', 'Mia', 'Thomas', 'Isabella',
-    'Charles', 'Charlotte', 'Daniel', 'Amelia', 'Matthew', 'Harper'
-  ];
-  
-  const lastNames = [
-    'Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Garcia',
-    'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez',
-    'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson',
-    'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris'
-  ];
-
-  for (let i = 0; i < count; i++) {
+  return Array.from({ length: count }).map((_, index) => {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const name = `${firstName} ${lastName}`;
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
-    const role = roles[Math.floor(Math.random() * roles.length)];
-    const department = departments[Math.floor(Math.random() * departments.length)];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const avatarUrl = generateAvatarUrl(name);
-    const hireDate = generateRandomDate();
-    const createdAt = generateRandomDate();
+    const fullName = `${firstName} ${lastName}`;
     
-    // Generate a phone number in the format +1 XXX-XXX-XXXX
-    const phone = `+1 ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`;
+    // Generate avatar URL
+    const avatarUrl = generateAvatarUrl(fullName);
     
-    // Generate a random salary between $2000 and $6000
-    const salary = Math.floor(Math.random() * 4000) + 2000;
+    // Generate a unique staff ID with a prefix for easy identification
+    const id = `staff-${uuidv4().slice(0, 8)}`;
     
-    // Maybe have last login date for some staff
-    const lastLogin = Math.random() > 0.3 ? generateRandomDate(0.1) : undefined;
-
-    // Generate emergency contact for some staff
-    const emergencyContact = Math.random() > 0.5 
-      ? `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]} (${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000})`
-      : undefined;
-    
-    // For better avatar quality, use a larger size
-    console.log(`Generated avatar URL for ${name}: ${avatarUrl}`);
-    
-    staffList.push({
-      id: uuidv4(),
-      name,
-      email,
-      phone,
-      role,
-      status: status as 'active' | 'inactive',
-      department,
-      salary,
-      hire_date: hireDate,
+    return {
+      id,
+      restaurant_id: 'demo-restaurant',
+      name: fullName,
+      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+      phone: `+1${Math.floor(Math.random() * 1000000000).toString().padStart(10, '0')}`,
+      role: roles[Math.floor(Math.random() * roles.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)] as 'active' | 'inactive',
+      salary: Math.floor(Math.random() * 50000) + 30000,
+      department: departments[Math.floor(Math.random() * departments.length)],
+      hire_date: format(randomDate(oneYearAgo, now), 'yyyy-MM-dd'),
+      last_login: Math.random() > 0.3 ? format(randomDate(subDays(now, 30), now), 'yyyy-MM-dd HH:mm:ss') : undefined,
+      emergency_contact: `+1${Math.floor(Math.random() * 1000000000).toString().padStart(10, '0')}`,
       avatar_url: avatarUrl,
-      avatar: avatarUrl, // Ensure all image fields have the same URL
-      image: avatarUrl,  // Ensure all image fields have the same URL
-      created_at: createdAt,
-      updated_at: new Date().toISOString(),
-      last_login: lastLogin,
-      restaurant_id: uuidv4(),
-      emergency_contact: emergencyContact
-    });
-  }
-  
-  return staffList;
+      avatar: avatarUrl,
+      image: avatarUrl,
+      created_at: format(randomDate(oneYearAgo, now), 'yyyy-MM-dd HH:mm:ss'),
+      updated_at: format(randomDate(oneYearAgo, now), 'yyyy-MM-dd HH:mm:ss'),
+    };
+  });
 };

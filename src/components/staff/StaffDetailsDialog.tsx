@@ -43,7 +43,9 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
   };
   
   const getStaffImageUrl = (staff: StaffMember): string => {
-    return staff.avatar_url || staff.avatar || staff.image || '';
+    const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
+    console.log(`Staff details image URL for ${staff.name}:`, imageUrl);
+    return imageUrl;
   };
 
   return (
@@ -56,7 +58,7 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
                 src={getStaffImageUrl(staff)} 
                 alt={staff.name} 
                 onError={(e) => {
-                  console.log(`Failed to load image for staff: ${staff.name}`);
+                  console.log(`Failed to load image in StaffDetailsDialog for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />

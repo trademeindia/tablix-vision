@@ -7,7 +7,7 @@ import {
 import { Upload, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { StaffFormData, StaffMember } from '@/types/staff';
+import { StaffFormData } from '@/types/staff';
 
 interface ProfileImageUploadProps {
   form: UseFormReturn<StaffFormData>;
@@ -21,6 +21,8 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
   useEffect(() => {
     if (existingImage) {
       setPreviewUrl(existingImage);
+    } else {
+      setPreviewUrl(null);
     }
   }, [existingImage]);
   
@@ -51,6 +53,13 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     setPreviewUrl(null);
   };
 
+  // Generate initials for avatar fallback
+  const getInitials = () => {
+    const name = form.watch('name');
+    if (!name) return 'ST';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
     <div className="mb-6 flex flex-col items-center">
       <Avatar className="h-24 w-24 mb-3">
@@ -58,13 +67,11 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
           src={previewUrl || existingImage || ''} 
           alt="Staff avatar" 
           onError={(e) => {
-            console.log(`Failed to load avatar image`);
+            console.log(`Failed to load avatar image: ${previewUrl || existingImage}`);
             (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
-        <AvatarFallback>
-          {form.watch('name') ? form.watch('name').split(' ').map(n => n[0]).join('').toUpperCase() : 'ST'}
-        </AvatarFallback>
+        <AvatarFallback>{getInitials()}</AvatarFallback>
       </Avatar>
       
       <div className="flex flex-col items-center gap-2">
