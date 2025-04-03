@@ -43,7 +43,7 @@ export function useCheckout(): CheckoutData {
   } = useCheckoutState();
   
   // Get storage data (table, restaurant, orderItems)
-  const { tableId, restaurantId, orderItems } = useCheckoutStorage();
+  const { tableId, restaurantId, orderItems } = useCustomerInfoStorage();
   
   // Load stored customer info from localStorage
   const { customerInfo } = useCustomerInfoStorage();

@@ -129,32 +129,13 @@ export const getRestaurantOrders = async (
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // Start building the query
-    let query = supabase
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', restaurantId);
-
-    // Add filters if provided
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    if (startDate) {
-      query = query.gte('created_at', startDate);
-    }
-
-    if (endDate) {
-      query = query.lte('created_at', endDate);
-    }
-
-    // Get count first for pagination info - properly handling count query
+    // Start building the count query
     let countQuery = supabase
       .from('orders')
       .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurantId);
       
-    // Apply same filters to count query
+    // Apply filters to count query
     if (status) {
       countQuery = countQuery.eq('status', status);
     }
@@ -167,6 +148,7 @@ export const getRestaurantOrders = async (
       countQuery = countQuery.lte('created_at', endDate);
     }
     
+    // Execute count query
     const { count, error: countError } = await countQuery;
     
     if (countError) {
@@ -176,8 +158,27 @@ export const getRestaurantOrders = async (
     
     const totalCount = count || 0;
 
-    // Then get actual data with pagination
-    const { data: ordersData, error: ordersError } = await query
+    // Start building the data query
+    let dataQuery = supabase
+      .from('orders')
+      .select('*')
+      .eq('restaurant_id', restaurantId);
+
+    // Apply same filters to data query
+    if (status) {
+      dataQuery = dataQuery.eq('status', status);
+    }
+
+    if (startDate) {
+      dataQuery = dataQuery.gte('created_at', startDate);
+    }
+
+    if (endDate) {
+      dataQuery = dataQuery.lte('created_at', endDate);
+    }
+
+    // Execute data query with pagination
+    const { data: ordersData, error: ordersError } = await dataQuery
       .order('created_at', { ascending: false })
       .range(from, to);
 
