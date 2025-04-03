@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,8 +7,9 @@ import { Customer } from '@/types/customer';
 import CustomerTable from '@/components/customer/CustomerTable';
 import CustomerFilter from '@/components/customer/CustomerFilter';
 import CustomerDetailsDialog from '@/components/customer/CustomerDetailsDialog';
+import CustomerStats from '@/components/customer/CustomerStats';
+import CustomerExport from '@/components/customer/CustomerExport';
 
-// Mock data - in a real app, this would come from your API
 const mockCustomers: Customer[] = [
   { 
     id: 1, 
@@ -29,7 +29,12 @@ const mockCustomers: Customer[] = [
       dietary: ['Gluten-Free'],
       seating: 'Window',
       communication: 'Email'
-    }
+    },
+    segment: 'regular',
+    avgOrderValue: 70.06,
+    lifetime_value: 840.75,
+    recent_orders: 3,
+    retention_score: 85
   },
   { 
     id: 2, 
@@ -41,7 +46,12 @@ const mockCustomers: Customer[] = [
     status: 'active', 
     loyaltyPoints: 160,
     total_spent: 560.50,
-    created_at: '2023-02-15'
+    created_at: '2023-02-15',
+    segment: 'new',
+    avgOrderValue: 70.06,
+    lifetime_value: 560.50,
+    recent_orders: 2,
+    retention_score: 70
   },
   { 
     id: 3, 
@@ -53,7 +63,12 @@ const mockCustomers: Customer[] = [
     status: 'inactive', 
     loyaltyPoints: 100,
     total_spent: 325.20,
-    created_at: '2023-03-20'
+    created_at: '2023-03-20',
+    segment: 'new',
+    avgOrderValue: 65.04,
+    lifetime_value: 325.20,
+    recent_orders: 0,
+    retention_score: 40
   },
   { 
     id: 4, 
@@ -71,7 +86,12 @@ const mockCustomers: Customer[] = [
       dietary: ['Pescatarian'],
       seating: 'Booth',
       communication: 'Phone'
-    }
+    },
+    segment: 'vip',
+    avgOrderValue: 81.39,
+    lifetime_value: 1220.90,
+    recent_orders: 4,
+    retention_score: 95
   },
   { 
     id: 5, 
@@ -83,8 +103,51 @@ const mockCustomers: Customer[] = [
     status: 'inactive', 
     loyaltyPoints: 60,
     total_spent: 180.45,
-    created_at: '2023-05-12'
+    created_at: '2023-05-12',
+    segment: 'new',
+    avgOrderValue: 60.15,
+    lifetime_value: 180.45,
+    recent_orders: 0,
+    retention_score: 30
   },
+];
+
+const extendedMockCustomers = [
+  ...mockCustomers,
+  { 
+    id: 6, 
+    name: 'Emily Wilson', 
+    email: 'emily@example.com', 
+    phone: '(555) 111-2222', 
+    visits: 7, 
+    lastVisit: '2023-10-05', 
+    status: 'active', 
+    loyaltyPoints: 140,
+    total_spent: 495.30,
+    created_at: '2023-04-18',
+    segment: 'frequent',
+    avgOrderValue: 70.76,
+    lifetime_value: 495.30,
+    recent_orders: 2,
+    retention_score: 80
+  },
+  { 
+    id: 7, 
+    name: 'Robert Garcia', 
+    email: 'robert@example.com', 
+    phone: '(555) 333-4444', 
+    visits: 11, 
+    lastVisit: '2023-10-12', 
+    status: 'active', 
+    loyaltyPoints: 220,
+    total_spent: 780.25,
+    created_at: '2023-01-30',
+    segment: 'frequent',
+    avgOrderValue: 70.93,
+    lifetime_value: 780.25,
+    recent_orders: 3,
+    retention_score: 85
+  }
 ];
 
 const CustomersPage = () => {
@@ -109,18 +172,14 @@ const CustomersPage = () => {
     return count;
   };
   
-  // Filter customers based on search, status, and date filters
-  const filteredCustomers = mockCustomers.filter(customer => {
-    // Search filter
+  const filteredCustomers = extendedMockCustomers.filter(customer => {
     const matchesSearch = 
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (customer.email && customer.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (customer.phone && customer.phone.includes(searchQuery));
       
-    // Status filter
     const matchesStatus = statusFilter ? customer.status === statusFilter : true;
     
-    // Date filter
     let matchesDate = true;
     if (dateFilter && customer.lastVisit) {
       const lastVisitDate = new Date(customer.lastVisit);
@@ -134,7 +193,6 @@ const CustomersPage = () => {
     return matchesSearch && matchesStatus && matchesDate;
   });
   
-  // Filter by active tab
   const tabFilteredCustomers = filteredCustomers.filter(customer => {
     if (activeTab === 'all') return true;
     if (activeTab === 'active') return customer.status === 'active';
@@ -151,71 +209,77 @@ const CustomersPage = () => {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Customer Management</h1>
-        <p className="text-slate-500">View and manage your restaurant customers</p>
-      </div>
-      
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-        <Tabs 
-          defaultValue="all" 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
-            <TabsList>
-              <TabsTrigger value="all">All Customers</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="inactive">Inactive</TabsTrigger>
-              <TabsTrigger value="loyalty">Loyalty Program</TabsTrigger>
-            </TabsList>
-            
-            <Button className="gap-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+          <div>
+            <h1 className="text-2xl font-bold">Customer Management</h1>
+            <p className="text-slate-500">View and manage your restaurant customers</p>
+          </div>
+          <div className="mt-2 sm:mt-0 flex gap-2">
+            <CustomerExport customers={tabFilteredCustomers} />
+            <Button className="flex items-center gap-1">
               <UserPlus className="h-4 w-4" />
               <span className="hidden sm:inline">Add Customer</span>
             </Button>
           </div>
-          
-          <CustomerFilter 
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            dateFilter={dateFilter}
-            setDateFilter={setDateFilter}
-            clearFilters={clearFilters}
-            activeFiltersCount={getActiveFiltersCount()}
-          />
-          
-          <TabsContent value="all" className="m-0">
-            <CustomerTable 
-              customers={tabFilteredCustomers}
-              onViewDetails={handleViewDetails}
-            />
-          </TabsContent>
-          
-          <TabsContent value="active" className="m-0">
-            <CustomerTable 
-              customers={tabFilteredCustomers}
-              onViewDetails={handleViewDetails}
-            />
-          </TabsContent>
-          
-          <TabsContent value="inactive" className="m-0">
-            <CustomerTable 
-              customers={tabFilteredCustomers}
-              onViewDetails={handleViewDetails}
-            />
-          </TabsContent>
-          
-          <TabsContent value="loyalty" className="m-0">
-            <CustomerTable 
-              customers={tabFilteredCustomers}
-              onViewDetails={handleViewDetails}
-            />
-          </TabsContent>
-        </Tabs>
+        </div>
+        
+        <CustomerStats customers={extendedMockCustomers} />
       </div>
+      
+      <Tabs 
+        defaultValue="all" 
+        value={activeTab} 
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+          <TabsList>
+            <TabsTrigger value="all">All Customers</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="inactive">Inactive</TabsTrigger>
+            <TabsTrigger value="loyalty">Loyalty Program</TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <CustomerFilter 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+          clearFilters={clearFilters}
+          activeFiltersCount={getActiveFiltersCount()}
+        />
+        
+        <TabsContent value="all" className="m-0">
+          <CustomerTable 
+            customers={tabFilteredCustomers}
+            onViewDetails={handleViewDetails}
+          />
+        </TabsContent>
+        
+        <TabsContent value="active" className="m-0">
+          <CustomerTable 
+            customers={tabFilteredCustomers}
+            onViewDetails={handleViewDetails}
+          />
+        </TabsContent>
+        
+        <TabsContent value="inactive" className="m-0">
+          <CustomerTable 
+            customers={tabFilteredCustomers}
+            onViewDetails={handleViewDetails}
+          />
+        </TabsContent>
+        
+        <TabsContent value="loyalty" className="m-0">
+          <CustomerTable 
+            customers={tabFilteredCustomers}
+            onViewDetails={handleViewDetails}
+          />
+        </TabsContent>
+      </Tabs>
       
       {selectedCustomer && (
         <CustomerDetailsDialog

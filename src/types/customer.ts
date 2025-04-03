@@ -19,4 +19,9 @@ export interface Customer {
     seating?: string;
     communication?: string;
   };
+  avgOrderValue?: number;
+  lifetime_value?: number;
+  recent_orders?: number;
+  retention_score?: number;
+  segment?: 'new' | 'regular' | 'frequent' | 'vip';
 }
