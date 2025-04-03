@@ -6,7 +6,7 @@ import { UserPlus } from 'lucide-react';
 import { Customer } from '@/types/customer';
 import CustomerTable from '@/components/customer/CustomerTable';
 import CustomerFilter from '@/components/customer/CustomerFilter';
-import CustomerDetailsDialog from '@/components/customer/CustomerDetailsDialog';
+import CustomerDetailsDialog from '@/components/customer/details/CustomerDetailsDialog';
 import CustomerStats from '@/components/customer/CustomerStats';
 import CustomerExport from '@/components/customer/CustomerExport';
 
@@ -112,7 +112,7 @@ const mockCustomers: Customer[] = [
   },
 ];
 
-const extendedMockCustomers = [
+const extendedMockCustomers: Customer[] = [
   ...mockCustomers,
   { 
     id: 6, 
