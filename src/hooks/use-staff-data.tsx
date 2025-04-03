@@ -25,7 +25,15 @@ export const useStaffData = () => {
       
       if (supabaseData && supabaseData.length > 0) {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
-        setStaffData(supabaseData);
+        
+        // Normalize status to ensure it's either 'active' or 'inactive'
+        const normalizedData = supabaseData.map(staff => ({
+          ...staff,
+          // Ensure status is always 'active' or 'inactive'
+          status: staff.status === 'active' ? 'active' : 'inactive'
+        })) as StaffMember[];
+        
+        setStaffData(normalizedData);
       } else {
         // Fallback to demo data if no data found in Supabase
         console.log('No data found in Supabase, using demo data instead');
