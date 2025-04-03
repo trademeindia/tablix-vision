@@ -51,13 +51,15 @@ export const getCustomerOrders = async (
     const to = from + limit - 1;
 
     // Get count for pagination
-    const { count, error: countError } = await supabase
+    const countResponse = await supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('customer_id', customerId);
     
-    if (countError) {
-      console.error('Error fetching order count:', countError);
+    const count = countResponse.count ?? 0;
+    
+    if (countResponse.error) {
+      console.error('Error fetching order count:', countResponse.error);
       return { orders: [], count: 0 };
     }
 
@@ -93,7 +95,7 @@ export const getCustomerOrders = async (
 
     return { 
       orders: orders.filter((order): order is Order => order !== null),
-      count: count || 0 
+      count 
     };
   } catch (error) {
     console.error('Error in getCustomerOrders:', error);
@@ -147,10 +149,11 @@ export const getRestaurantOrders = async (
     }
 
     // Get count first for pagination info
-    const { count, error: countError } = await query.count();
+    const countResponse = await query.count();
+    const count = countResponse.count ?? 0;
     
-    if (countError) {
-      console.error('Error counting restaurant orders:', countError);
+    if (countResponse.error) {
+      console.error('Error counting restaurant orders:', countResponse.error);
       return { orders: [], count: 0 };
     }
 
@@ -183,7 +186,7 @@ export const getRestaurantOrders = async (
 
     return { 
       orders: orders.filter((order): order is Order => order !== null),
-      count: count || 0 
+      count
     };
   } catch (error) {
     console.error('Error in getRestaurantOrders:', error);
