@@ -51,35 +51,47 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // Prepare the customer data
-      const newCustomer: Partial<Customer> = {
+      // Prepare the customer data for Supabase
+      const now = new Date().toISOString();
+      const customerData = {
         name: data.name,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
-        address: data.address || undefined,
-        notes: data.notes || undefined,
-        segment: data.segment,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        visits: 0,
-        loyaltyPoints: 0,
-        lastVisit: new Date().toISOString(),
-        avgOrderValue: 0,
-        lifetime_value: 0,
-        recent_orders: 0,
-        retention_score: 50
+        email: data.email || null,
+        phone: data.phone || null,
+        created_at: now,
+        last_visit: now,
+        total_expenditure: 0
       };
 
       // Insert the customer into Supabase
       const { data: createdCustomer, error } = await supabase
         .from('customers')
-        .insert(newCustomer)
+        .insert(customerData)
         .select()
         .single();
 
       if (error) {
         throw new Error(error.message);
       }
+
+      // Transform the database record to match our Customer type
+      const newCustomer: Customer = {
+        id: createdCustomer.id,
+        name: createdCustomer.name,
+        email: createdCustomer.email || undefined,
+        phone: createdCustomer.phone || undefined,
+        address: data.address || undefined,
+        notes: data.notes || undefined,
+        created_at: createdCustomer.created_at,
+        lastVisit: createdCustomer.last_visit,
+        status: 'active',
+        visits: 0,
+        loyaltyPoints: 0,
+        segment: data.segment,
+        avgOrderValue: 0,
+        lifetime_value: 0,
+        recent_orders: 0,
+        retention_score: 50
+      };
 
       // Notify success
       toast({
@@ -88,7 +100,7 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
       });
 
       // Call the onCustomerAdded callback with the created customer
-      onCustomerAdded(createdCustomer as Customer);
+      onCustomerAdded(newCustomer);
       
       // Reset the form and close the dialog
       form.reset();

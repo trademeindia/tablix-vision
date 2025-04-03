@@ -29,14 +29,24 @@ export const useCustomerData = () => {
         }
         
         // Transform data to match Customer type
-        const transformedData = data.map((customer) => ({
-          ...customer,
+        const transformedData: Customer[] = data.map((customer) => ({
           id: customer.id,
+          name: customer.name || '',
+          email: customer.email,
+          phone: customer.phone,
+          created_at: customer.created_at,
           lastVisit: customer.last_visit || customer.created_at,
-          status: customer.status || 'active',
-          visits: customer.visits || 0,
-          loyaltyPoints: customer.loyalty_points || 0,
-          segment: (customer.segment as Customer['segment']) || 'new'
+          
+          // These fields are not in the database, so we set default values
+          status: 'active',  // Default status
+          visits: 0,         // Default visits
+          loyaltyPoints: 0,  // Default loyalty points
+          segment: 'new' as Customer['segment'],  // Default segment
+          total_spent: customer.total_expenditure || 0,
+          avgOrderValue: customer.total_expenditure ? customer.total_expenditure / 1 : 0,
+          lifetime_value: customer.total_expenditure || 0,
+          recent_orders: 0,
+          retention_score: 50
         }));
         
         setAllCustomers(transformedData);
