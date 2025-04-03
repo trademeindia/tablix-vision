@@ -56,7 +56,7 @@ export function useCustomerInfoStorage() {
   };
 }
 
-// Alias function to match expected API in checkout flow
+// Using the alias approach to maintain compatibility with existing code
 export const useSaveCustomerInfo = useCustomerInfoStorage;
 
 // Cart storage functions

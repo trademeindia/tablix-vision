@@ -51,17 +51,17 @@ export const getCustomerOrders = async (
     const to = from + limit - 1;
 
     // Get count for pagination - Fixed by using a separate count query
-    const countQuery = await supabase
+    const { count, error: countError } = await supabase
       .from('orders')
       .select('id', { count: 'exact', head: true })
       .eq('customer_id', customerId);
     
-    const count = countQuery.count ?? 0;
-    
-    if (countQuery.error) {
-      console.error('Error fetching order count:', countQuery.error);
+    if (countError) {
+      console.error('Error fetching order count:', countError);
       return { orders: [], count: 0 };
     }
+    
+    const totalCount = count || 0;
 
     // Get the order headers with pagination
     const { data: ordersData, error: ordersError } = await supabase
@@ -95,7 +95,7 @@ export const getCustomerOrders = async (
 
     return { 
       orders: orders.filter((order): order is Order => order !== null),
-      count 
+      count: totalCount
     };
   } catch (error) {
     console.error('Error in getCustomerOrders:', error);
@@ -148,30 +148,33 @@ export const getRestaurantOrders = async (
       query = query.lte('created_at', endDate);
     }
 
-    // Get count first for pagination info - Fixed by using a separate count query
-    const countQuery = await supabase
+    // Get count first for pagination info - properly handling count query
+    let countQuery = supabase
       .from('orders')
       .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurantId);
       
+    // Apply same filters to count query
     if (status) {
-      countQuery.eq('status', status);
+      countQuery = countQuery.eq('status', status);
     }
     
     if (startDate) {
-      countQuery.gte('created_at', startDate);
+      countQuery = countQuery.gte('created_at', startDate);
     }
     
     if (endDate) {
-      countQuery.lte('created_at', endDate);
+      countQuery = countQuery.lte('created_at', endDate);
     }
     
-    const count = countQuery.count ?? 0;
+    const { count, error: countError } = await countQuery;
     
-    if (countQuery.error) {
-      console.error('Error counting restaurant orders:', countQuery.error);
+    if (countError) {
+      console.error('Error counting restaurant orders:', countError);
       return { orders: [], count: 0 };
     }
+    
+    const totalCount = count || 0;
 
     // Then get actual data with pagination
     const { data: ordersData, error: ordersError } = await query
@@ -202,7 +205,7 @@ export const getRestaurantOrders = async (
 
     return { 
       orders: orders.filter((order): order is Order => order !== null),
-      count
+      count: totalCount
     };
   } catch (error) {
     console.error('Error in getRestaurantOrders:', error);

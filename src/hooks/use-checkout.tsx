@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useCheckoutState } from './use-checkout-state';
-import { useCustomerInfoStorage, useCheckoutStorage, CartItem } from './use-checkout-storage';
+import { useCustomerInfoStorage, CartItem } from './use-checkout-storage';
 import { useCheckoutSubmission } from './use-checkout-submission';
 import { MenuItem } from '@/types/menu';
 
