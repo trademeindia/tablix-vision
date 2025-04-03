@@ -217,8 +217,12 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       // Prepare data for insertion - exclude profile_image as it's not a DB field
       const { profile_image, ...staffData } = data;
       
+      // Remove emergency_contact from the data object as it doesn't exist in the DB
+      // @ts-ignore - We're intentionally removing this field
+      const { emergency_contact, ...validStaffData } = staffData;
+      
       console.log('Adding staff member with data:', {
-        ...staffData,
+        ...validStaffData,
         restaurant_id: restaurantId,
         user_id: userId,
         avatar_url: avatarUrl
@@ -228,7 +232,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       const { data: insertedData, error } = await supabase
         .from('staff')
         .insert([{
-          ...staffData,
+          ...validStaffData,
           restaurant_id: restaurantId,
           user_id: userId,
           created_at: new Date().toISOString(),

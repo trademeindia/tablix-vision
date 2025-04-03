@@ -16,7 +16,7 @@ export interface StaffMember {
   hire_date?: string;
   department?: string;
   manager_id?: string;
-  emergency_contact?: string;
+  // Note: emergency_contact doesn't exist in the database schema
   avatar_url?: string; // Added to match the database schema
   avatar?: string;     // For backward compatibility
   image?: string;      // For further compatibility
@@ -33,7 +33,7 @@ export interface StaffFormData {
   salary?: number;
   hire_date?: string;
   department?: string;
-  emergency_contact?: string;
+  emergency_contact?: string; // Keep in form data but not sent to database
   profile_image?: File | null; // Changed from avatar string to File object
 }
 
