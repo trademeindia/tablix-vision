@@ -12,7 +12,7 @@ interface AttendanceTabProps {
 }
 
 const AttendanceTab: React.FC<AttendanceTabProps> = ({ staffId }) => {
-  const { attendanceData, attendanceStats, isLoading } = useAttendanceData(staffId);
+  const { attendanceRecords, attendanceStats, isLoading } = useAttendanceData(staffId);
 
   if (isLoading) {
     return (
@@ -49,7 +49,7 @@ const AttendanceTab: React.FC<AttendanceTabProps> = ({ staffId }) => {
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{attendanceStats.totalLate} days</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((attendanceStats.totalLate / attendanceData.length) * 100)}% of working days
+              {Math.round((attendanceStats.totalLate / attendanceRecords.length) * 100)}% of working days
             </p>
           </CardContent>
         </Card>
@@ -61,7 +61,7 @@ const AttendanceTab: React.FC<AttendanceTabProps> = ({ staffId }) => {
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{attendanceStats.totalAbsent} days</div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((attendanceStats.totalAbsent / attendanceData.length) * 100)}% of working days
+              {Math.round((attendanceStats.totalAbsent / attendanceRecords.length) * 100)}% of working days
             </p>
           </CardContent>
         </Card>
@@ -83,7 +83,7 @@ const AttendanceTab: React.FC<AttendanceTabProps> = ({ staffId }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {attendanceData.slice(0, 10).map((record) => (
+              {attendanceRecords.slice(0, 10).map((record) => (
                 <TableRow key={record.id}>
                   <TableCell className="font-medium">
                     {format(parseISO(record.date), 'MMM dd, yyyy')}
