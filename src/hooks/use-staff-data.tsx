@@ -31,9 +31,9 @@ export const useStaffData = () => {
           ...staff,
           // Ensure status is always 'active' or 'inactive'
           status: staff.status === 'active' ? 'active' : 'inactive',
-          // Safely access optional properties
-          avatar: (staff as any).avatar || undefined,
-          image: (staff as any).image || undefined
+          // Map avatar_url to avatar for backward compatibility
+          avatar: (staff as any).avatar_url || (staff as any).avatar || undefined,
+          image: (staff as any).avatar_url || (staff as any).image || undefined
         })) as StaffMember[];
         
         setStaffData(normalizedData);

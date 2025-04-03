@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, 
   DialogTitle, DialogFooter 
@@ -13,6 +13,7 @@ import { StaffFormData, StaffMember } from '@/types/staff';
 import StaffForm from './StaffForm';
 import { supabase } from '@/integrations/supabase/client';
 import { Form } from '@/components/ui/form';
+import { v4 as uuidv4 } from 'uuid';
 
 interface EditStaffDialogProps {
   open: boolean;
@@ -31,7 +32,7 @@ const formSchema = z.object({
   hire_date: z.string().optional(),
   department: z.string().optional(),
   emergency_contact: z.string().optional(),
-  avatar: z.string().url('Please provide a valid URL').optional().or(z.literal(''))
+  profile_image: z.instanceof(File).optional().nullable()
 });
 
 const EditStaffDialog: React.FC<EditStaffDialogProps> = ({ 
@@ -40,7 +41,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
   staff, 
   onStaffUpdated 
 }) => {
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<StaffFormData>({
@@ -53,7 +54,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       status: staff.status,
       salary: staff.salary,
       emergency_contact: staff.emergency_contact || '',
-      avatar: staff.avatar || staff.image || ''
+      profile_image: null
     }
   });
 
@@ -67,20 +68,81 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       status: staff.status,
       salary: staff.salary,
       emergency_contact: staff.emergency_contact || '',
-      avatar: staff.avatar || staff.image || ''
+      profile_image: null
     });
   }, [staff, form]);
+
+  // Upload an image to Supabase Storage
+  const uploadProfileImage = async (file: File): Promise<string | null> => {
+    try {
+      // Generate a unique filename to avoid collisions
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `staff-profiles/${fileName}`;
+
+      // Check if the bucket exists, if not create it
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
+      
+      if (!staffBucket) {
+        console.log('Creating staff-profiles bucket');
+        await supabase.storage.createBucket('staff-profiles', {
+          public: true,
+          fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+        });
+      }
+
+      // Upload the file
+      const { data, error } = await supabase.storage
+        .from('staff-profiles')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Error uploading image:', error);
+        throw error;
+      }
+
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('staff-profiles')
+        .getPublicUrl(fileName);
+
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      return null;
+    }
+  };
 
   const onSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
     try {
       console.log('Updating staff with ID:', staff.id, 'New data:', data);
       
+      // Handle profile image upload if it exists
+      let avatarUrl = staff.avatar_url;
+      if (data.profile_image) {
+        console.log('Uploading new profile image...');
+        const newAvatarUrl = await uploadProfileImage(data.profile_image);
+        
+        if (newAvatarUrl) {
+          avatarUrl = newAvatarUrl;
+          console.log('Profile image uploaded successfully:', avatarUrl);
+        }
+      }
+      
+      // Remove profile_image from data before DB update
+      const { profile_image, ...staffData } = data;
+      
       const { data: updatedData, error } = await supabase
         .from('staff')
         .update({
-          ...data,
-          image: data.avatar, // Update both avatar and image fields
+          ...staffData,
+          avatar_url: avatarUrl,
           updated_at: new Date().toISOString()
         })
         .eq('id', staff.id)

@@ -17,7 +17,7 @@ export interface StaffMember {
   department?: string;
   manager_id?: string;
   emergency_contact?: string;
-  avatar?: string;
+  avatar_url?: string; // Changed from avatar
   image?: string;
 }
 
@@ -33,7 +33,7 @@ export interface StaffFormData {
   hire_date?: string;
   department?: string;
   emergency_contact?: string;
-  avatar?: string;
+  profile_image?: File | null; // Changed from avatar string to File object
 }
 
 export interface StaffAttendanceStats {

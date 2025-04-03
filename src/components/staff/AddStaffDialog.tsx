@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, 
   DialogTitle, DialogTrigger, DialogFooter 
@@ -14,11 +14,13 @@ import { StaffFormData } from '@/types/staff';
 import StaffForm from './StaffForm';
 import { supabase } from '@/integrations/supabase/client';
 import { Form } from '@/components/ui/form';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AddStaffDialogProps {
   onStaffAdded: () => void;
 }
 
+// Update the form schema to accept File for profile_image
 const formSchema = z.object({
   name: z.string().min(2, 'Name is required'),
   email: z.string().email('Valid email is required'),
@@ -29,12 +31,12 @@ const formSchema = z.object({
   hire_date: z.string().optional(),
   department: z.string().optional(),
   emergency_contact: z.string().optional(),
-  avatar: z.string().url('Please provide a valid URL').optional().or(z.literal(''))
+  profile_image: z.instanceof(File).optional().nullable()
 });
 
 const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
-  const [open, setOpen] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
   const form = useForm<StaffFormData>({
@@ -47,13 +49,62 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       status: 'active',
       salary: undefined,
       emergency_contact: '',
-      avatar: ''
+      profile_image: null
     }
   });
+
+  // Upload an image to Supabase Storage
+  const uploadProfileImage = async (file: File): Promise<string | null> => {
+    try {
+      // Generate a unique filename to avoid collisions
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `staff-profiles/${fileName}`;
+
+      // Check if the bucket exists, if not create it
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
+      
+      if (!staffBucket) {
+        console.log('Creating staff-profiles bucket');
+        await supabase.storage.createBucket('staff-profiles', {
+          public: true,
+          fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+        });
+      }
+
+      // Upload the file
+      const { data, error } = await supabase.storage
+        .from('staff-profiles')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Error uploading image:', error);
+        throw error;
+      }
+
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('staff-profiles')
+        .getPublicUrl(fileName);
+
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      return null;
+    }
+  };
 
   const onSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
     try {
+      console.log('Form data submitted:', data);
+      
+      // Get session data for restaurant ID
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
@@ -74,20 +125,39 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
           restaurantId = profile.restaurant_id;
         }
       }
+
+      // Handle profile image upload if it exists
+      let avatarUrl = null;
+      if (data.profile_image) {
+        console.log('Uploading profile image...');
+        avatarUrl = await uploadProfileImage(data.profile_image);
+        
+        if (!avatarUrl) {
+          throw new Error('Failed to upload profile image');
+        }
+        
+        console.log('Profile image uploaded successfully:', avatarUrl);
+      }
+      
+      // Prepare data for insertion - exclude profile_image as it's not a DB field
+      const { profile_image, ...staffData } = data;
       
       console.log('Adding staff member with data:', {
-        ...data,
-        restaurant_id: restaurantId
+        ...staffData,
+        restaurant_id: restaurantId,
+        avatar_url: avatarUrl
       });
       
+      // Insert the new staff record
       const { data: insertedData, error } = await supabase
         .from('staff')
         .insert([{
-          ...data,
+          ...staffData,
           restaurant_id: restaurantId,
           user_id: null, // In a real app, we might create an auth user and link them
           created_at: new Date().toISOString(),
-          image: data.avatar // Store avatar URL in both avatar and image fields
+          updated_at: new Date().toISOString(),
+          avatar_url: avatarUrl, // Use the uploaded image URL
         }])
         .select();
       
