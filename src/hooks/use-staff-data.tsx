@@ -31,8 +31,10 @@ export const useStaffData = () => {
           ...staff,
           // Ensure status is always 'active' or 'inactive'
           status: staff.status === 'active' ? 'active' : 'inactive',
-          // If avatar is not provided but image is, use image
-          avatar: staff.avatar || staff.image || undefined
+          // Handle avatar property safely - it might not exist in the database
+          avatar: staff.avatar || undefined,
+          // Handle image property safely - it might not exist in the database
+          image: staff.image || undefined
         })) as StaffMember[];
         
         setStaffData(normalizedData);
