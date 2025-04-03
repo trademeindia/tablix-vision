@@ -82,7 +82,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <StaffForm form={form} />
+            <StaffForm form={form} existingStaff={staff} />
             
             <DialogFooter className="mt-6">
               <Button 

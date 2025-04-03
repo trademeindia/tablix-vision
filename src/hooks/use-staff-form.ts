@@ -43,7 +43,7 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
           .eq('id', sessionData.session.user.id)
           .single();
           
-        if (error) {
+        if (error && error.code !== 'PGRST116') { // PGRST116 means "no rows returned", which is fine
           console.error('Error fetching profile:', error);
           // Continue with default restaurant ID
         } else if (profile?.restaurant_id) {

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { 
   FormField, FormItem, FormControl, FormMessage 
@@ -7,14 +7,22 @@ import {
 import { Upload, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { StaffFormData } from '@/types/staff';
+import { StaffFormData, StaffMember } from '@/types/staff';
 
 interface ProfileImageUploadProps {
   form: UseFormReturn<StaffFormData>;
+  existingImage?: string;
 }
 
-const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form }) => {
+const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingImage }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  // Set preview URL from existing image if available
+  useEffect(() => {
+    if (existingImage) {
+      setPreviewUrl(existingImage);
+    }
+  }, [existingImage]);
   
   // Handle file selection for profile image
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,16 +45,23 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form }) => {
   // Clear the selected image
   const clearImage = () => {
     form.setValue('profile_image', null);
-    if (previewUrl) {
+    if (previewUrl && !existingImage) {
       URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
     }
+    setPreviewUrl(null);
   };
 
   return (
     <div className="mb-6 flex flex-col items-center">
       <Avatar className="h-24 w-24 mb-3">
-        <AvatarImage src={previewUrl || ''} alt="Staff avatar" />
+        <AvatarImage 
+          src={previewUrl || existingImage || ''} 
+          alt="Staff avatar" 
+          onError={(e) => {
+            console.log(`Failed to load avatar image`);
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
         <AvatarFallback>
           {form.watch('name') ? form.watch('name').split(' ').map(n => n[0]).join('').toUpperCase() : 'ST'}
         </AvatarFallback>

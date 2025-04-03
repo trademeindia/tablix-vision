@@ -57,8 +57,17 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
     }
   });
 
+  // Reset the form when dialog is closed
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      // Reset form with a slight delay to avoid flickering during close animation
+      setTimeout(() => form.reset(), 100);
+    }
+    setOpen(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
@@ -78,7 +87,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => setOpen(false)}
+                onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
               >
                 Cancel

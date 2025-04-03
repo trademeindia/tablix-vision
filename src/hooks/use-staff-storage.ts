@@ -9,58 +9,12 @@ import { v4 as uuidv4 } from 'uuid';
 export const useStaffStorage = () => {
   const [isUploading, setIsUploading] = useState(false);
   
-  // Check if bucket exists and create it if it doesn't
-  const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
-    try {
-      // First check if the bucket already exists
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        console.error('Error checking buckets:', bucketsError);
-        return false;
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-      
-      if (bucketExists) {
-        console.log(`Bucket ${bucketName} already exists`);
-        return true;
-      }
-      
-      // Create the bucket if it doesn't exist
-      console.log(`Creating bucket: ${bucketName}`);
-      const { data, error } = await supabase.storage.createBucket(bucketName, {
-        public: true,
-        fileSizeLimit: 2 * 1024 * 1024, // 2MB
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-      });
-      
-      if (error) {
-        console.error('Error creating bucket:', error);
-        return false;
-      }
-      
-      console.log(`Successfully created bucket: ${bucketName}`);
-      return true;
-    } catch (error) {
-      console.error('Unexpected error in ensureBucketExists:', error);
-      return false;
-    }
-  };
-
   // Upload an image to Supabase Storage
   const uploadProfileImage = async (file: File): Promise<string | null> => {
     setIsUploading(true);
     const bucketName = 'staff-profiles';
     
     try {
-      // Ensure the bucket exists
-      const bucketExists = await ensureBucketExists(bucketName);
-      if (!bucketExists) {
-        console.error('Failed to ensure bucket exists');
-        throw new Error('Failed to prepare storage bucket for upload');
-      }
-
       // Generate a unique filename to avoid collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
