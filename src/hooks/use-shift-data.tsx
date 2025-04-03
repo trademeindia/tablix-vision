@@ -2,76 +2,110 @@
 import { useState, useEffect } from 'react';
 import { StaffShift } from '@/types/shift';
 import { v4 as uuidv4 } from 'uuid';
+import { generateStaffShifts } from '@/utils/demo-data/staff-shifts';
+import { supabase } from '@/integrations/supabase/client';
+import { format, addDays, subDays, isFuture, isPast } from 'date-fns';
 
 export const useShiftData = (staffId: string) => {
   const [upcomingShifts, setUpcomingShifts] = useState<StaffShift[]>([]);
   const [pastShifts, setPastShifts] = useState<StaffShift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   useEffect(() => {
-    const fetchShiftData = async () => {
+    const fetchShifts = async () => {
       setIsLoading(true);
       try {
-        // In a real app, we would fetch from actual Supabase tables
-        // Since the staff_shifts table doesn't exist yet, we'll use demo data
-        console.log('Generating demo shift data for staff ID:', staffId);
-        
-        const upcoming: StaffShift[] = [];
-        const past: StaffShift[] = [];
-        const today = new Date();
-        
-        // Generate shifts spanning past 10 days to future 10 days
-        for (let i = -10; i < 10; i++) {
-          // Not every day has a shift (probability 70%)
-          if (Math.random() < 0.7) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            
-            const positions = ['Server', 'Host', 'Bartender', 'Manager'];
-            const position = positions[Math.floor(Math.random() * positions.length)];
-            
-            const shift: StaffShift = {
-              id: uuidv4(),
-              staff_id: staffId,
-              date: date.toISOString(),
-              start_time: `${Math.floor(Math.random() * 4) + 8}:00`,
-              end_time: `${Math.floor(Math.random() * 4) + 16}:00`,
-              position,
-              status: i < 0 ? 'completed' : 'scheduled',
-              notes: Math.random() < 0.3 ? 'Special event' : undefined
-            };
-            
-            if (i < 0) {
-              past.push(shift);
-            } else {
-              upcoming.push(shift);
-            }
-          }
+        // Try to get data from Supabase first
+        const { data, error } = await supabase
+          .from('staff_shifts')
+          .select('*')
+          .eq('staff_id', staffId);
+          
+        if (error) {
+          console.error('Error fetching shift data:', error);
+          throw error;
         }
         
-        // Sort shifts by date
-        past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        if (data && data.length > 0) {
+          // Use actual data from Supabase
+          console.log(`Loaded ${data.length} shift records for staff ${staffId}`);
+          // Transform data to match our expected format
+          const shifts: StaffShift[] = data.map(shift => ({
+            id: shift.id,
+            staff_id: shift.staff_id,
+            date: shift.date,
+            start_time: shift.start_time,
+            end_time: shift.end_time,
+            position: shift.position,
+            status: shift.status,
+            notes: shift.notes
+          }));
+          
+          // Sort shifts into upcoming and past
+          const upcoming: StaffShift[] = [];
+          const past: StaffShift[] = [];
+          
+          shifts.forEach(shift => {
+            const shiftDate = new Date(shift.date);
+            if (isFuture(shiftDate)) {
+              upcoming.push(shift);
+            } else {
+              past.push(shift);
+            }
+          });
+          
+          setUpcomingShifts(upcoming);
+          setPastShifts(past);
+        } else {
+          // Generate demo data if no data found
+          console.log(`No shift data found for staff ${staffId}, generating demo data`);
+          const demoShifts = generateStaffShifts(staffId);
+          
+          // Sort demo shifts into upcoming and past
+          const upcoming: StaffShift[] = [];
+          const past: StaffShift[] = [];
+          
+          demoShifts.forEach(shift => {
+            const shiftDate = new Date(shift.date);
+            if (isFuture(shiftDate)) {
+              upcoming.push(shift);
+            } else {
+              past.push(shift);
+            }
+          });
+          
+          setUpcomingShifts(upcoming);
+          setPastShifts(past);
+        }
+      } catch (error) {
+        console.error('Falling back to demo data due to error:', error);
+        // Generate demo data on error
+        const demoShifts = generateStaffShifts(staffId);
+        
+        // Sort demo shifts into upcoming and past
+        const upcoming: StaffShift[] = [];
+        const past: StaffShift[] = [];
+        
+        demoShifts.forEach(shift => {
+          const shiftDate = new Date(shift.date);
+          if (isFuture(shiftDate)) {
+            upcoming.push(shift);
+          } else {
+            past.push(shift);
+          }
+        });
         
         setUpcomingShifts(upcoming);
         setPastShifts(past);
-      } catch (error) {
-        console.error('Error in shift data fetch:', error);
-        // Fallback to empty arrays
-        setUpcomingShifts([]);
-        setPastShifts([]);
       } finally {
         setIsLoading(false);
       }
     };
     
-    if (staffId) {
-      fetchShiftData();
-    }
+    fetchShifts();
   }, [staffId]);
-
+  
   return {
-    shiftData: [...upcomingShifts, ...pastShifts],
     upcomingShifts,
     pastShifts,
     isLoading

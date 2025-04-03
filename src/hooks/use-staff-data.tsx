@@ -75,13 +75,13 @@ export const useStaffData = () => {
             last_login: staff.last_login,
             created_at: staff.created_at,
             updated_at: staff.updated_at,
-            // Handle salary specifically - may not exist in some records
+            // Handle optional fields that might not exist in the database
             salary: typeof staff.salary === 'string' ? parseFloat(staff.salary) : 
-                    typeof staff.salary === 'number' ? staff.salary : undefined,
-            hire_date: staff.hire_date,
-            department: staff.department,
-            manager_id: staff.manager_id,
-            emergency_contact: staff.emergency_contact,
+                   typeof staff.salary === 'number' ? staff.salary : undefined,
+            hire_date: staff.hire_date || undefined,
+            department: staff.department || undefined,
+            manager_id: staff.manager_id || undefined,
+            emergency_contact: staff.emergency_contact || undefined,
             // Normalize all image fields to have the same value for maximum compatibility
             avatar_url: imageUrl,
             avatar: imageUrl,
