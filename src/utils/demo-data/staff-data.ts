@@ -97,3 +97,181 @@ export const generateDemoStaffData = (count: number = 10): StaffMember[] => {
   
   return staffData;
 };
+
+// New function to generate staff attendance records
+export const generateStaffAttendance = (staffId: string, days: number = 30) => {
+  const records = [];
+  const now = new Date();
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    
+    // Skip weekends
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+    
+    // Determine status with realistic probabilities
+    let status = 'present';
+    if (Math.random() < 0.05) status = 'absent';
+    else if (Math.random() < 0.1) status = 'late';
+    
+    let checkIn = null;
+    let checkOut = null;
+    let notes = null;
+    
+    if (status !== 'absent') {
+      // Generate check-in time (8:45 AM to 9:15 AM)
+      const checkInHour = 8 + (status === 'late' ? 1 : 0);
+      const checkInMin = Math.floor(Math.random() * 30) + (status === 'late' ? 15 : 45);
+      checkIn = `${checkInHour.toString().padStart(2, '0')}:${checkInMin.toString().padStart(2, '0')}`;
+      
+      // Generate check-out time (4:45 PM to 6:15 PM)
+      const checkOutHour = 16 + Math.floor(Math.random() * 2);
+      const checkOutMin = Math.floor(Math.random() * 30) + 45;
+      checkOut = `${checkOutHour.toString().padStart(2, '0')}:${checkOutMin.toString().padStart(2, '0')}`;
+      
+      if (status === 'late') {
+        notes = ['Traffic delay', 'Public transport issues', 'Personal emergency'][Math.floor(Math.random() * 3)];
+      }
+    } else {
+      notes = ['Sick leave', 'Personal leave', 'Family emergency'][Math.floor(Math.random() * 3)];
+    }
+    
+    records.push({
+      id: uuidv4(),
+      staff_id: staffId,
+      date: dateStr,
+      status,
+      check_in: checkIn,
+      check_out: checkOut,
+      notes
+    });
+  }
+  
+  // Sort by date (most recent first)
+  return records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
+// New function to generate staff payroll records
+export const generateStaffPayroll = (staffId: string, months: number = 6) => {
+  const records = [];
+  const now = new Date();
+  
+  for (let i = 0; i < months; i++) {
+    const date = new Date(now);
+    date.setMonth(date.getMonth() - i);
+    
+    // Set to the 1st of the month
+    date.setDate(1);
+    const startDate = new Date(date);
+    
+    // Set to the last day of the month
+    date.setMonth(date.getMonth() + 1);
+    date.setDate(0);
+    const endDate = new Date(date);
+    
+    const periodStart = startDate.toISOString().split('T')[0];
+    const periodEnd = endDate.toISOString().split('T')[0];
+    
+    // Calculate period name (e.g., "January 2023")
+    const periodName = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    // Base salary between $3000 and $5000
+    const baseSalary = Math.floor(Math.random() * 2000) + 3000;
+    
+    // Bonus between $0 and $1000
+    const bonus = Math.floor(Math.random() * 1000);
+    
+    // Deductions between $500 and $1200
+    const deductions = Math.floor(Math.random() * 700) + 500;
+    
+    // Net salary
+    const netSalary = baseSalary + bonus - deductions;
+    
+    // Payment date (usually around 5th of next month)
+    const paymentDate = new Date(endDate);
+    paymentDate.setDate(5);
+    paymentDate.setMonth(paymentDate.getMonth() + 1);
+    
+    // Status - older ones are paid, current month might be pending
+    const status = i === 0 ? (Math.random() > 0.5 ? 'paid' : 'pending') : 'paid';
+    
+    records.push({
+      id: uuidv4(),
+      staff_id: staffId,
+      period: periodName,
+      period_start: periodStart,
+      period_end: periodEnd,
+      base_salary: baseSalary,
+      bonus,
+      deductions,
+      net_salary: netSalary,
+      payment_date: paymentDate.toISOString(),
+      status,
+      notes: status === 'pending' ? 'Awaiting approval' : null
+    });
+  }
+  
+  // Sort by date (most recent first)
+  return records.sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime());
+};
+
+// New function to generate staff shifts
+export const generateStaffShifts = (staffId: string, days: number = 21) => {
+  const shifts = [];
+  const now = new Date();
+  now.setHours(0, 0, 0, 0); // Set to start of today
+  
+  // Positions based on restaurant roles
+  const positions = {
+    'Waiter': ['Floor Server', 'Bar Service', 'Host'],
+    'Chef': ['Line Cook', 'Prep Chef', 'Head Chef', 'Pastry Chef'],
+    'Manager': ['Floor Manager', 'Shift Supervisor', 'General Manager'],
+    'Receptionist': ['Front Desk', 'Reservations', 'Customer Service']
+  };
+  
+  // Shift patterns
+  const shiftPatterns = [
+    { start: '07:00', end: '15:00', name: 'Morning' },
+    { start: '11:00', end: '19:00', name: 'Afternoon' },
+    { start: '15:00', end: '23:00', name: 'Evening' },
+    { start: '18:00', end: '02:00', name: 'Night' }
+  ];
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + i - 10); // Start from 10 days ago
+    const dateStr = date.toISOString().split('T')[0];
+    
+    // Skip some days randomly to create a realistic schedule
+    if (Math.random() < 0.3) continue;
+    
+    // Randomly select a position category
+    const roleCategory = Object.keys(positions)[Math.floor(Math.random() * Object.keys(positions).length)];
+    const positionOptions = positions[roleCategory as keyof typeof positions];
+    const position = positionOptions[Math.floor(Math.random() * positionOptions.length)];
+    
+    // Randomly select a shift pattern
+    const shift = shiftPatterns[Math.floor(Math.random() * shiftPatterns.length)];
+    
+    // Determine if this is a past shift (completed) or future shift (scheduled)
+    const isPastShift = date < now;
+    
+    shifts.push({
+      id: uuidv4(),
+      staff_id: staffId,
+      date: dateStr,
+      start_time: shift.start,
+      end_time: shift.end,
+      position,
+      status: isPastShift ? 'completed' : 'scheduled',
+      notes: isPastShift && Math.random() < 0.2 ? 'Overtime: +1 hour' : null
+    });
+  }
+  
+  // Sort by date (most recent first)
+  return shifts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
