@@ -73,7 +73,7 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-24 w-24 mx-auto">
-                  <AvatarImage src={staff?.avatar || staff?.image} alt={staff?.name} />
+                  <AvatarImage src={staff?.avatar_url || staff?.image} alt={staff?.name} />
                   <AvatarFallback>{getInitials(staff?.name || '')}</AvatarFallback>
                 </Avatar>
                 

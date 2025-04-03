@@ -131,7 +131,7 @@ const StaffList: React.FC<StaffListProps> = ({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={staff.avatar || staff.image} alt={staff.name} />
+                        <AvatarImage src={staff.avatar_url || staff.image} alt={staff.name} />
                         <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{staff.name}</span>

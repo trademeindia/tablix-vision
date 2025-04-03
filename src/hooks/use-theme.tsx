@@ -1,5 +1,5 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export type ThemeColors = {
@@ -35,7 +35,10 @@ const ThemeContext = createContext<ThemeContextType>({
   resetToDefault: async () => {},
 });
 
-export const ThemeProvider = ({ children, restaurantId }: { children: React.ReactNode, restaurantId?: string }) => {
+export const ThemeProvider: React.FC<{ 
+  children: React.ReactNode; 
+  restaurantId?: string;
+}> = ({ children, restaurantId }) => {
   const [theme, setThemeState] = useState<ThemeColors>(defaultTheme);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
