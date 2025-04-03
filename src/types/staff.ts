@@ -17,8 +17,9 @@ export interface StaffMember {
   department?: string;
   manager_id?: string;
   emergency_contact?: string;
-  avatar_url?: string; // Changed from avatar
-  image?: string;
+  avatar_url?: string; // Added to match the database schema
+  avatar?: string;     // For backward compatibility
+  image?: string;      // For further compatibility
 }
 
 export type StaffRole = 'Waiter' | 'Chef' | 'Manager' | 'Receptionist';
