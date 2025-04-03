@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
@@ -41,12 +42,18 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
       .toUpperCase();
   };
   
+  // Enhanced function to get the best image URL for the staff member
   const getStaffImageUrl = (staff: StaffMember): string => {
-    if (!staff.avatar_url && !staff.avatar && !staff.image) {
-      return '';
-    }
+    // Log available image fields for debugging
+    console.log(`StaffDetailsDialog - Staff ${staff.name} image fields:`, {
+      avatar_url: staff.avatar_url,
+      avatar: staff.avatar,
+      image: staff.image
+    });
     
-    return staff.avatar_url || staff.avatar || staff.image || '';
+    // Choose the first non-empty value
+    const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
+    return imageUrl;
   };
 
   return (
@@ -61,7 +68,7 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
                   alt={staff.name}
                   className="object-cover" 
                   onError={(e) => {
-                    console.log(`Failed to load image in StaffDetailsDialog for staff: ${staff.name}`);
+                    console.log(`Failed to load image in StaffDetailsDialog for ${staff.name}:`, getStaffImageUrl(staff));
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />

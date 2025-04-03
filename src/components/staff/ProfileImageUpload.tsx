@@ -21,9 +21,11 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
   // Set preview URL from existing image if available
   useEffect(() => {
     if (existingImage) {
+      console.log("Setting existing image for preview:", existingImage);
       setPreviewUrl(existingImage);
       setShowFallback(false);
     } else {
+      console.log("No existing image found");
       setPreviewUrl(null);
       setShowFallback(true);
     }
@@ -35,6 +37,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     if (!files || files.length === 0) return;
     
     const file = files[0];
+    console.log("File selected:", file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
     
     // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
@@ -60,6 +63,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     
     // Create preview URL for the selected image
     const objectUrl = URL.createObjectURL(file);
+    console.log("Created object URL for preview:", objectUrl);
     setPreviewUrl(objectUrl);
     setShowFallback(false);
     
@@ -69,6 +73,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
   
   // Clear the selected image
   const clearImage = () => {
+    console.log("Clearing image selection");
     form.setValue('profile_image', null);
     if (previewUrl && !existingImage) {
       URL.revokeObjectURL(previewUrl);

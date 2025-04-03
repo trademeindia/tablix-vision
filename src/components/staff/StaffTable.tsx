@@ -45,14 +45,16 @@ const StaffTable: React.FC<StaffTableProps> = ({
     }
   };
 
-  // Get the most reliable image URL from multiple possible fields
+  // Enhanced function to get the best image URL for each staff member
   const getStaffImageUrl = (staff: StaffMember): string => {
-    // If no image fields are present, return empty string
-    if (!staff.avatar_url && !staff.avatar && !staff.image) {
-      return '';
-    }
+    // Log all possible image fields to help debugging
+    console.log(`Staff ${staff.name} image fields:`, {
+      avatar_url: staff.avatar_url,
+      avatar: staff.avatar,
+      image: staff.image
+    });
     
-    // Prefer avatar_url, then fall back to the others
+    // Choose the first non-empty value
     return staff.avatar_url || staff.avatar || staff.image || '';
   };
 
@@ -86,18 +88,16 @@ const StaffTable: React.FC<StaffTableProps> = ({
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border-2 border-slate-100 shadow-sm">
-                      {getStaffImageUrl(staff) && (
-                        <AvatarImage 
-                          src={getStaffImageUrl(staff)} 
-                          alt={staff.name} 
-                          className="object-cover"
-                          onError={(e) => {
-                            console.log(`Failed to load image for staff: ${staff.name}`);
-                            // Hide the image on error so fallback appears
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      )}
+                      <AvatarImage 
+                        src={getStaffImageUrl(staff)} 
+                        alt={staff.name} 
+                        className="object-cover"
+                        onError={(e) => {
+                          console.log(`Failed to load avatar image for ${staff.name}:`, getStaffImageUrl(staff));
+                          // Hide the image on error so fallback appears
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
                       <AvatarFallback className="bg-primary/10 text-primary font-medium">
                         {getInitials(staff.name)}
                       </AvatarFallback>
