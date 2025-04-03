@@ -1,57 +1,31 @@
 
 import { useState, useEffect } from 'react';
-import { generateStaffShifts } from '@/utils/demo-data/staff-data';
+import { generateStaffShifts } from '@/utils/demo-data/staff-shifts';
 
-export const useShiftData = (staffId: string) => {
+export const useShiftData = (staffCount: number = 10) => {
   const [shiftData, setShiftData] = useState<any[]>([]);
-  const [upcomingShifts, setUpcomingShifts] = useState<any[]>([]);
-  const [pastShifts, setPastShifts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   useEffect(() => {
-    const fetchShifts = async () => {
+    // In a real app, we would fetch this data from an API
+    // For now, we'll use the demo data generator
+    const fetchData = () => {
       setIsLoading(true);
-      
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 700));
-        
-        // Generate demo shift data
-        const data = generateStaffShifts(staffId, 21); // 3 weeks of shifts
+        const data = generateStaffShifts(staffCount);
         setShiftData(data);
-        
-        // Current date for comparison
-        const now = new Date();
-        
-        // Split into upcoming and past shifts
-        const upcoming = data.filter(shift => {
-          const shiftDate = new Date(shift.date);
-          return shiftDate >= now;
-        });
-        
-        const past = data.filter(shift => {
-          const shiftDate = new Date(shift.date);
-          return shiftDate < now;
-        });
-        
-        setUpcomingShifts(upcoming);
-        setPastShifts(past);
       } catch (error) {
-        console.error('Error fetching shift data:', error);
+        console.error('Error generating shift data:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    if (staffId) {
-      fetchShifts();
-    }
-  }, [staffId]);
-
+    fetchData();
+  }, [staffCount]);
+  
   return {
     shiftData,
-    upcomingShifts,
-    pastShifts,
     isLoading
   };
 };

@@ -1,20 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, 
   DialogTitle, DialogFooter 
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { StaffFormData, StaffMember } from '@/types/staff';
 import StaffForm from './StaffForm';
-import { supabase } from '@/integrations/supabase/client';
 import { Form } from '@/components/ui/form';
-import { v4 as uuidv4 } from 'uuid';
-import { useStaffStorage } from '@/hooks/use-staff-storage';
+import { useStaffEdit } from '@/hooks/use-staff-edit';
 
 interface EditStaffDialogProps {
   open: boolean;
@@ -42,10 +39,6 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
   staff, 
   onStaffUpdated 
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  const { uploadProfileImage } = useStaffStorage();
-  
   const form = useForm<StaffFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -74,65 +67,11 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
     });
   }, [staff, form]);
 
-  const onSubmit = async (data: StaffFormData) => {
-    setIsSubmitting(true);
-    try {
-      console.log('Updating staff with ID:', staff.id, 'New data:', data);
-      
-      // Handle profile image upload if it exists
-      let avatarUrl = staff.avatar_url || staff.avatar || staff.image;
-      if (data.profile_image) {
-        console.log('Uploading new profile image...');
-        const newAvatarUrl = await uploadProfileImage(data.profile_image);
-        
-        if (newAvatarUrl) {
-          avatarUrl = newAvatarUrl;
-          console.log('Profile image uploaded successfully:', avatarUrl);
-        } else {
-          console.warn('Failed to upload profile image, continuing with existing image');
-        }
-      }
-      
-      // Remove profile_image and emergency_contact from data before DB update
-      const { profile_image, emergency_contact, ...validStaffData } = data;
-      
-      const { data: updatedData, error } = await supabase
-        .from('staff')
-        .update({
-          ...validStaffData,
-          avatar_url: avatarUrl,
-          avatar: avatarUrl, // For backward compatibility
-          image: avatarUrl, // For further compatibility
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', staff.id)
-        .select();
-      
-      if (error) {
-        console.error('Supabase error details:', error);
-        throw error;
-      }
-      
-      console.log('Staff updated successfully:', updatedData);
-      
-      toast({
-        title: 'Staff Updated',
-        description: `${data.name}'s information has been updated.`,
-      });
-      
-      onOpenChange(false);
-      onStaffUpdated();
-    } catch (error) {
-      console.error('Error updating staff:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update staff member. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { handleSubmit, isSubmitting } = useStaffEdit({
+    staff,
+    onSuccess: onStaffUpdated,
+    onClose: () => onOpenChange(false)
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -142,7 +81,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <StaffForm form={form} />
             
             <DialogFooter className="mt-6">
