@@ -86,12 +86,15 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       
       // Create public access policy for the bucket using the edge function
       try {
-        // Instead of using RPC, we'll call our edge function directly
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-storage-policy`, {
+        // Fix: Use the correct way to access the Supabase URL and key
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qofbpjdbmisyxysfcyeb.supabase.co';
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvZmJwamRibWlzeXh5c2ZjeWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTUxMzIsImV4cCI6MjA1ODQ5MTEzMn0.RqUyHPLxCWUATAufUkXCUN9yczZNBKMQD_wYF4Q3VVA';
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/create-storage-policy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabase.supabaseKey}`
+            'Authorization': `Bearer ${supabaseKey}`
           },
           body: JSON.stringify({ bucket_name: bucketName })
         });
