@@ -25,13 +25,17 @@ const CustomersPage = () => {
     setIsDetailDialogOpen,
     clearFilters,
     getActiveFiltersCount,
-    handleViewDetails
+    handleViewDetails,
+    handleCustomerAdded
   } = useCustomerData();
 
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <CustomerPageHeader customers={customers} />
+        <CustomerPageHeader 
+          customers={customers} 
+          onCustomerAdded={handleCustomerAdded}
+        />
         <CustomerStats customers={allCustomers} />
       </div>
       
