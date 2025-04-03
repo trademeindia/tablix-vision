@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface CustomerInfo {
+export interface CustomerInfo {
   name?: string;
   email?: string;
   phone?: string;
