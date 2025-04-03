@@ -36,7 +36,14 @@ export const useStaffEdit = ({ staff, onSuccess, onClose }: UseStaffEditProps) =
       }
       
       // Remove profile_image from data before DB update
-      const { profile_image, ...validStaffData } = data;
+      const { profile_image, emergency_contact, ...restData } = data;
+      
+      // Ensure salary is properly typed for the database
+      const validStaffData = {
+        ...restData,
+        salary: data.salary ? Number(data.salary) : null,
+        emergency_contact: emergency_contact || null
+      };
       
       const { data: updatedData, error } = await supabase
         .from('staff')

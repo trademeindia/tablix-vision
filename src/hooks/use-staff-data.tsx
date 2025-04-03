@@ -73,7 +73,9 @@ export const useStaffData = () => {
             // Normalize all image fields to have the same value for maximum compatibility
             avatar_url: imageUrl,
             avatar: imageUrl,
-            image: imageUrl
+            image: imageUrl,
+            // Ensure salary is properly handled as a number
+            salary: typeof staff.salary === 'string' ? parseFloat(staff.salary) : staff.salary
           };
         }) as StaffMember[];
         

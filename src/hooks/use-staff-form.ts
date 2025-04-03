@@ -70,14 +70,17 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
       }
       
       // Prepare data for insertion - exclude profile_image as it's not a DB field
-      const { profile_image, ...staffData } = data;
+      const { profile_image, emergency_contact, ...restData } = data;
       
-      // Remove emergency_contact from the data object as it doesn't exist in the DB
-      // @ts-ignore - We're intentionally removing this field
-      const { emergency_contact, ...validStaffData } = staffData;
+      // Ensure salary is properly typed for the database
+      const staffData = {
+        ...restData,
+        salary: data.salary ? Number(data.salary) : null,
+        emergency_contact: emergency_contact || null
+      };
       
       console.log('Adding staff member with data:', {
-        ...validStaffData,
+        ...staffData,
         restaurant_id: restaurantId,
         user_id: userId,
         avatar_url: avatarUrl
@@ -87,7 +90,7 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
       const { data: insertedData, error } = await supabase
         .from('staff')
         .insert([{
-          ...validStaffData,
+          ...staffData,
           restaurant_id: restaurantId,
           user_id: userId,
           created_at: new Date().toISOString(),

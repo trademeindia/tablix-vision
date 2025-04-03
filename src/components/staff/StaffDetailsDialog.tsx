@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, 
   DialogTitle, DialogFooter, DialogDescription 
@@ -11,6 +11,10 @@ import { Calendar, Mail, Phone, UserCog, PhoneCall } from 'lucide-react';
 import RoleIcon from './RoleIcon';
 import { format } from 'date-fns';
 import StaffStatusBadge from './StaffStatusBadge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AttendanceTab from './AttendanceTab';
+import PayrollTab from './PayrollTab';
+import ShiftsTab from './ShiftsTab';
 
 interface StaffDetailsDialogProps {
   open: boolean;
@@ -19,6 +23,8 @@ interface StaffDetailsDialogProps {
 }
 
 const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenChange, staff }) => {
+  const [activeTab, setActiveTab] = useState<string>('details');
+  
   // Log the avatar URL for debugging
   console.log('Staff details avatar URL:', {
     staff_name: staff.name,
@@ -32,7 +38,7 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenCha
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Staff Details</DialogTitle>
           <DialogDescription>
@@ -60,63 +66,86 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenCha
           <StaffStatusBadge staff={staff} onStatusChange={() => {}} />
         </div>
         
-        <div className="grid gap-4">
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-sm font-medium col-span-1">Email:</div>
-            <div className="text-sm col-span-3 flex items-center">
-              <Mail className="h-4 w-4 mr-2" />
-              {staff.email}
-            </div>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4 w-full">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="payroll">Payroll</TabsTrigger>
+            <TabsTrigger value="shifts">Shifts</TabsTrigger>
+          </TabsList>
           
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-sm font-medium col-span-1">Phone:</div>
-            <div className="text-sm col-span-3 flex items-center">
-              <Phone className="h-4 w-4 mr-2" />
-              {staff.phone}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-sm font-medium col-span-1">Role:</div>
-            <div className="text-sm col-span-3 flex items-center">
-              <UserCog className="h-4 w-4 mr-2" />
-              {staff.role}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-sm font-medium col-span-1">Hire Date:</div>
-            <div className="text-sm col-span-3 flex items-center">
-              <Calendar className="h-4 w-4 mr-2" />
-              {staff.hire_date ? format(new Date(staff.hire_date), 'PPP') : 'N/A'}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-sm font-medium col-span-1">Salary:</div>
-            <div className="text-sm col-span-3">
-              {staff.salary ? `$${staff.salary}` : 'N/A'}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-sm font-medium col-span-1">Department:</div>
-            <div className="text-sm col-span-3">
-              {staff.department || 'N/A'}
-            </div>
-          </div>
-
-          {staff.emergency_contact && (
-            <div className="grid grid-cols-4 gap-2">
-              <div className="text-sm font-medium col-span-1">Emergency:</div>
-              <div className="text-sm col-span-3 flex items-center">
-                <PhoneCall className="h-4 w-4 mr-2" />
-                {staff.emergency_contact}
+          <TabsContent value="details" className="mt-4">
+            <div className="grid gap-4">
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-sm font-medium col-span-1">Email:</div>
+                <div className="text-sm col-span-3 flex items-center">
+                  <Mail className="h-4 w-4 mr-2" />
+                  {staff.email}
+                </div>
               </div>
+              
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-sm font-medium col-span-1">Phone:</div>
+                <div className="text-sm col-span-3 flex items-center">
+                  <Phone className="h-4 w-4 mr-2" />
+                  {staff.phone}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-sm font-medium col-span-1">Role:</div>
+                <div className="text-sm col-span-3 flex items-center">
+                  <UserCog className="h-4 w-4 mr-2" />
+                  {staff.role}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-sm font-medium col-span-1">Hire Date:</div>
+                <div className="text-sm col-span-3 flex items-center">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  {staff.hire_date ? format(new Date(staff.hire_date), 'PPP') : 'N/A'}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-sm font-medium col-span-1">Salary:</div>
+                <div className="text-sm col-span-3">
+                  {staff.salary ? `$${staff.salary}` : 'N/A'}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-2">
+                <div className="text-sm font-medium col-span-1">Department:</div>
+                <div className="text-sm col-span-3">
+                  {staff.department || 'N/A'}
+                </div>
+              </div>
+
+              {staff.emergency_contact && (
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="text-sm font-medium col-span-1">Emergency:</div>
+                  <div className="text-sm col-span-3 flex items-center">
+                    <PhoneCall className="h-4 w-4 mr-2" />
+                    {staff.emergency_contact}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="attendance">
+            <AttendanceTab staffId={staff.id} />
+          </TabsContent>
+          
+          <TabsContent value="payroll">
+            <PayrollTab staffId={staff.id} />
+          </TabsContent>
+          
+          <TabsContent value="shifts">
+            <ShiftsTab staffId={staff.id} />
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
