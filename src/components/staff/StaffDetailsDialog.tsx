@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, 
@@ -6,7 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { StaffMember } from '@/types/staff';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Mail, Phone, UserCog } from 'lucide-react';
+import { Calendar, Mail, Phone, UserCog, PhoneCall } from 'lucide-react';
 import RoleIcon from './RoleIcon';
 import { format } from 'date-fns';
 import { StaffStatusBadge } from './StaffStatusBadge';
@@ -87,6 +88,16 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenCha
               {staff.department || 'N/A'}
             </div>
           </div>
+
+          {staff.emergency_contact && (
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-sm font-medium col-span-1">Emergency:</div>
+              <div className="text-sm col-span-3 flex items-center">
+                <PhoneCall className="h-4 w-4 mr-2" />
+                {staff.emergency_contact}
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

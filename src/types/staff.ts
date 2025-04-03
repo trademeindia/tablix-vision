@@ -1,4 +1,3 @@
-
 export interface StaffMember {
   id: string;
   restaurant_id: string;
@@ -16,10 +15,10 @@ export interface StaffMember {
   hire_date?: string;
   department?: string;
   manager_id?: string;
-  // Note: emergency_contact doesn't exist in the database schema
-  avatar_url?: string; // Added to match the database schema
-  avatar?: string;     // For backward compatibility
-  image?: string;      // For further compatibility
+  emergency_contact?: string;
+  avatar_url?: string;
+  avatar?: string;
+  image?: string;
 }
 
 export type StaffRole = 'Waiter' | 'Chef' | 'Manager' | 'Receptionist';
@@ -33,8 +32,8 @@ export interface StaffFormData {
   salary?: number;
   hire_date?: string;
   department?: string;
-  emergency_contact?: string; // Keep in form data but not sent to database
-  profile_image?: File | null; // Changed from avatar string to File object
+  emergency_contact?: string;
+  profile_image?: File | null;
 }
 
 export interface StaffAttendanceStats {

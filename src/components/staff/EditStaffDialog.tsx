@@ -48,7 +48,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
-      emergency_contact: '', // This field isn't in the database
+      emergency_contact: staff.emergency_contact || '',
       profile_image: null
     }
   });
@@ -62,7 +62,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
-      emergency_contact: '', // This field isn't in the database
+      emergency_contact: staff.emergency_contact || '',
       profile_image: null
     });
   }, [staff, form]);

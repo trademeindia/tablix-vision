@@ -64,6 +64,11 @@ export const generateDemoStaffData = (count: number): StaffMember[] => {
     
     // Maybe have last login date for some staff
     const lastLogin = Math.random() > 0.3 ? generateRandomDate(0.1) : undefined;
+
+    // Generate emergency contact for some staff
+    const emergencyContact = Math.random() > 0.5 
+      ? `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]} (${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000})`
+      : undefined;
     
     staffList.push({
       id: uuidv4(),
@@ -82,7 +87,7 @@ export const generateDemoStaffData = (count: number): StaffMember[] => {
       updated_at: new Date().toISOString(),
       last_login: lastLogin,
       restaurant_id: uuidv4(),
-      // emergency_contact field is removed from StaffMember type
+      emergency_contact: emergencyContact
     });
   }
   

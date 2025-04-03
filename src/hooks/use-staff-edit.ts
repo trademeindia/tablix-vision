@@ -35,8 +35,8 @@ export const useStaffEdit = ({ staff, onSuccess, onClose }: UseStaffEditProps) =
         }
       }
       
-      // Remove profile_image and emergency_contact from data before DB update
-      const { profile_image, emergency_contact, ...validStaffData } = data;
+      // Remove profile_image from data before DB update
+      const { profile_image, ...validStaffData } = data;
       
       const { data: updatedData, error } = await supabase
         .from('staff')
