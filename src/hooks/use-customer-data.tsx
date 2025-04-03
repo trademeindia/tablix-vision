@@ -49,7 +49,12 @@ export const useCustomerData = () => {
           retention_score: 50
         }));
         
-        setAllCustomers(transformedData);
+        if (transformedData.length > 0) {
+          setAllCustomers(transformedData);
+        } else {
+          // If no data from Supabase, use mock data
+          setAllCustomers(mockCustomers);
+        }
       } catch (error) {
         console.error('Error fetching customers:', error);
         toast({
@@ -152,7 +157,7 @@ export const useCustomerData = () => {
   };
 };
 
-// Mock data - in a real application, this would be fetched from an API
+// Mock data with rich, realistic information for demonstration
 const mockCustomers: Customer[] = [
   { 
     id: '1', 
@@ -286,5 +291,97 @@ const mockCustomers: Customer[] = [
     lifetime_value: 780.25,
     recent_orders: 3,
     retention_score: 85
+  },
+  { 
+    id: '8', 
+    name: 'Olivia Martinez', 
+    email: 'olivia@example.com', 
+    phone: '(555) 555-6666', 
+    visits: 20, 
+    lastVisit: '2023-10-18', 
+    status: 'active', 
+    loyaltyPoints: 400,
+    total_spent: 1750.60,
+    created_at: '2022-08-15',
+    favorite_items: ['Filet Mignon', 'Lobster Bisque', 'Chocolate Mousse'],
+    notes: 'Birthday on April 15. Always celebrates anniversary at restaurant.',
+    segment: 'vip',
+    avgOrderValue: 87.53,
+    lifetime_value: 1750.60,
+    recent_orders: 5,
+    retention_score: 98
+  },
+  { 
+    id: '9', 
+    name: 'James Wilson', 
+    email: 'james@example.com', 
+    phone: '(555) 777-8888', 
+    visits: 6, 
+    lastVisit: '2023-09-25', 
+    status: 'active', 
+    loyaltyPoints: 120,
+    total_spent: 420.30,
+    created_at: '2023-03-10',
+    segment: 'regular',
+    avgOrderValue: 70.05,
+    lifetime_value: 420.30,
+    recent_orders: 2,
+    retention_score: 75
+  },
+  { 
+    id: '10', 
+    name: 'Sophia Lee', 
+    email: 'sophia@example.com', 
+    phone: '(555) 999-0000', 
+    visits: 4, 
+    lastVisit: '2023-10-01', 
+    status: 'active', 
+    loyaltyPoints: 80,
+    total_spent: 280.50,
+    created_at: '2023-06-20',
+    preferences: {
+      dietary: ['Vegetarian'],
+      seating: 'Quiet Corner',
+      communication: 'Email'
+    },
+    segment: 'new',
+    avgOrderValue: 70.13,
+    lifetime_value: 280.50,
+    recent_orders: 1,
+    retention_score: 60
+  },
+  { 
+    id: '11', 
+    name: 'William Taylor', 
+    email: 'william@example.com', 
+    phone: '(555) 123-7890', 
+    visits: 9, 
+    lastVisit: '2023-10-15', 
+    status: 'active', 
+    loyaltyPoints: 180,
+    total_spent: 630.75,
+    created_at: '2023-02-05',
+    segment: 'frequent',
+    avgOrderValue: 70.08,
+    lifetime_value: 630.75,
+    recent_orders: 3,
+    retention_score: 82
+  },
+  { 
+    id: '12', 
+    name: 'Ava Anderson', 
+    email: 'ava@example.com', 
+    phone: '(555) 456-1230', 
+    visits: 2, 
+    lastVisit: '2023-08-10', 
+    status: 'inactive', 
+    loyaltyPoints: 40,
+    total_spent: 140.25,
+    created_at: '2023-07-15',
+    segment: 'new',
+    avgOrderValue: 70.13,
+    lifetime_value: 140.25,
+    recent_orders: 0,
+    retention_score: 25
   }
 ];
