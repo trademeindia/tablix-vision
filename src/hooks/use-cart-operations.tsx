@@ -8,46 +8,40 @@ import { toast } from '@/hooks/use-toast';
  */
 export function useCartOperations(
   orderItems: CartItem[], 
-  setOrderItems: (items: CartItem[]) => void
+  setOrderItems: React.Dispatch<React.SetStateAction<CartItem[]>>
 ) {
   const addToOrder = useCallback((item: MenuItem) => {
-    // Create a new array based on the current state
-    const updatedItems = [...orderItems];
-    
-    // Check if the item is already in the order
-    const existingItemIndex = updatedItems.findIndex(
-      orderItem => orderItem.item.id === item.id
-    );
-    
-    if (existingItemIndex >= 0) {
-      // If the item exists, increment its quantity
-      updatedItems[existingItemIndex] = {
-        ...updatedItems[existingItemIndex],
-        quantity: updatedItems[existingItemIndex].quantity + 1
-      };
-    } else {
-      // Otherwise, add it as a new item with quantity 1
-      updatedItems.push({ item, quantity: 1 });
-    }
-    
-    // Update the state with the new array
-    setOrderItems(updatedItems);
+    setOrderItems(prevItems => {
+      // Check if the item is already in the order
+      const existingItemIndex = prevItems.findIndex(
+        orderItem => orderItem.item.id === item.id
+      );
+      
+      if (existingItemIndex >= 0) {
+        // If the item exists, increment its quantity
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + 1
+        };
+        return updatedItems;
+      } else {
+        // Otherwise, add it as a new item with quantity 1
+        return [...prevItems, { item, quantity: 1 }];
+      }
+    });
     
     toast({
       title: "Added to order",
       description: `${item.name} has been added to your order.`,
     });
-  }, [orderItems, setOrderItems]);
+  }, [setOrderItems]);
   
   const removeFromOrder = useCallback((itemId: string) => {
-    // Filter out the item to be removed
-    const updatedItems = orderItems.filter(
-      orderItem => orderItem.item.id !== itemId
+    setOrderItems(prevItems => 
+      prevItems.filter(orderItem => orderItem.item.id !== itemId)
     );
-    
-    // Update the state with the filtered array
-    setOrderItems(updatedItems);
-  }, [orderItems, setOrderItems]);
+  }, [setOrderItems]);
   
   const updateQuantity = useCallback((itemId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -56,16 +50,14 @@ export function useCartOperations(
       return;
     }
     
-    // Map to create a new array with the updated quantity
-    const updatedItems = orderItems.map(orderItem => 
-      orderItem.item.id === itemId 
-        ? { ...orderItem, quantity } 
-        : orderItem
+    setOrderItems(prevItems => 
+      prevItems.map(orderItem => 
+        orderItem.item.id === itemId 
+          ? { ...orderItem, quantity } 
+          : orderItem
+      )
     );
-    
-    // Update the state with the new array
-    setOrderItems(updatedItems);
-  }, [orderItems, removeFromOrder, setOrderItems]);
+  }, [removeFromOrder, setOrderItems]);
   
   const clearOrder = useCallback(() => {
     setOrderItems([]);
