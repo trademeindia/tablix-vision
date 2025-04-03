@@ -54,6 +54,14 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Add console log to help debug image issues
+  console.log('Staff details avatar URLs:', {
+    avatar_url: staff?.avatar_url,
+    avatar: staff?.avatar,
+    image: staff?.image,
+    name: staff?.name
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -73,7 +81,15 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-24 w-24 mx-auto">
-                  <AvatarImage src={staff?.avatar_url || staff?.image} alt={staff?.name} />
+                  <AvatarImage 
+                    src={staff?.avatar_url || staff?.avatar || staff?.image} 
+                    alt={staff?.name}
+                    onError={(e) => {
+                      console.log(`Failed to load image for staff detail: ${staff?.name}`);
+                      // Let fallback kick in naturally
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
                   <AvatarFallback>{getInitials(staff?.name || '')}</AvatarFallback>
                 </Avatar>
                 

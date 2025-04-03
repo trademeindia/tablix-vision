@@ -131,7 +131,15 @@ const StaffList: React.FC<StaffListProps> = ({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={staff.avatar_url || staff.image} alt={staff.name} />
+                        <AvatarImage 
+                          src={staff.avatar_url || staff.avatar || staff.image} 
+                          alt={staff.name} 
+                          onError={(e) => {
+                            console.log(`Failed to load image for staff: ${staff.name}`);
+                            // Let fallback kick in naturally
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
                         <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{staff.name}</span>

@@ -25,21 +25,38 @@ export const useStaffData = () => {
       
       if (supabaseData && supabaseData.length > 0) {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
+        console.log('Sample staff data:', supabaseData[0]);
         
-        // Normalize data and safely handle properties that might not exist
-        const normalizedData = supabaseData.map(staff => ({
-          ...staff,
-          // Ensure status is always 'active' or 'inactive'
-          status: staff.status === 'active' ? 'active' : 'inactive',
-          // Ensure avatar_url field is prioritized, with fallbacks to other fields
-          avatar_url: staff.avatar_url || staff.avatar || staff.image || undefined
-        })) as StaffMember[];
+        // Enhanced normalization and data handling
+        const normalizedData = supabaseData.map(staff => {
+          // Debug each staff record's image URLs
+          console.log(`Image fields for staff ${staff.name}:`, {
+            avatar_url: staff.avatar_url, 
+            avatar: staff.avatar, 
+            image: staff.image
+          });
+          
+          return {
+            ...staff,
+            // Ensure status is always 'active' or 'inactive'
+            status: staff.status === 'active' ? 'active' : 'inactive',
+            // Normalize image fields
+            avatar_url: staff.avatar_url || staff.avatar || staff.image || undefined,
+            // Ensure backwards compatibility
+            avatar: staff.avatar_url || staff.avatar || staff.image || undefined,
+            image: staff.avatar_url || staff.avatar || staff.image || undefined
+          };
+        }) as StaffMember[];
         
         setStaffData(normalizedData);
       } else {
         // Fallback to demo data if no data found in Supabase
         console.log('No data found in Supabase, using demo data instead');
         const demoData = generateDemoStaffData(12);
+        // Add logging for demo data
+        console.log('Generated demo data with avatars:', 
+          demoData.map(staff => ({ name: staff.name, avatar: staff.avatar_url }))
+        );
         setStaffData(demoData);
       }
       
