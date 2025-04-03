@@ -84,18 +84,27 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
         return false;
       }
       
-      // Create public access policy for the bucket
+      // Create public access policy for the bucket using the edge function
       try {
-        const { error: policyError } = await supabase.rpc('create_storage_policy', {
-          bucket_name: bucketName
+        // Instead of using RPC, we'll call our edge function directly
+        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/create-storage-policy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabase.supabaseKey}`
+          },
+          body: JSON.stringify({ bucket_name: bucketName })
         });
         
-        if (policyError) {
-          console.error('Error creating bucket policy, but continuing:', policyError);
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Error creating bucket policy via edge function:', errorData);
+        } else {
+          console.log('Successfully created bucket policy via edge function');
         }
       } catch (policyErr) {
-        // If the RPC doesn't exist, that's okay - we'll continue anyway
-        console.warn('Could not create bucket policy via RPC, continuing anyway:', policyErr);
+        // If the edge function call fails, log it but continue
+        console.warn('Could not create bucket policy via edge function, continuing anyway:', policyErr);
       }
       
       console.log(`Successfully created bucket: ${bucketName}`);
