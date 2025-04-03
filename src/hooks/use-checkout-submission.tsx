@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { createOrder } from '@/services/order';
 import { useCustomerInfoStorage } from './use-checkout-storage';
@@ -18,7 +19,7 @@ interface UseCheckoutSubmissionResult {
   isSubmitting: boolean;
   isSuccess: boolean;
   orderId: string | null;
-  submitOrder: () => Promise<void>;
+  submitOrder: () => Promise<boolean>;
 }
 
 export function useCheckoutSubmission({
@@ -35,7 +36,7 @@ export function useCheckoutSubmission({
   const [orderId, setOrderId] = useState<string | null>(null);
   const { getCustomerInfo } = useCustomerInfoStorage();
 
-  const submitOrder = async () => {
+  const submitOrder = async (): Promise<boolean> => {
     setIsSubmitting(true);
     setIsSuccess(false);
     setOrderId(null);
@@ -47,7 +48,7 @@ export function useCheckoutSubmission({
           description: "Restaurant or table information is missing",
           variant: "destructive"
         });
-        return;
+        return false;
       }
 
       if (orderItems.length === 0) {
@@ -56,7 +57,7 @@ export function useCheckoutSubmission({
           description: "Your order is empty. Please add items before placing an order.",
           variant: "destructive"
         });
-        return;
+        return false;
       }
 
       toast({
@@ -66,15 +67,15 @@ export function useCheckoutSubmission({
 
       // Prepare order items for the API
       const orderItemsForAPI = orderItems.map(({ item, quantity }) => ({
-        menu_item_id: item.item.id,
-        name: item.item.name,
-        price: item.item.price,
+        menu_item_id: item.id,
+        name: item.name,
+        price: item.price,
         quantity: quantity,
       }));
 
       // Calculate total amount
       const totalAmount = orderItems.reduce(
-        (total, { item, quantity }) => total + (item.item.price * quantity),
+        (total, { item, quantity }) => total + (item.price * quantity),
         0
       );
 
@@ -100,10 +101,15 @@ export function useCheckoutSubmission({
       setOrderId(order.id || null);
       setIsSuccess(true);
 
+      // Save customer info for future visits
+      localStorage.setItem('customerInfo', JSON.stringify({ name, email, phone }));
+
       toast({
         title: "Order Placed!",
         description: "Your order has been successfully placed.",
       });
+      
+      return true;
     } catch (error) {
       console.error("Error placing order:", error);
       setIsSuccess(false);
@@ -112,6 +118,7 @@ export function useCheckoutSubmission({
         description: "There was an error placing your order. Please try again.",
         variant: "destructive"
       });
+      return false;
     } finally {
       setIsSubmitting(false);
     }

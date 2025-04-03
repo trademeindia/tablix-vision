@@ -7,17 +7,17 @@ export interface CustomerInfo {
   phone?: string;
 }
 
-export interface CartItem {
-  item: any;
-  quantity: number;
-}
-
 // Customer info storage hook
 export function useCustomerInfoStorage() {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({});
 
   // Load customer info from localStorage when component mounts
   useEffect(() => {
+    loadCustomerInfo();
+  }, []);
+
+  // Load customer info from localStorage
+  const loadCustomerInfo = () => {
     const storedInfo = localStorage.getItem('customerInfo');
     if (storedInfo) {
       try {
@@ -26,7 +26,7 @@ export function useCustomerInfoStorage() {
         console.error("Error parsing stored customer info:", e);
       }
     }
-  }, []);
+  };
 
   // Update localStorage whenever customer info changes
   useEffect(() => {
@@ -52,34 +52,10 @@ export function useCustomerInfoStorage() {
     customerInfo,
     saveCustomerInfo,
     getCustomerInfo,
-    clearCustomerInfo
+    clearCustomerInfo,
+    loadCustomerInfo
   };
 }
 
-// Using the alias approach to maintain compatibility with existing code
+// For backward compatibility
 export const useSaveCustomerInfo = useCustomerInfoStorage;
-
-// Cart storage functions
-export function useCheckoutStorage() {
-  // Table and restaurant ID from localStorage or URL params
-  const tableId = localStorage.getItem('tableId');
-  const restaurantId = localStorage.getItem('restaurantId');
-  
-  // Load cart items from localStorage
-  const orderItemsStr = localStorage.getItem('orderItems');
-  let orderItems: CartItem[] = [];
-  
-  if (orderItemsStr) {
-    try {
-      orderItems = JSON.parse(orderItemsStr);
-    } catch (e) {
-      console.error("Error parsing stored order items:", e);
-    }
-  }
-  
-  return {
-    tableId,
-    restaurantId,
-    orderItems
-  };
-}

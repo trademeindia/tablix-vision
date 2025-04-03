@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useCheckoutState } from './use-checkout-state';
 import { useCustomerInfoStorage } from './use-checkout-storage';
@@ -40,8 +41,10 @@ export function useCheckout(): CheckoutData {
     orderId, setOrderId
   } = useCheckoutState();
   
-  // Get storage data (table, restaurant, orderItems)
+  // Get customer info storage
   const customerStorage = useCustomerInfoStorage();
+  
+  // Get table, restaurant, and orderItems from localStorage directly
   const tableId = localStorage.getItem('tableId');
   const restaurantId = localStorage.getItem('restaurantId');
   
@@ -57,24 +60,39 @@ export function useCheckout(): CheckoutData {
     }
   }
   
-  // Load stored customer info from localStorage
+  // Get the customerInfo from storage
   const { customerInfo } = customerStorage;
   
-  // Handle order submission
-  const { handleSubmitOrder } = useCheckoutSubmission(
+  // Setup the order submission handler
+  const { submitOrder } = useCheckoutSubmission({
     restaurantId,
     tableId,
     orderItems,
-    customerInfo,
-    setIsSubmitting,
-    setIsSuccess,
-    setOrderId
-  );
+    name,
+    email,
+    phone,
+    notes
+  });
 
+  const handleSubmitOrder = async () => {
+    return await submitOrder();
+  };
+
+  // Load customer info on initial render
   useEffect(() => {
-    // Load customer info from localStorage on initial render
-    customerStorage.loadCustomerInfo();
-  }, [customerStorage]);
+    // Ensure we have the latest customer info
+    const storedInfo = localStorage.getItem('customerInfo');
+    if (storedInfo) {
+      try {
+        const parsedInfo = JSON.parse(storedInfo);
+        if (parsedInfo.name && !name) setName(parsedInfo.name);
+        if (parsedInfo.email && !email) setEmail(parsedInfo.email);
+        if (parsedInfo.phone && !phone) setPhone(parsedInfo.phone);
+      } catch (e) {
+        console.error("Error parsing stored customer info:", e);
+      }
+    }
+  }, [name, email, phone, setName, setEmail, setPhone]);
 
   return {
     tableId,
