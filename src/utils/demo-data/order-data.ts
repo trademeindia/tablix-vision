@@ -4,6 +4,7 @@ interface DemoMenuItem {
   name: string;
   price: number;
   category: string;
+  image?: string;
 }
 
 interface DemoOrderItem {
@@ -24,27 +25,100 @@ export interface DemoOrder {
   paymentStatus: 'pending' | 'paid';
 }
 
-// Sample menu items
+// Enhanced menu items with images
 const menuItems: DemoMenuItem[] = [
-  { id: 'item-1', name: 'Classic Burger', price: 12.99, category: 'Main Courses' },
-  { id: 'item-2', name: 'Margherita Pizza', price: 14.99, category: 'Main Courses' },
-  { id: 'item-3', name: 'Caesar Salad', price: 9.99, category: 'Starters' },
-  { id: 'item-4', name: 'Garlic Bread', price: 5.99, category: 'Starters' },
-  { id: 'item-5', name: 'Grilled Salmon', price: 18.99, category: 'Main Courses' },
-  { id: 'item-6', name: 'Spaghetti Carbonara', price: 13.99, category: 'Main Courses' },
-  { id: 'item-7', name: 'Tiramisu', price: 7.99, category: 'Desserts' },
-  { id: 'item-8', name: 'Cheesecake', price: 6.99, category: 'Desserts' },
-  { id: 'item-9', name: 'Cappuccino', price: 3.99, category: 'Drinks' },
-  { id: 'item-10', name: 'Fresh Orange Juice', price: 4.99, category: 'Drinks' },
-  { id: 'item-11', name: 'Chicken Wings', price: 10.99, category: 'Starters' },
-  { id: 'item-12', name: 'Chocolate Brownie', price: 6.99, category: 'Desserts' },
+  { 
+    id: 'item-1', 
+    name: 'Classic Burger', 
+    price: 12.99, 
+    category: 'Main Courses',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format'
+  },
+  { 
+    id: 'item-2', 
+    name: 'Margherita Pizza', 
+    price: 14.99, 
+    category: 'Main Courses',
+    image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&auto=format'
+  },
+  { 
+    id: 'item-3', 
+    name: 'Caesar Salad', 
+    price: 9.99, 
+    category: 'Starters',
+    image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=600&auto=format'
+  },
+  { 
+    id: 'item-4', 
+    name: 'Garlic Bread', 
+    price: 5.99, 
+    category: 'Starters',
+    image: 'https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=600&auto=format'
+  },
+  { 
+    id: 'item-5', 
+    name: 'Grilled Salmon', 
+    price: 18.99, 
+    category: 'Main Courses',
+    image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&auto=format'
+  },
+  { 
+    id: 'item-6', 
+    name: 'Spaghetti Carbonara', 
+    price: 13.99, 
+    category: 'Main Courses',
+    image: 'https://images.unsplash.com/photo-1608756687911-aa1599ab3bd9?w=600&auto=format'
+  },
+  { 
+    id: 'item-7', 
+    name: 'Tiramisu', 
+    price: 7.99, 
+    category: 'Desserts',
+    image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&auto=format'
+  },
+  { 
+    id: 'item-8', 
+    name: 'Cheesecake', 
+    price: 6.99, 
+    category: 'Desserts',
+    image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&auto=format'
+  },
+  { 
+    id: 'item-9', 
+    name: 'Cappuccino', 
+    price: 3.99, 
+    category: 'Drinks',
+    image: 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=600&auto=format'
+  },
+  { 
+    id: 'item-10', 
+    name: 'Fresh Orange Juice', 
+    price: 4.99, 
+    category: 'Drinks',
+    image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=600&auto=format'
+  },
+  { 
+    id: 'item-11', 
+    name: 'Chicken Wings', 
+    price: 10.99, 
+    category: 'Starters',
+    image: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=600&auto=format'
+  },
+  { 
+    id: 'item-12', 
+    name: 'Chocolate Brownie', 
+    price: 6.99, 
+    category: 'Desserts',
+    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format'
+  },
 ];
 
-// Customer names
+// More realistic customer names
 const customerNames = [
   'Smith Family', 'John & Lisa', 'Martinez Party', 'Thompson Group',
   'Brown & Co.', 'Sarah Williams', 'The Jacksons', 'Chen Family', 
-  'Rodriguez Party', 'Birthday Group', 'Anniversary Dinner', 'Business Meeting'
+  'Rodriguez Party', 'Birthday Group', 'Anniversary Dinner', 'Business Meeting',
+  'Patel Family', 'Kim & Friends', 'Taylor Wedding', 'Johnson Reunion'
 ];
 
 // Generate a random time in the past few hours
@@ -56,13 +130,19 @@ const getRandomRecentTime = (hoursAgo = 4) => {
 
 // Generate random order items
 const generateOrderItems = (count: number): DemoOrderItem[] => {
-  return Array.from({ length: count }).map((_, index) => {
-    const randomMenuItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+  // Ensure we have a good variety of items by selecting from different parts of the array
+  const selectedItems = new Set<number>();
+  while (selectedItems.size < Math.min(count, menuItems.length)) {
+    selectedItems.add(Math.floor(Math.random() * menuItems.length));
+  }
+  
+  return Array.from(selectedItems).map((itemIndex, index) => {
+    const randomMenuItem = menuItems[itemIndex];
     return {
       id: `order-item-${index}`,
       menuItem: randomMenuItem,
       quantity: 1 + Math.floor(Math.random() * 3),
-      notes: Math.random() > 0.8 ? 'Extra sauce please' : undefined
+      notes: Math.random() > 0.7 ? 'Extra sauce please' : undefined
     };
   });
 };

@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getRecentOrders } from '@/services/order';
 import { Order } from '@/services/order/types';
 import { formatDistanceToNow } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
 
 const statusStyles = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -62,8 +64,9 @@ const RecentOrders = () => {
   
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle>Recent Orders</CardTitle>
+        <Button variant="outline" size="sm">View All</Button>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -77,7 +80,7 @@ const RecentOrders = () => {
         ) : (
           <div className="space-y-4">
             {displayOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+              <div key={order.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
                 <div>
                   <p className="font-medium">#{order.id?.substring(0, 8) || 'N/A'}</p>
                   <div className="flex items-center mt-1">
@@ -99,6 +102,12 @@ const RecentOrders = () => {
                 </div>
               </div>
             ))}
+
+            <div className="mt-2 flex justify-center">
+              <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                <Eye className="h-4 w-4" /> View All Orders
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
