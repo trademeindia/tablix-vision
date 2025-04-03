@@ -1,18 +1,14 @@
 
-import React from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import React, { useState } from 'react';
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+  DialogDescription, DialogFooter
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { StaffMember } from '@/types/staff';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AlertTriangle } from 'lucide-react';
 
 interface DeleteStaffDialogProps {
   open: boolean;
@@ -27,55 +23,53 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
   staff,
   onStaffDeleted
 }) => {
-  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      console.log('Deleting staff with ID:', staff.id);
+      console.log(`Deleting staff member with ID: ${staff.id}`);
       
-      // If using demo data (IDs starting with 'staff-'), simulate deletion
+      // First check if this is demo data (starts with 'staff-')
       if (staff.id.startsWith('staff-')) {
-        // Wait a moment to simulate server processing
+        // Simulate deletion for demo data
+        console.log('Demo data detected, simulating deletion');
         await new Promise(resolve => setTimeout(resolve, 500));
         
         toast({
           title: 'Staff Deleted (Demo)',
-          description: `${staff.name} has been removed from your staff (Note: This is demo data).`,
+          description: `${staff.name} has been deleted (Note: This is demo data)`,
         });
         
         onOpenChange(false);
         onStaffDeleted();
-        setIsDeleting(false);
         return;
       }
       
-      // For real data, delete from Supabase
+      // Delete the staff member
       const { error } = await supabase
         .from('staff')
         .delete()
         .eq('id', staff.id);
       
       if (error) {
-        console.error('Supabase error details:', error);
+        console.error('Error deleting staff:', error);
         throw error;
       }
       
-      console.log('Staff deleted successfully');
-      
       toast({
         title: 'Staff Deleted',
-        description: `${staff.name} has been removed from your staff.`,
+        description: `${staff.name} has been deleted from your staff.`,
       });
       
       onOpenChange(false);
       onStaffDeleted();
     } catch (error) {
-      console.error('Error deleting staff:', error);
+      console.error('Delete operation failed:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete staff member. Please try again.',
+        title: 'Delete Failed',
+        description: 'Could not delete the staff member. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -84,27 +78,43 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will permanently delete {staff.name} from your staff list.
-            This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-          <AlertDialogAction 
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Delete Staff Member</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete {staff.name}? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="flex items-center gap-4 p-4 mt-2 bg-amber-50 text-amber-900 rounded-md">
+          <AlertTriangle className="h-6 w-6 text-amber-600" />
+          <div>
+            <p className="font-medium">Warning</p>
+            <p className="text-sm">All associated records for this staff member will also be deleted.</p>
+          </div>
+        </div>
+        
+        <DialogFooter className="mt-6">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="button" 
+            variant="destructive" 
             onClick={handleDelete}
             disabled={isDeleting}
-            className="bg-red-600 hover:bg-red-700"
           >
             {isDeleting ? 'Deleting...' : 'Delete'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

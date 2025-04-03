@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { StaffAttendanceStats, StaffAttendanceRecord } from '@/types/staff';
-import { v4 as uuidv4 } from 'uuid';
 import { generateStaffAttendance } from '@/utils/demo-data/staff-attendance';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfMonth, endOfMonth, parseISO, differenceInDays } from 'date-fns';
@@ -20,11 +19,41 @@ export const useAttendanceData = (staffId: string) => {
     const fetchAttendance = async () => {
       setIsLoading(true);
       try {
+        // Get user's restaurant ID 
+        const { data: sessionData } = await supabase.auth.getSession();
+        let restaurantId: string | null = null;
+        
+        if (sessionData?.session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('restaurant_id')
+            .eq('id', sessionData.session.user.id)
+            .single();
+            
+          restaurantId = profile?.restaurant_id;
+        }
+        
         // Use a more generic approach that doesn't rely on specific type definitions
-        const { data, error } = await supabase
+        let query = supabase
           .from('staff_attendance')
           .select('*')
           .eq('staff_id', staffId);
+        
+        // If we have a restaurant ID, join with staff table to ensure we only get records for this restaurant  
+        if (restaurantId) {
+          // First verify the staff member belongs to this restaurant
+          const { data: staffData } = await supabase
+            .from('staff')
+            .select('id')
+            .eq('id', staffId)
+            .eq('restaurant_id', restaurantId);
+            
+          if (!staffData || staffData.length === 0) {
+            console.warn(`Staff ID ${staffId} does not belong to restaurant ${restaurantId}`);
+          }
+        }
+        
+        const { data, error } = await query;
           
         if (error) {
           console.error('Error fetching attendance data:', error);

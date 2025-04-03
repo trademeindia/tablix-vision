@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,43 +18,61 @@ export const useStaffEdit = ({ staff, onSuccess, onClose }: UseStaffEditProps) =
   const handleSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
     try {
-      console.log('Form data submitted for update:', data);
+      console.log('Form data for edit:', data);
+      console.log('Original staff data:', staff);
       
-      // Handle profile image upload if it exists
-      let avatarUrl = staff.avatar_url || null;
+      // Get current session for restaurant_id verification
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Error getting session:', sessionError);
+        throw new Error('Authentication error: ' + sessionError.message);
+      }
+      
+      // Keep existing restaurant_id from staff record
+      const restaurantId = staff.restaurant_id;
+      
+      // Handle profile image upload if a new one was selected
+      let avatarUrl = staff.avatar_url;
       if (data.profile_image) {
-        console.log('Uploading updated profile image...');
-        const newAvatarUrl = await uploadProfileImage(data.profile_image);
+        console.log('Uploading new profile image...');
+        avatarUrl = await uploadProfileImage(data.profile_image);
         
-        if (newAvatarUrl) {
-          console.log('Profile image uploaded successfully:', newAvatarUrl);
-          avatarUrl = newAvatarUrl;
+        if (avatarUrl) {
+          console.log('New profile image uploaded successfully:', avatarUrl);
         } else {
-          console.warn('Failed to upload profile image, keeping existing image');
+          console.warn('Failed to upload new profile image, keeping existing one');
         }
       }
       
       // Prepare data for update - exclude profile_image as it's not a DB field
-      const { profile_image, emergency_contact, ...restData } = data;
+      const { profile_image, ...restData } = data;
       
-      // Ensure salary is properly typed for the database
-      const staffData = {
+      // Ensure salary is properly typed for database
+      const staffUpdateData = {
         ...restData,
         salary: data.salary ? Number(data.salary) : null,
-        emergency_contact: emergency_contact || null,
+        emergency_contact: data.emergency_contact || null,
         hire_date: data.hire_date || null,
-        updated_at: new Date().toISOString(),
-        avatar_url: avatarUrl,
-        avatar: avatarUrl, // For backward compatibility
-        image: avatarUrl, // For further compatibility
+        updated_at: new Date().toISOString()
       };
       
-      console.log('Updating staff member with data:', staffData);
+      console.log('Updating staff member with data:', {
+        ...staffUpdateData,
+        avatar_url: avatarUrl,
+        avatar: avatarUrl,
+        image: avatarUrl
+      });
       
       // Update the staff record
       const { data: updatedData, error } = await supabase
         .from('staff')
-        .update(staffData)
+        .update({
+          ...staffUpdateData,
+          avatar_url: avatarUrl,
+          avatar: avatarUrl,
+          image: avatarUrl
+        })
         .eq('id', staff.id)
         .select();
       
@@ -71,8 +88,8 @@ export const useStaffEdit = ({ staff, onSuccess, onClose }: UseStaffEditProps) =
         description: `${data.name}'s information has been updated.`,
       });
       
-      onSuccess?.();
-      onClose?.();
+      if (onSuccess) onSuccess();
+      if (onClose) onClose();
     } catch (error) {
       console.error('Error updating staff:', error);
       toast({
