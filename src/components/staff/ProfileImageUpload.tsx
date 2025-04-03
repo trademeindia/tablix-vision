@@ -16,17 +16,16 @@ interface ProfileImageUploadProps {
 
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingImage }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [fallbackVisible, setFallbackVisible] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
   
   // Set preview URL from existing image if available
   useEffect(() => {
     if (existingImage) {
       setPreviewUrl(existingImage);
-      // Reset fallback visibility when existingImage changes
-      setFallbackVisible(false);
+      setShowFallback(false);
     } else {
       setPreviewUrl(null);
-      setFallbackVisible(true);
+      setShowFallback(true);
     }
   }, [existingImage]);
   
@@ -37,13 +36,32 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     
     const file = files[0];
     
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      form.setError('profile_image', {
+        type: 'manual',
+        message: 'Image size must be less than 2MB'
+      });
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      form.setError('profile_image', {
+        type: 'manual',
+        message: 'File must be an image'
+      });
+      return;
+    }
+    
     // Update the form value with the selected file
     form.setValue('profile_image', file);
+    form.clearErrors('profile_image');
     
     // Create preview URL for the selected image
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
-    setFallbackVisible(false);
+    setShowFallback(false);
     
     // Clean up the object URL when component unmounts
     return () => URL.revokeObjectURL(objectUrl);
@@ -56,7 +74,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(null);
-    setFallbackVisible(true);
+    setShowFallback(true);
   };
 
   // Generate initials for avatar fallback
@@ -69,13 +87,13 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
   // Handle image load error
   const handleImageError = () => {
     console.log(`Failed to load avatar image: ${previewUrl || existingImage}`);
-    setFallbackVisible(true);
+    setShowFallback(true);
   };
 
   return (
     <div className="mb-6 flex flex-col items-center">
       <Avatar className="h-24 w-24 mb-3">
-        {!fallbackVisible && (previewUrl || existingImage) && (
+        {!showFallback && (previewUrl || existingImage) && (
           <AvatarImage 
             src={previewUrl || existingImage || ''} 
             alt="Staff avatar" 

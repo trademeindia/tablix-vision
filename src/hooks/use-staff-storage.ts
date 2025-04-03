@@ -13,6 +13,8 @@ export const useStaffStorage = () => {
   
   // Upload an image to Supabase Storage
   const uploadProfileImage = async (file: File): Promise<string | null> => {
+    if (!file) return null;
+    
     setIsUploading(true);
     const bucketName = 'staff-profiles';
     
@@ -23,27 +25,21 @@ export const useStaffStorage = () => {
       
       console.log(`Uploading file ${fileName} to bucket ${bucketName}`);
       
-      // Ensure the bucket exists
+      // Check if the bucket exists
       const { data: bucketData, error: bucketError } = await supabase.storage
         .getBucket(bucketName);
-        
-      if (bucketError && bucketError.message !== 'The resource was not found') {
-        // If the error is not just "bucket not found", it's a different issue
-        console.error('Error checking bucket:', bucketError);
-        throw bucketError;
-      }
       
+      // If bucket doesn't exist, create it
       if (!bucketData) {
-        console.log(`Bucket ${bucketName} doesn't exist, attempting to create it`);
-        try {
-          // Try to create the bucket if it doesn't exist
-          await supabase.storage.createBucket(bucketName, {
-            public: true
-          });
-          console.log(`Bucket ${bucketName} created successfully`);
-        } catch (createError) {
-          console.error('Error creating bucket:', createError);
-          // Continue anyway, as the bucket might already exist but we just can't see it
+        console.log(`Bucket ${bucketName} doesn't exist, creating it`);
+        const { data, error } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 2097152, // 2MB limit
+        });
+        
+        if (error) {
+          console.error('Error creating bucket:', error);
+          throw new Error(`Failed to create storage bucket: ${error.message}`);
         }
       }
       
@@ -52,7 +48,8 @@ export const useStaffStorage = () => {
         .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
+          contentType: file.type
         });
 
       if (error) {
@@ -75,6 +72,11 @@ export const useStaffStorage = () => {
       return publicUrlData.publicUrl;
     } catch (error) {
       console.error('Image upload failed:', error);
+      toast({
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'Failed to upload image',
+        variant: 'destructive'
+      });
       return null;
     } finally {
       setIsUploading(false);

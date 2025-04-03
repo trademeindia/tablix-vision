@@ -45,7 +45,14 @@ const StaffTable: React.FC<StaffTableProps> = ({
     }
   };
 
+  // Get the most reliable image URL from multiple possible fields
   const getStaffImageUrl = (staff: StaffMember): string => {
+    // If no image fields are present, return empty string
+    if (!staff.avatar_url && !staff.avatar && !staff.image) {
+      return '';
+    }
+    
+    // Prefer avatar_url, then fall back to the others
     return staff.avatar_url || staff.avatar || staff.image || '';
   };
 

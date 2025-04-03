@@ -27,28 +27,26 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
         console.log('Uploading profile image...');
         avatarUrl = await uploadProfileImage(data.profile_image);
         
-        if (avatarUrl) {
-          console.log('Profile image uploaded successfully:', avatarUrl);
-        } else {
+        if (!avatarUrl) {
           console.warn('Failed to upload profile image, continuing without image');
         }
       }
       
       // Get session data for restaurant ID
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
       let userId = null;
       
       // If user is authenticated, get their restaurant ID
-      if (sessionData && sessionData.session) {
+      if (sessionData?.session) {
         userId = sessionData.session.user.id;
         console.log('Authenticated user ID:', userId);
         
         const { data: profile } = await supabase
           .from('profiles')
           .select('restaurant_id')
-          .eq('id', sessionData.session.user.id)
+          .eq('id', userId)
           .single();
           
         if (profile?.restaurant_id) {
@@ -89,8 +87,9 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           avatar_url: avatarUrl, // Use the uploaded image URL
-          avatar: avatarUrl, // For backward compatibility
-          image: avatarUrl, // For further compatibility
+          // Also save to avatar and image fields for backward compatibility
+          avatar: avatarUrl,
+          image: avatarUrl,
         }])
         .select();
       

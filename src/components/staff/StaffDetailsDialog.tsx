@@ -42,10 +42,15 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
       .toUpperCase();
   };
   
+  // Get the most reliable image URL from multiple possible fields
   const getStaffImageUrl = (staff: StaffMember): string => {
-    const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
-    console.log(`Staff details image URL for ${staff.name}:`, imageUrl);
-    return imageUrl;
+    // If no image fields are present, return empty string
+    if (!staff.avatar_url && !staff.avatar && !staff.image) {
+      return '';
+    }
+    
+    // Prefer avatar_url, then fall back to the others
+    return staff.avatar_url || staff.avatar || staff.image || '';
   };
 
   return (
@@ -54,14 +59,16 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
         <DialogHeader className="px-6 pt-6 pb-0">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <Avatar className="h-16 w-16">
-              <AvatarImage 
-                src={getStaffImageUrl(staff)} 
-                alt={staff.name} 
-                onError={(e) => {
-                  console.log(`Failed to load image in StaffDetailsDialog for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+              {getStaffImageUrl(staff) && (
+                <AvatarImage 
+                  src={getStaffImageUrl(staff)} 
+                  alt={staff.name} 
+                  onError={(e) => {
+                    console.log(`Failed to load image in StaffDetailsDialog for staff: ${staff.name}, URL: ${getStaffImageUrl(staff)}`);
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
               <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
             </Avatar>
             <div>
