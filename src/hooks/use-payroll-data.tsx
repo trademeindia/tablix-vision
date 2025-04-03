@@ -42,7 +42,7 @@ export const usePayrollData = (staffId: string) => {
             deductions: record.deductions,
             net_salary: record.net_salary,
             payment_date: record.payment_date,
-            status: record.status
+            status: record.status as 'paid' | 'pending'
           }));
           
           // Calculate summary

@@ -40,6 +40,15 @@ export const useStaffStorage = () => {
         return false;
       }
       
+      // Create a policy for the bucket
+      try {
+        await supabase.rpc('create_storage_policy', { bucket_name: bucketName });
+        console.log(`Created storage policy for bucket: ${bucketName}`);
+      } catch (policyError) {
+        console.error('Error creating bucket policy:', policyError);
+        // Continue even if policy creation fails, as the bucket was created
+      }
+      
       console.log(`Successfully created bucket: ${bucketName}`);
       return true;
     } catch (error) {
@@ -87,9 +96,7 @@ export const useStaffStorage = () => {
 
       console.log('File uploaded successfully, public URL:', publicUrlData.publicUrl);
       
-      // Make sure we're returning a complete and valid URL
-      const publicUrl = publicUrlData.publicUrl;
-      return publicUrl;
+      return publicUrlData.publicUrl;
     } catch (error) {
       console.error('Image upload failed:', error);
       return null;

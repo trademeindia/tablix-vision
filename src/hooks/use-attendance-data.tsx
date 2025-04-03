@@ -38,10 +38,10 @@ export const useAttendanceData = (staffId: string) => {
           const records: StaffAttendanceRecord[] = data.map(record => ({
             id: record.id,
             date: record.date,
-            status: record.status,
-            check_in: record.check_in,
-            check_out: record.check_out,
-            notes: record.notes
+            status: record.status as 'present' | 'absent' | 'late',
+            check_in: record.check_in || undefined,
+            check_out: record.check_out || undefined,
+            notes: record.notes || undefined
           }));
           
           // Calculate statistics

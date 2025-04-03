@@ -37,7 +37,7 @@ export const useShiftData = (staffId: string) => {
             start_time: shift.start_time,
             end_time: shift.end_time,
             position: shift.position,
-            status: shift.status,
+            status: shift.status as 'scheduled' | 'completed' | 'canceled',
             notes: shift.notes
           }));
           

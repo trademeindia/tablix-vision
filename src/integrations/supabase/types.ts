@@ -619,15 +619,20 @@ export type Database = {
           avatar: string | null
           avatar_url: string | null
           created_at: string | null
+          department: string | null
           email: string
+          emergency_contact: string | null
+          hire_date: string | null
           id: string
           image: string | null
           last_login: string | null
+          manager_id: string | null
           name: string
           notification_preference: Json | null
           phone: string
           restaurant_id: string | null
           role: string
+          salary: number | null
           status: string
           updated_at: string | null
           user_id: string | null
@@ -636,15 +641,20 @@ export type Database = {
           avatar?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          department?: string | null
           email: string
+          emergency_contact?: string | null
+          hire_date?: string | null
           id?: string
           image?: string | null
           last_login?: string | null
+          manager_id?: string | null
           name: string
           notification_preference?: Json | null
           phone: string
           restaurant_id?: string | null
           role: string
+          salary?: number | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
@@ -653,20 +663,148 @@ export type Database = {
           avatar?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          department?: string | null
           email?: string
+          emergency_contact?: string | null
+          hire_date?: string | null
           id?: string
           image?: string | null
           last_login?: string | null
+          manager_id?: string | null
           name?: string
           notification_preference?: Json | null
           phone?: string
           restaurant_id?: string | null
           role?: string
+          salary?: number | null
           status?: string
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
+      }
+      staff_attendance: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          date: string
+          id: string
+          notes: string | null
+          staff_id: string | null
+          status: string
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          date: string
+          id?: string
+          notes?: string | null
+          staff_id?: string | null
+          status: string
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          date?: string
+          id?: string
+          notes?: string | null
+          staff_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_attendance_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_payroll: {
+        Row: {
+          base_salary: number
+          bonus: number
+          deductions: number
+          id: string
+          net_salary: number
+          payment_date: string
+          period: string
+          staff_id: string | null
+          status: string
+        }
+        Insert: {
+          base_salary: number
+          bonus?: number
+          deductions?: number
+          id?: string
+          net_salary: number
+          payment_date: string
+          period: string
+          staff_id?: string | null
+          status: string
+        }
+        Update: {
+          base_salary?: number
+          bonus?: number
+          deductions?: number
+          id?: string
+          net_salary?: number
+          payment_date?: string
+          period?: string
+          staff_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_payroll_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_shifts: {
+        Row: {
+          date: string
+          end_time: string
+          id: string
+          notes: string | null
+          position: string
+          staff_id: string | null
+          start_time: string
+          status: string
+        }
+        Insert: {
+          date: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          position: string
+          staff_id?: string | null
+          start_time: string
+          status: string
+        }
+        Update: {
+          date?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          position?: string
+          staff_id?: string | null
+          start_time?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_shifts_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tables: {
         Row: {

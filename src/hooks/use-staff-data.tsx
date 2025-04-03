@@ -75,9 +75,8 @@ export const useStaffData = () => {
             last_login: staff.last_login,
             created_at: staff.created_at,
             updated_at: staff.updated_at,
-            // Handle optional fields that might not exist in the database
-            salary: typeof staff.salary === 'string' ? parseFloat(staff.salary) : 
-                   typeof staff.salary === 'number' ? staff.salary : undefined,
+            // Handle fields that were just added to the database schema
+            salary: staff.salary ? parseFloat(String(staff.salary)) : undefined,
             hire_date: staff.hire_date || undefined,
             department: staff.department || undefined,
             manager_id: staff.manager_id || undefined,

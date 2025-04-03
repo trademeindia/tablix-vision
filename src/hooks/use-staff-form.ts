@@ -76,7 +76,8 @@ export const useStaffForm = ({ form, onSuccess }: UseStaffFormProps) => {
       const staffData = {
         ...restData,
         salary: data.salary ? Number(data.salary) : null,
-        emergency_contact: emergency_contact || null
+        emergency_contact: emergency_contact || null,
+        hire_date: data.hire_date || null
       };
       
       console.log('Adding staff member with data:', {
