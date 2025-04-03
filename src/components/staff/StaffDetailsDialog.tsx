@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Mail, Phone, UserCog, PhoneCall } from 'lucide-react';
 import RoleIcon from './RoleIcon';
 import { format } from 'date-fns';
-import { StaffStatusBadge } from './StaffStatusBadge';
+import StaffStatusBadge from './StaffStatusBadge';
 
 interface StaffDetailsDialogProps {
   open: boolean;
@@ -39,7 +39,7 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenCha
             <RoleIcon role={staff.role} />
             {staff.role}
           </div>
-          <StaffStatusBadge status={staff.status} />
+          <StaffStatusBadge staff={staff} onStatusChange={() => {}} />
         </div>
         
         <div className="grid gap-4">
