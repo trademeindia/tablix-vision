@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { StaffMember } from '@/types/staff';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ToggleRight, ToggleLeft } from 'lucide-react';
 
 interface StaffStatusBadgeProps {
   staff: StaffMember;
@@ -16,15 +17,20 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
   const [isActive, setIsActive] = useState(staff.status === 'active');
   const { toast } = useToast();
   
+  // Update local state when staff prop changes
+  useEffect(() => {
+    setIsActive(staff.status === 'active');
+  }, [staff.status]);
+  
   const handleStatusToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (isUpdating) return;
     
-    setIsUpdating(true);
-    const newStatus = isActive ? 'inactive' : 'active';
-    
     try {
+      setIsUpdating(true);
+      const newStatus = isActive ? 'inactive' : 'active';
+      
       console.log(`Updating status for staff ID ${staff.id} to ${newStatus}`);
       
       // If using demo data (IDs starting with 'staff-'), simulate update
@@ -58,6 +64,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         throw error;
       }
       
+      // Only update local state after successful update to database
       setIsActive(!isActive);
       
       toast({
@@ -65,12 +72,13 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         description: `${staff.name} is now ${newStatus}`,
       });
       
+      // Notify parent component to refresh data
       onStatusChange();
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
         title: 'Update Failed',
-        description: 'Failed to update staff status.',
+        description: 'Failed to update staff status. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -91,12 +99,18 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         {isActive ? 'Active' : 'Inactive'}
       </Badge>
       
-      <Switch 
-        checked={isActive}
+      <button 
         onClick={handleStatusToggle}
         disabled={isUpdating}
-        className={isUpdating ? 'opacity-50 cursor-not-allowed' : ''}
-      />
+        className={`flex items-center justify-center ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        aria-label={isActive ? "Set staff inactive" : "Set staff active"}
+      >
+        {isActive ? (
+          <ToggleRight className="h-5 w-5 text-green-600" />
+        ) : (
+          <ToggleLeft className="h-5 w-5 text-slate-500" />
+        )}
+      </button>
     </div>
   );
 };

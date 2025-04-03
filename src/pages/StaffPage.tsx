@@ -21,6 +21,11 @@ const StaffPage = () => {
     console.log('Staff page loaded');
   }, []);
 
+  const handleStaffUpdated = () => {
+    console.log('Staff updated, refreshing data...');
+    refetchStaff();
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-6 flex items-center justify-between">
@@ -62,7 +67,7 @@ const StaffPage = () => {
               staffData={staffData} 
               isLoading={isLoading} 
               filter={selectedView}
-              onStaffUpdated={refetchStaff}
+              onStaffUpdated={handleStaffUpdated}
             />
           </CardContent>
         </Card>

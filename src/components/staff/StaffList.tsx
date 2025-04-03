@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { StaffMember } from '@/types/staff';
+import { StaffMember } from '@/types/staff'; 
+import { Skeleton } from '@/components/ui/skeleton';
 import StaffListContainer from './StaffListContainer';
 
 interface StaffListProps {
@@ -12,12 +13,31 @@ interface StaffListProps {
 
 const StaffList: React.FC<StaffListProps> = ({ 
   staffData, 
-  isLoading,
+  isLoading, 
   filter = 'all',
   onStaffUpdated
 }) => {
+  // Return loading skeletons if data is still loading
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+      </div>
+    );
+  }
+
+  // Filter data based on the selected filter
+  const filteredStaff = staffData.filter(staff => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return staff.status === 'active';
+    if (filter === 'inactive') return staff.status === 'inactive';
+    return true;
+  });
+
   return (
-    <StaffListContainer
+    <StaffListContainer 
       staffData={staffData}
       isLoading={isLoading}
       filter={filter}
