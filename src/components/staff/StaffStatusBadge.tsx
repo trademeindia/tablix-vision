@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { StaffMember } from '@/types/staff';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,12 +13,12 @@ interface StaffStatusBadgeProps {
 
 const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChange }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isActive, setIsActive] = useState(staff.status === 'active');
+  const [currentStatus, setCurrentStatus] = useState(staff.status);
   const { toast } = useToast();
   
-  // Update local state when staff prop changes
+  // Update local state when staff prop changes to ensure it stays in sync
   useEffect(() => {
-    setIsActive(staff.status === 'active');
+    setCurrentStatus(staff.status);
   }, [staff.status]);
   
   const handleStatusToggle = async (e: React.MouseEvent) => {
@@ -29,7 +28,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
     
     try {
       setIsUpdating(true);
-      const newStatus = isActive ? 'inactive' : 'active';
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
       
       console.log(`Updating status for staff ID ${staff.id} to ${newStatus}`);
       
@@ -38,7 +37,8 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         // Wait a moment to simulate server processing
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        setIsActive(!isActive);
+        // Update local state with the new status
+        setCurrentStatus(newStatus);
         
         toast({
           title: 'Status Updated (Demo)',
@@ -65,7 +65,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
       }
       
       // Only update local state after successful update to database
-      setIsActive(!isActive);
+      setCurrentStatus(newStatus);
       
       toast({
         title: 'Status Updated',
@@ -86,6 +86,8 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
     }
   };
   
+  const isActive = currentStatus === 'active';
+  
   return (
     <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
       <Badge 
@@ -104,6 +106,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         disabled={isUpdating}
         className={`flex items-center justify-center ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         aria-label={isActive ? "Set staff inactive" : "Set staff active"}
+        data-staff-id={staff.id}
       >
         {isActive ? (
           <ToggleRight className="h-5 w-5 text-green-600" />

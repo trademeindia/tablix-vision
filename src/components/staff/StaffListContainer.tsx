@@ -41,6 +41,11 @@ const StaffListContainer: React.FC<StaffListContainerProps> = ({
     setSelectedStaff(staff);
     setShowDetailsDialog(true);
   };
+  
+  const handleStaffStatusChange = () => {
+    // Call the parent's onStaffUpdated to refresh data
+    onStaffUpdated();
+  };
 
   if (isLoading) {
     return (
@@ -64,7 +69,7 @@ const StaffListContainer: React.FC<StaffListContainerProps> = ({
         onViewDetails={handleViewDetails}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onStaffUpdated={onStaffUpdated}
+        onStaffUpdated={handleStaffStatusChange}
         staffData={staffData}
       />
       
