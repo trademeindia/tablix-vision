@@ -1,12 +1,10 @@
-
 import { useState } from 'react';
-import { createOrUpdateCustomer } from '@/services/customerService';
-import { createOrder, convertCartItemsToOrderItems } from '@/services/order';
-import { calculateLoyaltyPoints, updateLoyaltyPoints } from '@/services/loyaltyService';
-import { toast } from '@/hooks/use-toast';
-import { CartItem, useCustomerInfoStorage } from './use-checkout-storage';
+import { createOrder } from '@/services/order';
+import { useCustomerInfoStorage } from './use-checkout-storage';
+import { CartItem } from './use-cart-storage';
+import { toast } from './use-toast';
 
-interface SubmitOrderOptions {
+interface UseCheckoutSubmissionProps {
   restaurantId: string | null;
   tableId: string | null;
   orderItems: CartItem[];
@@ -16,7 +14,7 @@ interface SubmitOrderOptions {
   notes: string;
 }
 
-interface SubmitOrderResult {
+interface UseCheckoutSubmissionResult {
   isSubmitting: boolean;
   isSuccess: boolean;
   orderId: string | null;
@@ -31,130 +29,94 @@ export function useCheckoutSubmission({
   email,
   phone,
   notes
-}: SubmitOrderOptions): SubmitOrderResult {
+}: UseCheckoutSubmissionProps): UseCheckoutSubmissionResult {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const { saveCustomerInfo } = useCustomerInfoStorage();
-  
-  const submitOrder = async () => {
-    // Validation checks
-    if (!restaurantId || !tableId) {
-      toast({
-        title: "Error",
-        description: "Missing restaurant or table information",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (orderItems.length === 0) {
-      toast({
-        title: "Empty Order",
-        description: "Please add items to your order",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!name.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter your name",
-        variant: "destructive",
-      });
-      return;
-    }
+  const { getCustomerInfo } = useCustomerInfoStorage();
 
-    if (!phone.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter your phone number",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const submitOrder = async () => {
     setIsSubmitting(true);
-    
+    setIsSuccess(false);
+    setOrderId(null);
+
     try {
-      // Create or update customer
-      const customerData = {
-        name,
-        email: email || undefined,
-        phone: phone || undefined,
-      };
-      
-      const customer = await createOrUpdateCustomer(customerData);
-      
-      if (!customer) {
-        throw new Error("Could not create or update customer");
+      if (!restaurantId || !tableId) {
+        toast({
+          title: "Missing Information",
+          description: "Restaurant or table information is missing",
+          variant: "destructive"
+        });
+        return;
       }
 
-      // Save customer info for future orders
-      saveCustomerInfo(customerData);
-      
-      // Convert cart items to order items
-      const orderItemsData = convertCartItemsToOrderItems(orderItems);
-      
+      if (orderItems.length === 0) {
+        toast({
+          title: "Empty Order",
+          description: "Your order is empty. Please add items before placing an order.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Processing Order",
+        description: "Please wait while we process your order...",
+      });
+
+      // Prepare order items for the API
+      const orderItemsForAPI = orderItems.map(({ item, quantity }) => ({
+        menu_item_id: item.item.id,
+        name: item.item.name,
+        price: item.item.price,
+        quantity: quantity,
+      }));
+
       // Calculate total amount
       const totalAmount = orderItems.reduce(
-        (total, { item, quantity }) => total + item.price * quantity, 
+        (total, { item, quantity }) => total + (item.item.price * quantity),
         0
       );
-      
-      // Create the order
+
+      // Get customer info
+      const customerInfo = { name, email, phone };
+      const customer = customerInfo || getCustomerInfo();
+
+      // Create the order in Supabase
       const order = await createOrder({
-        customer_id: customer.id,
         restaurant_id: restaurantId,
         table_number: tableId,
+        customer_id: undefined, // This would come from auth in a real implementation
         total_amount: totalAmount,
-        notes: notes || undefined,
-        items: orderItemsData,
+        items: orderItemsForAPI,
+        notes: notes,
       });
-      
+
       if (!order) {
-        throw new Error("Could not create order");
+        throw new Error("Failed to create order");
       }
-      
+
+      // Set the order ID
       setOrderId(order.id || null);
-      
-      // Calculate and add loyalty points by updating expenditure
-      if (customer.id) {
-        // Update loyalty points (update expenditure)
-        await updateLoyaltyPoints(customer.id, totalAmount);
-        
-        const pointsEarned = calculateLoyaltyPoints(totalAmount);
-        if (pointsEarned > 0) {
-          toast({
-            title: "Loyalty Points Earned!",
-            description: `You earned ${pointsEarned} loyalty points with this order.`,
-          });
-        }
-      }
-      
-      // Clear the cart
-      localStorage.removeItem('orderItems');
-      
       setIsSuccess(true);
-      
+
       toast({
-        title: "Order Placed",
+        title: "Order Placed!",
         description: "Your order has been successfully placed.",
       });
-      
     } catch (error) {
-      console.error('Error submitting order:', error);
+      console.error("Error placing order:", error);
+      setIsSuccess(false);
       toast({
-        title: "Order Failed",
-        description: "There was an error processing your order. Please try again.",
-        variant: "destructive",
+        title: "Failed to place order",
+        description: "There was an error placing your order. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return {
     isSubmitting,
     isSuccess,

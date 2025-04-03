@@ -1,13 +1,13 @@
-
 import { useEffect } from 'react';
 import { useCheckoutState } from './use-checkout-state';
-import { useCustomerInfoStorage, CartItem } from './use-checkout-storage';
+import { useCustomerInfoStorage } from './use-checkout-storage';
 import { useCheckoutSubmission } from './use-checkout-submission';
 import { MenuItem } from '@/types/menu';
+import { CartItem } from './use-cart-storage';
 
 export type { CartItem };
 
-export interface CheckoutData {
+interface CheckoutData {
   tableId: string | null;
   restaurantId: string | null;
   orderItems: CartItem[];
@@ -18,13 +18,11 @@ export interface CheckoutData {
   isSubmitting: boolean;
   isSuccess: boolean;
   orderId: string | null;
-  
-  // Methods
   setName: (name: string) => void;
   setEmail: (email: string) => void;
   setPhone: (phone: string) => void;
   setNotes: (notes: string) => void;
-  handleSubmitOrder: () => Promise<void>;
+  handleSubmitOrder: () => Promise<boolean>;
 }
 
 /**
@@ -43,42 +41,41 @@ export function useCheckout(): CheckoutData {
   } = useCheckoutState();
   
   // Get storage data (table, restaurant, orderItems)
-  const { tableId, restaurantId, orderItems } = useCustomerInfoStorage();
+  const customerStorage = useCustomerInfoStorage();
+  const tableId = localStorage.getItem('tableId');
+  const restaurantId = localStorage.getItem('restaurantId');
+  
+  // Load order items from localStorage
+  const orderItemsStr = localStorage.getItem('orderItems');
+  let orderItems: CartItem[] = [];
+  
+  if (orderItemsStr) {
+    try {
+      orderItems = JSON.parse(orderItemsStr);
+    } catch (e) {
+      console.error("Error parsing stored order items:", e);
+    }
+  }
   
   // Load stored customer info from localStorage
-  const { customerInfo } = useCustomerInfoStorage();
-  
-  // Initialize form with stored customer info if available
-  useEffect(() => {
-    if (customerInfo.name && name === '') {
-      setName(customerInfo.name);
-    }
-    
-    if (customerInfo.email && email === '') {
-      setEmail(customerInfo.email);
-    }
-    
-    if (customerInfo.phone && phone === '') {
-      setPhone(customerInfo.phone);
-    }
-  }, [customerInfo, name, email, phone, setName, setEmail, setPhone]);
+  const { customerInfo } = customerStorage;
   
   // Handle order submission
-  const { submitOrder } = useCheckoutSubmission({
+  const { handleSubmitOrder } = useCheckoutSubmission(
     restaurantId,
     tableId,
     orderItems,
-    name,
-    email,
-    phone,
-    notes
-  });
-  
-  // Handle order submission (proxy to the submission hook)
-  const handleSubmitOrder = async () => {
-    await submitOrder();
-  };
-  
+    customerInfo,
+    setIsSubmitting,
+    setIsSuccess,
+    setOrderId
+  );
+
+  useEffect(() => {
+    // Load customer info from localStorage on initial render
+    customerStorage.loadCustomerInfo();
+  }, [customerStorage]);
+
   return {
     tableId,
     restaurantId,
