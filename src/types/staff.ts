@@ -6,7 +6,7 @@ export interface StaffMember {
   name: string;
   phone: string;
   email: string;
-  role: string;
+  role: StaffRole;
   status: 'active' | 'inactive';
   notification_preference?: any;
   last_login?: string;
