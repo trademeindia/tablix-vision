@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, DialogContent, DialogHeader, 
   DialogTitle, DialogFooter 
@@ -14,6 +14,7 @@ import StaffForm from './StaffForm';
 import { supabase } from '@/integrations/supabase/client';
 import { Form } from '@/components/ui/form';
 import { v4 as uuidv4 } from 'uuid';
+import { useStaffStorage } from '@/hooks/use-staff-storage';
 
 interface EditStaffDialogProps {
   open: boolean;
@@ -43,6 +44,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { uploadProfileImage } = useStaffStorage();
   
   const form = useForm<StaffFormData>({
     resolver: zodResolver(formSchema),
@@ -53,13 +55,13 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
-      emergency_contact: staff.emergency_contact || '',
+      emergency_contact: '', // This field isn't in the database
       profile_image: null
     }
   });
 
   // Reset form when staff changes
-  React.useEffect(() => {
+  useEffect(() => {
     form.reset({
       name: staff.name,
       email: staff.email,
@@ -67,60 +69,10 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
-      emergency_contact: staff.emergency_contact || '',
+      emergency_contact: '', // This field isn't in the database
       profile_image: null
     });
   }, [staff, form]);
-
-  // Upload an image to Supabase Storage
-  const uploadProfileImage = async (file: File): Promise<string | null> => {
-    try {
-      // Generate a unique filename to avoid collisions
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      
-      // Try to create the bucket if it doesn't exist
-      try {
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
-        
-        if (!staffBucket) {
-          console.log('Creating staff-profiles bucket');
-          await supabase.storage.createBucket('staff-profiles', {
-            public: true,
-            fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
-            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-          });
-        }
-      } catch (error) {
-        console.warn('Error checking/creating bucket', error);
-        // Continue anyway, as the bucket might already exist
-      }
-
-      // Upload the file
-      const { data, error } = await supabase.storage
-        .from('staff-profiles')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true // Changed to true to avoid conflicts
-        });
-
-      if (error) {
-        console.error('Error uploading image:', error);
-        throw error;
-      }
-
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('staff-profiles')
-        .getPublicUrl(fileName);
-
-      return publicUrlData.publicUrl;
-    } catch (error) {
-      console.error('Image upload failed:', error);
-      return null;
-    }
-  };
 
   const onSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
@@ -141,13 +93,13 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         }
       }
       
-      // Remove profile_image from data before DB update
-      const { profile_image, ...staffData } = data;
+      // Remove profile_image and emergency_contact from data before DB update
+      const { profile_image, emergency_contact, ...validStaffData } = data;
       
       const { data: updatedData, error } = await supabase
         .from('staff')
         .update({
-          ...staffData,
+          ...validStaffData,
           avatar_url: avatarUrl,
           avatar: avatarUrl, // For backward compatibility
           image: avatarUrl, // For further compatibility
