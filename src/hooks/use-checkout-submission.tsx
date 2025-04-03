@@ -4,8 +4,7 @@ import { createOrUpdateCustomer } from '@/services/customerService';
 import { createOrder, convertCartItemsToOrderItems } from '@/services/order';
 import { calculateLoyaltyPoints, updateLoyaltyPoints } from '@/services/loyaltyService';
 import { toast } from '@/hooks/use-toast';
-import { CartItem } from './use-checkout-storage';
-import { useSaveCustomerInfo } from './use-checkout-storage';
+import { CartItem, useCustomerInfoStorage } from './use-checkout-storage';
 
 interface SubmitOrderOptions {
   restaurantId: string | null;
@@ -36,7 +35,7 @@ export function useCheckoutSubmission({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const { saveCustomerInfo } = useSaveCustomerInfo();
+  const { saveCustomerInfo } = useCustomerInfoStorage();
   
   const submitOrder = async () => {
     // Validation checks

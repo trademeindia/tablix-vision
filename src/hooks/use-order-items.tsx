@@ -3,7 +3,7 @@ import { useCallback, useState, useEffect } from 'react';
 import { MenuItem } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 import { createOrder } from '@/services/order';
-import { useCustomerInfoStorage } from '@/hooks/use-checkout-storage';
+import { useCustomerInfoStorage, CartItem } from '@/hooks/use-checkout-storage';
 
 interface OrderItem {
   item: MenuItem;

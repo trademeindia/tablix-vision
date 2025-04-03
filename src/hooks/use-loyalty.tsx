@@ -8,7 +8,7 @@ export function useLoyalty() {
   const [points, setPoints] = useState(0);
   const [customerId, setCustomerId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
-  const customerInfo = useCustomerInfoStorage();
+  const { customerInfo } = useCustomerInfoStorage();
 
   const fetchCustomerLoyaltyPoints = useCallback(async () => {
     setIsLoading(true);

@@ -50,16 +50,16 @@ export const getCustomerOrders = async (
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // Get count for pagination
-    const countResponse = await supabase
+    // Get count for pagination - Fixed by using a separate count query
+    const countQuery = await supabase
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('customer_id', customerId);
     
-    const count = countResponse.count ?? 0;
+    const count = countQuery.count ?? 0;
     
-    if (countResponse.error) {
-      console.error('Error fetching order count:', countResponse.error);
+    if (countQuery.error) {
+      console.error('Error fetching order count:', countQuery.error);
       return { orders: [], count: 0 };
     }
 
@@ -132,7 +132,7 @@ export const getRestaurantOrders = async (
     // Start building the query
     let query = supabase
       .from('orders')
-      .select('*', { count: 'exact' })
+      .select('*')
       .eq('restaurant_id', restaurantId);
 
     // Add filters if provided
@@ -148,12 +148,28 @@ export const getRestaurantOrders = async (
       query = query.lte('created_at', endDate);
     }
 
-    // Get count first for pagination info
-    const countResponse = await query.count();
-    const count = countResponse.count ?? 0;
+    // Get count first for pagination info - Fixed by using a separate count query
+    const countQuery = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurantId);
+      
+    if (status) {
+      countQuery.eq('status', status);
+    }
     
-    if (countResponse.error) {
-      console.error('Error counting restaurant orders:', countResponse.error);
+    if (startDate) {
+      countQuery.gte('created_at', startDate);
+    }
+    
+    if (endDate) {
+      countQuery.lte('created_at', endDate);
+    }
+    
+    const count = countQuery.count ?? 0;
+    
+    if (countQuery.error) {
+      console.error('Error counting restaurant orders:', countQuery.error);
       return { orders: [], count: 0 };
     }
 

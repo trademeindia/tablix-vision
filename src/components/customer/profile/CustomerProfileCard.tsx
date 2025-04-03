@@ -7,7 +7,7 @@ import { User, Phone, Mail, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const CustomerProfileCard = () => {
-  const customerInfo = useCustomerInfoStorage();
+  const { customerInfo } = useCustomerInfoStorage();
   const { points, isLoading } = useLoyalty();
   
   return (

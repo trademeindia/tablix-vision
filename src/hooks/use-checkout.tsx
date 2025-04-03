@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useCheckoutState } from './use-checkout-state';
-import { useCheckoutStorage, useCustomerInfoStorage, CartItem } from './use-checkout-storage';
+import { useCustomerInfoStorage, useCheckoutStorage, CartItem } from './use-checkout-storage';
 import { useCheckoutSubmission } from './use-checkout-submission';
 import { MenuItem } from '@/types/menu';
 
@@ -46,22 +46,22 @@ export function useCheckout(): CheckoutData {
   const { tableId, restaurantId, orderItems } = useCheckoutStorage();
   
   // Load stored customer info from localStorage
-  const storedCustomerInfo = useCustomerInfoStorage();
+  const { customerInfo } = useCustomerInfoStorage();
   
   // Initialize form with stored customer info if available
   useEffect(() => {
-    if (storedCustomerInfo.name && name === '') {
-      setName(storedCustomerInfo.name);
+    if (customerInfo.name && name === '') {
+      setName(customerInfo.name);
     }
     
-    if (storedCustomerInfo.email && email === '') {
-      setEmail(storedCustomerInfo.email);
+    if (customerInfo.email && email === '') {
+      setEmail(customerInfo.email);
     }
     
-    if (storedCustomerInfo.phone && phone === '') {
-      setPhone(storedCustomerInfo.phone);
+    if (customerInfo.phone && phone === '') {
+      setPhone(customerInfo.phone);
     }
-  }, [storedCustomerInfo, name, email, phone, setName, setEmail, setPhone]);
+  }, [customerInfo, name, email, phone, setName, setEmail, setPhone]);
   
   // Handle order submission
   const { submitOrder } = useCheckoutSubmission({
