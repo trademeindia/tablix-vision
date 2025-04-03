@@ -54,7 +54,7 @@ export const useStaffData = () => {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
         
         // Enhanced normalization and data handling with proper type handling
-        const normalizedData = supabaseData.map(staff => {
+        const normalizedData = supabaseData.map((staff: any) => {
           // Make sure all image-related fields are properly normalized
           const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
           
@@ -76,7 +76,7 @@ export const useStaffData = () => {
             created_at: staff.created_at,
             updated_at: staff.updated_at,
             
-            // Safely handle new fields that might not be in the types yet
+            // Safely handle fields that might not be in all staff records
             salary: typeof staff.salary === 'number' ? staff.salary : 
                    typeof staff.salary === 'string' ? parseFloat(staff.salary) : undefined,
             hire_date: staff.hire_date || undefined,

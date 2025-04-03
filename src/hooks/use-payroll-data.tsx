@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { StaffPayrollSummary, StaffPayrollRecord } from '@/types/staff';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,8 +19,7 @@ export const usePayrollData = (staffId: string) => {
     const fetchPayroll = async () => {
       setIsLoading(true);
       try {
-        // Since the staff_payroll table might not be in the types, 
-        // we'll use a more generic approach with the underlying client
+        // Use a more generic approach without relying on type definitions
         const { data, error } = await supabase
           .from('staff_payroll')
           .select('*')
@@ -35,7 +35,7 @@ export const usePayrollData = (staffId: string) => {
           console.log(`Loaded ${data.length} payroll records for staff ${staffId}`);
           
           // Transform data safely with type assertions
-          const records: StaffPayrollRecord[] = data.map(record => ({
+          const records: StaffPayrollRecord[] = data.map((record: any) => ({
             id: record.id as string,
             period: record.period as string,
             base_salary: record.base_salary as number,

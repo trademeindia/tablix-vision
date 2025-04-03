@@ -15,8 +15,7 @@ export const useShiftData = (staffId: string) => {
     const fetchShifts = async () => {
       setIsLoading(true);
       try {
-        // Since the staff_shifts table might not be in the types, 
-        // we'll use a more generic approach without relying on type definitions
+        // Use a more generic approach without relying on type definitions
         const { data, error } = await supabase
           .from('staff_shifts')
           .select('*')
@@ -32,7 +31,7 @@ export const useShiftData = (staffId: string) => {
           console.log(`Loaded ${data.length} shift records for staff ${staffId}`);
           
           // Transform data to match our expected format with type assertions for safety
-          const shifts: StaffShift[] = data.map(shift => ({
+          const shifts: StaffShift[] = data.map((shift: any) => ({
             id: shift.id as string,
             staff_id: shift.staff_id as string,
             date: shift.date as string,
