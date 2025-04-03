@@ -61,18 +61,35 @@ export const useStaffData = () => {
           // Log the image URL for debugging
           console.log(`Staff ${staff.name} image URL:`, imageUrl);
           
-          return {
-            ...staff,
-            // Ensure status is always 'active' or 'inactive'
+          // Create a properly typed staff member with default values for potentially missing fields
+          const normalizedStaff: StaffMember = {
+            id: staff.id || '',
+            restaurant_id: staff.restaurant_id || '',
+            user_id: staff.user_id || undefined,
+            name: staff.name || '',
+            phone: staff.phone || '',
+            email: staff.email || '',
+            role: staff.role || '',
             status: staff.status === 'active' ? 'active' : 'inactive',
+            notification_preference: staff.notification_preference,
+            last_login: staff.last_login,
+            created_at: staff.created_at,
+            updated_at: staff.updated_at,
+            // Handle salary specifically - may not exist in some records
+            salary: typeof staff.salary === 'string' ? parseFloat(staff.salary) : 
+                    typeof staff.salary === 'number' ? staff.salary : undefined,
+            hire_date: staff.hire_date,
+            department: staff.department,
+            manager_id: staff.manager_id,
+            emergency_contact: staff.emergency_contact,
             // Normalize all image fields to have the same value for maximum compatibility
             avatar_url: imageUrl,
             avatar: imageUrl,
-            image: imageUrl,
-            // Ensure salary is properly handled as a number
-            salary: typeof staff.salary === 'string' ? parseFloat(staff.salary) : staff.salary
+            image: imageUrl
           };
-        }) as StaffMember[];
+          
+          return normalizedStaff;
+        });
         
         setStaffData(normalizedData);
       } else {

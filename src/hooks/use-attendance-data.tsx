@@ -1,53 +1,94 @@
 
 import { useState, useEffect } from 'react';
-import { StaffAttendanceStats } from '@/types/staff';
+import { StaffAttendanceStats, StaffAttendanceRecord } from '@/types/staff';
 import { generateStaffAttendance } from '@/utils/demo-data/staff-attendance';
-import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useAttendanceData = (staffId: string) => {
-  const [attendanceData, setAttendanceData] = useState<StaffAttendanceStats>({
+  const [attendanceStats, setAttendanceStats] = useState<StaffAttendanceStats>({
     totalPresent: 0,
     totalAbsent: 0,
     totalLate: 0,
     presentPercentage: 0
   });
+  const [attendanceData, setAttendanceData] = useState<StaffAttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchAttendanceData = async () => {
       setIsLoading(true);
       try {
-        // Try to fetch real attendance data from Supabase
-        // This is a placeholder for when you implement real attendance tracking
-        const { data, error } = await supabase
-          .from('staff_attendance')
-          .select('*')
-          .eq('staff_id', staffId);
+        // In a real app, we would fetch from actual Supabase tables
+        // Since the staff_attendance table doesn't exist in our schema yet,
+        // we'll use demo data instead
+        console.log('Generating demo attendance data for staff ID:', staffId);
+        
+        // Generate random attendance records for the last 30 days
+        const records: StaffAttendanceRecord[] = [];
+        const today = new Date();
+        let presentCount = 0;
+        let absentCount = 0;
+        let lateCount = 0;
+        
+        for (let i = 0; i < 30; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() - i);
           
-        if (error) {
-          console.error('Error fetching attendance data:', error);
-          throw error;
+          // Random status (biased towards 'present')
+          const random = Math.random();
+          let status: 'present' | 'absent' | 'late';
+          
+          if (random < 0.7) {
+            status = 'present';
+            presentCount++;
+          } else if (random < 0.85) {
+            status = 'late';
+            lateCount++;
+          } else {
+            status = 'absent';
+            absentCount++;
+          }
+          
+          // Only add check-in/check-out times for present or late
+          const checkIn = status !== 'absent' ? 
+            `${Math.floor(Math.random() * 3) + 8}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` : 
+            undefined;
+            
+          const checkOut = status !== 'absent' ? 
+            `${Math.floor(Math.random() * 4) + 16}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}` : 
+            undefined;
+            
+          records.push({
+            id: uuidv4(),
+            date: date.toISOString(),
+            status,
+            check_in: checkIn,
+            check_out: checkOut,
+            notes: status === 'late' ? 'Traffic delay' : undefined
+          });
         }
         
-        if (data && data.length > 0) {
-          // Process real data when available
-          // This is a placeholder for actual data processing
-          console.log('Fetched attendance data:', data);
-          
-          // For now, we'll use demo data
-          const demoAttendance = generateStaffAttendance(staffId);
-          setAttendanceData(demoAttendance);
-        } else {
-          // Use demo data if no real data is found
-          console.log('No attendance data found, using demo data');
-          const demoAttendance = generateStaffAttendance(staffId);
-          setAttendanceData(demoAttendance);
-        }
+        // Calculate stats
+        const totalDays = records.length;
+        const presentPercentage = Math.round((presentCount / totalDays) * 100);
+        
+        setAttendanceData(records);
+        setAttendanceStats({
+          totalPresent: presentCount,
+          totalAbsent: absentCount,
+          totalLate: lateCount,
+          presentPercentage
+        });
       } catch (error) {
-        console.error('Error in attendance data fetch:', error);
-        // Fallback to demo data
-        const demoAttendance = generateStaffAttendance(staffId);
-        setAttendanceData(demoAttendance);
+        console.error('Error generating attendance data:', error);
+        // Fallback to empty data
+        setAttendanceData([]);
+        setAttendanceStats({
+          totalPresent: 0,
+          totalAbsent: 0, 
+          totalLate: 0,
+          presentPercentage: 0
+        });
       } finally {
         setIsLoading(false);
       }
@@ -60,6 +101,7 @@ export const useAttendanceData = (staffId: string) => {
 
   return {
     attendanceData,
+    attendanceStats,
     isLoading
   };
 };

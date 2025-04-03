@@ -1,48 +1,65 @@
 
 import { useState, useEffect } from 'react';
 import { StaffShift } from '@/types/shift';
-import { generateStaffShifts } from '@/utils/demo-data/staff-shifts';
-import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useShiftData = (staffId: string) => {
-  const [shiftData, setShiftData] = useState<StaffShift[]>([]);
+  const [upcomingShifts, setUpcomingShifts] = useState<StaffShift[]>([]);
+  const [pastShifts, setPastShifts] = useState<StaffShift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchShiftData = async () => {
       setIsLoading(true);
       try {
-        // Try to fetch real shift data from Supabase
-        // This is a placeholder for when you implement real shift tracking
-        const { data, error } = await supabase
-          .from('staff_shifts')
-          .select('*')
-          .eq('staff_id', staffId);
-          
-        if (error) {
-          console.error('Error fetching shift data:', error);
-          throw error;
+        // In a real app, we would fetch from actual Supabase tables
+        // Since the staff_shifts table doesn't exist yet, we'll use demo data
+        console.log('Generating demo shift data for staff ID:', staffId);
+        
+        const upcoming: StaffShift[] = [];
+        const past: StaffShift[] = [];
+        const today = new Date();
+        
+        // Generate shifts spanning past 10 days to future 10 days
+        for (let i = -10; i < 10; i++) {
+          // Not every day has a shift (probability 70%)
+          if (Math.random() < 0.7) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            
+            const positions = ['Server', 'Host', 'Bartender', 'Manager'];
+            const position = positions[Math.floor(Math.random() * positions.length)];
+            
+            const shift: StaffShift = {
+              id: uuidv4(),
+              staff_id: staffId,
+              date: date.toISOString(),
+              start_time: `${Math.floor(Math.random() * 4) + 8}:00`,
+              end_time: `${Math.floor(Math.random() * 4) + 16}:00`,
+              position,
+              status: i < 0 ? 'completed' : 'scheduled',
+              notes: Math.random() < 0.3 ? 'Special event' : undefined
+            };
+            
+            if (i < 0) {
+              past.push(shift);
+            } else {
+              upcoming.push(shift);
+            }
+          }
         }
         
-        if (data && data.length > 0) {
-          // Process real data when available
-          // This is a placeholder for actual data processing
-          console.log('Fetched shift data:', data);
-          
-          // For now, we'll use demo data
-          const demoShifts = generateStaffShifts(staffId);
-          setShiftData(demoShifts);
-        } else {
-          // Use demo data if no real data is found
-          console.log('No shift data found, using demo data');
-          const demoShifts = generateStaffShifts(staffId);
-          setShiftData(demoShifts);
-        }
+        // Sort shifts by date
+        past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
+        setUpcomingShifts(upcoming);
+        setPastShifts(past);
       } catch (error) {
         console.error('Error in shift data fetch:', error);
-        // Fallback to demo data
-        const demoShifts = generateStaffShifts(staffId);
-        setShiftData(demoShifts);
+        // Fallback to empty arrays
+        setUpcomingShifts([]);
+        setPastShifts([]);
       } finally {
         setIsLoading(false);
       }
@@ -54,7 +71,9 @@ export const useShiftData = (staffId: string) => {
   }, [staffId]);
 
   return {
-    shiftData,
+    shiftData: [...upcomingShifts, ...pastShifts],
+    upcomingShifts,
+    pastShifts,
     isLoading
   };
 };

@@ -1,3 +1,4 @@
+
 export interface StaffMember {
   id: string;
   restaurant_id: string;
@@ -43,8 +44,28 @@ export interface StaffAttendanceStats {
   presentPercentage: number;
 }
 
+export interface StaffAttendanceRecord {
+  id: string;
+  date: string;
+  status: 'present' | 'absent' | 'late';
+  check_in?: string;
+  check_out?: string;
+  notes?: string;
+}
+
 export interface StaffPayrollSummary {
   totalPaid: number;
   pendingAmount: number;
   lastPaymentDate: string | null;
+}
+
+export interface StaffPayrollRecord {
+  id: string;
+  period: string;
+  base_salary: number;
+  bonus: number;
+  deductions: number;
+  net_salary: number;
+  payment_date: string;
+  status: 'paid' | 'pending';
 }
