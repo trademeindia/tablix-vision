@@ -12,11 +12,38 @@ export const useStaffData = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // First attempt to get data from Supabase
       console.log('Fetching staff data from Supabase...');
-      const { data: supabaseData, error: supabaseError } = await supabase
-        .from('staff')
-        .select('*');
+      
+      // Get session data for restaurant ID
+      const { data: sessionData } = await supabase.auth.getSession();
+      let restaurantId: string | null = null;
+      
+      // If user is authenticated, try to get their restaurant ID
+      if (sessionData && sessionData.session) {
+        const userId = sessionData.session.user.id;
+        console.log('Authenticated user ID:', userId);
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('restaurant_id')
+          .eq('id', userId)
+          .single();
+          
+        if (profile?.restaurant_id) {
+          restaurantId = profile.restaurant_id;
+          console.log('Using restaurant ID from profile:', restaurantId);
+        }
+      }
+      
+      // First attempt to get data from Supabase
+      let query = supabase.from('staff').select('*');
+      
+      // Apply restaurant filter if we have a restaurant ID
+      if (restaurantId) {
+        query = query.eq('restaurant_id', restaurantId);
+      }
+      
+      const { data: supabaseData, error: supabaseError } = await query;
       
       if (supabaseError) {
         console.error('Error fetching from Supabase:', supabaseError);

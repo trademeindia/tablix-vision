@@ -53,37 +53,82 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
     }
   });
 
+  // Check if bucket exists and create it if it doesn't
+  const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
+    try {
+      // First check if the bucket already exists
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error('Error checking buckets:', bucketsError);
+        return false;
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
+      
+      if (bucketExists) {
+        console.log(`Bucket ${bucketName} already exists`);
+        return true;
+      }
+      
+      // Create the bucket if it doesn't exist
+      console.log(`Creating bucket: ${bucketName}`);
+      const { data, error } = await supabase.storage.createBucket(bucketName, {
+        public: true,
+        fileSizeLimit: 2 * 1024 * 1024, // 2MB
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      });
+      
+      if (error) {
+        console.error('Error creating bucket:', error);
+        return false;
+      }
+      
+      // Create public access policy for the bucket
+      try {
+        const { error: policyError } = await supabase.rpc('create_storage_policy', {
+          bucket_name: bucketName
+        });
+        
+        if (policyError) {
+          console.error('Error creating bucket policy, but continuing:', policyError);
+        }
+      } catch (policyErr) {
+        // If the RPC doesn't exist, that's okay - we'll continue anyway
+        console.warn('Could not create bucket policy via RPC, continuing anyway:', policyErr);
+      }
+      
+      console.log(`Successfully created bucket: ${bucketName}`);
+      return true;
+    } catch (error) {
+      console.error('Unexpected error in ensureBucketExists:', error);
+      return false;
+    }
+  };
+
   // Upload an image to Supabase Storage
   const uploadProfileImage = async (file: File): Promise<string | null> => {
+    const bucketName = 'staff-profiles';
     try {
+      // Ensure the bucket exists
+      const bucketExists = await ensureBucketExists(bucketName);
+      if (!bucketExists) {
+        console.error('Failed to ensure bucket exists');
+        throw new Error('Failed to prepare storage bucket for upload');
+      }
+
       // Generate a unique filename to avoid collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       
-      // Try to create the bucket if it doesn't exist
-      try {
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const staffBucket = buckets?.find(bucket => bucket.name === 'staff-profiles');
-        
-        if (!staffBucket) {
-          console.log('Creating staff-profiles bucket');
-          await supabase.storage.createBucket('staff-profiles', {
-            public: true,
-            fileSizeLimit: 1024 * 1024 * 2, // 2MB limit
-            allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
-          });
-        }
-      } catch (error) {
-        console.warn('Error checking/creating bucket', error);
-        // Continue anyway, as the bucket might already exist
-      }
-
+      console.log(`Uploading file ${fileName} to bucket ${bucketName}`);
+      
       // Upload the file
       const { data, error } = await supabase.storage
-        .from('staff-profiles')
+        .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true // Changed to true to avoid conflicts
+          upsert: true
         });
 
       if (error) {
@@ -93,9 +138,10 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
 
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
-        .from('staff-profiles')
+        .from(bucketName)
         .getPublicUrl(fileName);
 
+      console.log('File uploaded successfully, public URL:', publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
     } catch (error) {
       console.error('Image upload failed:', error);
@@ -113,21 +159,34 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       
       if (sessionError) {
         console.error('Error getting session:', sessionError);
+        throw new Error('Authentication error: ' + sessionError.message);
       }
       
       let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
+      let userId = null;
       
       // If user is authenticated, get their restaurant ID
       if (sessionData && sessionData.session) {
+        userId = sessionData.session.user.id;
+        console.log('Authenticated user ID:', userId);
+        
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('restaurant_id')
           .eq('id', sessionData.session.user.id)
           .single();
           
-        if (profile?.restaurant_id) {
+        if (error) {
+          console.error('Error fetching profile:', error);
+          // Continue with default restaurant ID
+        } else if (profile?.restaurant_id) {
           restaurantId = profile.restaurant_id;
+          console.log('Using restaurant ID from profile:', restaurantId);
+        } else {
+          console.log('No restaurant ID found in profile, using default');
         }
+      } else {
+        console.log('No active session found, using default restaurant ID');
       }
 
       // Handle profile image upload if it exists
@@ -149,6 +208,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       console.log('Adding staff member with data:', {
         ...staffData,
         restaurant_id: restaurantId,
+        user_id: userId,
         avatar_url: avatarUrl
       });
       
@@ -158,7 +218,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
         .insert([{
           ...staffData,
           restaurant_id: restaurantId,
-          user_id: null, // In a real app, we might create an auth user and link them
+          user_id: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           avatar_url: avatarUrl, // Use the uploaded image URL
@@ -168,8 +228,8 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
         .select();
       
       if (error) {
-        console.error('Supabase error details:', error);
-        throw error;
+        console.error('Supabase insert error details:', error);
+        throw new Error('Database error: ' + error.message);
       }
       
       console.log('Staff added successfully:', insertedData);
@@ -186,7 +246,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       console.error('Error adding staff:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add staff member. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to add staff member. Please try again.',
         variant: 'destructive',
       });
     } finally {
