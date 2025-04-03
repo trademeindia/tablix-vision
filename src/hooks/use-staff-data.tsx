@@ -26,15 +26,14 @@ export const useStaffData = () => {
       if (supabaseData && supabaseData.length > 0) {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
         
-        // Normalize status to ensure it's either 'active' or 'inactive'
+        // Normalize data and safely handle properties that might not exist
         const normalizedData = supabaseData.map(staff => ({
           ...staff,
           // Ensure status is always 'active' or 'inactive'
           status: staff.status === 'active' ? 'active' : 'inactive',
-          // Handle avatar property safely - it might not exist in the database
-          avatar: staff.avatar || undefined,
-          // Handle image property safely - it might not exist in the database
-          image: staff.image || undefined
+          // Safely access optional properties
+          avatar: (staff as any).avatar || undefined,
+          image: (staff as any).image || undefined
         })) as StaffMember[];
         
         setStaffData(normalizedData);
