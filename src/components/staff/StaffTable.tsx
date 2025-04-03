@@ -45,6 +45,10 @@ const StaffTable: React.FC<StaffTableProps> = ({
     }
   };
 
+  const getStaffImageUrl = (staff: StaffMember): string => {
+    return staff.avatar_url || staff.avatar || staff.image || '';
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -76,7 +80,7 @@ const StaffTable: React.FC<StaffTableProps> = ({
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
                       <AvatarImage 
-                        src={staff.avatar_url || staff.avatar || staff.image} 
+                        src={getStaffImageUrl(staff)} 
                         alt={staff.name} 
                         onError={(e) => {
                           console.log(`Failed to load image for staff: ${staff.name}`);

@@ -25,16 +25,12 @@ interface StaffDetailsDialogProps {
 const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenChange, staff }) => {
   const [activeTab, setActiveTab] = useState<string>('details');
   
-  // Log the avatar URL for debugging
-  console.log('Staff details avatar URL:', {
-    staff_name: staff.name,
-    avatar_url: staff.avatar_url,
-    avatar: staff.avatar,
-    image: staff.image
-  });
-  
   // Get the most appropriate image URL from the available options
-  const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
+  const getStaffImageUrl = (): string => {
+    const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
+    console.log('Staff image URL in details dialog:', imageUrl);
+    return imageUrl;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,10 +45,10 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({ open, onOpenCha
         <div className="flex flex-col items-center mb-4">
           <Avatar className="h-32 w-32">
             <AvatarImage 
-              src={imageUrl} 
+              src={getStaffImageUrl()} 
               alt={staff.name} 
               onError={(e) => {
-                console.error(`Failed to load image for ${staff.name}:`, imageUrl);
+                console.error(`Failed to load image for ${staff.name}:`, getStaffImageUrl());
                 // Let fallback kick in naturally
               }}
             />

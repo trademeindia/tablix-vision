@@ -40,32 +40,6 @@ export const useStaffStorage = () => {
         return false;
       }
       
-      // Create public access policy for the bucket using the edge function
-      try {
-        // Use environment variables to access Supabase URL and key
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qofbpjdbmisyxysfcyeb.supabase.co';
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvZmJwamRibWlzeXh5c2ZjeWViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTUxMzIsImV4cCI6MjA1ODQ5MTEzMn0.RqUyHPLxCWUATAufUkXCUN9yczZNBKMQD_wYF4Q3VVA';
-        
-        const response = await fetch(`${supabaseUrl}/functions/v1/create-storage-policy`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseKey}`
-          },
-          body: JSON.stringify({ bucket_name: bucketName })
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error creating bucket policy via edge function:', errorData);
-        } else {
-          console.log('Successfully created bucket policy via edge function');
-        }
-      } catch (policyErr) {
-        // If the edge function call fails, log it but continue
-        console.warn('Could not create bucket policy via edge function, continuing anyway:', policyErr);
-      }
-      
       console.log(`Successfully created bucket: ${bucketName}`);
       return true;
     } catch (error) {
@@ -112,7 +86,10 @@ export const useStaffStorage = () => {
         .getPublicUrl(fileName);
 
       console.log('File uploaded successfully, public URL:', publicUrlData.publicUrl);
-      return publicUrlData.publicUrl;
+      
+      // Make sure we're returning a complete and valid URL
+      const publicUrl = publicUrlData.publicUrl;
+      return publicUrl;
     } catch (error) {
       console.error('Image upload failed:', error);
       return null;

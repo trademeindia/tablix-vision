@@ -52,19 +52,14 @@ export const useStaffData = () => {
       
       if (supabaseData && supabaseData.length > 0) {
         console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
-        console.log('Sample staff data:', supabaseData[0]);
         
         // Enhanced normalization and data handling
         const normalizedData = supabaseData.map(staff => {
-          // Log all image related fields for debugging
-          console.log(`Image fields for staff ${staff.name}:`, {
-            avatar_url: staff.avatar_url, 
-            avatar: staff.avatar, 
-            image: staff.image
-          });
+          // Make sure all image-related fields are properly normalized
+          const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
           
-          // Ensure all image fields have consistent values
-          const imageUrl = staff.avatar_url || staff.avatar || staff.image;
+          // Log the image URL for debugging
+          console.log(`Staff ${staff.name} image URL:`, imageUrl);
           
           return {
             ...staff,
