@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,35 +8,96 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, Receipt, Clock } from 'lucide-react';
+import { Eye, Receipt, Clock, RefreshCw } from 'lucide-react';
 import { getRestaurantOrders } from '@/services/order';
 import { Order } from '@/services/order/types';
 import GenerateInvoiceButton from '@/components/invoice/GenerateInvoiceButton';
 import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const OrdersPage = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [activeOrders, setActiveOrders] = useState<Order[]>([]);
+  const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [count, setCount] = useState(0);
   
   // Mock restaurant ID - in a real app, get this from context or API
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
   
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getRestaurantOrders(restaurantId);
-        setOrders(data);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchOrders();
+  const fetchOrders = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const { orders: data, count: totalCount } = await getRestaurantOrders(restaurantId);
+      setOrders(data);
+      setCount(totalCount);
+      
+      // Filter orders for the tabs
+      setActiveOrders(data.filter(order => 
+        order.status !== 'completed' && order.status !== 'served' && order.status !== 'cancelled'
+      ));
+      
+      setCompletedOrders(data.filter(order => 
+        order.status === 'completed' || order.status === 'served'
+      ));
+      
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({
+        title: "Error fetching orders",
+        description: "Could not load your orders. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   }, [restaurantId]);
+  
+  useEffect(() => {
+    fetchOrders();
+    
+    // Set up real-time subscription for order updates
+    const channel = supabase
+      .channel('order-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'orders',
+          filter: `restaurant_id=eq.${restaurantId}`
+        },
+        (payload) => {
+          console.log('Order change detected:', payload);
+          // Update the orders list when changes occur
+          fetchOrders();
+          
+          // Show a notification
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "New Order Received",
+              description: `Order #${payload.new.id.substring(0, 8)} has been placed.`,
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            toast({
+              title: "Order Updated",
+              description: `Order #${payload.new.id.substring(0, 8)} has been updated.`,
+            });
+          }
+        }
+      )
+      .subscribe();
+    
+    // Clean up the subscription
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchOrders, restaurantId]);
   
   const handleViewOrder = (orderId: string) => {
     // Navigate to order details page
@@ -74,19 +135,27 @@ const OrdersPage = () => {
     }).format(amount);
   };
   
-  const completedOrders = orders.filter(order => 
-    order.status === 'completed' || order.status === 'served'
-  );
-  
-  const activeOrders = orders.filter(order => 
-    order.status !== 'completed' && order.status !== 'served' && order.status !== 'cancelled'
-  );
+  const handleRefresh = () => {
+    fetchOrders();
+  };
   
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Orders Management</h1>
-        <p className="text-slate-500">View and manage restaurant orders</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Orders Management</h1>
+          <p className="text-slate-500">View and manage restaurant orders</p>
+        </div>
+        
+        <Button 
+          variant="outline" 
+          onClick={handleRefresh} 
+          disabled={isRefreshing}
+          className="gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 gap-6">
@@ -94,8 +163,8 @@ const OrdersPage = () => {
         
         <Tabs defaultValue="active">
           <TabsList>
-            <TabsTrigger value="active">Active Orders</TabsTrigger>
-            <TabsTrigger value="completed">Completed Orders</TabsTrigger>
+            <TabsTrigger value="active">Active Orders ({activeOrders.length})</TabsTrigger>
+            <TabsTrigger value="completed">Completed Orders ({completedOrders.length})</TabsTrigger>
           </TabsList>
           
           <TabsContent value="active">
@@ -105,7 +174,11 @@ const OrdersPage = () => {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <p>Loading orders...</p>
+                  <div className="space-y-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
                 ) : activeOrders.length === 0 ? (
                   <p className="text-center py-4 text-muted-foreground">No active orders at the moment.</p>
                 ) : (
@@ -128,13 +201,13 @@ const OrdersPage = () => {
                             {order.id ? order.id.substring(0, 8) : 'N/A'}
                           </TableCell>
                           <TableCell>{order.table_number}</TableCell>
-                          <TableCell>{order.customer_id ? 'Customer' : 'Guest'}</TableCell>
+                          <TableCell>{order.customer_name || (order.customer_id ? 'Customer' : 'Guest')}</TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
                           <TableCell className="flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
                             {order.created_at ? format(new Date(order.created_at), 'HH:mm') : 'N/A'}
                           </TableCell>
-                          <TableCell className="text-right">{formatCurrency(order.total_amount)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(order.total_amount || 0)}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order.id || '')}>
                               <Eye className="h-4 w-4 mr-1" />
@@ -157,7 +230,10 @@ const OrdersPage = () => {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <p>Loading orders...</p>
+                  <div className="space-y-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
                 ) : completedOrders.length === 0 ? (
                   <p className="text-center py-4 text-muted-foreground">No completed orders found.</p>
                 ) : (
@@ -180,12 +256,12 @@ const OrdersPage = () => {
                             {order.id ? order.id.substring(0, 8) : 'N/A'}
                           </TableCell>
                           <TableCell>{order.table_number}</TableCell>
-                          <TableCell>{order.customer_id ? 'Customer' : 'Guest'}</TableCell>
+                          <TableCell>{order.customer_name || (order.customer_id ? 'Customer' : 'Guest')}</TableCell>
                           <TableCell>{getStatusBadge(order.status)}</TableCell>
                           <TableCell>
                             {order.created_at ? format(new Date(order.created_at), 'dd MMM HH:mm') : 'N/A'}
                           </TableCell>
-                          <TableCell className="text-right">{formatCurrency(order.total_amount)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(order.total_amount || 0)}</TableCell>
                           <TableCell className="text-right flex justify-end gap-1">
                             <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order.id || '')}>
                               <Eye className="h-4 w-4 mr-1" />
