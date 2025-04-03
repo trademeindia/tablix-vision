@@ -64,7 +64,7 @@ export function useCheckout(): CheckoutData {
   const { customerInfo } = customerStorage;
   
   // Setup the order submission handler
-  const { submitOrder } = useCheckoutSubmission({
+  const { submitOrder, isSubmitting: submissionIsSubmitting, isSuccess: submissionIsSuccess, orderId: submissionOrderId } = useCheckoutSubmission({
     restaurantId,
     tableId,
     orderItems,
@@ -93,6 +93,13 @@ export function useCheckout(): CheckoutData {
       }
     }
   }, [name, email, phone, setName, setEmail, setPhone]);
+
+  // Update state from submission results
+  useEffect(() => {
+    setIsSubmitting(submissionIsSubmitting);
+    setIsSuccess(submissionIsSuccess);
+    if (submissionOrderId) setOrderId(submissionOrderId);
+  }, [submissionIsSubmitting, submissionIsSuccess, submissionOrderId, setIsSubmitting, setIsSuccess, setOrderId]);
 
   return {
     tableId,

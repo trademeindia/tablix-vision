@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { MenuItem } from '@/types/menu';
 import { CartItem } from './use-cart-storage';
@@ -11,7 +12,7 @@ export function useCartOperations(
   setOrderItems: (items: CartItem[]) => void
 ) {
   const addToOrder = useCallback((item: MenuItem) => {
-    setOrderItems(prevItems => {
+    setOrderItems((prevItems: CartItem[]) => {
       // Check if the item is already in the order
       const existingItemIndex = prevItems.findIndex(
         orderItem => orderItem.item.id === item.id
@@ -38,7 +39,7 @@ export function useCartOperations(
   }, [setOrderItems]);
   
   const removeFromOrder = useCallback((itemId: string) => {
-    setOrderItems(prevItems => 
+    setOrderItems((prevItems: CartItem[]) => 
       prevItems.filter(orderItem => orderItem.item.id !== itemId)
     );
   }, [setOrderItems]);
@@ -50,7 +51,7 @@ export function useCartOperations(
       return;
     }
     
-    setOrderItems(prevItems => 
+    setOrderItems((prevItems: CartItem[]) => 
       prevItems.map(orderItem => 
         orderItem.item.id === itemId 
           ? { ...orderItem, quantity } 
