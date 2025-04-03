@@ -28,7 +28,8 @@ const formSchema = z.object({
   salary: z.number().optional(),
   hire_date: z.string().optional(),
   department: z.string().optional(),
-  emergency_contact: z.string().optional()
+  emergency_contact: z.string().optional(),
+  avatar: z.string().url('Please provide a valid URL').optional().or(z.literal(''))
 });
 
 const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
@@ -45,7 +46,8 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       role: 'Waiter',
       status: 'active',
       salary: undefined,
-      emergency_contact: ''
+      emergency_contact: '',
+      avatar: ''
     }
   });
 
@@ -84,7 +86,8 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
           ...data,
           restaurant_id: restaurantId,
           user_id: null, // In a real app, we might create an auth user and link them
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          image: data.avatar // Store avatar URL in both avatar and image fields
         }])
         .select();
       
@@ -123,7 +126,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
           Add Staff
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Staff Member</DialogTitle>
         </DialogHeader>

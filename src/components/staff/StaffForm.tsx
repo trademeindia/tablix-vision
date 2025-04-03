@@ -7,14 +7,40 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StaffFormData } from '@/types/staff';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface StaffFormProps {
   form: UseFormReturn<StaffFormData>;
 }
 
 const StaffForm: React.FC<StaffFormProps> = ({ form }) => {
+  const avatarValue = form.watch('avatar');
+  
   return (
     <>
+      <div className="mb-6 flex justify-center">
+        <Avatar className="h-24 w-24">
+          <AvatarImage src={avatarValue || ''} alt="Staff avatar" />
+          <AvatarFallback>
+            {form.watch('name') ? form.watch('name').split(' ').map(n => n[0]).join('').toUpperCase() : 'ST'}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+      
+      <FormField
+        control={form.control}
+        name="avatar"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Profile Image URL</FormLabel>
+            <FormControl>
+              <Input placeholder="https://example.com/avatar.jpg" {...field} value={field.value || ''} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
       <FormField
         control={form.control}
         name="name"

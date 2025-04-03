@@ -33,6 +33,7 @@ export interface StaffFormData {
   hire_date?: string;
   department?: string;
   emergency_contact?: string;
+  avatar?: string;
 }
 
 export interface StaffAttendanceStats {

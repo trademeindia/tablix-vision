@@ -30,7 +30,9 @@ export const useStaffData = () => {
         const normalizedData = supabaseData.map(staff => ({
           ...staff,
           // Ensure status is always 'active' or 'inactive'
-          status: staff.status === 'active' ? 'active' : 'inactive'
+          status: staff.status === 'active' ? 'active' : 'inactive',
+          // If avatar is not provided but image is, use image
+          avatar: staff.avatar || staff.image || undefined
         })) as StaffMember[];
         
         setStaffData(normalizedData);

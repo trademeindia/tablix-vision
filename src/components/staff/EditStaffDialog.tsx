@@ -30,7 +30,8 @@ const formSchema = z.object({
   salary: z.number().optional(),
   hire_date: z.string().optional(),
   department: z.string().optional(),
-  emergency_contact: z.string().optional()
+  emergency_contact: z.string().optional(),
+  avatar: z.string().url('Please provide a valid URL').optional().or(z.literal(''))
 });
 
 const EditStaffDialog: React.FC<EditStaffDialogProps> = ({ 
@@ -51,7 +52,8 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
-      emergency_contact: staff.emergency_contact || ''
+      emergency_contact: staff.emergency_contact || '',
+      avatar: staff.avatar || staff.image || ''
     }
   });
 
@@ -64,7 +66,8 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       role: staff.role as any,
       status: staff.status,
       salary: staff.salary,
-      emergency_contact: staff.emergency_contact || ''
+      emergency_contact: staff.emergency_contact || '',
+      avatar: staff.avatar || staff.image || ''
     });
   }, [staff, form]);
 
@@ -77,6 +80,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
         .from('staff')
         .update({
           ...data,
+          image: data.avatar, // Update both avatar and image fields
           updated_at: new Date().toISOString()
         })
         .eq('id', staff.id)
@@ -110,7 +114,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Staff Member</DialogTitle>
         </DialogHeader>

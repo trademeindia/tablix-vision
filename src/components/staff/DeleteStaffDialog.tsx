@@ -35,6 +35,23 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
     try {
       console.log('Deleting staff with ID:', staff.id);
       
+      // If using demo data (IDs starting with 'staff-'), simulate deletion
+      if (staff.id.startsWith('staff-')) {
+        // Wait a moment to simulate server processing
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        toast({
+          title: 'Staff Deleted (Demo)',
+          description: `${staff.name} has been removed from your staff (Note: This is demo data).`,
+        });
+        
+        onOpenChange(false);
+        onStaffDeleted();
+        setIsDeleting(false);
+        return;
+      }
+      
+      // For real data, delete from Supabase
       const { error } = await supabase
         .from('staff')
         .delete()

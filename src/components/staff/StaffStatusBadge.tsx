@@ -26,6 +26,22 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
     try {
       console.log(`Updating status for staff ID ${staff.id} to ${newStatus}`);
       
+      // If using demo data (IDs starting with 'staff-'), simulate update
+      if (staff.id.startsWith('staff-')) {
+        // Wait a moment to simulate server processing
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        toast({
+          title: 'Status Updated (Demo)',
+          description: `${staff.name} is now ${newStatus} (Note: This is demo data)`,
+        });
+        
+        onStatusChange();
+        setIsUpdating(false);
+        return;
+      }
+      
+      // For real data, update in Supabase
       const { error } = await supabase
         .from('staff')
         .update({ 

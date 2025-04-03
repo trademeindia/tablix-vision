@@ -46,7 +46,7 @@ export const generateDemoStaffData = (count = 10): StaffMember[] => {
               `david@restaurant.com`][index % 16],
       role: role,
       status: status,
-      avatar_url: staffImages[index % staffImages.length],
+      avatar: staffImages[index % staffImages.length],
       last_login: getRandomDate(30),
       created_at: getRandomDate(365),
       updated_at: getRandomDate(60),
