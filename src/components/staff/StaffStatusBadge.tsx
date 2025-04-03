@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { StaffMember } from '@/types/staff';
@@ -12,46 +12,69 @@ interface StaffStatusBadgeProps {
 }
 
 const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChange }) => {
+  const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
-
-  const handleStatusChange = async (checked: boolean) => {
+  
+  const handleStatusToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (isUpdating) return;
+    
+    setIsUpdating(true);
+    const newStatus = staff.status === 'active' ? 'inactive' : 'active';
+    
     try {
-      const status = checked ? 'active' : 'inactive';
+      console.log(`Updating status for staff ID ${staff.id} to ${newStatus}`);
+      
       const { error } = await supabase
-        .from('staff' as any)
-        .update({ status })
+        .from('staff')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', staff.id);
-        
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error updating status:', error);
+        throw error;
+      }
       
       toast({
         title: 'Status Updated',
-        description: `${staff.name} is now ${status}`,
+        description: `${staff.name} is now ${newStatus}`,
       });
       
       onStatusChange();
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to update staff status',
+        title: 'Update Failed',
+        description: 'Failed to update staff status.',
         variant: 'destructive',
       });
+    } finally {
+      setIsUpdating(false);
     }
   };
-
+  
   return (
-    <div className="flex items-center space-x-2">
-      <Switch 
-        checked={staff.status === 'active'} 
-        onCheckedChange={handleStatusChange}
-      />
+    <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
       <Badge 
-        variant={staff.status === 'active' ? "default" : "secondary"}
-        className={staff.status === 'active' ? "bg-green-500" : "bg-slate-400"}
+        variant="outline"
+        className={`${
+          staff.status === 'active' 
+            ? 'bg-green-100 text-green-800 hover:bg-green-100' 
+            : 'bg-slate-100 text-slate-800 hover:bg-slate-100'
+        } cursor-default`}
       >
         {staff.status === 'active' ? 'Active' : 'Inactive'}
       </Badge>
+      
+      <Switch 
+        checked={staff.status === 'active'} 
+        onClick={handleStatusToggle}
+        disabled={isUpdating}
+      />
     </div>
   );
 };

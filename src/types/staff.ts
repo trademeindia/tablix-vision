@@ -1,3 +1,4 @@
+
 export interface StaffMember {
   id: string;
   restaurant_id: string;

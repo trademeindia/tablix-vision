@@ -8,11 +8,13 @@ import StaffOverview from '@/components/staff/StaffOverview';
 import StaffList from '@/components/staff/StaffList';
 import AddStaffDialog from '@/components/staff/AddStaffDialog';
 import { useStaffData } from '@/hooks/use-staff-data';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const StaffPage = () => {
   const { toast } = useToast();
   const [selectedView, setSelectedView] = useState<string>('all');
-  const { staffData, isLoading, refetchStaff } = useStaffData();
+  const { staffData, isLoading, error, refetchStaff } = useStaffData();
 
   useEffect(() => {
     // Log that the staff page is loaded for debugging
@@ -28,6 +30,16 @@ const StaffPage = () => {
         </div>
         <AddStaffDialog onStaffAdded={refetchStaff} />
       </div>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            There was an error loading staff data. Using demo data instead.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <StaffOverview staffData={staffData} isLoading={isLoading} />
       

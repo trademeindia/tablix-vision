@@ -2,13 +2,7 @@
 import { useState, useEffect } from 'react';
 import { StaffMember } from '@/types/staff';
 import { generateDemoStaffData } from '@/utils/demo-data/staff-data';
-
-// Mock API call to fetch staff data
-const fetchStaffData = async (): Promise<StaffMember[]> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  return generateDemoStaffData(12);
-};
+import { supabase } from '@/integrations/supabase/client';
 
 export const useStaffData = () => {
   const [staffData, setStaffData] = useState<StaffMember[]>([]);
@@ -18,11 +12,34 @@ export const useStaffData = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchStaffData();
-      setStaffData(data);
+      // First attempt to get data from Supabase
+      console.log('Fetching staff data from Supabase...');
+      const { data: supabaseData, error: supabaseError } = await supabase
+        .from('staff')
+        .select('*');
+      
+      if (supabaseError) {
+        console.error('Error fetching from Supabase:', supabaseError);
+        throw supabaseError;
+      }
+      
+      if (supabaseData && supabaseData.length > 0) {
+        console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
+        setStaffData(supabaseData);
+      } else {
+        // Fallback to demo data if no data found in Supabase
+        console.log('No data found in Supabase, using demo data instead');
+        const demoData = generateDemoStaffData(12);
+        setStaffData(demoData);
+      }
+      
       setError(null);
     } catch (err) {
-      console.error('Error fetching staff data:', err);
+      console.error('Error in staff data fetch:', err);
+      // Fallback to demo data on error
+      console.log('Error occurred, falling back to demo data');
+      const demoData = generateDemoStaffData(12);
+      setStaffData(demoData);
       setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
       setIsLoading(false);

@@ -33,13 +33,19 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // Use type assertion to bypass TypeScript error
+      console.log('Deleting staff with ID:', staff.id);
+      
       const { error } = await supabase
-        .from('staff' as any)
+        .from('staff')
         .delete()
         .eq('id', staff.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
+      
+      console.log('Staff deleted successfully');
       
       toast({
         title: 'Staff Deleted',
@@ -52,7 +58,7 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
       console.error('Error deleting staff:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete staff member',
+        description: 'Failed to delete staff member. Please try again.',
         variant: 'destructive',
       });
     } finally {

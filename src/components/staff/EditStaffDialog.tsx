@@ -71,16 +71,23 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
   const onSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
     try {
-      // Use type assertion to bypass TypeScript error
-      const { error } = await supabase
-        .from('staff' as any)
+      console.log('Updating staff with ID:', staff.id, 'New data:', data);
+      
+      const { data: updatedData, error } = await supabase
+        .from('staff')
         .update({
           ...data,
           updated_at: new Date().toISOString()
         })
-        .eq('id', staff.id);
+        .eq('id', staff.id)
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
+      
+      console.log('Staff updated successfully:', updatedData);
       
       toast({
         title: 'Staff Updated',
@@ -93,7 +100,7 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
       console.error('Error updating staff:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update staff member',
+        description: 'Failed to update staff member. Please try again.',
         variant: 'destructive',
       });
     } finally {

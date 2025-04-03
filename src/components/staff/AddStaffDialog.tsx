@@ -52,7 +52,11 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
   const onSubmit = async (data: StaffFormData) => {
     setIsSubmitting(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Error getting session:', sessionError);
+      }
       
       let restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Default fallback
       
@@ -69,18 +73,27 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
         }
       }
       
-      // Use type assertion to bypass TypeScript error
-      const { error } = await supabase
-        .from('staff' as any)
+      console.log('Adding staff member with data:', {
+        ...data,
+        restaurant_id: restaurantId
+      });
+      
+      const { data: insertedData, error } = await supabase
+        .from('staff')
         .insert([{
           ...data,
           restaurant_id: restaurantId,
           user_id: null, // In a real app, we might create an auth user and link them
-          last_login: null,
           created_at: new Date().toISOString()
-        }]);
+        }])
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
+      
+      console.log('Staff added successfully:', insertedData);
       
       toast({
         title: 'Staff Added',
@@ -94,7 +107,7 @@ const AddStaffDialog: React.FC<AddStaffDialogProps> = ({ onStaffAdded }) => {
       console.error('Error adding staff:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add staff member',
+        description: 'Failed to add staff member. Please try again.',
         variant: 'destructive',
       });
     } finally {
