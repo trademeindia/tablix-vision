@@ -41,7 +41,29 @@ const TableCard: React.FC<TableCardProps> = ({
     }
   };
 
+  // Get the current status colors
   const colors = getStatusColors(table.status);
+  
+  // Format time duration if table is occupied
+  const getOccupationDuration = () => {
+    if (!table.occupiedSince) return '';
+    
+    const [hours, minutes] = table.occupiedSince.split(':').map(Number);
+    const occupiedTime = new Date();
+    occupiedTime.setHours(hours, minutes, 0);
+    
+    const now = new Date();
+    const diffMs = now.getTime() - occupiedTime.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 60) {
+      return `${diffMins} min${diffMins !== 1 ? 's' : ''}`;
+    } else {
+      const hrs = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      return `${hrs} hr${hrs !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
+    }
+  };
   
   return (
     <Card 
@@ -73,9 +95,16 @@ const TableCard: React.FC<TableCardProps> = ({
         
         {table.status === 'occupied' && (
           <div className="mt-4 pt-3 border-t border-slate-100">
-            <div className="flex items-center text-sm text-slate-500">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>{table.occupiedSince}</span>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center text-slate-500">
+                <Clock className="h-4 w-4 mr-1" />
+                <span>Since {table.occupiedSince}</span>
+              </div>
+              {getOccupationDuration() && (
+                <Badge variant="outline" className="text-xs font-normal">
+                  {getOccupationDuration()}
+                </Badge>
+              )}
             </div>
             {table.orderId && (
               <p className="text-sm font-medium mt-1">Order #{table.orderId}</p>
@@ -94,6 +123,11 @@ const TableCard: React.FC<TableCardProps> = ({
               <span className="mx-1">•</span>
               <span>{table.reservationInfo.guestCount} guests</span>
             </div>
+            {table.reservationInfo.specialInstructions && (
+              <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                {table.reservationInfo.specialInstructions}
+              </p>
+            )}
           </div>
         )}
         
@@ -102,7 +136,10 @@ const TableCard: React.FC<TableCardProps> = ({
             variant="outline"
             size="sm"
             className="w-full"
-            onClick={() => onStatusChange(table.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusChange(table.id);
+            }}
           >
             Change Status
           </Button>
@@ -124,8 +161,10 @@ const TableCard: React.FC<TableCardProps> = ({
         
         {table.nextReservation && (
           <div className="mt-3 text-xs bg-blue-50 text-blue-800 p-2 rounded-md flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            Reserved at {table.nextReservation.time} for {table.nextReservation.customerName}
+            <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span className="truncate">
+              Reserved at {table.nextReservation.time} for {table.nextReservation.customerName}
+            </span>
           </div>
         )}
       </CardContent>

@@ -4,15 +4,18 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Filter, ArrowDownUp } from 'lucide-react';
+import { Plus, Filter, ArrowDownUp, Table2 } from 'lucide-react';
 import TableGrid from '@/components/tables/TableGrid';
 import { Skeleton } from '@/components/ui/skeleton';
 import { generateDemoTables, DemoTable } from '@/utils/demo-data/table-data';
+import AddTableDialog from '@/components/tables/AddTableDialog';
+import { toast } from '@/hooks/use-toast';
 
 const TablesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tables, setTables] = useState<DemoTable[]>([]);
   const [filter, setFilter] = useState<string>('all');
+  const [isAddTableDialogOpen, setIsAddTableDialogOpen] = useState(false);
   
   // Load demo tables
   useEffect(() => {
@@ -67,6 +70,36 @@ const TablesPage = () => {
     );
   };
   
+  // Handle adding a new table
+  const handleAddTable = (tableData: { number: number, seats: number, section?: string }) => {
+    const newTable: DemoTable = {
+      id: `table-${Date.now()}`, // Generate a unique ID
+      number: tableData.number,
+      seats: tableData.seats,
+      status: 'available',
+      section: tableData.section || 'Main Dining', // Default section if not provided
+    };
+    
+    // Check if table number already exists
+    const tableNumberExists = tables.some(table => table.number === tableData.number);
+    if (tableNumberExists) {
+      toast({
+        title: "Table number already exists",
+        description: `A table with number ${tableData.number} already exists. Please choose a different number.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Add the new table to the tables array
+    setTables(prevTables => [...prevTables, newTable]);
+    
+    toast({
+      title: "Table added",
+      description: `Table ${tableData.number} has been added successfully.`,
+    });
+  };
+  
   // Filter tables based on selected filter
   const filteredTables = filter === 'all' 
     ? tables 
@@ -92,7 +125,11 @@ const TablesPage = () => {
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <Button size="sm" className="h-9">
+          <Button 
+            size="sm" 
+            className="h-9"
+            onClick={() => setIsAddTableDialogOpen(true)}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Table
           </Button>
@@ -157,7 +194,24 @@ const TablesPage = () => {
                 </Card>
               </div>
               
-              {sections.length > 0 ? (
+              {tables.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                    <Table2 className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">No tables added yet</h3>
+                  <p className="text-slate-500 max-w-md mb-4">
+                    Start by adding tables to your restaurant layout. You can organize them by sections and set their capacity.
+                  </p>
+                  <Button 
+                    onClick={() => setIsAddTableDialogOpen(true)}
+                    className="mt-2"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Table
+                  </Button>
+                </div>
+              ) : sections.length > 0 ? (
                 <Tabs defaultValue={sections[0]}>
                   <TabsList className="mb-4">
                     {sections.map(section => (
@@ -188,6 +242,13 @@ const TablesPage = () => {
           )}
         </CardContent>
       </Card>
+
+      <AddTableDialog 
+        isOpen={isAddTableDialogOpen}
+        onOpenChange={setIsAddTableDialogOpen}
+        onAddTable={handleAddTable}
+        sections={sections}
+      />
     </DashboardLayout>
   );
 };

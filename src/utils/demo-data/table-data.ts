@@ -28,6 +28,11 @@ const getRelativeTimeString = (minutesAgo: number): string => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+// Format a date as YYYY-MM-DD
+const formatDateString = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
 // Generate demo table data
 export const generateDemoTables = (count = 15): DemoTable[] => {
   const sections = ['Main Dining', 'Patio', 'Bar', 'Private Room'];
@@ -83,7 +88,7 @@ export const generateDemoTables = (count = 15): DemoTable[] => {
       table.reservationInfo = {
         customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
         contactNumber: `(${100 + Math.floor(Math.random() * 900)}) ${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`,
-        date: reservationDate.toISOString().split('T')[0],
+        date: formatDateString(reservationDate),
         time: `${hour}:${minute.toString().padStart(2, '0')}`,
         guestCount: Math.min(1 + Math.floor(Math.random() * seats), seats),
         specialInstructions: Math.random() > 0.7 ? 'Window seat preferred' : undefined
