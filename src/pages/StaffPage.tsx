@@ -28,16 +28,18 @@ const StaffPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Staff Management</h1>
-          <p className="text-slate-500">Manage your restaurant staff members</p>
+          <h1 className="text-2xl font-bold text-slate-800">Staff Management</h1>
+          <p className="text-slate-500 mt-1">Manage your restaurant staff members</p>
         </div>
-        <AddStaffDialog onStaffAdded={refetchStaff} />
+        <div className="mt-4 md:mt-0">
+          <AddStaffDialog onStaffAdded={refetchStaff} />
+        </div>
       </div>
       
       {error && (
-        <Alert variant="destructive" className="mb-6">
+        <Alert variant="destructive" className="mb-6 bg-red-50 border border-red-200">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
@@ -46,23 +48,25 @@ const StaffPage = () => {
         </Alert>
       )}
       
-      <StaffOverview staffData={staffData} isLoading={isLoading} />
+      <div className="mb-8 mt-4">
+        <StaffOverview staffData={staffData} isLoading={isLoading} />
+      </div>
       
-      <div className="mt-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle>Staff Members</CardTitle>
-              <Tabs defaultValue="all" onValueChange={setSelectedView} className="w-auto">
-                <TabsList>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="inactive">Inactive</TabsTrigger>
+      <div className="mt-8">
+        <Card className="shadow-md border-slate-200">
+          <CardHeader className="pb-2 bg-slate-50 border-b border-slate-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+              <CardTitle className="text-slate-800">Staff Members</CardTitle>
+              <Tabs defaultValue="all" onValueChange={setSelectedView} className="w-auto mt-4 sm:mt-0">
+                <TabsList className="bg-slate-200">
+                  <TabsTrigger value="all" className="data-[state=active]:bg-white">All</TabsTrigger>
+                  <TabsTrigger value="active" className="data-[state=active]:bg-white data-[state=active]:text-green-600">Active</TabsTrigger>
+                  <TabsTrigger value="inactive" className="data-[state=active]:bg-white data-[state=active]:text-slate-600">Inactive</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-4">
             <StaffList 
               staffData={staffData} 
               isLoading={isLoading} 

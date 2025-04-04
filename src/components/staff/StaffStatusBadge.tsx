@@ -69,7 +69,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
       <Badge 
         variant={staff.status === 'active' ? 'success' : 'secondary'}
         className={`
-          text-xs font-medium capitalize px-2.5 py-0.5
+          text-xs font-medium capitalize px-2.5 py-0.5 transition-colors
           ${staff.status === 'active' 
             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
             : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300'}
@@ -83,7 +83,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         onCheckedChange={() => {}} 
         onClick={handleToggleStatus}
         disabled={updating}
-        className="data-[state=checked]:bg-green-500"
+        className="data-[state=checked]:bg-green-500 transition-colors"
       />
     </div>
   );

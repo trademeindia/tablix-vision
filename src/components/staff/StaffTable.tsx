@@ -52,16 +52,16 @@ const StaffTable: React.FC<StaffTableProps> = ({
   };
 
   return (
-    <div className="rounded-lg border overflow-hidden shadow-sm">
+    <div className="rounded-lg border overflow-hidden bg-white shadow-md">
       <Table>
-        <TableHeader className="bg-slate-50">
-          <TableRow>
-            <TableHead className="font-semibold">Name</TableHead>
-            <TableHead className="font-semibold">Phone</TableHead>
-            <TableHead className="font-semibold">Role</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            <TableHead className="font-semibold">Last Login</TableHead>
-            <TableHead className="text-right font-semibold">Actions</TableHead>
+        <TableHeader>
+          <TableRow className="bg-slate-50">
+            <TableHead className="font-semibold text-slate-700">Name</TableHead>
+            <TableHead className="font-semibold text-slate-700">Phone</TableHead>
+            <TableHead className="font-semibold text-slate-700">Role</TableHead>
+            <TableHead className="font-semibold text-slate-700">Status</TableHead>
+            <TableHead className="font-semibold text-slate-700">Last Login</TableHead>
+            <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -91,23 +91,23 @@ const StaffTable: React.FC<StaffTableProps> = ({
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-700 font-medium">
                         {getInitials(staff.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <span className="font-medium">{staff.name}</span>
+                      <span className="font-medium text-slate-800">{staff.name}</span>
                       {staff.email && (
                         <p className="text-xs text-slate-500">{staff.email}</p>
                       )}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{staff.phone}</TableCell>
+                <TableCell className="text-slate-700">{staff.phone}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <RoleIcon role={staff.role} />
-                    <span className="capitalize">{staff.role}</span>
+                    <span className="capitalize text-slate-700">{staff.role}</span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -116,7 +116,7 @@ const StaffTable: React.FC<StaffTableProps> = ({
                     onStatusChange={onStaffUpdated} 
                   />
                 </TableCell>
-                <TableCell>{formatDate(staff.last_login)}</TableCell>
+                <TableCell className="text-slate-600">{formatDate(staff.last_login)}</TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <StaffActions
                     staff={staff}

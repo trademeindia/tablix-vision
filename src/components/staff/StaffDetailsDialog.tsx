@@ -1,24 +1,26 @@
 
-import React from 'react';
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
+import React, { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StaffMember } from '@/types/staff';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { StaffMember } from '@/types/staff';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
-import { Card } from '@/components/ui/card';
+import RoleIcon from './RoleIcon';
+import { Mail, Phone, Clock, Building, FileText, User } from 'lucide-react';
+import ShiftsTab from './ShiftsTab';
 import AttendanceTab from './AttendanceTab';
 import PayrollTab from './PayrollTab';
-import ShiftsTab from './ShiftsTab';
-import RoleIcon from './RoleIcon';
-import { Badge } from '@/components/ui/badge';
 
 interface StaffDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  staff: StaffMember;
+  staff: StaffMember | null;
 }
 
 const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
@@ -26,14 +28,9 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
   onOpenChange,
   staff,
 }) => {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Not specified';
-    try {
-      return format(new Date(dateString), 'MMM dd, yyyy');
-    } catch (e) {
-      return 'Invalid date';
-    }
-  };
+  const [activeTab, setActiveTab] = useState('profile');
+  
+  if (!staff) return null;
   
   const getInitials = (name: string): string => {
     return name
@@ -43,133 +40,147 @@ const StaffDetailsDialog: React.FC<StaffDetailsDialogProps> = ({
       .toUpperCase();
   };
   
-  // Enhanced function to get the best image URL for the staff member
-  const getStaffImageUrl = (staff: StaffMember): string => {
-    // Choose the first non-empty value
-    const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
-    return imageUrl;
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (e) {
+      return 'Invalid date';
+    }
   };
 
+  // Choose the most reliable image source
+  const staffImage = staff.avatar_url || staff.avatar || staff.image;
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] max-h-[90vh] overflow-y-auto p-0">
-        <DialogHeader className="px-6 pt-6 pb-0">
-          <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-center">
-            <Avatar className="h-24 w-24 border-4 border-slate-100 shadow-lg">
-              {getStaffImageUrl(staff) && (
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold text-center">Staff Details</DialogTitle>
+        </DialogHeader>
+        
+        <div className="mt-4">
+          <div className="flex flex-col items-center md:flex-row md:items-start gap-6">
+            <div className="flex flex-col items-center">
+              <Avatar className="h-32 w-32 border-4 border-slate-100 shadow-lg mb-3">
                 <AvatarImage 
-                  src={getStaffImageUrl(staff)} 
-                  alt={staff.name}
-                  className="object-cover" 
-                  onError={(e) => {
-                    console.warn(`Failed to load image in StaffDetailsDialog for ${staff.name}`);
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+                  src={staffImage} 
+                  alt={staff.name} 
+                  className="object-cover"
                 />
-              )}
-              <AvatarFallback className="bg-primary/10 text-primary text-3xl font-medium">
-                {getInitials(staff.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-center sm:text-left flex-1">
-              <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center">
-                <div>
-                  <DialogTitle className="text-2xl font-bold">{staff.name}</DialogTitle>
-                  <div className="flex items-center mt-1 justify-center sm:justify-start gap-2">
-                    <Badge variant={staff.status === 'active' ? 'success' : 'secondary'}>
-                      {staff.status}
-                    </Badge>
-                    <p className="text-slate-500 capitalize flex items-center gap-1">
-                      <RoleIcon role={staff.role} className="h-4 w-4" />
-                      {staff.role}
-                    </p>
-                  </div>
+                <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-700 text-3xl font-semibold">
+                  {getInitials(staff.name)}
+                </AvatarFallback>
+              </Avatar>
+              
+              <Badge 
+                variant={staff.status === 'active' ? 'success' : 'secondary'}
+                className="mt-2 px-3 py-1 text-sm"
+              >
+                {staff.status.toUpperCase()}
+              </Badge>
+            </div>
+            
+            <div className="flex-1 flex flex-col items-center md:items-start">
+              <h2 className="text-2xl font-bold text-slate-800 mb-1">{staff.name}</h2>
+              
+              <div className="flex items-center mt-1">
+                <RoleIcon role={staff.role || ''} className="h-5 w-5 mr-2" />
+                <span className="text-lg font-medium text-slate-600 capitalize">{staff.role}</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 mt-4 w-full">
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 text-slate-400 mr-2" />
+                  <span className="text-slate-600">{staff.email || 'No email provided'}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 text-slate-400 mr-2" />
+                  <span className="text-slate-600">{staff.phone || 'No phone provided'}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 text-slate-400 mr-2" />
+                  <span className="text-slate-600">Hired: {formatDate(staff.hire_date)}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <Building className="h-4 w-4 text-slate-400 mr-2" />
+                  <span className="text-slate-600">Dept: {staff.department || 'Unassigned'}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <FileText className="h-4 w-4 text-slate-400 mr-2" />
+                  <span className="text-slate-600">
+                    Salary: ${staff.salary?.toLocaleString() || 'Not specified'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center">
+                  <User className="h-4 w-4 text-slate-400 mr-2" />
+                  <span className="text-slate-600">
+                    ID: {staff.id.substring(0, 8)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-        </DialogHeader>
-        
-        <Tabs defaultValue="details" className="px-6 mt-6">
-          <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="payroll">Payroll</TabsTrigger>
-            <TabsTrigger value="shifts">Shifts</TabsTrigger>
-          </TabsList>
           
-          <TabsContent value="details" className="py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="p-6 shadow-sm">
-                <h3 className="text-lg font-medium mb-4">Personal Information</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Email</h4>
-                    <p className="font-medium">{staff.email}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Phone</h4>
-                    <p className="font-medium">{staff.phone}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Department</h4>
-                    <p className="font-medium">{staff.department || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Emergency Contact</h4>
-                    <p className="font-medium">{staff.emergency_contact || 'Not specified'}</p>
-                  </div>
-                </div>
-              </Card>
+          <div className="mt-10">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="w-full grid grid-cols-3 mb-8">
+                <TabsTrigger value="profile" className="text-sm">Profile</TabsTrigger>
+                <TabsTrigger value="shifts" className="text-sm">Shifts</TabsTrigger>
+                <TabsTrigger value="attendance" className="text-sm">Attendance</TabsTrigger>
+              </TabsList>
               
-              <Card className="p-6 shadow-sm">
-                <h3 className="text-lg font-medium mb-4">Employment Details</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Hire Date</h4>
-                    <p className="font-medium">{staff.hire_date ? formatDate(staff.hire_date) : 'Not specified'}</p>
+              <TabsContent value="profile" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h3 className="text-md font-semibold mb-2">Contact Information</h3>
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-600">
+                        <span className="font-medium">Email:</span> {staff.email}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        <span className="font-medium">Phone:</span> {staff.phone}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        <span className="font-medium">Emergency Contact:</span> {staff.emergency_contact || 'Not provided'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Salary</h4>
-                    <p className="font-medium">{staff.salary ? `$${staff.salary.toLocaleString()}` : 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Status</h4>
-                    <p className={`font-medium ${staff.status === 'active' ? 'text-green-600' : 'text-slate-500'}`}>
-                      {staff.status.charAt(0).toUpperCase() + staff.status.slice(1)}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-500">Last Login</h4>
-                    <p className="font-medium">{staff.last_login ? formatDate(staff.last_login) : 'Never'}</p>
+                  
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <h3 className="text-md font-semibold mb-2">Employment Details</h3>
+                    <div className="space-y-2">
+                      <p className="text-sm text-slate-600">
+                        <span className="font-medium">Department:</span> {staff.department || 'Unassigned'}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        <span className="font-medium">Hire Date:</span> {formatDate(staff.hire_date)}
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        <span className="font-medium">Last Login:</span> {staff.last_login ? format(new Date(staff.last_login), 'MMM dd, yyyy HH:mm') : 'Never'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="attendance">
-            <AttendanceTab staffId={staff.id} />
-          </TabsContent>
-          
-          <TabsContent value="payroll">
-            <PayrollTab staffId={staff.id} />
-          </TabsContent>
-          
-          <TabsContent value="shifts">
-            <ShiftsTab staffId={staff.id} />
-          </TabsContent>
-        </Tabs>
-        
-        <DialogFooter className="px-6 pb-6 pt-2">
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Close
-          </Button>
-        </DialogFooter>
+                
+                <PayrollTab staffId={staff.id} />
+              </TabsContent>
+              
+              <TabsContent value="shifts">
+                <ShiftsTab staffId={staff.id} />
+              </TabsContent>
+              
+              <TabsContent value="attendance">
+                <AttendanceTab staffId={staff.id} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

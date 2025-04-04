@@ -1,9 +1,10 @@
 
-import React, { useMemo } from 'react';
+// Add this file to update the StaffOverview component
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { StaffMember } from '@/types/staff';
-import { Users, UserCheck, UserX, UserCog } from 'lucide-react';
+import { Users, UserCheck, UserX, ChefHat, Clipboard, UserCog } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StaffOverviewProps {
   staffData: StaffMember[];
@@ -11,90 +12,53 @@ interface StaffOverviewProps {
 }
 
 const StaffOverview: React.FC<StaffOverviewProps> = ({ staffData, isLoading }) => {
-  const stats = useMemo(() => {
-    const totalStaff = staffData.length;
-    const activeStaff = staffData.filter(staff => staff.status === 'active').length;
-    const chefs = staffData.filter(staff => staff.role === 'Chef').length;
-    const managers = staffData.filter(staff => staff.role === 'Manager').length;
-    
-    return {
-      totalStaff,
-      activeStaff,
-      inactiveStaff: totalStaff - activeStaff,
-      chefs,
-      managers
-    };
-  }, [staffData]);
-
+  // Count active and inactive staff
+  const activeStaff = staffData.filter(staff => staff.status === 'active').length;
+  const inactiveStaff = staffData.filter(staff => staff.status === 'inactive').length;
+  
+  // Count staff by role
+  const roleCount = {
+    'Waiter': staffData.filter(staff => staff.role?.toLowerCase() === 'waiter').length,
+    'Chef': staffData.filter(staff => staff.role?.toLowerCase() === 'chef').length,
+    'Manager': staffData.filter(staff => staff.role?.toLowerCase() === 'manager').length,
+    'Receptionist': staffData.filter(staff => staff.role?.toLowerCase() === 'receptionist').length,
+  };
+  
+  const cards = [
+    { title: 'Total Staff', value: staffData.length, icon: <Users className="h-5 w-5 text-blue-500" /> },
+    { title: 'Active Staff', value: activeStaff, icon: <UserCheck className="h-5 w-5 text-green-500" /> },
+    { title: 'Inactive Staff', value: inactiveStaff, icon: <UserX className="h-5 w-5 text-red-500" /> },
+    { title: 'Waiters', value: roleCount['Waiter'], icon: <Clipboard className="h-5 w-5 text-indigo-500" /> },
+    { title: 'Chefs', value: roleCount['Chef'], icon: <ChefHat className="h-5 w-5 text-amber-500" /> },
+    { title: 'Managers', value: roleCount['Manager'], icon: <UserCog className="h-5 w-5 text-purple-500" /> },
+  ];
+  
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-32 w-full" />
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {Array(6).fill(0).map((_, index) => (
+          <Skeleton key={index} className="h-24 w-full" />
+        ))}
       </div>
     );
   }
-
+  
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard 
-        title="Total Staff" 
-        value={stats.totalStaff} 
-        icon={<Users className="h-8 w-8 text-primary" />}
-        detail={`${stats.activeStaff} active, ${stats.inactiveStaff} inactive`}
-      />
-      
-      <StatCard 
-        title="Active Staff" 
-        value={stats.activeStaff} 
-        icon={<UserCheck className="h-8 w-8 text-green-500" />}
-        detail={`${Math.round((stats.activeStaff / stats.totalStaff || 0) * 100)}% of total staff`}
-      />
-      
-      <StatCard 
-        title="Chefs & Kitchen" 
-        value={stats.chefs} 
-        icon={<UserX className="h-8 w-8 text-amber-500" />}
-        detail={`${Math.round((stats.chefs / stats.totalStaff || 0) * 100)}% of total staff`}
-      />
-      
-      <StatCard 
-        title="Management" 
-        value={stats.managers} 
-        icon={<UserCog className="h-8 w-8 text-blue-500" />}
-        detail={`${Math.round((stats.managers / stats.totalStaff || 0) * 100)}% of total staff`}
-      />
-    </div>
-  );
-};
-
-interface StatCardProps {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  detail: string;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, detail }) => {
-  return (
-    <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-      <CardContent className="p-0">
-        <div className="flex flex-col h-full">
-          <div className="p-5 bg-white">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-sm font-medium text-slate-500">{title}</h3>
-                <div className="mt-1 text-3xl font-bold">{value}</div>
-                <p className="mt-1 text-xs text-slate-500">{detail}</p>
-              </div>
-              <div className="p-2 rounded-full bg-slate-50">{icon}</div>
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {cards.map((card, index) => (
+        <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
+          <CardContent className="p-4 flex flex-col items-center justify-center h-24">
+            <div className="flex items-center justify-center mb-2">
+              {card.icon}
+              <span className="ml-2 text-sm font-medium text-slate-600">{card.title}</span>
             </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+            <div className="text-2xl font-bold text-slate-800">
+              {card.value}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 

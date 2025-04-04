@@ -20,7 +20,7 @@ const StaffSearch: React.FC<StaffSearchProps> = ({
         placeholder="Search staff by name, email, role..."
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="pl-10 bg-white"
+        className="pl-10 bg-white shadow-sm border-slate-200 focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50 transition-all duration-200"
       />
     </div>
   );

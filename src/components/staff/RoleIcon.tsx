@@ -39,7 +39,7 @@ const RoleIcon: React.FC<RoleIconProps> = ({ role, className = "h-5 w-5" }) => {
       color = 'text-slate-500';
   }
   
-  return <Icon className={`${className} ${color}`} />;
+  return <Icon className={`${className} ${color} transition-colors duration-200`} />;
 };
 
 export default RoleIcon;

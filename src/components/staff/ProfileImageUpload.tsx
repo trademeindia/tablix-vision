@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+// Updated version of the ProfileImageUpload component
+import React, { useState, useRef } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { 
-  FormField, FormItem, FormControl, FormMessage 
-} from '@/components/ui/form';
-import { Upload, X } from 'lucide-react';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StaffFormData } from '@/types/staff';
 
@@ -15,143 +14,138 @@ interface ProfileImageUploadProps {
 }
 
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingImage }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [showFallback, setShowFallback] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(existingImage || null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Set preview URL from existing image if available
-  useEffect(() => {
-    if (existingImage) {
-      console.log("Setting existing image for preview:", existingImage);
-      setPreviewUrl(existingImage);
-      setShowFallback(false);
-    } else {
-      console.log("No existing image found");
-      setPreviewUrl(null);
-      setShowFallback(true);
-    }
-  }, [existingImage]);
-  
-  // Handle file selection for profile image
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    const file = files[0];
-    console.log("File selected:", file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
-    
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      form.setError('profile_image', {
-        type: 'manual',
-        message: 'Image size must be less than 2MB'
-      });
-      return;
-    }
-    
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      form.setError('profile_image', {
-        type: 'manual',
-        message: 'File must be an image'
-      });
-      return;
-    }
-    
-    // Update the form value with the selected file
-    form.setValue('profile_image', file);
-    form.clearErrors('profile_image');
-    
-    // Create preview URL for the selected image
-    const objectUrl = URL.createObjectURL(file);
-    console.log("Created object URL for preview:", objectUrl);
-    setPreviewUrl(objectUrl);
-    setShowFallback(false);
-    
-    // Clean up the object URL when component unmounts
-    return () => URL.revokeObjectURL(objectUrl);
+  const getInitials = (name: string = "Staff Member"): string => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase();
   };
   
-  // Clear the selected image
-  const clearImage = () => {
-    console.log("Clearing image selection");
-    form.setValue('profile_image', null);
-    if (previewUrl && !existingImage) {
-      URL.revokeObjectURL(previewUrl);
-    }
-    setPreviewUrl(null);
-    setShowFallback(true);
-  };
-
-  // Generate initials for avatar fallback
-  const getInitials = () => {
-    const name = form.watch('name');
-    if (!name) return 'ST';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  // Handle image load error
-  const handleImageError = () => {
-    console.log(`Failed to load avatar image: ${previewUrl || existingImage}`);
-    setShowFallback(true);
-  };
-
-  return (
-    <div className="mb-6 flex flex-col items-center">
-      <Avatar className="h-24 w-24 mb-3">
-        {!showFallback && (previewUrl || existingImage) && (
-          <AvatarImage 
-            src={previewUrl || existingImage || ''} 
-            alt="Staff avatar" 
-            onError={handleImageError}
-          />
-        )}
-        <AvatarFallback>{getInitials()}</AvatarFallback>
-      </Avatar>
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    
+    if (file) {
+      form.setValue('profile_image', file);
       
-      <div className="flex flex-col items-center gap-2">
-        <FormField
-          control={form.control}
-          name="profile_image"
-          render={({ field: { value, onChange, ...field } }) => (
-            <FormItem className="w-full">
-              <FormControl>
-                <div className="flex flex-col gap-2 items-center">
-                  <label 
-                    htmlFor="profile-image-upload" 
-                    className="cursor-pointer flex items-center gap-2 border rounded-md px-3 py-2 bg-slate-50 hover:bg-slate-100 transition-colors"
-                  >
-                    <Upload className="h-4 w-4" />
-                    <span>Upload Profile Image</span>
-                    <input
-                      {...field}
-                      id="profile-image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="sr-only"
-                      onChange={handleFileSelect}
-                    />
-                  </label>
-                  
-                  {(previewUrl || existingImage) && (
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={clearImage}
-                      className="text-xs"
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
+      // Generate a preview URL
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
+      };
+      fileReader.readAsDataURL(file);
+    }
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      form.setValue('profile_image', file);
+      
+      // Generate a preview URL
+      const fileReader = new FileReader();
+      fileReader.onload = (evt) => {
+        setPreviewUrl(evt.target?.result as string);
+      };
+      fileReader.readAsDataURL(file);
+    }
+  };
+  
+  const handleRemoveImage = () => {
+    setPreviewUrl(null);
+    form.setValue('profile_image', null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const formValue = form.watch('name') || 'Staff';
+  
+  return (
+    <FormField
+      control={form.control}
+      name="profile_image"
+      render={({ field: { onChange, ...field } }) => (
+        <FormItem className="flex flex-col items-center mb-6">
+          <FormLabel className="text-center mb-2">Profile Image</FormLabel>
+          <FormControl>
+            <div
+              className={`relative w-32 h-32 cursor-pointer ${isDragging ? 'ring-2 ring-primary' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={triggerFileInput}
+            >
+              <Avatar className="w-32 h-32 border-4 border-slate-100 shadow-md">
+                <AvatarImage 
+                  src={previewUrl || undefined} 
+                  alt="Profile preview" 
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-700 text-xl font-semibold">
+                  {getInitials(formValue)}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 opacity-0 hover:opacity-100 rounded-full transition-opacity duration-200">
+                <Camera className="w-8 h-8 text-white" />
+              </div>
+              
+              {previewUrl && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveImage();
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </FormControl>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+            {...field}
+          />
+          
+          <p className="text-sm text-center text-muted-foreground mt-2">
+            Click or drag and drop to upload
+          </p>
+        </FormItem>
+      )}
+    />
   );
 };
 
