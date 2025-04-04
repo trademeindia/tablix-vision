@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Spinner } from '@/components/ui/spinner';
+import Spinner from '@/components/ui/spinner';
 import { Helmet } from 'react-helmet-async';
 
 const AuthCallbackPage = () => {
@@ -27,14 +27,19 @@ const AuthCallbackPage = () => {
           
           // Check user roles to determine redirect
           if (data.session?.user) {
-            const { data: userRoles } = await supabase
+            // Get user role from user_roles table
+            const { data: userRolesData, error: rolesError } = await supabase
               .from('user_roles')
               .select('role')
               .eq('user_id', data.session.user.id);
               
-            if (userRoles && userRoles.length > 0) {
+            if (rolesError) {
+              console.error('Error fetching roles:', rolesError);
+            }
+              
+            if (userRolesData && userRolesData.length > 0) {
               // Redirect based on role
-              const role = userRoles[0].role;
+              const role = userRolesData[0].role;
               const redirectPath = 
                 role === 'customer' ? '/customer/menu' :
                 role === 'waiter' ? '/staff-dashboard/orders' :
