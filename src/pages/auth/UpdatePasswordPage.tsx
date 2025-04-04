@@ -1,21 +1,18 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import { AuthForm, AuthFormHeader } from '@/components/auth/AuthForm';
 import LoadingButton from '@/components/auth/LoadingButton';
 import FormError from '@/components/auth/FormError';
-import { InputGroup, InputIconWrapper } from '@/components/auth/AuthForm';
+import { InputGroup } from '@/components/auth/AuthForm';
+import PasswordInput from '@/components/auth/PasswordInput';
 
 const UpdatePasswordPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { updatePassword } = useAuth();
@@ -76,47 +73,25 @@ const UpdatePasswordPage = () => {
         
         <InputGroup>
           <Label htmlFor="password">New Password</Label>
-          <InputIconWrapper>
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Enter new password"
-              className="pr-10"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </InputIconWrapper>
+          <PasswordInput
+            id="password"
+            placeholder="Enter new password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
         </InputGroup>
         
         <InputGroup>
           <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <InputIconWrapper>
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm new password"
-              className="pr-10"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </InputIconWrapper>
+          <PasswordInput
+            id="confirmPassword"
+            placeholder="Confirm new password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
         </InputGroup>
         
         <LoadingButton 
