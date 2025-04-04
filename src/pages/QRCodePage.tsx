@@ -76,7 +76,7 @@ const QRCodePage = () => {
       </div>
       
       {error && (
-        <Alert className="mb-6" variant="warning">
+        <Alert className="mb-6" variant="default">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Note</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
