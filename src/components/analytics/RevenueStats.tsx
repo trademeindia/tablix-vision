@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency } from '@/utils/format';
 
 interface RevenueStatsProps {
   weeklyRevenue: number;
@@ -19,14 +20,6 @@ const RevenueStats: React.FC<RevenueStatsProps> = ({
   isLoading,
   currency = 'INR'
 }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
-
   return (
     <Card>
       <CardContent className="pt-6">

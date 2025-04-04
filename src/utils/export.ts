@@ -1,70 +1,64 @@
 
-/**
- * Utility functions for exporting data
- */
+import { saveAs } from 'file-saver';
+
+interface HeaderConfig {
+  key: string;
+  label: string;
+}
 
 /**
- * Convert array of objects to CSV string
+ * Export data to CSV file
+ * @param data Array of objects to export
+ * @param headers Configuration for CSV headers
+ * @param fileName Name of the file to download
  */
-export const convertToCSV = <T extends Record<string, any>>(
+export function exportToCSV<T extends Record<string, any>>(
   data: T[],
-  headers: { key: string; label: string }[]
-): string => {
-  if (!data.length) return '';
-  
-  // Create header row
-  const headerRow = headers.map(header => `"${header.label}"`).join(',');
-  
-  // Create data rows
-  const rows = data.map(item => 
-    headers
-      .map(header => {
-        const value = item[header.key];
-        // Handle different data types and escape quotes
-        if (value === null || value === undefined) return '""';
-        if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
-        if (typeof value === 'number' || typeof value === 'boolean') return `"${value}"`;
-        return `"${String(value).replace(/"/g, '""')}"`;
-      })
-      .join(',')
-  );
-  
-  // Combine header and data rows
-  return [headerRow, ...rows].join('\n');
-};
+  headers: HeaderConfig[] = [],
+  fileName: string = 'export.csv'
+): void {
+  if (!data || !data.length) {
+    console.warn('No data to export');
+    return;
+  }
 
-/**
- * Download data as a CSV file
- */
-export const downloadCSV = (csvContent: string, fileName: string): void => {
-  // Create a Blob with the CSV content
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  
-  // Create a link element to trigger the download
-  const link = document.createElement('a');
-  
-  // Create a URL for the Blob
-  const url = URL.createObjectURL(blob);
-  
-  // Set link properties
-  link.setAttribute('href', url);
-  link.setAttribute('download', fileName);
-  link.style.visibility = 'hidden';
-  
-  // Add to document, click to download, then remove
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+  try {
+    // If no headers are provided, use object keys
+    if (!headers.length) {
+      const sampleKeys = Object.keys(data[0]);
+      headers = sampleKeys.map(key => ({ key, label: key }));
+    }
 
-/**
- * Export data to CSV and trigger download
- */
-export const exportToCSV = <T extends Record<string, any>>(
-  data: T[],
-  headers: { key: string; label: string }[],
-  fileName: string
-): void => {
-  const csvContent = convertToCSV(data, headers);
-  downloadCSV(csvContent, fileName);
-};
+    // Create CSV header row
+    const headerRow = headers.map(h => `"${h.label}"`).join(',');
+    
+    // Create data rows
+    const dataRows = data.map(item => {
+      return headers
+        .map(header => {
+          let cellValue = item[header.key];
+          
+          // Handle complex objects or null/undefined
+          if (cellValue === null || cellValue === undefined) {
+            return '""';
+          } else if (typeof cellValue === 'object') {
+            cellValue = JSON.stringify(cellValue);
+          }
+          
+          // Escape quotes and wrap in quotes
+          return `"${String(cellValue).replace(/"/g, '""')}"`;
+        })
+        .join(',');
+    });
+    
+    // Combine header and data rows
+    const csvContent = [headerRow, ...dataRows].join('\n');
+    
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, fileName);
+    
+  } catch (error) {
+    console.error('Error exporting to CSV:', error);
+  }
+}

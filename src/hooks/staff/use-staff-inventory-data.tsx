@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { InventoryItem, StockLevel } from '@/types/inventory';
 import { initialInventoryItems } from '@/data/mock-inventory';
+import { formatCurrency } from '@/utils/format';
 
 export const useStaffInventoryData = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -59,6 +60,12 @@ export const useStaffInventoryData = () => {
   
   // Count low stock items
   const lowStockCount = inventoryItems.filter(item => item.status === "Low Stock").length;
+
+  // Calculate inventory value
+  const inventoryValue = inventoryItems.reduce(
+    (total, item) => total + (item.price_per_unit * item.quantity),
+    0
+  );
   
   const handleAddItem = (formData: any) => {
     // In a real app, this would send data to Supabase
@@ -90,7 +97,7 @@ export const useStaffInventoryData = () => {
     categoryCount: 8, // Number of actual categories (excluding 'All')
     lowStockCount,
     lastOrderDate: "May 17",
-    inventoryValue: "$12,580",
+    inventoryValue: formatCurrency(inventoryValue),
     inventoryTrend: "+2.5% from last month"
   };
   

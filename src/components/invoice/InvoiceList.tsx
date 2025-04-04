@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Download, Printer, Share2 } from 'lucide-react';
 import { Invoice } from '@/services/invoice';
+import { formatCurrency } from '@/utils/format';
 
 interface InvoiceListProps {
   invoices: Invoice[];
@@ -60,13 +61,6 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
       </Card>
     );
   }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-    }).format(amount);
-  };
 
   return (
     <Card>

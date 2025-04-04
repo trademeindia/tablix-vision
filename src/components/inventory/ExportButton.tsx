@@ -20,8 +20,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({ inventoryItems, disabled })
       'Stock Level': `${item.stock_level}%`,
       'Quantity': item.quantity,
       'Unit': item.unit,
-      'Price Per Unit': `$${item.price_per_unit.toFixed(2)}`,
-      'Total Value': `$${(item.quantity * item.price_per_unit).toFixed(2)}`,
+      'Price Per Unit': `₹${item.price_per_unit.toFixed(2)}`,
+      'Total Value': `₹${(item.quantity * item.price_per_unit).toFixed(2)}`,
       'Supplier': item.supplier,
       'Last Ordered': item.last_ordered,
       'Status': item.status

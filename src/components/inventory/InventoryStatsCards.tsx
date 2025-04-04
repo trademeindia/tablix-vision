@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Package, Tag, AlertTriangle, Calendar, DollarSign, TrendingUp } from "lucide-react";
+import { Package, Tag, AlertTriangle, Calendar, IndianRupee, TrendingUp } from "lucide-react";
 
 interface InventoryStatsCardsProps {
   totalItems: number;
@@ -52,7 +52,7 @@ const InventoryStatsCards: React.FC<InventoryStatsCardsProps> = ({
     {
       title: "Inventory Value",
       value: inventoryValue,
-      icon: <DollarSign className="h-5 w-5 text-indigo-600" />,
+      icon: <IndianRupee className="h-5 w-5 text-indigo-600" />,
       bgColor: "bg-indigo-50",
       textColor: "text-indigo-600"
     },

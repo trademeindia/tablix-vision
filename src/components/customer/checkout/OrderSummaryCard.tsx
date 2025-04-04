@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { MenuItem } from '@/types/menu';
+import { formatCurrency } from '@/utils/format';
 
 interface OrderItem {
   item: MenuItem;
@@ -27,13 +28,13 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({ orderItems }) => {
               <span className="font-medium">{item.name}</span>
               <span className="text-muted-foreground ml-2">×{quantity}</span>
             </div>
-            <span>${(item.price * quantity).toFixed(2)}</span>
+            <span>{formatCurrency(item.price * quantity)}</span>
           </div>
         ))}
         
         <div className="flex justify-between mt-4 pt-2 border-t font-semibold">
           <span>Total</span>
-          <span>${totalPrice.toFixed(2)}</span>
+          <span>{formatCurrency(totalPrice)}</span>
         </div>
       </CardContent>
     </Card>

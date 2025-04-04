@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, User, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatCurrency } from '@/utils/format';
 
 interface CompletedOrdersContentProps {
   orders: any[];
@@ -26,13 +27,6 @@ const CompletedOrdersContent = ({ orders, isLoading }: CompletedOrdersContentPro
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    });
-  };
-
   return (
     <ScrollArea className="h-[calc(100vh-300px)]">
       <div className="space-y-3">
@@ -53,7 +47,7 @@ const CompletedOrdersContent = ({ orders, isLoading }: CompletedOrdersContentPro
                   <span className="mx-2 text-slate-300">•</span>
                   <p className="text-xs font-medium flex items-center">
                     <DollarSign className="h-3 w-3 mr-0.5" />
-                    {order.total.toFixed(2)}
+                    {formatCurrency(order.total)}
                   </p>
                   <span className="mx-2 text-slate-300">•</span>
                   <p className="text-xs text-slate-400 flex items-center">

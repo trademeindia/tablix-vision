@@ -1,6 +1,7 @@
 
 import { MenuItem } from '@/types/menu';
 import { OrderItem } from './types';
+import { formatCurrency as formatCurrencyUtil } from '@/utils/format';
 
 /**
  * Convert cart items to order items
@@ -19,11 +20,7 @@ export const convertCartItemsToOrderItems = (cartItems: Array<{ item: MenuItem; 
  * Format currency amount
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(amount);
+  return formatCurrencyUtil(amount);
 };
 
 /**

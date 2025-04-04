@@ -6,6 +6,7 @@ import { User, Clock, Check, CheckCheck, CreditCard } from 'lucide-react';
 import OrderStatusBadge from './OrderStatusBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/format';
 
 interface ActiveOrdersContentProps {
   orders: any[];
@@ -14,14 +15,6 @@ interface ActiveOrdersContentProps {
 }
 
 const ActiveOrdersContent = ({ orders, isLoading, handleUpdateStatus }: ActiveOrdersContentProps) => {
-  // Helper to format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-    }).format(amount);
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ShoppingCart, ChevronUp, ChevronDown } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
 import CartItem from './CartItem';
+import { formatCurrency } from '@/utils/format';
 
 interface OrderSummaryProps {
   orderItems: Array<{item: MenuItem, quantity: number}>;
@@ -48,7 +49,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
-            <p className="text-sm font-bold text-foreground">${totalPrice.toFixed(2)}</p>
+            <p className="text-sm font-bold text-foreground">{formatCurrency(totalPrice)}</p>
           </div>
         </div>
         

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { 
@@ -13,6 +14,7 @@ import { Edit, Trash2, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import InventoryItemsTableSkeleton from './InventoryItemsTableSkeleton';
 import { StockLevel, InventoryItem } from '@/types/inventory';
+import { formatCurrency } from '@/utils/format';
 
 interface InventoryItemsTableProps {
   items: InventoryItem[];
@@ -91,7 +93,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
               </TableCell>
               <TableCell>{item.quantity}</TableCell>
               <TableCell>{item.unit}</TableCell>
-              <TableCell>${item.price_per_unit.toFixed(2)}</TableCell>
+              <TableCell>{formatCurrency(item.price_per_unit)}</TableCell>
               <TableCell>{item.supplier}</TableCell>
               <TableCell>
                 <div className="flex space-x-1">
