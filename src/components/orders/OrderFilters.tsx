@@ -23,7 +23,7 @@ interface OrderFiltersProps {
 
 const OrderFilters: React.FC<OrderFiltersProps> = ({ filters, onFilterChange }) => {
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: 'all', label: 'All Statuses' }, // Changed from empty string to 'all'
     { value: 'pending', label: 'Pending' },
     { value: 'preparing', label: 'Preparing' },
     { value: 'ready', label: 'Ready' },
@@ -56,7 +56,7 @@ const OrderFilters: React.FC<OrderFiltersProps> = ({ filters, onFilterChange }) 
 
   const clearFilters = () => {
     onFilterChange({
-      status: '',
+      status: 'all', // Changed from empty string to 'all'
       startDate: '',
       endDate: '',
       sortBy: 'created_at',
@@ -71,7 +71,7 @@ const OrderFilters: React.FC<OrderFiltersProps> = ({ filters, onFilterChange }) 
           <div>
             <Label htmlFor="status-filter">Status</Label>
             <Select 
-              value={filters.status} 
+              value={filters.status || 'all'} // Provide a default value of 'all' if filters.status is empty
               onValueChange={(value) => onFilterChange({ status: value })}
             >
               <SelectTrigger id="status-filter">
@@ -99,12 +99,13 @@ const OrderFilters: React.FC<OrderFiltersProps> = ({ filters, onFilterChange }) 
                   {filters.startDate ? format(new Date(filters.startDate), 'PPP') : 'Pick a date'}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                 <Calendar
                   mode="single"
                   selected={filters.startDate ? new Date(filters.startDate) : undefined}
                   onSelect={handleStartDateSelect}
                   initialFocus
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
@@ -122,12 +123,13 @@ const OrderFilters: React.FC<OrderFiltersProps> = ({ filters, onFilterChange }) 
                   {filters.endDate ? format(new Date(filters.endDate), 'PPP') : 'Pick a date'}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                 <Calendar
                   mode="single"
                   selected={filters.endDate ? new Date(filters.endDate) : undefined}
                   onSelect={handleEndDateSelect}
                   initialFocus
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
