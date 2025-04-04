@@ -136,3 +136,18 @@
   border: 1px solid hsl(var(--border));
   z-index: 50;
 }
+
+/* Background grid pattern for hero section */
+.bg-grid-slate-200 {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgb(226 232 240 / 30%) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgb(226 232 240 / 30%) 1px, transparent 1px);
+}
+
+/* Primary color variations for gradients */
+.from-primary-600 {
+  --tw-gradient-from: hsl(var(--primary) / 0.6);
+  --tw-gradient-to: hsl(var(--primary) / 0);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+

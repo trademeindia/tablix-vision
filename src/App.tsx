@@ -27,6 +27,7 @@ import SettingsPage from './pages/settings/SettingsPage';
 import NotificationsPage from './pages/settings/NotificationsPage';
 import IntegrationsPage from './pages/settings/integrations';
 import IntegrationDetailPage from './pages/settings/integration/IntegrationDetailPage';
+import Menu360LandingPage from './pages/landing/Menu360LandingPage';
 
 // Customer pages
 import CustomerMenuPage from './pages/customer/MenuPage';
@@ -61,6 +62,9 @@ function App() {
           <TooltipProvider>
             <Router>
               <Routes>
+                {/* Landing page */}
+                <Route path="/menu360" element={<Menu360LandingPage />} />
+                
                 {/* Admin routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/menu" element={<MenuPage />} />
