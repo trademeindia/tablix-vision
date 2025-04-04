@@ -73,4 +73,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 };
 
 // Re-export UserRole type for convenience
-export { UserRole };
+export type { UserRole };
