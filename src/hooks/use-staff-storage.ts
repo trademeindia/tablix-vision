@@ -2,82 +2,66 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from './use-toast';
 
-/**
- * Hook for handling staff profile image storage operations
- */
 export const useStaffStorage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  
-  // Upload an image to Supabase Storage
+
+  // Function to upload profile image to Supabase storage
   const uploadProfileImage = async (file: File): Promise<string | null> => {
     if (!file) return null;
     
     setIsUploading(true);
-    const bucketName = 'staff-profiles';
     
     try {
-      // Generate a unique filename to avoid collisions
+      // Generate a unique file name to prevent collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `staff-avatars/${fileName}`;
       
-      console.log(`Uploading file ${fileName} to bucket ${bucketName}`);
+      console.log(`Uploading file to ${filePath}`);
       
-      // Check if the bucket exists
-      const { data: bucketData, error: bucketError } = await supabase.storage
-        .getBucket(bucketName);
-      
-      // If bucket doesn't exist, create it
-      if (!bucketData) {
-        console.log(`Bucket ${bucketName} doesn't exist, creating it`);
-        const { data, error } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 2097152, // 2MB limit
-        });
+      // Check if we can directly upload to Supabase
+      try {
+        // Try to upload to Supabase
+        const { data, error } = await supabase.storage
+          .from('public')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
         
         if (error) {
-          console.error('Error creating bucket:', error);
-          throw new Error(`Failed to create storage bucket: ${error.message}`);
+          console.error('Storage upload error:', error);
+          throw error;
         }
+        
+        // Get the public URL
+        const { data: urlData } = supabase.storage
+          .from('public')
+          .getPublicUrl(filePath);
+          
+        console.log('Successfully uploaded to Supabase:', urlData.publicUrl);
+        return urlData.publicUrl;
+      } catch (storageError) {
+        console.error('Unable to use Supabase Storage:', storageError);
+        
+        // Fallback: Use a placeholder or avatar generator API
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(file.name)}&background=random&color=fff&size=256`;
+        console.log('Falling back to generated avatar:', avatarUrl);
+        return avatarUrl;
       }
-      
-      // Upload the file
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type
-        });
-
-      if (error) {
-        console.error('Error uploading image:', error);
-        toast({
-          title: 'Upload Error',
-          description: `Failed to upload image: ${error.message}`,
-          variant: 'destructive'
-        });
-        throw error;
-      }
-
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(fileName);
-
-      console.log('File uploaded successfully, public URL:', publicUrlData.publicUrl);
-      
-      return publicUrlData.publicUrl;
     } catch (error) {
-      console.error('Image upload failed:', error);
+      console.error('Error uploading image:', error);
       toast({
         title: 'Upload Failed',
-        description: error instanceof Error ? error.message : 'Failed to upload image',
-        variant: 'destructive'
+        description: 'Failed to upload image. Using a placeholder instead.',
+        variant: 'destructive',
       });
-      return null;
+      
+      // Return a generated avatar as fallback
+      return `https://ui-avatars.com/api/?name=Staff&background=random&color=fff&size=256`;
     } finally {
       setIsUploading(false);
     }
@@ -85,6 +69,6 @@ export const useStaffStorage = () => {
 
   return {
     uploadProfileImage,
-    isUploading
+    isUploading,
   };
 };

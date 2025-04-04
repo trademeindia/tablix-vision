@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { StaffMember } from '@/types/staff';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ToggleRight, ToggleLeft } from 'lucide-react';
 
 interface StaffStatusBadgeProps {
   staff: StaffMember;
@@ -12,67 +12,45 @@ interface StaffStatusBadgeProps {
 }
 
 const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChange }) => {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState(staff.status);
+  const [updating, setUpdating] = useState(false);
   const { toast } = useToast();
   
-  // Update local state when staff prop changes to ensure it stays in sync
-  useEffect(() => {
-    setCurrentStatus(staff.status);
-  }, [staff.status]);
-  
-  const handleStatusToggle = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleStatus = async (event: React.MouseEvent) => {
+    event.stopPropagation();
     
-    if (isUpdating) return;
+    const newStatus = staff.status === 'active' ? 'inactive' : 'active';
+    console.log(`Changing status for ${staff.name} from ${staff.status} to ${newStatus}`);
+    
+    setUpdating(true);
     
     try {
-      setIsUpdating(true);
-      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      
-      console.log(`Updating status for staff ID ${staff.id} to ${newStatus}`);
-      
-      // If using demo data (IDs starting with 'staff-'), simulate update
+      // Check if this is demo data
       if (staff.id.startsWith('staff-')) {
-        // Wait a moment to simulate server processing
+        // Simulate update for demo data
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Update local state with the new status
-        setCurrentStatus(newStatus);
-        
         toast({
           title: 'Status Updated (Demo)',
           description: `${staff.name} is now ${newStatus} (Note: This is demo data)`,
         });
-        
         onStatusChange();
-        setIsUpdating(false);
         return;
       }
       
       // For real data, update in Supabase
       const { error } = await supabase
         .from('staff')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString() 
-        })
+        .update({ status: newStatus })
         .eq('id', staff.id);
       
       if (error) {
-        console.error('Error updating status:', error);
         throw error;
       }
-      
-      // Only update local state after successful update to database
-      setCurrentStatus(newStatus);
       
       toast({
         title: 'Status Updated',
         description: `${staff.name} is now ${newStatus}`,
       });
       
-      // Notify parent component to refresh data
       onStatusChange();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -82,38 +60,31 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
         variant: 'destructive',
       });
     } finally {
-      setIsUpdating(false);
+      setUpdating(false);
     }
   };
   
-  const isActive = currentStatus === 'active';
-  
   return (
-    <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
+    <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
       <Badge 
-        variant="outline"
-        className={`${
-          isActive 
-            ? 'bg-green-100 text-green-800 hover:bg-green-100' 
-            : 'bg-slate-100 text-slate-800 hover:bg-slate-100'
-        } font-medium cursor-default transition-colors`}
+        variant={staff.status === 'active' ? 'success' : 'secondary'}
+        className={`
+          text-xs font-medium capitalize px-2.5 py-0.5
+          ${staff.status === 'active' 
+            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+            : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300'}
+        `}
       >
-        {isActive ? 'Active' : 'Inactive'}
+        {staff.status}
       </Badge>
       
-      <button 
-        onClick={handleStatusToggle}
-        disabled={isUpdating}
-        className={`flex items-center justify-center ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-        aria-label={isActive ? "Set staff inactive" : "Set staff active"}
-        data-staff-id={staff.id}
-      >
-        {isActive ? (
-          <ToggleRight className="h-5 w-5 text-green-600" />
-        ) : (
-          <ToggleLeft className="h-5 w-5 text-slate-500" />
-        )}
-      </button>
+      <Switch 
+        checked={staff.status === 'active'} 
+        onCheckedChange={() => {}} 
+        onClick={handleToggleStatus}
+        disabled={updating}
+        className="data-[state=checked]:bg-green-500"
+      />
     </div>
   );
 };

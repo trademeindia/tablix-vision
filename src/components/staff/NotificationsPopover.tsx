@@ -1,92 +1,146 @@
 
-import React, { useState } from 'react';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+import React from 'react';
+import { 
+  Popover, PopoverContent, PopoverTrigger 
 } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Bell, Check, User, DollarSign, ClipboardCheck 
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Notification } from '@/hooks/notifications/types';
+import { format } from 'date-fns';
 
-interface NotificationsPopoverProps {
-  userId?: string;
-  restaurantId?: string;
-  // Include the notifications property in the interface
-  notifications: Notification[];
-  unreadCount: number;
-  isLoading: boolean;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
+type NotificationType = 'message' | 'order' | 'system' | 'payment';
+
+interface Notification {
+  id: string;
+  type: NotificationType;
+  message: string;
+  time: Date;
+  read: boolean;
 }
 
-const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({ 
-  unreadCount, 
-  isLoading, 
-  notifications, 
-  markAsRead, 
+interface NotificationsPopoverProps {
+  notifications: Notification[];
+  unreadCount: number;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  isLoading: boolean;
+  userId: string;
+  restaurantId: string;
+}
+
+const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
+  notifications,
+  unreadCount,
+  markAsRead,
   markAllAsRead,
-  userId,
-  restaurantId
+  isLoading
 }) => {
-  const [open, setOpen] = useState(false);
+  const getIcon = (type: NotificationType) => {
+    switch (type) {
+      case 'message':
+        return <User className="h-4 w-4 text-blue-500" />;
+      case 'order':
+        return <ClipboardCheck className="h-4 w-4 text-green-500" />;
+      case 'payment':
+        return <DollarSign className="h-4 w-4 text-orange-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-slate-500" />;
+    }
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label="Open notifications"
+        >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-              {unreadCount}
-            </div>
+            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end" side="bottom">
-        <Tabs defaultValue="notifications" className="h-96">
-          <TabsList className="border-b">
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="alerts" disabled>Alerts</TabsTrigger>
-          </TabsList>
-          <TabsContent value="notifications" className="m-0 p-0">
-            <div className="p-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-sm font-semibold">
-                  {isLoading ? 'Loading notifications...' : 'Recent Notifications'}
-                </h2>
-                <Button variant="ghost" size="sm" onClick={markAllAsRead} disabled={isLoading || unreadCount === 0}>
-                  Mark all as read
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="h-[300px]">
-              {notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <div key={notification.id}>
-                    <div className="p-4 hover:bg-gray-100 cursor-pointer" onClick={() => {
-                      markAsRead(notification.id);
-                      setOpen(false);
-                    }}>
-                      <div className="text-sm font-medium">{notification.title}</div>
-                      <div className="text-xs text-gray-500">{notification.message}</div>
-                      <div className="text-xs text-gray-500">{notification.timestamp}</div>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="font-medium">Notifications</h3>
+          {unreadCount > 0 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={markAllAsRead}
+              className="h-8 text-xs"
+            >
+              <Check className="mr-1 h-3.5 w-3.5" />
+              Mark all as read
+            </Button>
+          )}
+        </div>
+        
+        {isLoading ? (
+          <div className="py-6 text-center text-sm text-slate-500">
+            Loading notifications...
+          </div>
+        ) : notifications.length === 0 ? (
+          <div className="py-6 text-center text-sm text-slate-500">
+            No notifications
+          </div>
+        ) : (
+          <ScrollArea className="h-80">
+            <div className="divide-y">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 ${
+                    !notification.read ? 'bg-slate-50' : ''
+                  }`}
+                >
+                  <div className="flex gap-3">
+                    <div className="mt-0.5">
+                      <div className="p-1.5 rounded-full bg-slate-100">
+                        {getIcon(notification.type)}
+                      </div>
                     </div>
-                    <Separator />
+                    <div className="flex-1">
+                      <p className="text-sm">{notification.message}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {format(notification.time, 'MMM dd, h:mm a')}
+                      </p>
+                    </div>
+                    {!notification.read && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="p-4 text-sm text-gray-500">No notifications</div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-          <TabsContent value="alerts">
-            <div className="p-4 text-sm text-gray-500">No alerts yet.</div>
-          </TabsContent>
-        </Tabs>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+        
+        <Separator />
+        <div className="p-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-sm justify-center"
+          >
+            View all notifications
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

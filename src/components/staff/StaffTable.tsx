@@ -47,19 +47,12 @@ const StaffTable: React.FC<StaffTableProps> = ({
 
   // Enhanced function to get the best image URL for each staff member
   const getStaffImageUrl = (staff: StaffMember): string => {
-    // Log all possible image fields to help debugging
-    console.log(`Staff ${staff.name} image fields:`, {
-      avatar_url: staff.avatar_url,
-      avatar: staff.avatar,
-      image: staff.image
-    });
-    
     // Choose the first non-empty value
     return staff.avatar_url || staff.avatar || staff.image || '';
   };
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-lg border overflow-hidden shadow-sm">
       <Table>
         <TableHeader className="bg-slate-50">
           <TableRow>
@@ -93,7 +86,7 @@ const StaffTable: React.FC<StaffTableProps> = ({
                         alt={staff.name} 
                         className="object-cover"
                         onError={(e) => {
-                          console.log(`Failed to load avatar image for ${staff.name}:`, getStaffImageUrl(staff));
+                          console.warn(`Failed to load avatar image for ${staff.name}`);
                           // Hide the image on error so fallback appears
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
@@ -102,7 +95,12 @@ const StaffTable: React.FC<StaffTableProps> = ({
                         {getInitials(staff.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">{staff.name}</span>
+                    <div>
+                      <span className="font-medium">{staff.name}</span>
+                      {staff.email && (
+                        <p className="text-xs text-slate-500">{staff.email}</p>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{staff.phone}</TableCell>

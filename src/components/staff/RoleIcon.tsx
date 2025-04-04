@@ -1,25 +1,45 @@
 
 import React from 'react';
-import { ChefHat, HelpCircle, UserCog, User } from 'lucide-react';
+import { 
+  ChefHat, 
+  UserCog, 
+  Clipboard, 
+  Users2,
+  LucideIcon
+} from 'lucide-react';
 
 interface RoleIconProps {
   role: string;
-  className?: string; // Make className optional
+  className?: string;
 }
 
-const RoleIcon: React.FC<RoleIconProps> = ({ role, className }) => {
-  const baseClass = className || "h-4 w-4 mr-1";
+const RoleIcon: React.FC<RoleIconProps> = ({ role, className = "h-5 w-5" }) => {
+  let Icon: LucideIcon;
+  let color: string;
   
-  switch (role.toLowerCase()) {
+  switch (role?.toLowerCase()) {
     case 'chef':
-      return <ChefHat className={`${baseClass} text-amber-500`} />;
+      Icon = ChefHat;
+      color = 'text-amber-500';
+      break;
     case 'manager':
-      return <UserCog className={`${baseClass} text-blue-500`} />;
+      Icon = UserCog;
+      color = 'text-blue-500';
+      break;
     case 'waiter':
-      return <User className={`${baseClass} text-green-500`} />;
+      Icon = Clipboard;
+      color = 'text-green-500';
+      break;
+    case 'receptionist':
+      Icon = Users2;
+      color = 'text-purple-500';
+      break;
     default:
-      return <HelpCircle className={`${baseClass} text-gray-500`} />;
+      Icon = Users2;
+      color = 'text-slate-500';
   }
+  
+  return <Icon className={`${className} ${color}`} />;
 };
 
 export default RoleIcon;

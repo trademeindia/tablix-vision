@@ -1,29 +1,35 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { StaffMember } from '@/types/staff';
 
-export const useStaffFilter = (staffData: StaffMember[], filter: string = 'all') => {
+interface UseStaffFilterResult {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  filteredStaff: StaffMember[];
+}
+
+export const useStaffFilter = (staffData: StaffMember[], filter: string): UseStaffFilterResult => {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const filteredStaff = staffData.filter(staff => {
-    // Apply status filter
-    if (filter === 'active' && staff.status !== 'active') return false;
-    if (filter === 'inactive' && staff.status !== 'inactive') return false;
-    
-    // Apply search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      return (
-        staff.name.toLowerCase().includes(search) ||
-        staff.email.toLowerCase().includes(search) ||
-        staff.role.toLowerCase().includes(search) ||
-        staff.phone.includes(search)
-      );
-    }
-    
-    return true;
-  });
-  
+
+  const filteredStaff = useMemo(() => {
+    return staffData.filter(staff => {
+      // Filter by status
+      const statusFilter = 
+        filter === 'all' ? true : 
+        filter === 'active' ? staff.status === 'active' : 
+        staff.status === 'inactive';
+      
+      // Filter by search term (name, email, phone, role)
+      const searchFilter = searchTerm === '' || 
+        staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (staff.email && staff.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (staff.phone && staff.phone.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (staff.role && staff.role.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return statusFilter && searchFilter;
+    });
+  }, [staffData, filter, searchTerm]);
+
   return {
     searchTerm,
     setSearchTerm,
