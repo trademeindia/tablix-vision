@@ -13,12 +13,6 @@ const DashboardContent = () => {
   // In a real application, you would get this from auth or context
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Placeholder restaurant ID
   
-  const {
-    salesData,
-    salesDataLoading,
-    popularItems
-  } = useAnalytics(restaurantId);
-
   // Sample table data for availability visualization
   const tables = [
     { id: 1, occupied: false, number: '101' },
