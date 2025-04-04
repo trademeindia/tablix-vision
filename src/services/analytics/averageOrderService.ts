@@ -17,24 +17,46 @@ export async function getAverageOrderValue(restaurantId: string): Promise<Array<
     const startDateStr = startDate.toISOString().split('T')[0];
     const endDateStr = endDate.toISOString().split('T')[0];
     
-    // Query to get average order value by day
-    const { data, error } = await supabase.rpc('get_average_order_by_day', {
-      restaurant_id_param: restaurantId,
-      start_date_param: startDateStr,
-      end_date_param: endDateStr
-    });
+    // Since the RPC function "get_average_order_by_day" seems to not exist yet, 
+    // we'll implement a direct query instead:
+    const { data, error } = await supabase
+      .from('orders')
+      .select('created_at, total_amount')
+      .eq('restaurant_id', restaurantId)
+      .gte('created_at', startDateStr)
+      .lte('created_at', endDateStr);
     
     if (error) {
       console.error('Error fetching average order data:', error);
       throw error;
     }
     
-    // If we have data, format it for the chart
+    // Group orders by day and calculate average
+    const ordersByDay = new Map<string, { total: number; count: number }>();
+    
     if (data && data.length > 0) {
-      return data.map((item: any) => ({
-        name: item.order_date,
-        value: parseFloat(item.average_amount) || 0
-      }));
+      data.forEach((order: any) => {
+        const date = new Date(order.created_at).toISOString().split('T')[0];
+        
+        if (!ordersByDay.has(date)) {
+          ordersByDay.set(date, { total: 0, count: 0 });
+        }
+        
+        const current = ordersByDay.get(date)!;
+        current.total += order.total_amount || 0;
+        current.count += 1;
+      });
+      
+      // Calculate average and format for chart
+      const result = Array.from(ordersByDay.entries()).map(([date, values]) => {
+        return {
+          name: date,
+          value: values.count > 0 ? values.total / values.count : 0
+        };
+      });
+      
+      // Sort by date ascending
+      return result.sort((a, b) => a.name.localeCompare(b.name));
     }
     
     // If no data, return empty array
