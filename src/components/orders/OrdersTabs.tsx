@@ -37,7 +37,7 @@ const OrdersTabs = ({
   const handleTabChange = (value: string) => {
     // When switching tabs, update the status filter
     if (value === 'active') {
-      onFilterChange({ status: '' });
+      onFilterChange({ status: 'all' });
     } else if (value === 'completed') {
       onFilterChange({ status: 'completed' });
     }
@@ -45,16 +45,16 @@ const OrdersTabs = ({
   
   return (
     <Tabs defaultValue={defaultTab} onValueChange={handleTabChange}>
-      <TabsList>
+      <TabsList className="w-full md:w-auto">
         <TabsTrigger value="active">Active Orders ({activeOrders.length})</TabsTrigger>
         <TabsTrigger value="completed">Completed Orders ({completedOrders.length})</TabsTrigger>
       </TabsList>
       
-      <TabsContent value="active">
+      <TabsContent value="active" className="mt-4">
         <ActiveOrdersTab orders={activeOrders} isLoading={isLoading} />
       </TabsContent>
       
-      <TabsContent value="completed">
+      <TabsContent value="completed" className="mt-4">
         <CompletedOrdersTab 
           orders={completedOrders} 
           isLoading={isLoading} 

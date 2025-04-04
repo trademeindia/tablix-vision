@@ -16,7 +16,7 @@ const OrdersPage = () => {
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
   
   const [filters, setFilters] = useState({
-    status: 'all', // Changed from empty string to 'all'
+    status: 'all',
     startDate: '',
     endDate: '',
     sortBy: 'created_at',

@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { User, Clock, Check, CheckCheck, CreditCard } from 'lucide-react';
 import OrderStatusBadge from './OrderStatusBadge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
 
 interface ActiveOrdersContentProps {
   orders: any[];
@@ -15,10 +16,10 @@ interface ActiveOrdersContentProps {
 const ActiveOrdersContent = ({ orders, isLoading, handleUpdateStatus }: ActiveOrdersContentProps) => {
   // Helper to format currency
   const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
-    });
+      currency: 'INR',
+    }).format(amount);
   };
 
   if (isLoading) {
@@ -33,9 +34,10 @@ const ActiveOrdersContent = ({ orders, isLoading, handleUpdateStatus }: ActiveOr
 
   if (orders.length === 0) {
     return (
-      <div className="text-center py-8">
+      <Card className="text-center py-8">
         <p className="text-slate-500">No active orders at the moment.</p>
-      </div>
+        <p className="text-sm text-slate-400 mt-2">New orders will appear here automatically.</p>
+      </Card>
     );
   }
 
@@ -43,7 +45,7 @@ const ActiveOrdersContent = ({ orders, isLoading, handleUpdateStatus }: ActiveOr
     <ScrollArea className="h-[calc(100vh-300px)]">
       <div className="space-y-4">
         {orders.map((order) => (
-          <div key={order.id} className="flex flex-col p-4 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow transition-shadow">
+          <div key={order.id} className="flex flex-col p-4 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow transition-colors">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <div className="flex items-center">
