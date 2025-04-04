@@ -44,21 +44,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Fetch user roles
   const fetchUserRoles = async (userId: string) => {
     try {
-      // Using the explicit typing for the user_roles table
+      // Fetch profile to get the role
       const { data, error } = await supabase
-        .from('user_roles')
+        .from('profiles')
         .select('role')
-        .eq('user_id', userId);
+        .eq('id', userId)
+        .single();
 
       if (error) {
-        console.error('Error fetching user roles:', error.message);
+        console.error('Error fetching user profile:', error.message);
+        setUserRoles([]);
         return;
       }
 
-      if (data && data.length > 0) {
-        // Type assertion to handle the role field
-        const roles = data.map(item => item.role as UserRole);
-        setUserRoles(roles);
+      // If role exists and is not null, use it
+      if (data && data.role) {
+        setUserRoles([data.role as UserRole]);
       } else {
         // Default to empty array if no roles found
         setUserRoles([]);

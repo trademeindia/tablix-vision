@@ -27,19 +27,20 @@ const AuthCallbackPage = () => {
           
           // Check user roles to determine redirect
           if (data.session?.user) {
-            // Get user role from user_roles table
-            const { data: userRolesData, error: rolesError } = await supabase
-              .from('user_roles')
+            // Get user profile with role
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
               .select('role')
-              .eq('user_id', data.session.user.id);
+              .eq('id', data.session.user.id)
+              .single();
               
-            if (rolesError) {
-              console.error('Error fetching roles:', rolesError);
+            if (profileError) {
+              console.error('Error fetching profile:', profileError);
             }
               
-            if (userRolesData && userRolesData.length > 0) {
+            if (profileData && profileData.role) {
               // Redirect based on role
-              const role = userRolesData[0].role;
+              const role = profileData.role;
               const redirectPath = 
                 role === 'customer' ? '/customer/menu' :
                 role === 'waiter' ? '/staff-dashboard/orders' :
