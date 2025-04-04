@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { InventoryItem, StockLevel } from '@/types/inventory';
 import { initialInventoryItems } from '@/data/mock-inventory';
 
-export const useInventoryData = () => {
+export const useStaffInventoryData = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStockLevel, setSelectedStockLevel] = useState<StockLevel>("all");

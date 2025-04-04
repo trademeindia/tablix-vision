@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { StockLevel } from '@/services/inventory';
+import { StockLevel } from '@/types/inventory';
 import { 
   Select, 
   SelectContent, 

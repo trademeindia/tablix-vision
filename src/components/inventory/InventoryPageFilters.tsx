@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
-import { StockLevel } from '@/services/inventory';
+import { StockLevel } from '@/types/inventory';
 import StockLevelFilter from './StockLevelFilter';
 
 interface InventoryPageFiltersProps {

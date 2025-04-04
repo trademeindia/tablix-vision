@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { StockLevel } from './StockLevelFilter';
+import { StockLevel } from '@/types/inventory';
 import InventoryPageHeader from './InventoryPageHeader';
 import InventoryItemsTable, { InventoryItem } from './InventoryItemsTable';
 import InventoryCategorySidebar from './InventoryCategorySidebar';

@@ -25,7 +25,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({ inventoryItems, disabled })
       'Status': item.status
     }));
 
-    exportToCSV(formattedData, 'inventory-report');
+    // Fix: Add the third parameter for the exportToCSV function (file extension)
+    exportToCSV(formattedData, 'inventory-report', 'csv');
   };
 
   return (

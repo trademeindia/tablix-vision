@@ -1,9 +1,8 @@
 
 import React from 'react';
 import StaffDashboardLayout from "@/components/layout/StaffDashboardLayout";
-import { inventoryCategories } from '@/data/inventory-categories';
-import InventoryPageLayout from '@/components/inventory/InventoryPageLayout';
-import { useInventoryData } from '@/hooks/use-inventory-data';
+import StaffInventoryLayout from "@/components/staff/inventory/StaffInventoryLayout";
+import { useStaffInventoryData } from '@/hooks/staff/use-staff-inventory-data';
 
 const InventoryPage = () => {
   const {
@@ -21,24 +20,23 @@ const InventoryPage = () => {
     getCategoryCount,
     handleAddItem,
     statsData
-  } = useInventoryData();
+  } = useStaffInventoryData();
   
   return (
     <StaffDashboardLayout>
-      <InventoryPageLayout
-        inventoryItems={inventoryItems}
-        filteredItems={filteredItems}
-        isLoading={isLoading}
+      <StaffInventoryLayout
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         selectedStockLevel={selectedStockLevel}
         setSelectedStockLevel={setSelectedStockLevel}
-        categories={inventoryCategories}
-        getCategoryCount={getCategoryCount}
         isAddItemDialogOpen={isAddItemDialogOpen}
         setIsAddItemDialogOpen={setIsAddItemDialogOpen}
+        inventoryItems={inventoryItems}
+        filteredItems={filteredItems}
+        isLoading={isLoading}
+        getCategoryCount={getCategoryCount}
         handleAddItem={handleAddItem}
         statsData={statsData}
       />

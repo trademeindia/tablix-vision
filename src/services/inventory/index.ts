@@ -1,5 +1,5 @@
 
-import { InventoryItem } from '../../components/inventory/InventoryItemsTable';
+import { InventoryItem, StockLevel } from '../../types/inventory';
 
 // This would be replaced with actual API calls to fetch inventory data
 export const fetchInventoryItems = async (): Promise<InventoryItem[]> => {
@@ -45,7 +45,3 @@ export const deleteInventoryItem = async (id: number): Promise<boolean> => {
     }, 500);
   });
 };
-
-// Define types
-export type StockLevel = 'low' | 'medium' | 'high' | 'all';
-

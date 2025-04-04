@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { 
@@ -13,20 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import InventoryItemsTableSkeleton from './InventoryItemsTableSkeleton';
-import { StockLevel } from '@/services/inventory';
-
-export interface InventoryItem {
-  id: number;
-  name: string;
-  category: string;
-  stock_level: number;
-  unit: string;
-  quantity: number;
-  price_per_unit: number;
-  supplier: string;
-  last_ordered: string;
-  status: string;
-}
+import { StockLevel, InventoryItem } from '@/types/inventory';
 
 interface InventoryItemsTableProps {
   items: InventoryItem[];
