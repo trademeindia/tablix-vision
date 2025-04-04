@@ -3,7 +3,8 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
-import { Download, Share2, Copy } from 'lucide-react';
+import { Download, Share2, ExternalLink } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface QRCodeDisplayProps {
   qrValue: string;
@@ -25,35 +26,53 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
   if (!qrValue) return null;
   
   return (
-    <>
-      <div className="mt-4 flex flex-col items-center justify-center p-4 bg-white rounded-md">
+    <div className="mt-6 space-y-4">
+      <Separator />
+      
+      <div className="flex flex-col items-center justify-center p-6 bg-white rounded-md border border-slate-200 shadow-sm">
         <QRCodeSVG 
           id="qr-code-svg"
           value={qrValue}
           size={parseInt(size)}
           level="H"
           includeMargin={true}
+          className="mx-auto"
         />
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-4 text-sm font-medium text-center">
           Table {tableNumber}
+        </p>
+        <p className="text-xs text-slate-500 text-center">
+          Scan with a smartphone camera to access the menu
         </p>
       </div>
       
-      <CardFooter className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={handleDownload}>
+      <CardFooter className="flex flex-wrap gap-2 justify-center px-0">
+        <Button 
+          variant="outline" 
+          onClick={handleDownload}
+          className="flex-1 sm:flex-none"
+        >
           <Download className="mr-2 h-4 w-4" />
           Download
         </Button>
-        <Button variant="outline" onClick={handleShare}>
+        <Button 
+          variant="outline" 
+          onClick={handleShare}
+          className="flex-1 sm:flex-none"
+        >
           <Share2 className="mr-2 h-4 w-4" />
           Share
         </Button>
-        <Button variant="default" onClick={handleTest}>
-          <Copy className="mr-2 h-4 w-4" />
+        <Button 
+          variant="default" 
+          onClick={handleTest}
+          className="w-full sm:w-auto"
+        >
+          <ExternalLink className="mr-2 h-4 w-4" />
           Test QR Code
         </Button>
       </CardFooter>
-    </>
+    </div>
   );
 };
 

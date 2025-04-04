@@ -2,38 +2,51 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import QRCodeGenerator from '@/components/qrcode/QRCodeGenerator';
+import QRCodeList from '@/components/qrcode/QRCodeList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const QRCodePage = () => {
   const [restaurantId, setRestaurantId] = useState('00000000-0000-0000-0000-000000000000');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Try to get a real restaurant ID if the user is authenticated
   useEffect(() => {
     const fetchRestaurantId = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         
         // Check if we have a logged in user
         const { data: userData, error: userError } = await supabase.auth.getUser();
         
-        if (userError || !userData?.user) {
+        if (userError) {
+          console.error("Error fetching user:", userError);
+          setError("Authentication error. Please log in again.");
+          return;
+        }
+        
+        if (!userData?.user) {
           console.log("No authenticated user found, using default restaurant ID");
+          setError("You need to be logged in to manage QR codes. Using demo mode.");
           return;
         }
         
         // Try to get a restaurant owned by this user
         const { data: restaurants, error: restError } = await supabase
           .from('restaurants')
-          .select('id')
+          .select('id, name')
           .eq('owner_id', userData.user.id)
           .limit(1);
         
         if (restError) {
           console.error("Error fetching restaurant:", restError);
+          setError("Failed to load restaurant data.");
           return;
         }
         
@@ -42,14 +55,11 @@ const QRCodePage = () => {
           setRestaurantId(restaurants[0].id);
         } else {
           console.log("No restaurants found for user, using default ID");
-          toast({
-            title: "No Restaurant Found",
-            description: "Using a test restaurant ID for demonstration. Create a restaurant first for real QR codes.",
-            variant: "default"
-          });
+          setError("No restaurant found. Create a restaurant first for real QR codes.");
         }
       } catch (error) {
         console.error("Error in fetchRestaurantId:", error);
+        setError("An unexpected error occurred.");
       } finally {
         setIsLoading(false);
       }
@@ -64,6 +74,14 @@ const QRCodePage = () => {
         <h1 className="text-2xl font-bold">QR Code Management</h1>
         <p className="text-slate-500">Generate and manage QR codes for your tables</p>
       </div>
+      
+      {error && (
+        <Alert className="mb-6" variant="warning">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Note</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
       <Tabs defaultValue="generate">
         <TabsList className="mb-6">
@@ -115,13 +133,7 @@ const QRCodePage = () => {
         </TabsContent>
         
         <TabsContent value="manage">
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-center text-slate-500">
-                Your QR codes will appear here once you generate them.
-              </p>
-            </CardContent>
-          </Card>
+          <QRCodeList restaurantId={restaurantId} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </DashboardLayout>

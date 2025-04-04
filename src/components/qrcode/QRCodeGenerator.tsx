@@ -15,6 +15,8 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
     setTableNumber,
     size,
     setSize,
+    seats,
+    setSeats,
     isGenerating,
     qrValue,
     isSaving,
@@ -39,6 +41,8 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ restaurantId }) => {
           setTableNumber={setTableNumber}
           size={size}
           setSize={setSize}
+          seats={seats}
+          setSeats={setSeats}
           restaurantId={restaurantId}
           handleGenerate={handleGenerate}
           isGenerating={isGenerating}
