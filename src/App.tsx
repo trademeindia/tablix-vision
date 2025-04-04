@@ -14,6 +14,7 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import UpdatePasswordPage from './pages/auth/UpdatePasswordPage';
 import AuthCallbackPage from './pages/auth/AuthCallbackPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Admin/Owner pages
 import DashboardPage from './pages/DashboardPage';
@@ -42,6 +43,7 @@ import CustomerMenuPage from './pages/customer/MenuPage';
 import CustomerProfilePage from './pages/customer/ProfilePage';
 import CustomerCheckoutPage from './pages/customer/CheckoutPage';
 import CustomerCallWaiterPage from './pages/customer/CallWaiterPage';
+import UserProfilePage from './pages/customer/UserProfilePage';
 
 // Staff pages
 import StaffDashboardPage from './pages/StaffDashboardPage';
@@ -88,6 +90,16 @@ function App() {
                   <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/auth/update-password" element={<UpdatePasswordPage />} />
                   <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                  
+                  {/* Profile route - accessible to all authenticated users */}
+                  <Route 
+                    path="/profile" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager', 'chef', 'waiter', 'staff', 'customer']}>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    } 
+                  />
                   
                   {/* Admin/Owner routes - protected */}
                   <Route 
@@ -283,6 +295,16 @@ function App() {
                     element={
                       <ProtectedRoute requiredRoles={['customer']}>
                         <CustomerCallWaiterPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Customer user profile route */}
+                  <Route 
+                    path="/customer/user-profile" 
+                    element={
+                      <ProtectedRoute requiredRoles={['customer']}>
+                        <UserProfilePage />
                       </ProtectedRoute>
                     } 
                   />
