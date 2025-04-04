@@ -88,7 +88,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
     <FormField
       control={form.control}
       name="profile_image"
-      render={({ field: { onChange, ...field } }) => (
+      render={({ field }) => (
         <FormItem className="flex flex-col items-center mb-6">
           <FormLabel className="text-center mb-2">Profile Image</FormLabel>
           <FormControl>
@@ -137,7 +137,8 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, existingI
             accept="image/*"
             onChange={handleImageChange}
             className="hidden"
-            {...field}
+            // Remove the spread of field here, as it contains the 'value' which is a File object
+            // and that causes the type error
           />
           
           <p className="text-sm text-center text-muted-foreground mt-2">
