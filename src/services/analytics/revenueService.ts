@@ -48,28 +48,68 @@ export const getRevenue = async (
 };
 
 /**
- * Get average order value over time
+ * Get revenue data for today
  */
-export const getAverageOrderValue = async (
+export const getRevenueData = async (
   restaurantId: string,
-  days: number = 14
-): Promise<Array<{name: string, value: number}>> => {
+  period: 'today' | 'yesterday' | 'week' | 'month'
+): Promise<number> => {
   try {
     const now = new Date();
-    const startDate = new Date(now);
-    startDate.setDate(now.getDate() - days);
+    let startDate: Date;
     
-    return Array(days).fill(0).map((_, index) => {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + index);
-      const avgValue = 250 + Math.random() * 200;
-      return {
-        name: date.toISOString().split('T')[0],
-        value: Math.round(avgValue * 100) / 100
-      };
-    });
+    // Calculate the start date based on the period
+    switch (period) {
+      case 'today':
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'yesterday':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 1);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(startDate);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case 'week':
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        startDate = new Date(now);
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+    }
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select('total_amount')
+      .eq('restaurant_id', restaurantId)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', now.toISOString());
+    
+    if (error) {
+      console.error('Error fetching revenue:', error);
+      return 0;
+    }
+    
+    if (!data || data.length === 0) {
+      // Return some mock data for demo purposes
+      if (period === 'today') return 12450;
+      if (period === 'yesterday') return 9875;
+      if (period === 'week') return 78950;
+      if (period === 'month') return 356780;
+      return 0;
+    }
+    
+    return data.reduce((total, order) => total + (order.total_amount || 0), 0);
   } catch (error) {
-    console.error('Error fetching average order value:', error);
-    return [];
+    console.error('Error in getRevenueData:', error);
+    // Return some mock data for demo purposes
+    if (period === 'today') return 12450;
+    if (period === 'yesterday') return 9875;
+    if (period === 'week') return 78950;
+    if (period === 'month') return 356780;
+    return 0;
   }
 };

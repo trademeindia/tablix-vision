@@ -10,16 +10,41 @@ interface OrdersTabsProps {
   completedOrders: Order[];
   isLoading: boolean;
   onInvoiceGenerated: (invoiceId: string) => void;
+  filters: {
+    status: string;
+    startDate: string;
+    endDate: string;
+    sortBy: string;
+    sortDirection: 'asc' | 'desc';
+  };
+  onFilterChange: (filters: Partial<OrdersTabsProps['filters']>) => void;
 }
 
 const OrdersTabs = ({ 
   activeOrders, 
   completedOrders, 
   isLoading, 
-  onInvoiceGenerated 
+  onInvoiceGenerated,
+  filters,
+  onFilterChange 
 }: OrdersTabsProps) => {
+  // Determine the active tab based on the status filter
+  let defaultTab = 'active';
+  if (filters.status === 'completed' || filters.status === 'served') {
+    defaultTab = 'completed';
+  }
+  
+  const handleTabChange = (value: string) => {
+    // When switching tabs, update the status filter
+    if (value === 'active') {
+      onFilterChange({ status: '' });
+    } else if (value === 'completed') {
+      onFilterChange({ status: 'completed' });
+    }
+  };
+  
   return (
-    <Tabs defaultValue="active">
+    <Tabs defaultValue={defaultTab} onValueChange={handleTabChange}>
       <TabsList>
         <TabsTrigger value="active">Active Orders ({activeOrders.length})</TabsTrigger>
         <TabsTrigger value="completed">Completed Orders ({completedOrders.length})</TabsTrigger>
