@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Spinner from '@/components/ui/spinner';
 import { Helmet } from 'react-helmet-async';
+import { UserRole } from '@/hooks/use-user-role';
 
 const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ const AuthCallbackPage = () => {
               
             if (profileData && profileData.role) {
               // Redirect based on role
-              const role = profileData.role;
+              const role = profileData.role as UserRole;
               const redirectPath = 
                 role === 'customer' ? '/customer/menu' :
                 role === 'waiter' ? '/staff-dashboard/orders' :
