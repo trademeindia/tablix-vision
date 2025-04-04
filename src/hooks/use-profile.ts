@@ -9,6 +9,7 @@ import { useToast } from './use-toast';
 export const useProfile = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -27,7 +28,9 @@ export const useProfile = () => {
         
       if (error) throw error;
       
-      return data as Profile;
+      const fetchedProfile = data as Profile;
+      setProfile(fetchedProfile);
+      return fetchedProfile;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
       console.error('Error fetching profile:', err);
@@ -54,6 +57,9 @@ export const useProfile = () => {
         .single();
         
       if (error) throw error;
+      
+      // Update local state
+      setProfile(data as Profile);
       
       toast({
         title: 'Profile updated',
@@ -116,12 +122,9 @@ export const useProfile = () => {
       const publicUrl = urlData.publicUrl;
       
       // Update the user's profile with the new image URL
-      await supabase
-        .from('profiles')
-        .update({
-          avatar_url: publicUrl
-        })
-        .eq('id', user.id);
+      await updateProfile({
+        avatar_url: publicUrl
+      });
       
       return { publicUrl };
     } catch (err) {
@@ -187,6 +190,7 @@ export const useProfile = () => {
   return {
     loading,
     error,
+    profile,
     fetchProfile,
     updateProfile,
     uploadProfileImage,
