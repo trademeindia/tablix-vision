@@ -1,97 +1,69 @@
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import { ShoppingCart, TrendingUp, Check, Clock } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { useOrderCounts } from '@/hooks/analytics/use-orders';
-import { getRevenueData } from '@/services/analytics';
+import { useDemoOrderCounts } from '@/hooks/analytics/use-demo-order-counts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Calendar, BarChart3, Clock, Package } from 'lucide-react';
 
 interface OrderAnalyticsSummaryProps {
   restaurantId: string;
 }
 
-const OrderAnalyticsSummary: React.FC<OrderAnalyticsSummaryProps> = ({ restaurantId }) => {
-  const [revenueData, setRevenueData] = useState({
-    today: 0,
-    isLoading: true
-  });
+const OrderAnalyticsSummary = ({ restaurantId }: OrderAnalyticsSummaryProps) => {
+  // Use demo data instead of real API
+  const { today, week, month, pending, isLoading } = useDemoOrderCounts();
 
-  const orderCounts = useOrderCounts(restaurantId);
-
-  useEffect(() => {
-    const fetchRevenueData = async () => {
-      try {
-        const todayRevenue = await getRevenueData(restaurantId, 'today');
-        setRevenueData({
-          today: todayRevenue,
-          isLoading: false
-        });
-      } catch (error) {
-        console.error('Error fetching revenue data:', error);
-        setRevenueData({
-          today: 0,
-          isLoading: false
-        });
-      }
-    };
-
-    fetchRevenueData();
-  }, [restaurantId]);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  if (isLoading) {
+    return (
+      <>
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+      </>
+    );
+  }
 
   return (
     <>
-      <Card>
-        <CardContent className="p-6 flex items-center gap-4">
-          <div className="bg-blue-100 p-3 rounded-full">
-            <ShoppingCart className="h-6 w-6 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500">Today's Orders</p>
-            {orderCounts.isLoading ? (
-              <Skeleton className="h-7 w-16" />
-            ) : (
-              <p className="text-2xl font-bold">{orderCounts.today || 0}</p>
-            )}
+      <Card className="bg-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Today's Orders</p>
+              <p className="text-3xl font-bold">{today}</p>
+            </div>
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Calendar className="h-5 w-5 text-blue-700" />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="p-6 flex items-center gap-4">
-          <div className="bg-green-100 p-3 rounded-full">
-            <TrendingUp className="h-6 w-6 text-green-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500">Today's Revenue</p>
-            {revenueData.isLoading ? (
-              <Skeleton className="h-7 w-24" />
-            ) : (
-              <p className="text-2xl font-bold">{formatCurrency(revenueData.today)}</p>
-            )}
+      <Card className="bg-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Weekly Orders</p>
+              <p className="text-3xl font-bold">{week}</p>
+            </div>
+            <div className="p-3 bg-green-100 rounded-full">
+              <BarChart3 className="h-5 w-5 text-green-700" />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="p-6 flex items-center gap-4">
-          <div className="bg-amber-100 p-3 rounded-full">
-            <Clock className="h-6 w-6 text-amber-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500">Pending Orders</p>
-            {orderCounts.isLoading ? (
-              <Skeleton className="h-7 w-16" />
-            ) : (
-              <p className="text-2xl font-bold">{orderCounts.pending || 0}</p>
-            )}
+      <Card className="bg-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Pending Orders</p>
+              <p className="text-3xl font-bold">{pending}</p>
+            </div>
+            <div className="p-3 bg-amber-100 rounded-full">
+              <Clock className="h-5 w-5 text-amber-700" />
+            </div>
           </div>
         </CardContent>
       </Card>

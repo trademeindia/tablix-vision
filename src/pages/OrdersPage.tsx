@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import RecentOrders from '@/components/dashboard/RecentOrders';
 import OrdersHeader from '@/components/orders/OrdersHeader';
 import OrdersTabs from '@/components/orders/OrdersTabs';
 import { useOrders } from '@/hooks/use-orders';
 import OrderFilters from '@/components/orders/OrderFilters';
 import OrderAnalyticsSummary from '@/components/orders/OrderAnalyticsSummary';
+import { useDemoOrders } from '@/utils/demo-data/use-demo-orders';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 const OrdersPage = () => {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ const OrdersPage = () => {
     sortDirection: 'desc' as 'asc' | 'desc'
   });
   
+  // Use demo data instead of actual API calls
   const { 
     activeOrders, 
     completedOrders, 
@@ -30,7 +33,7 @@ const OrdersPage = () => {
     isRefreshing, 
     fetchOrders,
     realtimeStatus
-  } = useOrders(restaurantId, filters);
+  } = useDemoOrders();
   
   const handleInvoiceGenerated = (invoiceId: string) => {
     // Navigate to the invoice details page
@@ -48,6 +51,13 @@ const OrdersPage = () => {
         onRefresh={fetchOrders}
         realtimeStatus={realtimeStatus}
       />
+      
+      <Alert className="mb-4 bg-blue-50 border-blue-200">
+        <InfoIcon className="h-4 w-4 text-blue-700" />
+        <AlertDescription className="text-blue-700">
+          Demo mode: Sample order data is being displayed for demonstration purposes.
+        </AlertDescription>
+      </Alert>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <OrderAnalyticsSummary restaurantId={restaurantId} />
