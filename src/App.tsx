@@ -7,6 +7,7 @@ import Index from './pages/Index';
 import MenuPage from './pages/MenuPage';
 import NotFound from './pages/NotFound';
 import OrdersPage from './pages/OrdersPage';
+import OrderFormPage from './pages/OrderFormPage';
 import QRCodePage from './pages/QRCodePage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import InvoicesPage from './pages/InvoicesPage';
@@ -63,6 +64,7 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/orders/new" element={<OrderFormPage />} />
                 <Route path="/qr-codes" element={<QRCodePage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/tables" element={<TablesPage />} />
