@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,27 @@ const AuthCallbackPage = () => {
               
             if (profileError) {
               console.error('Error fetching profile:', profileError);
+              
+              // If user doesn't have a profile yet, create one
+              if (profileError.code === 'PGRST116') { // record not found
+                // Create a new profile with default customer role
+                const { error: insertError } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: data.session.user.id,
+                    role: 'customer',
+                    full_name: data.session.user.user_metadata.full_name || '',
+                    avatar_url: data.session.user.user_metadata.avatar_url || '',
+                  });
+                
+                if (insertError) {
+                  console.error('Error creating profile:', insertError);
+                }
+                
+                // Redirect to customer page
+                navigate('/customer/menu');
+                return;
+              }
             }
               
             if (profileData && profileData.role) {

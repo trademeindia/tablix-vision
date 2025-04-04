@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
+import { Helmet } from 'react-helmet-async';
+import { AuthForm, InputGroup } from '@/components/auth/AuthForm';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
-import { AuthForm, AuthFormHeader } from '@/components/auth/AuthForm';
-import LoadingButton from '@/components/auth/LoadingButton';
+import { Label } from '@/components/ui/label';
 import FormError from '@/components/auth/FormError';
-import { InputGroup } from '@/components/auth/AuthForm';
+import LoadingButton from '@/components/auth/LoadingButton';
 import PasswordInput from '@/components/auth/PasswordInput';
+import { useAuth } from '@/contexts/AuthContext';
 
 const UpdatePasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -18,25 +18,18 @@ const UpdatePasswordPage = () => {
   const { updatePassword } = useAuth();
   const navigate = useNavigate();
 
-  const validatePassword = (): boolean => {
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
-      return false;
-    }
-    
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return false;
-    }
-    
-    return true;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     
-    if (!validatePassword()) {
+    // Validate password
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
     
@@ -46,15 +39,12 @@ const UpdatePasswordPage = () => {
       const { error } = await updatePassword(password);
       
       if (error) {
-        console.error('Update password error:', error);
-        setError(error.message || 'Failed to update password.');
-        return;
+        setError(error.message);
+      } else {
+        // Redirect to login page on success
+        navigate('/auth/login');
       }
-      
-      // Navigate to login after successful password update
-      navigate('/auth/login');
-    } catch (error) {
-      console.error('Update password error:', error);
+    } catch (err) {
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -63,46 +53,50 @@ const UpdatePasswordPage = () => {
 
   return (
     <AuthPageWrapper title="Update Password">
-      <AuthFormHeader 
-        title="Update Password"
-        description="Create a new password for your account"
-      />
-      
-      <AuthForm onSubmit={handleSubmit} className="mt-4">
-        <FormError message={error} />
+      <div>
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold">Update Password</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Create a new secure password for your account
+          </p>
+        </div>
         
-        <InputGroup>
-          <Label htmlFor="password">New Password</Label>
-          <PasswordInput
-            id="password"
-            placeholder="Enter new password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </InputGroup>
-        
-        <InputGroup>
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <PasswordInput
-            id="confirmPassword"
-            placeholder="Confirm new password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </InputGroup>
-        
-        <LoadingButton 
-          type="submit" 
-          className="w-full" 
-          isLoading={isSubmitting}
-          loadingText="Updating password..."
-        >
-          Update Password
-        </LoadingButton>
-      </AuthForm>
+        <AuthForm onSubmit={handleSubmit} className="mt-4">
+          <FormError message={error} />
+          
+          <InputGroup>
+            <Label htmlFor="password">New Password</Label>
+            <PasswordInput
+              id="password"
+              placeholder="Enter your new password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </InputGroup>
+          
+          <InputGroup>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <PasswordInput
+              id="confirmPassword"
+              placeholder="Confirm your new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </InputGroup>
+          
+          <LoadingButton 
+            type="submit" 
+            className="w-full" 
+            isLoading={isSubmitting}
+            loadingText="Updating password..."
+          >
+            Update Password
+          </LoadingButton>
+        </AuthForm>
+      </div>
     </AuthPageWrapper>
   );
 };

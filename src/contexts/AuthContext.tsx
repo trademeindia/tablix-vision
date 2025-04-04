@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchUserRoles(user.id);
       }, 0);
     }
-  }, [user]);
+  }, [user, fetchUserRoles]);
 
   const value = {
     user,
