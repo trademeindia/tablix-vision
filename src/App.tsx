@@ -3,7 +3,21 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+
+// Landing/Auth pages
+import Menu360LandingPage from './pages/landing/Menu360LandingPage';
 import Index from './pages/Index';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import UpdatePasswordPage from './pages/auth/UpdatePasswordPage';
+import AuthCallbackPage from './pages/auth/AuthCallbackPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+
+// Admin/Owner pages
+import DashboardPage from './pages/DashboardPage';
 import MenuPage from './pages/MenuPage';
 import NotFound from './pages/NotFound';
 import OrdersPage from './pages/OrdersPage';
@@ -14,12 +28,8 @@ import InvoicesPage from './pages/InvoicesPage';
 import CreateInvoicePage from './pages/CreateInvoicePage';
 import TablesPage from './pages/TablesPage';
 import StaffPage from './pages/StaffPage';
-import StaffDashboardPage from './pages/StaffDashboardPage';
 import GoogleDriveTestPage from './pages/GoogleDriveTestPage';
 import InventoryPage from './pages/InventoryPage';
-import { Toaster } from './components/ui/toaster';
-import { ThemeProvider } from './hooks/use-theme';
-import ThemeApplier from './components/layout/ThemeProvider';
 import AppearancePage from './pages/settings/AppearancePage';
 import MarketingPage from './pages/MarketingPage';
 import CustomersPage from './pages/CustomersPage';
@@ -27,7 +37,6 @@ import SettingsPage from './pages/settings/SettingsPage';
 import NotificationsPage from './pages/settings/NotificationsPage';
 import IntegrationsPage from './pages/settings/integrations';
 import IntegrationDetailPage from './pages/settings/integration/IntegrationDetailPage';
-import Menu360LandingPage from './pages/landing/Menu360LandingPage';
 
 // Customer pages
 import CustomerMenuPage from './pages/customer/MenuPage';
@@ -36,10 +45,16 @@ import CustomerCheckoutPage from './pages/customer/CheckoutPage';
 import CustomerCallWaiterPage from './pages/customer/CallWaiterPage';
 
 // Staff pages
+import StaffDashboardPage from './pages/StaffDashboardPage';
 import StaffOrdersPage from './pages/staff/OrdersPage';
 import StaffKitchenPage from './pages/staff/KitchenPage';
 import StaffInventoryPage from './pages/staff/InventoryPage';
 import StaffReportsPage from './pages/staff/ReportsPage';
+
+// UI components
+import { Toaster } from './components/ui/toaster';
+import { ThemeProvider } from './hooks/use-theme';
+import ThemeApplier from './components/layout/ThemeProvider';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -60,53 +75,267 @@ function App() {
       <ThemeProvider restaurantId={restaurantId}>
         <ThemeApplier restaurantId={restaurantId}>
           <TooltipProvider>
-            <Router>
-              <Routes>
-                {/* Landing page */}
-                <Route path="/menu360" element={<Menu360LandingPage />} />
-                
-                {/* Admin routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/menu" element={<MenuPage />} />
-                <Route path="/orders" element={<OrdersPage />} />
-                <Route path="/orders/new" element={<OrderFormPage />} />
-                <Route path="/qr-codes" element={<QRCodePage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/tables" element={<TablesPage />} />
-                <Route path="/staff" element={<StaffPage />} />
-                <Route path="/customers" element={<CustomersPage />} />
-                <Route path="/invoices" element={<InvoicesPage />} />
-                <Route path="/invoices/create" element={<CreateInvoicePage />} />
-                <Route path="/inventory" element={<InventoryPage />} />
-                <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
-                <Route path="/marketing" element={<MarketingPage />} />
-                
-                {/* Settings routes */}
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/settings/appearance" element={<AppearancePage />} />
-                <Route path="/settings/notifications" element={<NotificationsPage />} />
-                <Route path="/settings/integrations" element={<IntegrationsPage />} />
-                <Route path="/settings/integrations/:id" element={<IntegrationDetailPage />} />
-                <Route path="/settings/integrations/:id/setup" element={<IntegrationDetailPage />} />
-                
-                {/* Customer routes */}
-                <Route path="/customer/menu" element={<CustomerMenuPage />} />
-                <Route path="/customer/profile" element={<CustomerProfilePage />} />
-                <Route path="/customer/checkout" element={<CustomerCheckoutPage />} />
-                <Route path="/customer/call-waiter" element={<CustomerCallWaiterPage />} />
+            <AuthProvider>
+              <Router>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/menu360" element={<Menu360LandingPage />} />
+                  <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                  
+                  {/* Auth routes */}
+                  <Route path="/auth/login" element={<LoginPage />} />
+                  <Route path="/auth/signup" element={<SignupPage />} />
+                  <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/auth/update-password" element={<UpdatePasswordPage />} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                  
+                  {/* Admin/Owner routes - protected */}
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <DashboardPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/menu" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <MenuPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/orders" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <OrdersPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/orders/new" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager', 'waiter']}>
+                        <OrderFormPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/qr-codes" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <QRCodePage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/analytics" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <AnalyticsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/tables" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <TablesPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <StaffPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/customers" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <CustomersPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/invoices" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <InvoicesPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/invoices/create" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <CreateInvoicePage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/inventory" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <InventoryPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/google-drive-test" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <GoogleDriveTestPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/marketing" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <MarketingPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Settings routes - protected */}
+                  <Route 
+                    path="/settings" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings/appearance" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <AppearancePage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings/notifications" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <NotificationsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings/integrations" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <IntegrationsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings/integrations/:id" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <IntegrationDetailPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/settings/integrations/:id/setup" 
+                    element={
+                      <ProtectedRoute requiredRoles={['owner', 'manager']}>
+                        <IntegrationDetailPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Customer routes - protected */}
+                  <Route 
+                    path="/customer/menu" 
+                    element={
+                      <ProtectedRoute requiredRoles={['customer']}>
+                        <CustomerMenuPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/customer/profile" 
+                    element={
+                      <ProtectedRoute requiredRoles={['customer']}>
+                        <CustomerProfilePage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/customer/checkout" 
+                    element={
+                      <ProtectedRoute requiredRoles={['customer']}>
+                        <CustomerCheckoutPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/customer/call-waiter" 
+                    element={
+                      <ProtectedRoute requiredRoles={['customer']}>
+                        <CustomerCallWaiterPage />
+                      </ProtectedRoute>
+                    } 
+                  />
 
-                {/* Staff routes */}
-                <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
-                <Route path="/staff-dashboard/orders" element={<StaffOrdersPage />} />
-                <Route path="/staff-dashboard/kitchen" element={<StaffKitchenPage />} />
-                <Route path="/staff-dashboard/inventory" element={<StaffInventoryPage />} />
-                <Route path="/staff-dashboard/reports" element={<StaffReportsPage />} />
+                  {/* Staff routes - protected */}
+                  <Route 
+                    path="/staff-dashboard" 
+                    element={
+                      <ProtectedRoute requiredRoles={['waiter', 'chef', 'manager', 'staff']}>
+                        <StaffDashboardPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff-dashboard/orders" 
+                    element={
+                      <ProtectedRoute requiredRoles={['waiter', 'manager', 'staff']}>
+                        <StaffOrdersPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff-dashboard/kitchen" 
+                    element={
+                      <ProtectedRoute requiredRoles={['chef', 'manager', 'staff']}>
+                        <StaffKitchenPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff-dashboard/inventory" 
+                    element={
+                      <ProtectedRoute requiredRoles={['chef', 'manager', 'staff']}>
+                        <StaffInventoryPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/staff-dashboard/reports" 
+                    element={
+                      <ProtectedRoute requiredRoles={['manager', 'staff']}>
+                        <StaffReportsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
 
-                {/* 404 route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-            </Router>
+                  {/* 404 route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Toaster />
+              </Router>
+            </AuthProvider>
           </TooltipProvider>
         </ThemeApplier>
       </ThemeProvider>

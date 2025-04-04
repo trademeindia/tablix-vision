@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bell, Search, Menu, X, Moon, Sun } from 'lucide-react';
+import { Bell, Search, Menu, X, Moon, Sun, LogOut, User } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -9,16 +9,26 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { Switch } from '@/components/ui/switch';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 
 const Header = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { user, userRoles, signOut } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   // Mobile navigation items (for the drawer)
   const navItems = [
-    { label: "Dashboard", path: "/" },
+    { label: "Dashboard", path: "/dashboard" },
     { label: "Menu Management", path: "/menu" },
     { label: "QR Codes", path: "/qr-codes" },
     { label: "Table Management", path: "/tables" },
@@ -33,6 +43,24 @@ const Header = () => {
     setIsDarkMode(!isDarkMode);
     // Here you would implement actual dark mode toggling with a theme provider
   };
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+  
+  const userDisplayName = user?.user_metadata?.full_name || user?.email || 'User';
+  // Use the first letters of the name for the avatar
+  const initials = userDisplayName
+    .split(' ')
+    .map(name => name[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+  
+  const userRole = userRoles && userRoles.length > 0 
+    ? userRoles[0].charAt(0).toUpperCase() + userRoles[0].slice(1)
+    : 'User';
 
   return (
     <div className="h-14 md:h-16 border-b border-slate-200 flex items-center justify-between px-3 md:px-6 bg-white shadow-sm">
@@ -62,6 +90,14 @@ const Header = () => {
                         {item.label}
                       </Button>
                     ))}
+                    <Button 
+                      variant="destructive" 
+                      className="justify-start h-10 text-base mt-4" 
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
                   </nav>
                 </div>
               </DrawerContent>
@@ -103,9 +139,28 @@ const Header = () => {
               <span className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full"></span>
             </button>
             
-            <Avatar className="h-8 w-8 ml-1">
-              <AvatarFallback className="bg-blue-600 text-white text-xs">JD</AvatarFallback>
-            </Avatar>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="h-8 w-8 ml-1 cursor-pointer">
+                  <AvatarFallback className="bg-blue-600 text-white text-xs">{initials}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span>{userDisplayName}</span>
+                    <span className="text-xs text-muted-foreground">{userRole}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => navigate('/settings')}>
+                  <User className="mr-2 h-4 w-4" /> Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleSignOut} className="text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       ) : (
@@ -137,15 +192,28 @@ const Header = () => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
             </button>
             
-            <div className="flex items-center gap-2">
-              <div className="text-right mr-2 hidden md:block">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-slate-500">Restaurant Owner</p>
-              </div>
-              <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-blue-600 text-white">JD</AvatarFallback>
-              </Avatar>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-2 rounded-md">
+                  <div className="text-right mr-2 hidden md:block">
+                    <p className="text-sm font-medium">{userDisplayName}</p>
+                    <p className="text-xs text-slate-500">{userRole}</p>
+                  </div>
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-blue-600 text-white">{initials}</AvatarFallback>
+                  </Avatar>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => navigate('/settings')}>
+                  <User className="mr-2 h-4 w-4" /> Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleSignOut} className="text-red-500">
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </>
       )}
