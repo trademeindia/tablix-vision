@@ -1,5 +1,5 @@
 
-import { InventoryItem } from '@/components/inventory/InventoryItemsTable';
+import { InventoryItem } from '@/types/inventory';
 import { exportToCSV } from '@/utils/export';
 
 // Define CSV headers structure for export

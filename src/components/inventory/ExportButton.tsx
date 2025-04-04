@@ -2,8 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { InventoryItem } from './InventoryItemsTable';
-import { exportToCSV } from '@/utils/export';
+import { InventoryItem } from '@/types/inventory';
+import { useInventoryExport } from '@/hooks/use-inventory-export';
 
 interface ExportButtonProps {
   inventoryItems: InventoryItem[];
@@ -11,6 +11,8 @@ interface ExportButtonProps {
 }
 
 const ExportButton: React.FC<ExportButtonProps> = ({ inventoryItems, disabled }) => {
+  const { exportInventory } = useInventoryExport();
+  
   const handleExport = () => {
     const formattedData = inventoryItems.map(item => ({
       'Item Name': item.name,
@@ -25,8 +27,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({ inventoryItems, disabled })
       'Status': item.status
     }));
 
-    // Fix: Add the third parameter for the exportToCSV function (file extension)
-    exportToCSV(formattedData, 'inventory-report', 'csv');
+    // Call exportInventory with the formatted data
+    exportInventory(formattedData, undefined, 'inventory-report.csv');
   };
 
   return (

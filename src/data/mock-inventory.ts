@@ -1,5 +1,5 @@
 
-import { InventoryItem } from '@/components/inventory/InventoryItemsTable';
+import { InventoryItem } from '@/types/inventory';
 
 // Demo inventory data
 export const initialInventoryItems: InventoryItem[] = [

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { StockLevel } from '@/types/inventory';
 import InventoryPageHeader from './InventoryPageHeader';
-import InventoryItemsTable, { InventoryItem } from './InventoryItemsTable';
+import InventoryItemsTable from './InventoryItemsTable';
 import InventoryCategorySidebar from './InventoryCategorySidebar';
 import InventoryPageFilters from './InventoryPageFilters';
 import InventoryStatsCards from './InventoryStatsCards';
@@ -11,6 +11,7 @@ import InventoryStatsCardsSkeleton from './InventoryStatsCardsSkeleton';
 import InventoryCategorySidebarSkeleton from './InventoryCategorySidebarSkeleton';
 import AddItemDialog from './AddItemDialog';
 import { LucideIcon } from 'lucide-react';
+import { InventoryItem } from '@/types/inventory';
 
 // Define the Category type to match the expected structure in InventoryCategorySidebar
 interface Category {
