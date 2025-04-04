@@ -1,13 +1,10 @@
 
 import React from 'react';
-import { Search, Plus } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import StockLevelFilter, { StockLevel } from './StockLevelFilter';
-import ExportButton from './ExportButton';
-import { InventoryItem } from './InventoryItemsTable';
-import { useInventoryExport } from '@/hooks/use-inventory-export';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus } from 'lucide-react';
+import { StockLevel } from '@/services/inventory';
+import StockLevelFilter from './StockLevelFilter';
 
 interface InventoryPageFiltersProps {
   searchQuery: string;
@@ -16,64 +13,36 @@ interface InventoryPageFiltersProps {
   setSelectedStockLevel: (level: StockLevel) => void;
   isLoading: boolean;
   onAddItemClick: () => void;
-  inventoryItems?: InventoryItem[];
 }
 
 const InventoryPageFilters: React.FC<InventoryPageFiltersProps> = ({
-  searchQuery,
-  setSearchQuery,
   selectedStockLevel,
   setSelectedStockLevel,
   isLoading,
-  onAddItemClick,
-  inventoryItems = []
+  onAddItemClick
 }) => {
-  const { defaultHeaders } = useInventoryExport();
-
   return (
-    <Card className="md:col-span-1 h-fit">
-      <CardHeader className="pb-3">
-        <CardTitle>Filter</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4">
-        {/* Search Input */}
-        <div className="relative mb-6">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search items..."
-            className="pl-8 w-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-        
-        {/* Stock Level Filter */}
-        <StockLevelFilter 
-          selectedStockLevel={selectedStockLevel}
-          onSelectStockLevel={setSelectedStockLevel}
-          isLoading={isLoading}
-        />
-
-        {/* Mobile Actions */}
-        <div className="mt-6 space-y-2 block md:hidden">
-          <ExportButton 
-            data={inventoryItems}
-            fileName="inventory-data.csv"
-            variant="outline"
-            className="w-full"
-            disabled={isLoading || inventoryItems.length === 0}
-          >
-            Export CSV
-          </ExportButton>
+    <Card>
+      <CardContent className="p-4">
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium">Filters</h3>
+          
+          <div className="space-y-2">
+            <label htmlFor="stockLevel" className="text-sm">Stock Level</label>
+            <StockLevelFilter
+              value={selectedStockLevel}
+              onChange={setSelectedStockLevel}
+              disabled={isLoading}
+            />
+          </div>
+          
           <Button 
-            className="w-full" 
-            onClick={onAddItemClick} 
+            onClick={onAddItemClick}
+            className="w-full"
             disabled={isLoading}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add Item
+            Add New Item
           </Button>
         </div>
       </CardContent>

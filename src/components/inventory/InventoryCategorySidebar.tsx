@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { LucideIcon } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { LucideIcon } from 'lucide-react';
 
 interface Category {
   name: string;
@@ -21,31 +21,38 @@ const InventoryCategorySidebar: React.FC<InventoryCategorySidebarProps> = ({
   categories,
   selectedCategory,
   onSelectCategory,
-  getCategoryCount,
+  getCategoryCount
 }) => {
   return (
-    <Card className="md:col-span-1 h-fit">
-      <CardHeader className="pb-3">
-        <CardTitle>Categories</CardTitle>
-      </CardHeader>
-      <CardContent className="px-2">
-        <div className="space-y-1">
-          {categories.map((category) => (
-            <Button
-              key={category.name}
-              variant={selectedCategory === category.name ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => onSelectCategory(category.name)}
-            >
-              <category.icon className="mr-2 h-4 w-4" />
-              {category.name}
-              <Badge className="ml-auto" variant="secondary">
-                {getCategoryCount(category.name)}
-              </Badge>
-            </Button>
-          ))}
+    <Card className="overflow-hidden">
+      <div className="p-2">
+        <h3 className="px-3 py-1 text-sm font-medium">Categories</h3>
+        <div className="mt-1 space-y-1">
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const isActive = selectedCategory === category.name;
+            const count = getCategoryCount(category.name);
+            
+            return (
+              <Button
+                key={category.name}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start px-3",
+                  isActive && "bg-accent text-accent-foreground"
+                )}
+                onClick={() => onSelectCategory(category.name)}
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                <span className="flex-1 text-left">{category.name}</span>
+                <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs tabular-nums">
+                  {count}
+                </span>
+              </Button>
+            );
+          })}
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Utensils, QrCode, Users, BarChart, ShoppingCart, CloudUpload, FileText, Settings, CalendarDays, MessageSquare, PieChart, Palette, Bell, BookOpen, Megaphone, Database } from 'lucide-react';
+import { LayoutDashboard, Utensils, QrCode, Users, BarChart, ShoppingCart, CloudUpload, FileText, Settings, CalendarDays, MessageSquare, PieChart, Palette, Bell, BookOpen, Megaphone, Database, Package } from 'lucide-react';
 
 const Sidebar = () => {
   // Group links by section for better organization
@@ -32,6 +32,10 @@ const Sidebar = () => {
       to: '/tables',
       icon: <CalendarDays className="h-5 w-5" />,
       label: 'Tables & Reservations'
+    }, {
+      to: '/inventory',
+      icon: <Package className="h-5 w-5" />,
+      label: 'Inventory'
     }]
   }, {
     title: "Staff & Customers",

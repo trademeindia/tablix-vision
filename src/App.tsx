@@ -16,6 +16,7 @@ import TablesPage from './pages/TablesPage';
 import StaffPage from './pages/StaffPage';
 import StaffDashboardPage from './pages/StaffDashboardPage';
 import GoogleDriveTestPage from './pages/GoogleDriveTestPage';
+import InventoryPage from './pages/InventoryPage';
 import { Toaster } from './components/ui/toaster';
 import { ThemeProvider } from './hooks/use-theme';
 import ThemeApplier from './components/layout/ThemeProvider';
@@ -72,6 +73,7 @@ function App() {
                 <Route path="/customers" element={<CustomersPage />} />
                 <Route path="/invoices" element={<InvoicesPage />} />
                 <Route path="/invoices/create" element={<CreateInvoicePage />} />
+                <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/google-drive-test" element={<GoogleDriveTestPage />} />
                 <Route path="/marketing" element={<MarketingPage />} />
                 

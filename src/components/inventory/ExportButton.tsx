@@ -1,42 +1,41 @@
 
 import React from 'react';
-import { FileDown } from 'lucide-react';
-import { Button, ButtonProps } from "@/components/ui/button";
-import { useInventoryExport } from '@/hooks/use-inventory-export';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { InventoryItem } from './InventoryItemsTable';
+import { exportToCSV } from '@/utils/export';
 
-interface ExportButtonProps extends Omit<ButtonProps, 'onClick'> {
-  data: Record<string, any>[];
-  headers?: { key: string; label: string }[];
-  fileName?: string;
-  variant?: ButtonProps['variant'];
+interface ExportButtonProps {
+  inventoryItems: InventoryItem[];
+  disabled?: boolean;
 }
 
-const ExportButton: React.FC<ExportButtonProps> = ({
-  data,
-  headers,
-  fileName = 'export-data.csv',
-  variant = 'outline',
-  className,
-  children,
-  ...props
-}) => {
-  const { exportInventory, defaultHeaders } = useInventoryExport();
-  
+const ExportButton: React.FC<ExportButtonProps> = ({ inventoryItems, disabled }) => {
   const handleExport = () => {
-    // Use the generic type parameter to match the data type
-    exportInventory<Record<string, any>>(data, headers || defaultHeaders, fileName);
+    const formattedData = inventoryItems.map(item => ({
+      'Item Name': item.name,
+      'Category': item.category,
+      'Stock Level': `${item.stock_level}%`,
+      'Quantity': item.quantity,
+      'Unit': item.unit,
+      'Price Per Unit': `$${item.price_per_unit.toFixed(2)}`,
+      'Total Value': `$${(item.quantity * item.price_per_unit).toFixed(2)}`,
+      'Supplier': item.supplier,
+      'Last Ordered': item.last_ordered,
+      'Status': item.status
+    }));
+
+    exportToCSV(formattedData, 'inventory-report');
   };
 
   return (
-    <Button 
-      variant={variant} 
-      className={className}
+    <Button
+      variant="outline"
       onClick={handleExport}
-      disabled={!data.length}
-      {...props}
+      disabled={disabled || inventoryItems.length === 0}
     >
-      <FileDown className="mr-2 h-4 w-4" />
-      {children || 'Export'}
+      <Download className="mr-2 h-4 w-4" />
+      Export
     </Button>
   );
 };

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, AlertTriangle, ShoppingCart } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Package, Tag, AlertTriangle, Calendar, DollarSign, TrendingUp } from "lucide-react";
 
 interface InventoryStatsCardsProps {
   totalItems: number;
@@ -20,78 +20,68 @@ const InventoryStatsCards: React.FC<InventoryStatsCardsProps> = ({
   inventoryValue,
   inventoryTrend
 }) => {
+  const stats = [
+    {
+      title: "Total Items",
+      value: totalItems,
+      icon: <Package className="h-5 w-5 text-blue-600" />,
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-600"
+    },
+    {
+      title: "Categories",
+      value: categoryCount,
+      icon: <Tag className="h-5 w-5 text-green-600" />,
+      bgColor: "bg-green-50",
+      textColor: "text-green-600"
+    },
+    {
+      title: "Low Stock Items",
+      value: lowStockCount,
+      icon: <AlertTriangle className="h-5 w-5 text-amber-600" />,
+      bgColor: "bg-amber-50",
+      textColor: "text-amber-600"
+    },
+    {
+      title: "Last Order",
+      value: lastOrderDate,
+      icon: <Calendar className="h-5 w-5 text-purple-600" />,
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-600"
+    },
+    {
+      title: "Inventory Value",
+      value: inventoryValue,
+      icon: <DollarSign className="h-5 w-5 text-indigo-600" />,
+      bgColor: "bg-indigo-50",
+      textColor: "text-indigo-600"
+    },
+    {
+      title: "Monthly Change",
+      value: inventoryTrend,
+      icon: <TrendingUp className="h-5 w-5 text-rose-600" />,
+      bgColor: "bg-rose-50", 
+      textColor: "text-rose-600"
+    }
+  ];
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Total Items
-          </CardTitle>
-          <Package className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{totalItems}</div>
-          <p className="text-xs text-muted-foreground">
-            across {categoryCount} categories
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Low Stock Items
-          </CardTitle>
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{lowStockCount}</div>
-          <p className="text-xs text-muted-foreground">
-            items need to be restocked
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Last Order
-          </CardTitle>
-          <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{lastOrderDate}</div>
-          <p className="text-xs text-muted-foreground">
-            3 days ago
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Inventory Value
-          </CardTitle>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            className="h-4 w-4 text-muted-foreground"
-          >
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-          </svg>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{inventoryValue}</div>
-          <p className="text-xs text-muted-foreground">
-            {inventoryTrend}
-          </p>
-        </CardContent>
-      </Card>
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      {stats.map((stat, index) => (
+        <Card key={index} className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex flex-col items-center justify-center p-4">
+              <div className={`rounded-full p-2 ${stat.bgColor} mb-2`}>
+                {stat.icon}
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+              <p className={`text-xl font-bold ${stat.textColor}`}>
+                {typeof stat.value === 'number' ? stat.value : stat.value}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

@@ -1,20 +1,19 @@
 
 import React from 'react';
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const InventoryStatsCardsSkeleton: React.FC = () => {
+const InventoryStatsCardsSkeleton = () => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {[1, 2, 3, 4].map((i) => (
-        <Card key={i}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-4 w-4 rounded-full" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-8 w-16 mb-2" />
-            <Skeleton className="h-4 w-28" />
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex flex-col items-center justify-center p-4">
+              <Skeleton className="h-9 w-9 rounded-full mb-2" />
+              <Skeleton className="h-4 w-16 mb-1" />
+              <Skeleton className="h-7 w-10" />
+            </div>
           </CardContent>
         </Card>
       ))}
