@@ -14,6 +14,7 @@ export function useCustomerDemographics(restaurantId: string | undefined) {
         setDemographicsData(data);
       } catch (error) {
         console.error('Error fetching demographics data:', error);
+        // More comprehensive sample data with vibrant colors
         setDemographicsData([
           { name: 'New', value: 30, color: '#3b82f6' },
           { name: 'Regular', value: 45, color: '#10b981' },

@@ -36,7 +36,7 @@ const RevenueStats: React.FC<RevenueStatsProps> = ({
               <Skeleton className="h-12 w-32" />
             ) : (
               <div>
-                <p className="text-3xl font-bold">{formatCurrency(weeklyRevenue)}</p>
+                <p className="text-3xl font-bold">₹{weeklyRevenue.toLocaleString('en-IN')}</p>
                 <p className="text-sm text-slate-500">Last 7 days total revenue</p>
               </div>
             )}
@@ -47,7 +47,7 @@ const RevenueStats: React.FC<RevenueStatsProps> = ({
               <Skeleton className="h-12 w-32" />
             ) : (
               <div>
-                <p className="text-3xl font-bold">{formatCurrency(monthlyRevenue)}</p>
+                <p className="text-3xl font-bold">₹{monthlyRevenue.toLocaleString('en-IN')}</p>
                 <p className="text-sm text-slate-500">Last 30 days total revenue</p>
               </div>
             )}
@@ -58,7 +58,7 @@ const RevenueStats: React.FC<RevenueStatsProps> = ({
               <Skeleton className="h-12 w-32" />
             ) : (
               <div>
-                <p className="text-3xl font-bold">{formatCurrency(yearlyRevenue)}</p>
+                <p className="text-3xl font-bold">₹{yearlyRevenue.toLocaleString('en-IN')}</p>
                 <p className="text-sm text-slate-500">Last 365 days total revenue</p>
               </div>
             )}

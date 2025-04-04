@@ -17,18 +17,7 @@ const PeakHoursAnalysis: React.FC<PeakHoursAnalysisProps> = ({
 }) => {
   // Format currency
   const formatCurrency = (value: number) => {
-    if (currency === 'INR' || currency === '₹') {
-      return `₹${value.toLocaleString('en-IN')}`;
-    }
-    
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
-      }).format(value);
-    } catch (error) {
-      return `${currency}${value.toLocaleString()}`;
-    }
+    return `₹${value.toLocaleString('en-IN')}`;
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -86,7 +75,7 @@ const PeakHoursAnalysis: React.FC<PeakHoursAnalysisProps> = ({
                 <YAxis 
                   yAxisId="right"
                   orientation="right"
-                  tickFormatter={(value) => formatCurrency(value)} 
+                  tickFormatter={(value) => `₹${value/1000}K`} 
                   tick={{ fontSize: 12 }}
                   tickMargin={10}
                   stroke="#94a3b8"

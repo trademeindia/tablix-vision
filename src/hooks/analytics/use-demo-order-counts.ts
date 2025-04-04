@@ -15,11 +15,11 @@ export function useDemoOrderCounts() {
     // Simulate API delay
     const timer = setTimeout(() => {
       setOrderCounts({
-        today: 24,
-        week: 132,
-        month: 498,
-        year: 3647,
-        pending: 12,
+        today: 36,
+        week: 187,
+        month: 752,
+        year: 9452,
+        pending: 18,
         isLoading: false
       });
     }, 800);

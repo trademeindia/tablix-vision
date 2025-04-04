@@ -24,7 +24,7 @@ interface SalesChartProps {
 const SalesChart: React.FC<SalesChartProps> = ({ 
   data, 
   isLoading,
-  currency = 'USD',
+  currency = 'INR',
   height = 300,
   timeRange = 'week'
 }) => {
@@ -49,21 +49,8 @@ const SalesChart: React.FC<SalesChartProps> = ({
 
   // Format the tooltip value as currency
   const formatCurrency = (value: number) => {
-    // Handle special case for Indian Rupee
-    if (currency === '₹' || currency === 'INR') {
-      return `₹${value.toLocaleString('en-IN')}`;
-    }
-    
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
-      }).format(value);
-    } catch (error) {
-      console.error('Error formatting currency:', error);
-      // Fallback to simple formatting with the currency as prefix
-      return `${currency}${value.toLocaleString()}`;
-    }
+    // Use Rs symbol for INR currency
+    return `₹${value.toLocaleString('en-IN')}`;
   };
 
   // Calculate the average value for the reference line
@@ -98,17 +85,9 @@ const SalesChart: React.FC<SalesChartProps> = ({
     return null;
   };
 
-  // Format Y-axis labels with appropriate currency symbol
+  // Format Y-axis labels with ₹ symbol
   const formatYAxis = (value: number) => {
-    if (currency === 'INR' || currency === '₹') {
-      return `₹${value}`;
-    }
-    
-    if (currency === 'USD') {
-      return `$${value}`;
-    }
-    
-    return `${currency} ${value}`;
+    return `₹${value}`;
   };
 
   return (

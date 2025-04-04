@@ -52,26 +52,42 @@ export function useSalesData(
           
           // Create more realistic patterns with weekly cycles and random variations
           let dayOfWeek = date.getDay();
-          let baseValue = 500;
+          let baseValue = 5000;
           
           // Weekend boost
           if (dayOfWeek === 0 || dayOfWeek === 6) {
-            baseValue = 1200;
+            baseValue = 12000;
+          }
+          
+          // Friday boost
+          if (dayOfWeek === 5) {
+            baseValue = 9000;
           }
           
           // Mid-week moderate
           if (dayOfWeek === 3 || dayOfWeek === 4) {
-            baseValue = 800;
+            baseValue = 7000;
           }
           
           // Add seasonal patterns for longer timeframes
           if (timeRange === 'quarter' || timeRange === 'year') {
             const monthFactor = (date.getMonth() % 12) / 12;
             baseValue *= (1 + 0.5 * Math.sin(monthFactor * Math.PI * 2));
+            
+            // Festival/holiday peaks (arbitrary dates for demo)
+            const dayOfMonth = date.getDate();
+            const month = date.getMonth() + 1;
+            
+            // Example holiday peaks (modify as needed for relevant Indian holidays)
+            if ((month === 10 && dayOfMonth >= 15 && dayOfMonth <= 25) || // Diwali season
+                (month === 8 && dayOfMonth >= 10 && dayOfMonth <= 15) || // Independence day
+                (month === 1 && dayOfMonth <= 5)) { // New Year
+              baseValue *= 1.5;
+            }
           }
           
           // Add some randomness
-          const randomFactor = 0.7 + Math.random() * 0.6;
+          const randomFactor = 0.85 + Math.random() * 0.3;
           
           return {
             name: date.toISOString().split('T')[0],

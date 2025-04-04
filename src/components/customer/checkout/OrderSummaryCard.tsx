@@ -28,13 +28,13 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({ orderItems }) => {
               <span className="font-medium">{item.name}</span>
               <span className="text-muted-foreground ml-2">×{quantity}</span>
             </div>
-            <span>{formatCurrency(item.price * quantity)}</span>
+            <span>₹{(item.price * quantity).toLocaleString('en-IN')}</span>
           </div>
         ))}
         
         <div className="flex justify-between mt-4 pt-2 border-t font-semibold">
           <span>Total</span>
-          <span>{formatCurrency(totalPrice)}</span>
+          <span>₹{totalPrice.toLocaleString('en-IN')}</span>
         </div>
       </CardContent>
     </Card>

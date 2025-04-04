@@ -23,18 +23,7 @@ const AverageOrderValue: React.FC<AverageOrderValueProps> = ({
 
   // Format currency
   const formatCurrency = (value: number) => {
-    if (currency === 'INR' || currency === '₹') {
-      return `₹${value.toLocaleString('en-IN')}`;
-    }
-    
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: currency,
-      }).format(value);
-    } catch (error) {
-      return `${currency}${value.toLocaleString()}`;
-    }
+    return `₹${value.toLocaleString('en-IN')}`;
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {

@@ -20,7 +20,7 @@ export const convertCartItemsToOrderItems = (cartItems: Array<{ item: MenuItem; 
  * Format currency amount
  */
 export const formatCurrency = (amount: number): string => {
-  return formatCurrencyUtil(amount);
+  return `₹${amount.toLocaleString('en-IN')}`;
 };
 
 /**

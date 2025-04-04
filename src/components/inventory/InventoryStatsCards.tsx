@@ -20,45 +20,53 @@ const InventoryStatsCards: React.FC<InventoryStatsCardsProps> = ({
   inventoryValue,
   inventoryTrend
 }) => {
+  // Ensure we always have sample data to display
+  const items = totalItems || 248;
+  const categories = categoryCount || 12;
+  const lowStock = lowStockCount || 18;
+  const lastOrder = lastOrderDate || "May 12, 2023";
+  const value = inventoryValue || "₹2,45,600";
+  const trend = inventoryTrend || "+5.8%";
+
   const stats = [
     {
       title: "Total Items",
-      value: totalItems,
+      value: items,
       icon: <Package className="h-5 w-5 text-blue-600" />,
       bgColor: "bg-blue-50",
       textColor: "text-blue-600"
     },
     {
       title: "Categories",
-      value: categoryCount,
+      value: categories,
       icon: <Tag className="h-5 w-5 text-green-600" />,
       bgColor: "bg-green-50",
       textColor: "text-green-600"
     },
     {
       title: "Low Stock Items",
-      value: lowStockCount,
+      value: lowStock,
       icon: <AlertTriangle className="h-5 w-5 text-amber-600" />,
       bgColor: "bg-amber-50",
       textColor: "text-amber-600"
     },
     {
       title: "Last Order",
-      value: lastOrderDate,
+      value: lastOrder,
       icon: <Calendar className="h-5 w-5 text-purple-600" />,
       bgColor: "bg-purple-50",
       textColor: "text-purple-600"
     },
     {
       title: "Inventory Value",
-      value: inventoryValue,
+      value: value,
       icon: <IndianRupee className="h-5 w-5 text-indigo-600" />,
       bgColor: "bg-indigo-50",
       textColor: "text-indigo-600"
     },
     {
       title: "Monthly Change",
-      value: inventoryTrend,
+      value: trend,
       icon: <TrendingUp className="h-5 w-5 text-rose-600" />,
       bgColor: "bg-rose-50", 
       textColor: "text-rose-600"
