@@ -1,116 +1,96 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { LayoutDashboard, Utensils, QrCode, Users, BarChart, ShoppingCart, CloudUpload, FileText, Settings, CalendarDays, MessageSquare, PieChart, Palette, Bell, BookOpen, Megaphone, Database, Package } from 'lucide-react';
 
-const Sidebar = () => {
-  // Group links by section for better organization
-  const sections = [{
-    title: "Main",
-    links: [{
-      to: '/',
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      label: 'Dashboard',
-      exact: true
-    }, {
-      to: '/google-drive-test',
-      icon: <CloudUpload className="h-5 w-5" />,
-      label: 'Drive Setup',
-      highlight: true
-    }]
-  }, {
-    title: "Restaurant Management",
-    links: [{
-      to: '/menu',
-      icon: <Utensils className="h-5 w-5" />,
-      label: 'Menu'
-    }, {
-      to: '/qr-codes',
-      icon: <QrCode className="h-5 w-5" />,
-      label: 'QR Codes'
-    }, {
-      to: '/tables',
-      icon: <CalendarDays className="h-5 w-5" />,
-      label: 'Tables & Reservations'
-    }, {
-      to: '/inventory',
-      icon: <Package className="h-5 w-5" />,
-      label: 'Inventory'
-    }]
-  }, {
-    title: "Staff & Customers",
-    links: [{
-      to: '/staff',
-      icon: <Users className="h-5 w-5" />,
-      label: 'Staff'
-    }, {
-      to: '/customers',
-      icon: <BookOpen className="h-5 w-5" />,
-      label: 'Customers'
-    }]
-  }, {
-    title: "Orders & Invoices",
-    links: [{
-      to: '/orders',
-      icon: <ShoppingCart className="h-5 w-5" />,
-      label: 'Orders'
-    }, {
-      to: '/invoices',
-      icon: <FileText className="h-5 w-5" />,
-      label: 'Invoices'
-    }]
-  }, {
-    title: "Analytics & Marketing",
-    links: [{
-      to: '/analytics',
-      icon: <BarChart className="h-5 w-5" />,
-      label: 'Analytics'
-    }, {
-      to: '/marketing',
-      icon: <Megaphone className="h-5 w-5" />,
-      label: 'Marketing'
-    }]
-  }, {
-    title: "Settings",
-    links: [{
-      to: '/settings/integrations',
-      icon: <Database className="h-5 w-5" />,
-      label: 'Integrations'
-    }, {
-      to: '/settings/appearance',
-      icon: <Palette className="h-5 w-5" />,
-      label: 'Appearance'
-    }, {
-      to: '/settings/notifications',
-      icon: <Bell className="h-5 w-5" />,
-      label: 'Notifications'
-    }, {
-      to: '/settings',
-      icon: <Settings className="h-5 w-5" />,
-      label: 'General Settings'
-    }]
-  }];
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  MenuIcon, 
+  FileText, 
+  ShoppingCart, 
+  Users, 
+  Settings,
+  QrCode,
+  PanelLeftClose,
+  ChefHat,
+  CalendarClock,
+  BarChart3,
+  CircleDollarSign
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface SidebarProps {
+  onCloseSidebar?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
+  let location;
+  try {
+    location = useLocation();
+  } catch (err) {
+    console.error('Router error:', err);
+    location = { pathname: '/' };
+  }
   
-  return <div className="w-64 flex-shrink-0 h-full bg-[#1A2942] text-white shadow-lg overflow-y-auto">
-      <div className="px-6 py-5 flex items-center border-b border-slate-700/50">
-        <h1 className="text-xl font-bold text-center">Resturant Management</h1>
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Menu', href: '/menu', icon: MenuIcon },
+    { name: 'Orders', href: '/orders', icon: ShoppingCart },
+    { name: 'Tables', href: '/tables', icon: CalendarClock },
+    { name: 'Inventory', href: '/inventory', icon: FileText },
+    { name: 'Staff', href: '/staff', icon: ChefHat },
+    { name: 'Customers', href: '/customers', icon: Users },
+    { name: 'QR Codes', href: '/qr-codes', icon: QrCode },
+    { name: 'Invoices', href: '/invoices', icon: CircleDollarSign },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ];
+
+  return (
+    <div className="flex flex-col h-full bg-sidebar-background">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
+        <Link to="/dashboard" className="flex items-center">
+          <span className="text-xl font-bold text-white">Menu360</span>
+        </Link>
+        {onCloseSidebar && (
+          <button 
+            onClick={onCloseSidebar}
+            className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 lg:hidden"
+          >
+            <PanelLeftClose className="h-5 w-5" />
+            <span className="sr-only">Close sidebar</span>
+          </button>
+        )}
       </div>
-      
-      <div className="px-3 py-4 space-y-4">
-        {sections.map((section, sectionIndex) => <div key={sectionIndex} className="space-y-1">
-            <h2 className="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-              {section.title}
-            </h2>
-            
-            {section.links.map((link, linkIndex) => <NavLink key={linkIndex} to={link.to} end={link.exact} className={({
-          isActive
-        }) => cn("flex items-center px-3 py-2.5 rounded-md text-sm font-medium w-full transition-colors", isActive ? "bg-blue-600/20 text-blue-100" : link.highlight ? "text-blue-300 bg-blue-500/10 hover:bg-blue-500/20" : "text-slate-300 hover:bg-slate-700/30 hover:text-white")}>
-                <span className="mr-3">{link.icon}</span>
-                {link.label}
-              </NavLink>)}
-          </div>)}
+      <div className="flex-1 flex flex-col overflow-y-auto pt-5 pb-4">
+        <nav className="mt-1 flex-1 px-2 space-y-1">
+          {navigation.map((item) => {
+            const isActive = location.pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={cn(
+                  isActive
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                  'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
+                )}
+                onClick={onCloseSidebar}
+              >
+                <item.icon
+                  className={cn(
+                    isActive ? 'text-white' : 'text-gray-400 group-hover:text-white',
+                    'mr-3 flex-shrink-0 h-5 w-5'
+                  )}
+                  aria-hidden="true"
+                />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Sidebar;

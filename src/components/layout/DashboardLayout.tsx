@@ -30,7 +30,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative h-full w-64 bg-sidebar">
+          <div className="relative h-full w-64 bg-sidebar-background">
             <Sidebar onCloseSidebar={() => setSidebarOpen(false)} />
           </div>
         </div>

@@ -48,7 +48,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   return (
     <div className="flex flex-col h-screen bg-slate-50 lg:flex-row">
       {/* Mobile sidebar - shown conditionally */}
-      {sidebarOpen && !isMobile && (
+      {sidebarOpen && isMobile && (
         <div className="fixed inset-0 z-40 transition-opacity duration-300 lg:hidden">
           <div 
             className="absolute inset-0 bg-slate-900/50" 
