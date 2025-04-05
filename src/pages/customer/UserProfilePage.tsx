@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import PageTransition from '@/components/ui/page-transition';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/use-profile';
 
 const UserProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const UserProfilePage: React.FC = () => {
   const restaurantId = searchParams.get('restaurant') || localStorage.getItem('restaurantId') || '';
   const { user } = useAuth();
   const { customerInfo } = useCustomerInfoStorage();
+  const { profile } = useProfile();
   
   if (!tableId || !restaurantId) {
     return (
@@ -55,11 +57,11 @@ const UserProfilePage: React.FC = () => {
             </TabsList>
             
             <TabsContent value="profile">
-              <ProfileForm />
+              <ProfileForm profile={profile} />
             </TabsContent>
             
             <TabsContent value="settings">
-              <AccountSettingsForm />
+              <AccountSettingsForm user={user} />
             </TabsContent>
           </Tabs>
         </div>
