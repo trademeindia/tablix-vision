@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { 
     user, 
     session, 
-    loading, 
+    loading: sessionLoading, 
     signIn, 
     signUp, 
     signInWithGoogle, 
@@ -45,19 +45,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   } = useSession();
   
   const { userRoles, fetchUserRoles } = useUserRole();
-  const [authLoading, setAuthLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const loading = sessionLoading || rolesLoading;
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
     const loadUserRoles = async () => {
       if (user) {
-        // Use setTimeout to prevent any potential Supabase listener deadlocks
-        setTimeout(() => {
-          fetchUserRoles(user.id)
-            .finally(() => setAuthLoading(false));
-        }, 0);
+        try {
+          await fetchUserRoles(user.id);
+        } catch (error) {
+          console.error("Error fetching user roles:", error);
+        } finally {
+          setRolesLoading(false);
+        }
       } else {
-        setAuthLoading(false);
+        setRolesLoading(false);
       }
     };
 
@@ -68,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     userRoles,
-    loading: loading || authLoading,
+    loading,
     signIn,
     signUp,
     signInWithGoogle,

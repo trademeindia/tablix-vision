@@ -31,44 +31,13 @@ export const useUserRole = (): UseUserRoleReturn => {
     setError(null);
     
     try {
-      // Get the user's email to check if it's a demo account
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('id', userId)
-        .single();
-        
-      // If we fail to get the user email (due to permissions or other issues),
-      // we'll check if we can detect demo accounts through another method
-      if (userError) {
-        console.log('Could not fetch user data, checking for demo account through other means');
-        
-        // For demo accounts, we can try to get the email from the auth.getUser() API
-        const { data: authData, error: authError } = await supabase.auth.getUser();
-        
-        if (!authError && authData && authData.user && authData.user.email) {
-          const email = authData.user.email;
-          
-          // Check if this is a demo account
-          if (email in demoAccountRoles) {
-            const roles = demoAccountRoles[email];
-            setUserRoles(roles);
-            setLoading(false);
-            return roles;
-          }
-        }
-        
-        // For development, let's just return a mock role
-        // This should be replaced with actual database queries in production
-        const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
-        setUserRoles(mockRoles);
-        setLoading(false);
-        return mockRoles;
-      }
+      // For demo accounts, we can try to get the email from the auth.getUser() API
+      const { data: authData, error: authError } = await supabase.auth.getUser();
       
-      // Check if this is a demo account, but first make sure userData exists and has an email property
-      if (userData && 'email' in userData && userData.email) {
-        const email = userData.email as string;
+      if (!authError && authData && authData.user && authData.user.email) {
+        const email = authData.user.email;
+        
+        // Check if this is a demo account
         if (email in demoAccountRoles) {
           const roles = demoAccountRoles[email];
           setUserRoles(roles);
@@ -76,32 +45,60 @@ export const useUserRole = (): UseUserRoleReturn => {
           return roles;
         }
       }
+
+      // If not a demo account, try to get user profile data
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (!userError && userData && userData.role) {
+          // If the profile has a role field, use that
+          const roles = [userData.role as UserRole];
+          setUserRoles(roles);
+          setLoading(false);
+          return roles;
+        }
+      } catch (profileError) {
+        console.log('Error fetching profile:', profileError);
+        // Continue to use demo or mock roles if profile fetch fails
+      }
       
-      // In a real application, you'd fetch roles from Supabase like this:
-      /*
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-        
-      if (error) throw error;
+      // For development, let's just return a mock role based on the demo email patterns
+      if (authData?.user?.email) {
+        const email = authData.user.email.toLowerCase();
+        if (email.includes('owner')) {
+          setUserRoles(['owner', 'manager']);
+          setLoading(false);
+          return ['owner', 'manager'];
+        } else if (email.includes('chef')) {
+          setUserRoles(['chef', 'staff']);
+          setLoading(false);
+          return ['chef', 'staff'];
+        } else if (email.includes('waiter')) {
+          setUserRoles(['waiter', 'staff']);
+          setLoading(false);
+          return ['waiter', 'staff'];
+        } else if (email.includes('staff')) {
+          setUserRoles(['staff']);
+          setLoading(false);
+          return ['staff'];
+        }
+      }
       
-      const roles = (data || []).map(item => item.role) as UserRole[];
-      setUserRoles(roles.length > 0 ? roles : ['customer']);
-      return roles;
-      */
-      
-      // For development, let's just return a mock role
-      const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
-      setUserRoles(mockRoles);
+      // Default role
+      const defaultRoles: UserRole[] = ['customer'];
+      setUserRoles(defaultRoles);
       setLoading(false);
+      return defaultRoles;
       
-      return mockRoles;
     } catch (err) {
       console.error('Error fetching user roles:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
       setLoading(false);
-      return [];
+      return ['customer'];
     }
   }, []);
 

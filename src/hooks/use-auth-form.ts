@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseLoginFormProps {
   redirectTo?: string;
@@ -64,6 +66,33 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setIsSubmitting(true);
     
     try {
+      // First, check if the demo user already exists, and if not create it
+      const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
+        email: demoCredentials.email,
+        password: demoCredentials.password
+      });
+
+      if (checkError && checkError.message.includes('Invalid login credentials')) {
+        // User doesn't exist, so create the account
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: demoCredentials.email,
+          password: demoCredentials.password,
+          options: {
+            data: {
+              full_name: `Demo ${demoCredentials.role.charAt(0).toUpperCase() + demoCredentials.role.slice(1)}`,
+            }
+          }
+        });
+
+        if (signUpError) {
+          console.error('Demo account creation error:', signUpError);
+          setError(signUpError.message || 'Failed to create demo account');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
+      // Now sign in with the demo account
       const { error } = await signIn(demoCredentials.email, demoCredentials.password);
       
       if (error) {
