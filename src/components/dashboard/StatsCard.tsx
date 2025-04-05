@@ -22,15 +22,15 @@ const StatsCard: React.FC<StatsCardProps> = ({
   className,
 }) => {
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">{title}</p>
-            <h3 className="text-2xl font-bold mt-1">{value}</h3>
+    <Card className={cn("overflow-hidden h-full", className)}>
+      <CardContent className="p-4 h-full flex flex-col">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-500 mb-1 truncate">{title}</p>
+            <h3 className="text-xl sm:text-2xl font-bold mt-1 truncate">{value}</h3>
             
             {trend && (
-              <div className="flex items-center mt-1">
+              <div className="flex items-center mt-2">
                 <span 
                   className={cn(
                     "text-xs font-medium",
@@ -39,12 +39,12 @@ const StatsCard: React.FC<StatsCardProps> = ({
                 >
                   {trend.isPositive ? "+" : "-"}{Math.abs(trend.value)}%
                 </span>
-                <span className="text-xs text-slate-500 ml-1">vs last month</span>
+                <span className="text-xs text-slate-500 ml-1 truncate">vs last month</span>
               </div>
             )}
           </div>
           
-          <div className="p-2 rounded-md bg-slate-100">
+          <div className="p-2 rounded-md bg-slate-100 flex-shrink-0 ml-2">
             {icon}
           </div>
         </div>

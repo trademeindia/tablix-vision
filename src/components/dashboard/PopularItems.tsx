@@ -38,30 +38,31 @@ const dummyItems: MenuItem[] = [
 
 const PopularItems = () => {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle>Popular Menu Items</CardTitle>
+        <CardTitle className="text-lg md:text-xl">Popular Menu Items</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="overflow-hidden">
+        <div className="space-y-3">
           {dummyItems.map((item, index) => (
-            <div key={index} className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+            <div key={index} className="flex items-center space-x-3 p-2 hover:bg-slate-50 rounded-md transition-colors">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden flex-shrink-0">
                 <img 
                   src={item.image} 
                   alt={item.name} 
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{item.name}</p>
-                <p className="text-sm text-slate-500">{item.category}</p>
+                <p className="font-medium text-sm sm:text-base truncate">{item.name}</p>
+                <p className="text-xs sm:text-sm text-slate-500 truncate">{item.category}</p>
               </div>
               
-              <div className="text-right">
-                <p className="font-medium">{item.orders}</p>
-                <p className="text-sm text-slate-500">orders</p>
+              <div className="text-right flex-shrink-0">
+                <p className="font-medium text-sm sm:text-base">{item.orders}</p>
+                <p className="text-xs sm:text-sm text-slate-500">orders</p>
               </div>
             </div>
           ))}

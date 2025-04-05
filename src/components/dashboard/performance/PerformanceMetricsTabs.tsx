@@ -30,12 +30,12 @@ const PerformanceMetricsTabs = () => {
   
   return (
     <Tabs defaultValue="daily" className="mb-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h2 className="text-lg font-semibold">Performance Metrics</h2>
-        <TabsList>
-          <TabsTrigger value="daily">Daily</TabsTrigger>
-          <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="daily" className="flex-1 sm:flex-initial">Daily</TabsTrigger>
+          <TabsTrigger value="weekly" className="flex-1 sm:flex-initial">Weekly</TabsTrigger>
+          <TabsTrigger value="monthly" className="flex-1 sm:flex-initial">Monthly</TabsTrigger>
         </TabsList>
       </div>
       
