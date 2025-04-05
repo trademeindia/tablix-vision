@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getRedirectPathByRole } from './use-redirect-paths';
 
 interface UseLoginFormProps {
   redirectTo?: string;
@@ -23,13 +24,6 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setRole(newRole);
   };
 
-  const getRedirectPath = (userRole: string) => {
-    return userRole === 'customer' ? '/customer/menu' :
-           userRole === 'staff' ? '/staff-dashboard' :
-           userRole === 'chef' ? '/staff-dashboard/kitchen' :
-           userRole === 'waiter' ? '/staff-dashboard/orders' : '/dashboard';
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -45,7 +39,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       }
       
       // Redirect based on role parameter or to home page
-      const redirectPath = getRedirectPath(role);
+      const redirectPath = getRedirectPathByRole(role);
       
       navigate(redirectPath);
     } catch (error) {
@@ -81,7 +75,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         });
 
         // Redirect based on demo account role
-        const redirectPath = getRedirectPath(demoCredentials.role);
+        const redirectPath = getRedirectPathByRole(demoCredentials.role);
         navigate(redirectPath);
         return;
       }
@@ -140,7 +134,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           });
           
           // Redirect based on demo account role
-          const redirectPath = getRedirectPath(demoCredentials.role);
+          const redirectPath = getRedirectPathByRole(demoCredentials.role);
           navigate(redirectPath);
           return;
         }
