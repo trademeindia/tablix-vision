@@ -50,7 +50,7 @@ export const useUserRole = (): UseUserRoleReturn => {
           const email = authData.user.email;
           
           // Check if this is a demo account
-          if (demoAccountRoles[email]) {
+          if (email in demoAccountRoles) {
             const roles = demoAccountRoles[email];
             setUserRoles(roles);
             setLoading(false);
@@ -67,11 +67,14 @@ export const useUserRole = (): UseUserRoleReturn => {
       }
       
       // Check if this is a demo account, but first make sure userData exists and has an email property
-      if (userData && 'email' in userData && userData.email && demoAccountRoles[userData.email]) {
-        const roles = demoAccountRoles[userData.email];
-        setUserRoles(roles);
-        setLoading(false);
-        return roles;
+      if (userData && 'email' in userData && userData.email) {
+        const email = userData.email as string;
+        if (email in demoAccountRoles) {
+          const roles = demoAccountRoles[email];
+          setUserRoles(roles);
+          setLoading(false);
+          return roles;
+        }
       }
       
       // In a real application, you'd fetch roles from Supabase like this:
