@@ -66,8 +66,8 @@ export const useUserRole = (): UseUserRoleReturn => {
         return mockRoles;
       }
       
-      // Check if this is a demo account
-      if (userData && userData.email && demoAccountRoles[userData.email]) {
+      // Check if this is a demo account, but first make sure userData exists and has an email property
+      if (userData && 'email' in userData && userData.email && demoAccountRoles[userData.email]) {
         const roles = demoAccountRoles[userData.email];
         setUserRoles(roles);
         setLoading(false);
