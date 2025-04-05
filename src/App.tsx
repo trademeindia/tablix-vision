@@ -8,7 +8,7 @@ import { ThemeProvider } from './hooks/use-theme';
 import ThemeApplier from './components/layout/ThemeProvider';
 import { Toaster } from './components/ui/toaster';
 import AppRoutes from './routes/AppRoutes';
-import { Helmet } from 'react-helmet-async';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Spinner from './components/ui/spinner';
 
 // Create a client
@@ -44,7 +44,7 @@ function App() {
   }
 
   return (
-    <>
+    <HelmetProvider>
       <Helmet>
         <title>Menu 360 | Restaurant Management System</title>
         <meta name="description" content="Complete restaurant management platform" />
@@ -53,17 +53,17 @@ function App() {
         <ThemeProvider restaurantId={restaurantId}>
           <ThemeApplier restaurantId={restaurantId}>
             <TooltipProvider>
-              <AuthProvider>
-                <Router>
+              <Router>
+                <AuthProvider>
                   <AppRoutes />
                   <Toaster />
-                </Router>
-              </AuthProvider>
+                </AuthProvider>
+              </Router>
             </TooltipProvider>
           </ThemeApplier>
         </ThemeProvider>
       </QueryClientProvider>
-    </>
+    </HelmetProvider>
   );
 }
 

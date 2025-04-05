@@ -35,12 +35,13 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRole[]>(['customer']); // Default to customer
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
   // Check user session on mount and listen for auth state changes
   useEffect(() => {
+    console.log('Setting up auth state listener');
     setLoading(true);
 
     // First set up the auth state listener
@@ -49,14 +50,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Auth state changed:', event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
+        
+        // Don't call fetchUserRoles directly in the listener to avoid potential deadlocks
+        if (currentSession?.user) {
+          setTimeout(() => {
+            fetchUserRoles(currentSession.user.id);
+          }, 0);
+        } else {
+          setUserRoles(['customer']);
+        }
+        
         setLoading(false);
       }
     );
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('Initial session check:', currentSession ? 'Session exists' : 'No session');
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        fetchUserRoles(currentSession.user.id);
+      }
+      
       setLoading(false);
     });
 
@@ -65,66 +82,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  // Fetch user roles whenever the user changes
-  useEffect(() => {
-    const fetchUserRoles = async (userId: string) => {
-      try {
-        // First try to get roles from profiles table
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', userId)
-          .single();
+  const fetchUserRoles = async (userId: string) => {
+    try {
+      console.log('Fetching user roles for:', userId);
+      
+      // First try to get roles from profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
 
-        if (profileData && profileData.role) {
-          // If role is stored as a string
-          if (typeof profileData.role === 'string') {
-            setUserRoles([profileData.role as UserRole]);
-          } 
-          // If role is stored as an array
-          else if (Array.isArray(profileData.role)) {
-            setUserRoles(profileData.role as UserRole[]);
-          }
+      if (profileData && profileData.role) {
+        console.log('Found role in profiles:', profileData.role);
+        // If role is stored as a string
+        if (typeof profileData.role === 'string') {
+          setUserRoles([profileData.role as UserRole]);
+        } 
+        // If role is stored as an array
+        else if (Array.isArray(profileData.role)) {
+          setUserRoles(profileData.role as UserRole[]);
+        }
+        return;
+      }
+
+      // Fallback to checking staff table if no role in profiles
+      if (profileError) {
+        console.log('No profile role found, checking staff table');
+        const { data: staffData } = await supabase
+          .from('staff')
+          .select('role')
+          .eq('user_id', userId);
+          
+        if (staffData && staffData.length > 0) {
+          const roles = staffData.map(staff => staff.role as UserRole);
+          console.log('Found roles in staff table:', roles);
+          setUserRoles(roles);
           return;
         }
-
-        // Fallback to checking staff table if no role in profiles
-        if (profileError) {
-          const { data: staffData } = await supabase
-            .from('staff')
-            .select('role')
-            .eq('user_id', userId);
-            
-          if (staffData && staffData.length > 0) {
-            const roles = staffData.map(staff => staff.role as UserRole);
-            setUserRoles(roles);
-            return;
-          }
-        }
-
-        // Default to customer role if no other roles found
-        setUserRoles(['customer']);
-        
-      } catch (error) {
-        console.error('Error fetching user roles:', error);
-        setUserRoles([]);
       }
-    };
 
-    if (user) {
-      // Use setTimeout to prevent any potential Supabase listener deadlocks
-      setTimeout(() => {
-        fetchUserRoles(user.id);
-      }, 0);
-    } else {
-      setUserRoles([]);
+      // Default to customer role if no other roles found
+      console.log('No roles found, defaulting to customer');
+      setUserRoles(['customer']);
+      
+    } catch (error) {
+      console.error('Error fetching user roles:', error);
+      setUserRoles(['customer']);
     }
-  }, [user]);
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Attempting to sign in with email:', email);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) console.error('Sign in error:', error);
+      if (error) {
+        console.error('Sign in error:', error);
+      } else {
+        console.log('Sign in successful');
+      }
       return { error };
     } catch (error) {
       console.error('Error signing in:', error);
@@ -134,6 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
+      console.log('Attempting to sign up with email:', email);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -149,6 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           title: 'Account created successfully',
           description: 'Please check your email to confirm your account.',
         });
+        console.log('Sign up successful');
       } else {
         console.error('Sign up error:', error);
       }
@@ -162,6 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithGoogle = async () => {
     try {
+      console.log('Attempting to sign in with Google');
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -180,6 +199,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
+      console.log('Attempting to sign out');
       await supabase.auth.signOut();
       toast({
         title: 'Signed out successfully',
@@ -197,6 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     try {
+      console.log('Sending password reset email to:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/update-password`,
       });
@@ -219,6 +240,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updatePassword = async (password: string) => {
     try {
+      console.log('Updating password');
       const { error } = await supabase.auth.updateUser({ password });
       
       if (!error) {
