@@ -65,7 +65,7 @@ const Index = () => {
                 Welcome to Menu 360
               </h1>
               <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
-                Please select how you'd like to access the system
+                The complete restaurant management solution with digital menu, QR ordering, and operations dashboard
               </p>
             </div>
             
@@ -76,15 +76,18 @@ const Index = () => {
                     <Utensils className="h-8 w-8 text-green-600" />
                   </div>
                   <CardTitle>Restaurant Owner</CardTitle>
-                  <CardDescription>Manage your restaurant</CardDescription>
+                  <CardDescription>Complete management dashboard</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="mb-6 text-slate-500">
                     Access all restaurant management features, including staff management, menu control, and analytics.
                   </p>
                   <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=owner">Access Owner Dashboard</Link>
+                    <Link to="/auth/login?role=owner">Access as Owner</Link>
                   </Button>
+                  <div className="mt-3">
+                    <span className="text-xs text-slate-500">Demo account available</span>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -94,15 +97,18 @@ const Index = () => {
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
                   <CardTitle>Restaurant Staff</CardTitle>
-                  <CardDescription>Access staff features</CardDescription>
+                  <CardDescription>Order & kitchen management</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="mb-6 text-slate-500">
                     For waiters, chefs, and other staff members to manage orders, kitchen operations, and service.
                   </p>
                   <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=staff">Access Staff Dashboard</Link>
+                    <Link to="/auth/login?role=staff">Access as Staff</Link>
                   </Button>
+                  <div className="mt-3">
+                    <span className="text-xs text-slate-500">Demo account available</span>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -112,25 +118,29 @@ const Index = () => {
                     <ShoppingBag className="h-8 w-8 text-amber-600" />
                   </div>
                   <CardTitle>Customer</CardTitle>
-                  <CardDescription>Browse menu and order</CardDescription>
+                  <CardDescription>Menu browsing & ordering</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="mb-6 text-slate-500">
                     Browse restaurant menu, place orders, and manage your customer profile and preferences.
                   </p>
                   <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=customer">Access Customer Portal</Link>
+                    <Link to="/auth/login?role=customer">Access as Customer</Link>
                   </Button>
+                  <div className="mt-3">
+                    <span className="text-xs text-slate-500">Demo account available</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
             
             <div className="mt-12 text-center">
-              <p className="text-slate-500 mb-4">
-                New to Menu 360? Learn more about our complete restaurant management solution.
+              <p className="text-slate-600 mb-6">
+                <span className="font-semibold">Quick Demo:</span> Choose one of the roles above to explore the dashboard with a demo account.
+                <br />No sign-up required!
               </p>
               <Button variant="outline" asChild>
-                <Link to="/menu360">Visit Our Website</Link>
+                <Link to="/menu360">Learn More About Menu 360</Link>
               </Button>
             </div>
           </div>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +21,13 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setRole(newRole);
   };
 
+  const getRedirectPath = (userRole: string) => {
+    return userRole === 'customer' ? '/customer/menu' :
+           userRole === 'staff' ? '/staff-dashboard' :
+           userRole === 'chef' ? '/staff-dashboard/kitchen' :
+           userRole === 'waiter' ? '/staff-dashboard/orders' : '/dashboard';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -37,10 +43,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       }
       
       // Redirect based on role parameter or to home page
-      const redirectPath = role === 'customer' ? '/customer/menu' :
-                          role === 'staff' ? '/staff-dashboard' :
-                          role === 'chef' ? '/staff-dashboard/kitchen' :
-                          role === 'waiter' ? '/staff-dashboard/orders' : '/';
+      const redirectPath = getRedirectPath(role);
       
       navigate(redirectPath);
     } catch (error) {
@@ -55,6 +58,42 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     await signInWithGoogle();
     // Redirect will be handled by the OAuth callback
   };
+  
+  const handleDemoLogin = async (demoCredentials: { email: string; password: string; role: string }) => {
+    setError(null);
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await signIn(demoCredentials.email, demoCredentials.password);
+      
+      if (error) {
+        console.error('Demo login error:', error);
+        toast({
+          title: 'Demo Login Error',
+          description: 'There was an issue with the demo account. Please try again or create a regular account.',
+          variant: 'destructive',
+        });
+        setError(error.message || 'Failed to sign in with demo account.');
+        return;
+      }
+      
+      // Redirect based on demo account role
+      const redirectPath = getRedirectPath(demoCredentials.role);
+      
+      // Show toast notification
+      toast({
+        title: 'Demo Mode Activated',
+        description: `You're now viewing the application as a ${demoCredentials.role}.`,
+      });
+      
+      navigate(redirectPath);
+    } catch (error) {
+      console.error('Demo login error:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return {
     email,
@@ -67,6 +106,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     handleRoleChange,
     handleSubmit,
     handleGoogleSignIn,
+    handleDemoLogin,
   };
 };
 

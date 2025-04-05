@@ -6,6 +6,7 @@ import { useLoginForm } from '@/hooks/use-auth-form';
 import RoleTabsSection from '@/components/auth/RoleTabsSection';
 import LoginForm from '@/components/auth/LoginForm';
 import AuthFormTitle from '@/components/auth/AuthFormTitle';
+import DemoAccountSelector from '@/components/auth/DemoAccountSelector';
 
 const LoginPage = () => {
   const {
@@ -18,7 +19,8 @@ const LoginPage = () => {
     role,
     handleRoleChange,
     handleSubmit,
-    handleGoogleSignIn
+    handleGoogleSignIn,
+    handleDemoLogin
   } = useLoginForm();
 
   return (
@@ -40,6 +42,19 @@ const LoginPage = () => {
             handleSubmit={handleSubmit}
             handleGoogleSignIn={handleGoogleSignIn}
           />
+          
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-slate-500">Or try a demo account</span>
+              </div>
+            </div>
+            
+            <DemoAccountSelector onSelectDemo={handleDemoLogin} />
+          </div>
         </div>
       </div>
     </AuthPageWrapper>

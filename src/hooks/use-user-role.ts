@@ -12,6 +12,15 @@ interface UseUserRoleReturn {
   error: Error | null;
 }
 
+// Demo account emails and their associated roles
+const demoAccountRoles: Record<string, UserRole[]> = {
+  'owner@demo.com': ['owner', 'manager'],
+  'staff@demo.com': ['staff', 'waiter'],
+  'chef@demo.com': ['chef', 'staff'],
+  'waiter@demo.com': ['waiter', 'staff'],
+  'customer@demo.com': ['customer'],
+};
+
 export const useUserRole = (): UseUserRoleReturn => {
   const [userRoles, setUserRoles] = useState<UserRole[]>(['customer']); // Default to customer for development
   const [loading, setLoading] = useState(false);
@@ -22,10 +31,33 @@ export const useUserRole = (): UseUserRoleReturn => {
     setError(null);
     
     try {
-      // For now, we're using mock roles. In a production app, this would fetch from your database
-      // In a real application, you'd fetch roles from Supabase
+      // Get the user's email to check if it's a demo account
+      const { data: userData, error: userError } = await supabase
+        .from('auth')
+        .select('email')
+        .eq('id', userId)
+        .single();
+        
+      // If we fail to get the user email (due to permissions or other issues),
+      // we'll check if we can detect demo accounts through another method
+      if (userError) {
+        console.log('Could not fetch user data, checking for demo account through other means');
+        
+        // For development, let's just return a mock role
+        // This should be replaced with actual database queries in production
+        const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
+        setUserRoles(mockRoles);
+        return mockRoles;
+      }
       
-      // Example real implementation:
+      // Check if this is a demo account
+      if (userData && userData.email && demoAccountRoles[userData.email]) {
+        const roles = demoAccountRoles[userData.email];
+        setUserRoles(roles);
+        return roles;
+      }
+      
+      // In a real application, you'd fetch roles from Supabase like this:
       /*
       const { data, error } = await supabase
         .from('user_roles')
@@ -40,9 +72,6 @@ export const useUserRole = (): UseUserRoleReturn => {
       */
       
       // For development, let's just return a mock role
-      // This should be replaced with actual database queries in production
-      
-      // For testing purposes - giving all users all roles
       const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
       setUserRoles(mockRoles);
       
