@@ -10,6 +10,7 @@ import { Toaster } from './components/ui/toaster';
 import AppRoutes from './routes/AppRoutes';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Spinner from './components/ui/spinner';
+import DebugPanel from '@/components/debug/DebugPanel';
 
 // Create a client with better defaults for error handling
 const queryClient = new QueryClient({
@@ -18,8 +19,10 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      onError: (error) => {
-        console.error('Query error:', error);
+      meta: {
+        onError: (error: Error) => {
+          console.error('Query error:', error);
+        },
       },
     },
   },
@@ -63,6 +66,7 @@ function App() {
                 <Router>
                   <AppRoutes />
                   <Toaster />
+                  <DebugPanel />
                 </Router>
               </TooltipProvider>
             </ThemeApplier>
