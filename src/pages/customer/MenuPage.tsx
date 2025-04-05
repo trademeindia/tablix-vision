@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useOrderItems } from '@/hooks/use-order-items';
 import CustomerMenuLayout from '@/components/layout/CustomerMenuLayout';
 import QRScannerSection from '@/components/customer/menu/QRScannerSection';
@@ -7,13 +8,17 @@ import LoadingErrorSection from '@/components/customer/menu/LoadingErrorSection'
 import MenuContent from '@/components/customer/menu/MenuContent';
 import PageTransition from '@/components/ui/page-transition';
 import { Button } from '@/components/ui/button';
-import { Scan } from 'lucide-react';
+import { Scan, LogIn } from 'lucide-react';
 import { useCustomerMenu } from '@/hooks/use-customer-menu';
 import DebugPanel from '@/components/customer/menu/DebugPanel';
 import NoMenuView from '@/components/customer/menu/NoMenuView';
 import TestDataAlert from '@/components/customer/menu/TestDataAlert';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CustomerMenuPage = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  
   // Order management hook
   const { 
     orderItems, 
@@ -40,6 +45,21 @@ const CustomerMenuPage = () => {
     showDebugInfo,
     handleRescan
   } = useCustomerMenu();
+  
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <p className="ml-2 text-lg font-medium">Checking authentication...</p>
+      </div>
+    );
+  }
+  
+  // If no user authenticated, redirect to login page
+  if (!user) {
+    return <Navigate to="/auth/login?role=customer" replace />;
+  }
   
   // If no restaurant/table data, show QR scanner
   if (!restaurantId || !tableId) {

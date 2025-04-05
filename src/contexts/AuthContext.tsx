@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,9 +71,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (currentSession?.user) {
         fetchUserRoles(currentSession.user.id);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => {
@@ -103,11 +102,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         else if (Array.isArray(profileData.role)) {
           setUserRoles(profileData.role as UserRole[]);
         }
-        return;
-      }
-
-      // Fallback to checking staff table if no role in profiles
-      if (profileError) {
+      } else {
+        // Fallback to checking staff table if no role in profiles
         console.log('No profile role found, checking staff table');
         const { data: staffData } = await supabase
           .from('staff')
@@ -118,17 +114,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const roles = staffData.map(staff => staff.role as UserRole);
           console.log('Found roles in staff table:', roles);
           setUserRoles(roles);
-          return;
+        } else {
+          // Default to customer role if no other roles found
+          console.log('No roles found, defaulting to customer');
+          setUserRoles(['customer']);
         }
       }
-
-      // Default to customer role if no other roles found
-      console.log('No roles found, defaulting to customer');
-      setUserRoles(['customer']);
       
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching user roles:', error);
       setUserRoles(['customer']);
+      setLoading(false);
     }
   };
 

@@ -11,12 +11,16 @@ import AppRoutes from './routes/AppRoutes';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Spinner from './components/ui/spinner';
 
-// Create a client
+// Create a client with better defaults for error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        console.error('Query error:', error);
+      },
     },
   },
 });
@@ -27,9 +31,11 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial loading
+    // Simulate initial loading and log it
+    console.log('App initializing...');
     const timer = setTimeout(() => {
       setIsLoading(false);
+      console.log('App initialized and ready');
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
@@ -50,18 +56,18 @@ function App() {
         <meta name="description" content="Complete restaurant management platform" />
       </Helmet>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider restaurantId={restaurantId}>
-          <ThemeApplier restaurantId={restaurantId}>
-            <TooltipProvider>
-              <Router>
-                <AuthProvider>
+        <AuthProvider>
+          <ThemeProvider restaurantId={restaurantId}>
+            <ThemeApplier restaurantId={restaurantId}>
+              <TooltipProvider>
+                <Router>
                   <AppRoutes />
                   <Toaster />
-                </AuthProvider>
-              </Router>
-            </TooltipProvider>
-          </ThemeApplier>
-        </ThemeProvider>
+                </Router>
+              </TooltipProvider>
+            </ThemeApplier>
+          </ThemeProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
