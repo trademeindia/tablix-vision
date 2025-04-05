@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
-import { useLoginForm } from '@/hooks/use-auth-form';
+import { useLoginForm } from '@/hooks/auth/use-login-form';
 import RoleTabsSection from '@/components/auth/RoleTabsSection';
 import LoginForm from '@/components/auth/LoginForm';
 import AuthFormTitle from '@/components/auth/AuthFormTitle';

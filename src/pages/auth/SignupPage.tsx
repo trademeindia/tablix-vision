@@ -1,7 +1,7 @@
 
 import React from 'react';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
-import { useSignupForm } from '@/hooks/use-auth-form';
+import { useSignupForm } from '@/hooks/auth/use-signup-form';
 import RoleTabsSection from '@/components/auth/RoleTabsSection';
 import SignupForm from '@/components/auth/SignupForm';
 import AuthFormTitle from '@/components/auth/AuthFormTitle';
