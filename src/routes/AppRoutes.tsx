@@ -11,12 +11,15 @@ const AppRoutes: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
 
+  // Log the current path to help with debugging
+  console.log('Current path:', path);
+
   // Conditionally render route groups based on the current path
   if (path.startsWith('/customer')) {
     return <CustomerRoutes />;
   } else if (path.startsWith('/staff-dashboard')) {
     return <StaffRoutes />;
-  } else if (path === '/profile') {
+  } else if (path.startsWith('/profile')) {
     return <ProfileRoutes />;
   } else if (
     path.startsWith('/dashboard') || 

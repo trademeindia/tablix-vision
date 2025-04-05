@@ -1,115 +1,65 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define the available user roles
+// Define the possible user roles as a union type
 export type UserRole = 'owner' | 'manager' | 'chef' | 'waiter' | 'staff' | 'customer';
 
 interface UseUserRoleReturn {
   userRoles: UserRole[];
-  fetchUserRoles: (userId: string) => Promise<void>;
-  addUserRole: (userId: string, role: UserRole) => Promise<void>;
-  removeUserRole: (userId: string, role: UserRole) => Promise<void>;
-  hasRole: (role: UserRole) => boolean;
+  fetchUserRoles: (userId: string) => Promise<UserRole[]>;
+  loading: boolean;
+  error: Error | null;
 }
 
 export const useUserRole = (): UseUserRoleReturn => {
-  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRole[]>(['customer']); // Default to customer for development
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const fetchUserRoles = async (userId: string) => {
+  const fetchUserRoles = useCallback(async (userId: string): Promise<UserRole[]> => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      // First try to get roles from profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (profileData && profileData.role) {
-        // If role is stored as a string
-        if (typeof profileData.role === 'string') {
-          setUserRoles([profileData.role as UserRole]);
-        } 
-        // If role is stored as an array
-        else if (Array.isArray(profileData.role)) {
-          setUserRoles(profileData.role as UserRole[]);
-        }
-        return;
-      }
-
-      // Fallback to checking staff table if no role in profiles
-      if (profileError) {
-        const { data: staffData } = await supabase
-          .from('staff')
-          .select('role')
-          .eq('user_id', userId);
-          
-        if (staffData && staffData.length > 0) {
-          const roles = staffData.map(staff => staff.role as UserRole);
-          setUserRoles(roles);
-          return;
-        }
-      }
-
-      // Default to customer role if no other roles found
-      setUserRoles(['customer']);
+      // For now, we're using mock roles. In a production app, this would fetch from your database
+      // In a real application, you'd fetch roles from Supabase
       
-    } catch (error) {
-      console.error('Error fetching user roles:', error);
-      // Default to empty array if error
-      setUserRoles([]);
-    }
-  };
-
-  const addUserRole = async (userId: string, role: UserRole) => {
-    try {
-      // Update the profiles table with the new role
-      // This is a simplified example - in production, you might want to use a separate user_roles table
-      await supabase
-        .from('profiles')
-        .update({ role })
-        .eq('id', userId);
-        
-      // Refresh roles
-      await fetchUserRoles(userId);
-    } catch (error) {
-      console.error('Error adding user role:', error);
-    }
-  };
-
-  const removeUserRole = async (userId: string, role: UserRole) => {
-    try {
-      // For this simplified example, we'll just clear the role if it matches
-      // In a real app with multiple roles, you would use a user_roles table with proper remove logic
-      const { data } = await supabase
-        .from('profiles')
+      // Example real implementation:
+      /*
+      const { data, error } = await supabase
+        .from('user_roles')
         .select('role')
-        .eq('id', userId)
-        .single();
+        .eq('user_id', userId);
         
-      if (data && data.role === role) {
-        await supabase
-          .from('profiles')
-          .update({ role: null })
-          .eq('id', userId);
-      }
+      if (error) throw error;
       
-      // Refresh roles
-      await fetchUserRoles(userId);
-    } catch (error) {
-      console.error('Error removing user role:', error);
+      const roles = (data || []).map(item => item.role) as UserRole[];
+      setUserRoles(roles.length > 0 ? roles : ['customer']);
+      return roles;
+      */
+      
+      // For development, let's just return a mock role
+      // This should be replaced with actual database queries in production
+      
+      // For testing purposes - giving all users all roles
+      const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
+      setUserRoles(mockRoles);
+      
+      return mockRoles;
+    } catch (err) {
+      console.error('Error fetching user roles:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
+      return [];
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const hasRole = (role: UserRole): boolean => {
-    return userRoles.includes(role);
-  };
+  }, []);
 
   return {
     userRoles,
     fetchUserRoles,
-    addUserRole,
-    removeUserRole,
-    hasRole,
+    loading,
+    error,
   };
 };

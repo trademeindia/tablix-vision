@@ -20,20 +20,46 @@ export const useProfile = () => {
     setError(null);
     
     try {
+      // First try to fetch the existing profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        // If profile doesn't exist, create one
+        if (error.code === 'PGRST116') {
+          console.log('Profile does not exist, creating new profile');
+          const newProfile: Profile = {
+            id: user.id,
+            full_name: user.user_metadata?.full_name || '',
+            avatar_url: user.user_metadata?.avatar_url || '',
+          };
+          
+          const { data: createdData, error: createError } = await supabase
+            .from('profiles')
+            .insert(newProfile)
+            .select()
+            .single();
+            
+          if (createError) throw createError;
+          
+          const fetchedProfile = createdData as Profile;
+          setProfile(fetchedProfile);
+          return fetchedProfile;
+        }
+        
+        throw error;
+      }
       
       const fetchedProfile = data as Profile;
       setProfile(fetchedProfile);
       return fetchedProfile;
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching profile:', errorMessage);
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error fetching profile:', err);
       return null;
     } finally {
       setLoading(false);
@@ -68,8 +94,9 @@ export const useProfile = () => {
       
       return { success: true, data: data as Profile };
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error updating profile:', errorMessage);
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error updating profile:', err);
       
       toast({
         title: 'Update failed',
@@ -128,8 +155,9 @@ export const useProfile = () => {
       
       return { publicUrl };
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error uploading profile image:', errorMessage);
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error uploading profile image:', err);
       
       toast({
         title: 'Upload failed',
@@ -169,8 +197,9 @@ export const useProfile = () => {
       
       return { success: true };
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error deleting account:', errorMessage);
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
-      console.error('Error deleting account:', err);
       
       toast({
         title: 'Account deletion failed',

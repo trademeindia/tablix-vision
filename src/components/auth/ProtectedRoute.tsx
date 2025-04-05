@@ -17,6 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, userRoles, loading } = useAuth();
   const location = useLocation();
 
+  // Show loading state while checking authentication
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -25,11 +26,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    // Redirect to login if not authenticated
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
+  // Check if user has required roles (if specified)
   if (requiredRoles && requiredRoles.length > 0) {
     // Check if user has at least one of the required roles
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
@@ -40,6 +42,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
+  // User is authenticated and has required roles (if any)
   return <>{children}</>;
 };
 

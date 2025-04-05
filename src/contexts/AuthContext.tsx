@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useSession } from '@/hooks/use-session';
 import { useUserRole, UserRole } from '@/hooks/use-user-role';
@@ -45,22 +45,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   } = useSession();
   
   const { userRoles, fetchUserRoles } = useUserRole();
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
-    if (user) {
-      // Use setTimeout to prevent any potential Supabase listener deadlocks
-      setTimeout(() => {
-        fetchUserRoles(user.id);
-      }, 0);
-    }
+    const loadUserRoles = async () => {
+      if (user) {
+        // Use setTimeout to prevent any potential Supabase listener deadlocks
+        setTimeout(() => {
+          fetchUserRoles(user.id)
+            .finally(() => setAuthLoading(false));
+        }, 0);
+      } else {
+        setAuthLoading(false);
+      }
+    };
+
+    loadUserRoles();
   }, [user, fetchUserRoles]);
 
   const value = {
     user,
     session,
     userRoles,
-    loading,
+    loading: loading || authLoading,
     signIn,
     signUp,
     signInWithGoogle,

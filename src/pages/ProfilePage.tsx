@@ -1,57 +1,83 @@
 
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useProfile } from '@/hooks/use-profile';
 import ProfileForm from '@/components/profile/ProfileForm';
-import AccountSettingsForm from '@/components/profile/AccountSettingsForm';
-import DeleteAccountDialog from '@/components/profile/DeleteAccountDialog';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import Spinner from '@/components/ui/spinner';
 import { useAuth } from '@/contexts/AuthContext';
-import { Skeleton } from '@/components/ui/skeleton';
+import DeleteAccountDialog from '@/components/profile/DeleteAccountDialog';
+import AccountSettingsForm from '@/components/profile/AccountSettingsForm';
 
-const ProfilePage: React.FC = () => {
-  const { user, loading } = useAuth();
+const ProfilePage = () => {
+  const { user } = useAuth();
+  const { loading, error, profile, fetchProfile } = useProfile();
+  const [activeTab, setActiveTab] = useState('profile');
+
+  useEffect(() => {
+    // Fetch profile data when component mounts
+    fetchProfile();
+  }, [fetchProfile]);
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="container mx-auto py-6">
-          <Skeleton className="h-10 w-48 mb-6" />
-          <Card className="p-6">
-            <Skeleton className="h-8 w-32 mb-4" />
-            <div className="space-y-4">
-              {Array(5).fill(null).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          </Card>
-        </div>
-      </DashboardLayout>
+      <div className="flex h-[calc(100vh-80px)] items-center justify-center">
+        <Spinner size="lg" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-6">
-        <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
+    <>
+      <Helmet>
+        <title>My Profile | Menu 360</title>
+      </Helmet>
+
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">My Profile</h1>
         
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="profile">Profile Information</TabsTrigger>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error.message}</AlertDescription>
+          </Alert>
+        )}
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="account">Account Settings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
-            <ProfileForm />
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>Update your personal information and preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {profile && <ProfileForm profile={profile} />}
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="account">
-            <AccountSettingsForm />
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+                <CardDescription>Update your account settings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AccountSettingsForm user={user} />
+              </CardContent>
+            </Card>
+            
             <DeleteAccountDialog />
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 
