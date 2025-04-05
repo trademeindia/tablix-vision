@@ -31,16 +31,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const ProfileForm: React.FC = () => {
-  const { profile, loading, fetchProfile, updateProfile } = useProfile();
-  
-  useEffect(() => {
-    const loadProfile = async () => {
-      await fetchProfile();
-    };
-    
-    loadProfile();
-  }, [fetchProfile]);
+interface ProfileFormProps {
+  profile: Profile | null;
+}
+
+const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
+  const { loading, updateProfile } = useProfile();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

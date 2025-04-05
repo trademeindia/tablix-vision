@@ -51,27 +51,11 @@ const ProfilePage = () => {
           </TabsList>
           
           <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Update your personal information and preferences</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {profile && <ProfileForm profile={profile} />}
-              </CardContent>
-            </Card>
+            <ProfileForm profile={profile} />
           </TabsContent>
           
           <TabsContent value="account">
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>Update your account settings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AccountSettingsForm user={user} />
-              </CardContent>
-            </Card>
+            <AccountSettingsForm user={user} />
             
             <DeleteAccountDialog />
           </TabsContent>

@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { User } from '@supabase/supabase-js';
 
 const passwordFormSchema = z.object({
   password: z.string().min(8, {
@@ -27,7 +28,11 @@ const passwordFormSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const AccountSettingsForm: React.FC = () => {
+interface AccountSettingsFormProps {
+  user: User | null;
+}
+
+const AccountSettingsForm: React.FC<AccountSettingsFormProps> = ({ user }) => {
   const { updatePassword } = useAuth();
   const [changesSaved, setChangesSaved] = useState(false);
   
