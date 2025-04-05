@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -25,14 +25,22 @@ const formSchema = z.object({
   full_name: z.string().min(2, { message: "Name must be at least 2 characters." }).max(100),
   phone: z.string().optional(),
   address: z.string().optional(),
-  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional(),
+  bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional().or(z.literal('')),
   website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const ProfileForm: React.FC = () => {
-  const { profile, loading, updateProfile } = useProfile();
+  const { profile, loading, fetchProfile, updateProfile } = useProfile();
+  
+  useEffect(() => {
+    const loadProfile = async () => {
+      await fetchProfile();
+    };
+    
+    loadProfile();
+  }, [fetchProfile]);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -46,7 +54,7 @@ const ProfileForm: React.FC = () => {
   });
   
   // Update form when profile loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile) {
       form.reset({
         full_name: profile.full_name || "",
@@ -88,7 +96,7 @@ const ProfileForm: React.FC = () => {
       <CardContent>
         <div className="mb-6 flex justify-center">
           <ProfileImageUpload 
-            currentImageUrl={profile?.profile_image_url || profile?.avatar_url} 
+            currentImageUrl={profile?.avatar_url} 
           />
         </div>
         

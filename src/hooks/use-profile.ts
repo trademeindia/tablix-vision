@@ -1,52 +1,53 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Profile } from '@/types/profile';
+import { v4 as uuidv4 } from 'uuid';
 import { useToast } from './use-toast';
 
 export const useProfile = () => {
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchProfile = async () => {
-    if (!user) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
+  const fetchProfile = async (): Promise<Profile | null> => {
+    if (!user) return null;
+    
     setLoading(true);
+    setError(null);
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        throw error;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch profile. Please try again later.',
-        variant: 'destructive',
-      });
+        
+      if (error) throw error;
+      
+      const fetchedProfile = data as Profile;
+      setProfile(fetchedProfile);
+      return fetchedProfile;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      console.error('Error fetching profile:', err);
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('No user logged in') };
-
+  const updateProfile = async (updates: Partial<Profile>): Promise<{ success: boolean; data?: Profile; error?: Error }> => {
+    if (!user) {
+      return { success: false, error: new Error('No authenticated user found') };
+    }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -54,136 +55,145 @@ export const useProfile = () => {
         .eq('id', user.id)
         .select()
         .single();
-
-      if (error) {
-        console.error('Error updating profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to update profile. Please try again later.',
-          variant: 'destructive',
-        });
-        return { error };
-      }
-
-      setProfile(data);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setProfile(data as Profile);
+      
       toast({
-        title: 'Success',
-        description: 'Profile updated successfully.',
+        title: 'Profile updated',
+        description: 'Your profile changes were saved successfully.',
       });
-      return { data };
-    } catch (error) {
-      console.error('Error in updateProfile:', error);
+      
+      return { success: true, data: data as Profile };
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      console.error('Error updating profile:', err);
+      
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred. Please try again later.',
+        title: 'Update failed',
+        description: 'There was an error updating your profile.',
         variant: 'destructive',
       });
-      return { error };
+      
+      return { 
+        success: false, 
+        error: err instanceof Error ? err : new Error('An unknown error occurred')
+      };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const uploadProfileImage = async (file: File) => {
-    if (!user) return { error: new Error('No user logged in') };
-
+  const uploadProfileImage = async (file: File): Promise<{ publicUrl?: string; error?: Error }> => {
+    if (!user) {
+      return { error: new Error('No authenticated user found') };
+    }
+    
+    if (!file) {
+      return { error: new Error('No file provided') };
+    }
+    
+    setLoading(true);
+    setError(null);
+    
     try {
+      // Generate a unique file name
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `profiles/${fileName}`;
-
-      // Upload image to Supabase Storage
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `profiles/${user.id}/${fileName}`;
+      
+      // Upload the file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        console.error('Error uploading profile image:', uploadError);
-        throw uploadError;
-      }
-
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        
+      if (uploadError) throw uploadError;
+      
       // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
-
-      // Update profile with new image URL
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ profile_image_url: publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) {
-        console.error('Error updating profile with image URL:', updateError);
-        throw updateError;
-      }
-
-      // Update local state
-      setProfile(prev => prev ? { ...prev, profile_image_url: publicUrl } : null);
+        
+      const publicUrl = urlData.publicUrl;
       
-      toast({
-        title: 'Success',
-        description: 'Profile image uploaded successfully.',
+      // Update the user's profile with the new image URL
+      await updateProfile({
+        avatar_url: publicUrl
       });
       
       return { publicUrl };
-    } catch (error) {
-      console.error('Error in uploadProfileImage:', error);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      console.error('Error uploading profile image:', err);
+      
       toast({
-        title: 'Error',
-        description: 'Failed to upload profile image. Please try again later.',
+        title: 'Upload failed',
+        description: 'There was an error uploading your profile image.',
         variant: 'destructive',
       });
-      return { error };
+      
+      return { 
+        error: err instanceof Error ? err : new Error('An unknown error occurred')
+      };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const mergeLocalData = async () => {
-    if (!user) return;
+  const deleteAccount = async (): Promise<{ success: boolean; error?: Error }> => {
+    if (!user) {
+      return { success: false, error: new Error('No authenticated user found') };
+    }
     
-    // Get customer info from local storage
-    const storedCustomerInfo = localStorage.getItem('customerInfo');
-    if (!storedCustomerInfo) return;
+    setLoading(true);
+    setError(null);
     
     try {
-      const customerInfo = JSON.parse(storedCustomerInfo);
-      
-      // Check if profile exists
-      const { data: existingProfile } = await supabase
+      // First, delete user data from the profiles table
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('full_name, phone, email')
-        .eq('id', user.id)
-        .single();
+        .delete()
+        .eq('id', user.id);
+        
+      if (profileError) throw profileError;
       
-      // Only update if fields are empty
-      const updates: Partial<Profile> = {};
+      // Then, delete the user from auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
       
-      if (!existingProfile?.full_name && customerInfo.name) {
-        updates.full_name = customerInfo.name;
-      }
+      if (authError) throw authError;
       
-      if (!existingProfile?.phone && customerInfo.phone) {
-        updates.phone = customerInfo.phone;
-      }
+      return { success: true };
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      console.error('Error deleting account:', err);
       
-      if (Object.keys(updates).length > 0) {
-        await updateProfile(updates);
-      }
-    } catch (error) {
-      console.error('Error merging local data:', error);
+      toast({
+        title: 'Account deletion failed',
+        description: 'There was an error deleting your account.',
+        variant: 'destructive',
+      });
+      
+      return { 
+        success: false, 
+        error: err instanceof Error ? err : new Error('An unknown error occurred')
+      };
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch profile when user changes
-  useEffect(() => {
-    fetchProfile();
-    // Try to merge local data with profile
-    mergeLocalData();
-  }, [user?.id]);
-
   return {
-    profile,
     loading,
+    error,
+    profile,
     fetchProfile,
     updateProfile,
-    uploadProfileImage
+    uploadProfileImage,
+    deleteAccount,
   };
 };
