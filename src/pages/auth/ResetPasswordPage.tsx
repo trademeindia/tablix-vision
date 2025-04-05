@@ -10,8 +10,6 @@ import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import FormError from '@/components/auth/FormError';
 import LoadingButton from '@/components/auth/LoadingButton';
 import { useAuth } from '@/contexts/AuthContext';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle } from 'lucide-react';
 
 const ResetPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -30,12 +28,10 @@ const ResetPasswordPage = () => {
       
       if (error) {
         setError(error.message);
-        console.error('Reset password error:', error);
       } else {
         setSuccess(true);
       }
     } catch (err) {
-      console.error('Unexpected error during password reset:', err);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -53,20 +49,14 @@ const ResetPasswordPage = () => {
         </div>
         
         {success ? (
-          <Alert className="p-4 bg-green-50 text-green-700 rounded-md mb-4">
-            <CheckCircle className="h-4 w-4 mr-2" />
-            <AlertDescription>
+          <div className="p-4 bg-green-50 text-green-700 rounded-md mb-4">
+            <p className="text-center">
               Password reset email sent. Please check your inbox.
-            </AlertDescription>
-          </Alert>
+            </p>
+          </div>
         ) : (
           <AuthForm onSubmit={handleSubmit} className="mt-4">
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <FormError message={error} />
             
             <InputGroup>
               <Label htmlFor="email">Email</Label>

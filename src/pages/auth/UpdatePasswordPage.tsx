@@ -9,8 +9,6 @@ import FormError from '@/components/auth/FormError';
 import LoadingButton from '@/components/auth/LoadingButton';
 import PasswordInput from '@/components/auth/PasswordInput';
 import { useAuth } from '@/contexts/AuthContext';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
 
 const UpdatePasswordPage = () => {
   const [password, setPassword] = useState('');
@@ -41,14 +39,12 @@ const UpdatePasswordPage = () => {
       const { error } = await updatePassword(password);
       
       if (error) {
-        console.error('Update password error:', error);
-        setError(error.message || 'Failed to update password. Please try again.');
+        setError(error.message);
       } else {
         // Redirect to login page on success
         navigate('/auth/login');
       }
     } catch (err) {
-      console.error('Unexpected error during password update:', err);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -66,12 +62,7 @@ const UpdatePasswordPage = () => {
         </div>
         
         <AuthForm onSubmit={handleSubmit} className="mt-4">
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <FormError message={error} />
           
           <InputGroup>
             <Label htmlFor="password">New Password</Label>

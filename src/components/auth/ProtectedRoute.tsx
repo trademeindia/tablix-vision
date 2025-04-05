@@ -16,28 +16,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, userRoles, loading } = useAuth();
   const location = useLocation();
-  
-  // Show loading spinner while checking auth
+
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="flex h-screen w-full items-center justify-center">
         <Spinner size="lg" />
-        <p className="ml-2 text-lg font-medium">Authenticating...</p>
       </div>
     );
   }
 
-  // DEVELOPMENT MODE: Allow access to all routes for easier development
-  const isDevelopment = import.meta.env.DEV || true; // Force dev mode for now
-  if (isDevelopment) {
-    console.log('Development mode: bypassing authentication checks');
-    return <>{children}</>;
-  }
-
-  // Regular authentication flow
   if (!user) {
     // Redirect to login if not authenticated
-    console.log('Not authenticated, redirecting to login');
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
@@ -46,7 +35,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
     
     if (!hasRequiredRole) {
-      console.log('Unauthorized, redirecting to unauthorized page');
       // Redirect to unauthorized page if user doesn't have required role
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }

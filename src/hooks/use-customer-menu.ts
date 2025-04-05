@@ -8,13 +8,10 @@ import { useQRDataParser } from '@/hooks/use-qr-data-parser';
 import { useTestData } from '@/hooks/use-test-data';
 import { useDebugInfo } from '@/hooks/use-debug-info';
 import { toast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 
 export function useCustomerMenu() {
   const queryClient = useQueryClient();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   
   // QR code scanning hooks
   const { isScanning, startScanning, handleScan } = useQRCode();
@@ -27,14 +24,6 @@ export function useCustomerMenu() {
   
   // Test data hook
   const { usingTestData, setUsingTestData, testData } = useTestData(restaurantId);
-  
-  // Ensure user is authenticated
-  useEffect(() => {
-    if (!user) {
-      console.log("User not authenticated, redirecting to login");
-      navigate('/auth/login?role=customer');
-    }
-  }, [user, navigate]);
   
   // Parse URL parameters on load
   useEffect(() => {

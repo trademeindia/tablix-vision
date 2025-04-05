@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,16 +16,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
-  const [role, setRole] = useState<string>(searchParams.get('role') || 'customer');
-
-  useEffect(() => {
-    // Set initial role from URL parameter
-    const roleParam = searchParams.get('role');
-    if (roleParam) {
-      setRole(roleParam);
-    }
-  }, [searchParams]);
+  const [role, setRole] = useState<string>('customer');
 
   const handleRoleChange = (newRole: string) => {
     setRole(newRole);
@@ -35,13 +26,6 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
-    
-    // Basic validation
-    if (!email || !password) {
-      setError('Email and password are required');
-      setIsSubmitting(false);
-      return;
-    }
     
     try {
       const { error } = await signIn(email, password);
@@ -56,13 +40,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       const redirectPath = role === 'customer' ? '/customer/menu' :
                           role === 'staff' ? '/staff-dashboard' :
                           role === 'chef' ? '/staff-dashboard/kitchen' :
-                          role === 'waiter' ? '/staff-dashboard/orders' :
-                          role === 'owner' ? '/dashboard' : redirectTo;
-      
-      toast({
-        title: 'Login successful',
-        description: 'You have been logged in successfully.',
-      });
+                          role === 'waiter' ? '/staff-dashboard/orders' : '/';
       
       navigate(redirectPath);
     } catch (error) {
@@ -74,13 +52,8 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-      // Redirect will be handled by the OAuth callback
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      setError('Failed to sign in with Google. Please try again.');
-    }
+    await signInWithGoogle();
+    // Redirect will be handled by the OAuth callback
   };
 
   return {
@@ -111,16 +84,7 @@ export const useSignupForm = ({ redirectTo = '/auth/login' }: UseSignupFormProps
   const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
-  const [role, setRole] = useState<string>(searchParams.get('role') || 'customer');
-
-  useEffect(() => {
-    // Set initial role from URL parameter
-    const roleParam = searchParams.get('role');
-    if (roleParam) {
-      setRole(roleParam);
-    }
-  }, [searchParams]);
+  const [role, setRole] = useState<string>('customer');
 
   const handleRoleChange = (newRole: string) => {
     setRole(newRole);
@@ -143,12 +107,6 @@ export const useSignupForm = ({ redirectTo = '/auth/login' }: UseSignupFormProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
-    // Basic validation
-    if (!email || !password || !name) {
-      setError('All fields are required');
-      return;
-    }
     
     if (!validatePassword()) {
       return;
@@ -180,13 +138,8 @@ export const useSignupForm = ({ redirectTo = '/auth/login' }: UseSignupFormProps
   };
 
   const handleGoogleSignUp = async () => {
-    try {
-      await signInWithGoogle();
-      // Redirect will be handled by the OAuth callback
-    } catch (error) {
-      console.error('Google sign up error:', error);
-      setError('Failed to sign up with Google. Please try again.');
-    }
+    await signInWithGoogle();
+    // Redirect will be handled by the OAuth callback
   };
 
   return {
