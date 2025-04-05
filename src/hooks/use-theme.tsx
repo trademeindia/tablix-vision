@@ -1,121 +1,137 @@
 
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type ThemeColors = {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  text: string;
-};
-
-// Default theme colors
-const defaultTheme: ThemeColors = {
-  primary: '#FF7A00',    // Orange - main brand color
-  secondary: '#2A4365',  // Dark blue - secondary color
-  accent: '#38B2AC',     // Teal - accent color
-  background: '#F7FAFC', // Light gray - background color
-  text: '#1A202C',       // Dark gray - text color
+type Theme = {
+  primaryColor: string;
+  backgroundColor: string;
+  accentColor: string;
+  textColor: string;
 };
 
 interface ThemeContextType {
-  theme: ThemeColors;
-  setTheme: (theme: ThemeColors) => Promise<void>;
-  isLoading: boolean;
-  error: string | null;
-  resetToDefault: () => Promise<void>;
+  theme: Theme;
+  loading: boolean;
+  error: Error | null;
+  updateTheme: (newTheme: Partial<Theme>) => Promise<void>;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-  theme: defaultTheme,
-  setTheme: async () => {},
-  isLoading: false,
-  error: null,
-  resetToDefault: async () => {},
-});
+// Default theme values
+const defaultTheme: Theme = {
+  primaryColor: '#0f766e', // Default primary color
+  backgroundColor: '#ffffff',
+  accentColor: '#06b6d4',
+  textColor: '#0f172a',
+};
 
-export const ThemeProvider: React.FC<{ 
-  children: React.ReactNode; 
-  restaurantId?: string;
-}> = ({ children, restaurantId }) => {
-  const [theme, setThemeState] = useState<ThemeColors>(defaultTheme);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-  // Fetch theme from Supabase on component mount
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  restaurantId: string;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
+  children, 
+  restaurantId 
+}) => {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
   useEffect(() => {
-    if (!restaurantId) {
-      setIsLoading(false);
-      return;
-    }
-
     const fetchTheme = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-        
+        if (!restaurantId) {
+          console.log("No restaurant ID provided, using default theme");
+          setLoading(false);
+          return;
+        }
+
+        console.log("Fetching theme for restaurant:", restaurantId);
         const { data, error } = await supabase
           .from('restaurants')
           .select('theme_color')
           .eq('id', restaurantId)
           .single();
-        
-        if (error) throw error;
-        
+
+        if (error) {
+          console.error("Error fetching theme:", error);
+          setError(new Error(error.message));
+          setLoading(false);
+          return;
+        }
+
         if (data && data.theme_color) {
-          // If theme_color exists and is a string, use it as primary color and generate a theme
-          const primaryColor = data.theme_color;
-          const generatedTheme: ThemeColors = {
+          console.log("Theme fetched successfully:", data.theme_color);
+          setTheme({
             ...defaultTheme,
-            primary: primaryColor
-          };
-          setThemeState(generatedTheme);
+            primaryColor: data.theme_color,
+            accentColor: data.theme_color,
+          });
+        } else {
+          console.log("No theme found, using default");
         }
       } catch (err) {
-        console.error('Error fetching theme:', err);
-        setError('Failed to load theme settings');
+        console.error("Unexpected error fetching theme:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchTheme();
   }, [restaurantId]);
 
-  // Save theme to Supabase
-  const setTheme = async (newTheme: ThemeColors) => {
-    if (!restaurantId) return;
-    
+  const updateTheme = async (newTheme: Partial<Theme>) => {
     try {
-      setIsLoading(true);
-      setError(null);
+      if (!restaurantId) {
+        console.error("Cannot update theme: No restaurant ID provided");
+        return;
+      }
 
+      const updatedTheme = { ...theme, ...newTheme };
+      setTheme(updatedTheme);
+
+      // Update in database - only update theme_color for now
       const { error } = await supabase
         .from('restaurants')
-        .update({ theme_color: newTheme.primary })
+        .update({ 
+          theme_color: updatedTheme.primaryColor 
+        })
         .eq('id', restaurantId);
 
-      if (error) throw error;
-      setThemeState(newTheme);
+      if (error) {
+        console.error("Error updating theme:", error);
+        throw new Error(error.message);
+      }
+
+      console.log("Theme updated successfully");
     } catch (err) {
-      console.error('Error saving theme:', err);
-      setError('Failed to save theme settings');
-    } finally {
-      setIsLoading(false);
+      console.error("Error in updateTheme:", err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
     }
   };
 
-  // Reset to default theme
-  const resetToDefault = async () => {
-    await setTheme(defaultTheme);
+  const value = {
+    theme,
+    loading,
+    error,
+    updateTheme,
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, isLoading, error, resetToDefault }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

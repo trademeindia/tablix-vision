@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 import HeroSection from '@/components/landing/HeroSection';
 import ProblemSolutionSection from '@/components/landing/ProblemSolutionSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
@@ -15,6 +14,34 @@ import PageTransition from '@/components/ui/page-transition';
 import { Helmet } from 'react-helmet-async';
 
 const Menu360LandingPage: React.FC = () => {
+  // Add error boundary to catch rendering issues
+  const [hasError, setHasError] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleError = () => {
+      console.error("Error encountered in landing page");
+      setHasError(true);
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-white">
+        <h1 className="text-2xl font-bold mb-4">We're experiencing some technical difficulties</h1>
+        <p className="mb-6">We're working to fix this issue. Please try again later.</p>
+        <button 
+          className="px-4 py-2 bg-primary text-white rounded-md"
+          onClick={() => window.location.reload()}
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <Helmet>

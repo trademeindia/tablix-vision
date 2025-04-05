@@ -1,39 +1,28 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTheme } from '@/hooks/use-theme';
 
-interface ThemeProviderProps {
+interface ThemeApplierProps {
   children: React.ReactNode;
-  restaurantId?: string;
+  restaurantId: string;
 }
 
-const ThemeApplier: React.FC<ThemeProviderProps> = ({ children, restaurantId }) => {
-  const { theme, isLoading } = useTheme();
+const ThemeApplier: React.FC<ThemeApplierProps> = ({ children }) => {
+  const { theme, loading, error } = useTheme();
 
-  // Apply theme colors to CSS variables
-  useEffect(() => {
-    if (isLoading || !theme) return;
+  // Apply the theme to CSS variables
+  React.useEffect(() => {
+    if (loading) return;
     
-    // Get the document's root element
-    const root = document.documentElement;
-    
-    // Apply theme colors as CSS variables
-    root.style.setProperty('--color-primary', theme.primary);
-    root.style.setProperty('--color-secondary', theme.secondary);
-    root.style.setProperty('--color-accent', theme.accent);
-    root.style.setProperty('--color-background', theme.background);
-    root.style.setProperty('--color-text', theme.text);
-    
-    // Clean up function to reset variables when component unmounts
-    return () => {
-      root.style.removeProperty('--color-primary');
-      root.style.removeProperty('--color-secondary');
-      root.style.removeProperty('--color-accent');
-      root.style.removeProperty('--color-background');
-      root.style.removeProperty('--color-text');
-    };
-  }, [theme, isLoading]);
+    if (theme) {
+      document.documentElement.style.setProperty('--color-primary', theme.primaryColor);
+      document.documentElement.style.setProperty('--color-background', theme.backgroundColor);
+      document.documentElement.style.setProperty('--color-accent', theme.accentColor);
+      document.documentElement.style.setProperty('--color-text', theme.textColor);
+    }
+  }, [theme, loading]);
 
+  // Always render children, even with errors or during loading
   return <>{children}</>;
 };
 
