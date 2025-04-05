@@ -20,11 +20,13 @@ import { Profile } from '@/types/profile';
 import ProfileImageUpload from './ProfileImageUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const formSchema = z.object({
-  full_name: z.string().min(2, { message: "Name must be at least 2 characters." }).max(100),
-  phone: z.string().optional(),
-  address: z.string().optional(),
+  full_name: z.string().min(2, { message: "Name must be at least 2 characters." }).max(100).optional(),
+  phone: z.string().optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
   bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional().or(z.literal('')),
   website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
@@ -32,30 +34,30 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const ProfileForm: React.FC = () => {
-  const { profile, loading, fetchProfile, updateProfile } = useProfile();
-  
-  useEffect(() => {
-    const loadProfile = async () => {
-      await fetchProfile();
-    };
-    
-    loadProfile();
-  }, [fetchProfile]);
+  const { profile, loading, error, fetchProfile, updateProfile } = useProfile();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      full_name: profile?.full_name || "",
-      phone: profile?.phone || "",
-      address: profile?.address || "",
-      bio: profile?.bio || "",
-      website: profile?.website || "",
+      full_name: "",
+      phone: "",
+      address: "",
+      bio: "",
+      website: "",
     },
+    mode: "onChange",
   });
+  
+  // Fetch profile on component mount
+  useEffect(() => {
+    console.log("ProfileForm mounted, fetching profile data");
+    fetchProfile();
+  }, [fetchProfile]);
   
   // Update form when profile loads
   useEffect(() => {
     if (profile) {
+      console.log("Updating form values with profile:", profile);
       form.reset({
         full_name: profile.full_name || "",
         phone: profile.phone || "",
@@ -64,27 +66,50 @@ const ProfileForm: React.FC = () => {
         website: profile.website || "",
       });
     }
-  }, [profile, form.reset]);
+  }, [profile, form]);
   
   const onSubmit = async (values: FormValues) => {
+    console.log("Submitting form with values:", values);
     await updateProfile(values as Partial<Profile>);
   };
   
-  if (loading) {
+  if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-center py-4">
-          <Skeleton className="h-32 w-32 rounded-full" />
-        </div>
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-10 w-full" />
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load profile data. Please try refreshing the page.
+          <div className="mt-2 text-xs">
+            {error.message}
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  if (loading && !profile) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-8 w-64" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="flex justify-center py-4">
+              <Skeleton className="h-32 w-32 rounded-full" />
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
   
@@ -109,7 +134,7 @@ const ProfileForm: React.FC = () => {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your name" {...field} />
+                    <Input placeholder="Your name" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,7 +148,7 @@ const ProfileForm: React.FC = () => {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your phone number" {...field} />
+                    <Input placeholder="Your phone number" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -137,7 +162,7 @@ const ProfileForm: React.FC = () => {
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your address" {...field} />
+                    <Input placeholder="Your address" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,6 +180,7 @@ const ProfileForm: React.FC = () => {
                       placeholder="Tell us a bit about yourself" 
                       className="resize-none"
                       {...field} 
+                      value={field.value || ""} 
                     />
                   </FormControl>
                   <FormDescription>
@@ -172,14 +198,18 @@ const ProfileForm: React.FC = () => {
                 <FormItem>
                   <FormLabel>Website</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com" {...field} />
+                    <Input placeholder="https://example.com" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <Button type="submit" className="mt-4" disabled={form.formState.isSubmitting}>
+            <Button 
+              type="submit" 
+              className="mt-4" 
+              disabled={form.formState.isSubmitting || loading}
+            >
               {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </form>

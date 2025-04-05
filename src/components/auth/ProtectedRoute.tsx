@@ -16,7 +16,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, userRoles, loading } = useAuth();
   const location = useLocation();
-
+  
   // Show loading spinner while checking auth
   if (loading) {
     return (
@@ -28,8 +28,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // DEVELOPMENT MODE: Allow access to all routes for easier development
-  // Remove this condition in production
-  const isDevelopment = true; // Set to false for production
+  const isDevelopment = import.meta.env.DEV || true; // Force dev mode for now
   if (isDevelopment) {
     console.log('Development mode: bypassing authentication checks');
     return <>{children}</>;

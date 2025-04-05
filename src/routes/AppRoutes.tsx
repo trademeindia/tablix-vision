@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import AdminRoutes from './AdminRoutes';
 import CustomerRoutes from './CustomerRoutes';
 import StaffRoutes from './StaffRoutes';
@@ -11,40 +11,33 @@ import DebugPanel from '@/components/debug/DebugPanel';
 const AppRoutes: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
-
-  // Conditionally render route groups based on the current path
-  const renderRoutes = () => {
-    if (path.startsWith('/customer')) {
-      return <CustomerRoutes />;
-    } else if (path.startsWith('/staff-dashboard')) {
-      return <StaffRoutes />;
-    } else if (path === '/profile') {
-      return <ProfileRoutes />;
-    } else if (
-      path.startsWith('/dashboard') || 
-      path.startsWith('/menu') ||
-      path.startsWith('/orders') ||
-      path.startsWith('/qr-codes') ||
-      path.startsWith('/analytics') ||
-      path.startsWith('/tables') ||
-      path.startsWith('/staff') ||
-      path.startsWith('/customers') ||
-      path.startsWith('/invoices') ||
-      path.startsWith('/inventory') ||
-      path.startsWith('/google-drive-test') ||
-      path.startsWith('/marketing') ||
-      path.startsWith('/settings')
-    ) {
-      return <AdminRoutes />;
-    }
-    
-    // Default to public routes
-    return <PublicRoutes />;
-  };
+  
+  console.log('Current path:', path);
 
   return (
     <>
-      {renderRoutes()}
+      <Routes>
+        {/* Route groups */}
+        <Route path="/customer/*" element={<CustomerRoutes />} />
+        <Route path="/staff-dashboard/*" element={<StaffRoutes />} />
+        <Route path="/profile/*" element={<ProfileRoutes />} />
+        <Route path="/dashboard/*" element={<AdminRoutes />} />
+        <Route path="/menu/*" element={<AdminRoutes />} />
+        <Route path="/orders/*" element={<AdminRoutes />} />
+        <Route path="/qr-codes/*" element={<AdminRoutes />} />
+        <Route path="/analytics/*" element={<AdminRoutes />} />
+        <Route path="/tables/*" element={<AdminRoutes />} />
+        <Route path="/staff/*" element={<AdminRoutes />} />
+        <Route path="/customers/*" element={<AdminRoutes />} />
+        <Route path="/invoices/*" element={<AdminRoutes />} />
+        <Route path="/inventory/*" element={<AdminRoutes />} />
+        <Route path="/google-drive-test/*" element={<AdminRoutes />} />
+        <Route path="/marketing/*" element={<AdminRoutes />} />
+        <Route path="/settings/*" element={<AdminRoutes />} />
+        
+        {/* Public routes */}
+        <Route path="/*" element={<PublicRoutes />} />
+      </Routes>
       <DebugPanel />
     </>
   );
