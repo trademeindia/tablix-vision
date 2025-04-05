@@ -6,6 +6,8 @@ import { useLoginForm } from '@/hooks/use-auth-form';
 import RoleTabsSection from '@/components/auth/RoleTabsSection';
 import LoginForm from '@/components/auth/LoginForm';
 import AuthFormTitle from '@/components/auth/AuthFormTitle';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const LoginPage = () => {
   const {
@@ -28,6 +30,13 @@ const LoginPage = () => {
         
         <div>
           <AuthFormTitle role={role} isSignup={false} />
+          
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           
           <LoginForm 
             email={email}

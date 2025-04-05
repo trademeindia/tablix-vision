@@ -19,14 +19,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Spinner size="lg" />
+        <p className="ml-2 text-lg font-medium">Authenticating...</p>
       </div>
     );
   }
 
   if (!user) {
     // Redirect to login if not authenticated
+    console.log('Not authenticated, redirecting to login');
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
@@ -35,6 +37,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
     
     if (!hasRequiredRole) {
+      console.log('Unauthorized, redirecting to unauthorized page');
       // Redirect to unauthorized page if user doesn't have required role
       return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
