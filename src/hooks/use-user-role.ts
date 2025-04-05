@@ -34,12 +34,12 @@ export const useUserRole = (): UseUserRoleReturn => {
       // For demo accounts, we can try to get the email from the auth.getUser() API
       const { data: authData, error: authError } = await supabase.auth.getUser();
       
-      if (!authError && authData && authData.user && authData.user.email) {
+      if (!authError && authData?.user?.email) {
         const email = authData.user.email;
         
         // Check if this is a demo account
-        if (email in demoAccountRoles) {
-          const roles = demoAccountRoles[email];
+        if (Object.prototype.hasOwnProperty.call(demoAccountRoles, email)) {
+          const roles = demoAccountRoles[email as keyof typeof demoAccountRoles];
           setUserRoles(roles);
           setLoading(false);
           return roles;

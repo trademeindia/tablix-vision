@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,56 +65,91 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setIsSubmitting(true);
     
     try {
-      // First, check if the demo user already exists, and if not create it
-      const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
+      // First try to sign in with demo account credentials
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoCredentials.email,
         password: demoCredentials.password
       });
 
-      if (checkError && checkError.message.includes('Invalid login credentials')) {
-        // User doesn't exist, so create the account
-        const { error: signUpError } = await supabase.auth.signUp({
+      // If sign in successful, redirect to appropriate page
+      if (signInData?.user) {
+        // Show toast notification for successful demo login
+        toast({
+          title: 'Demo Mode Activated',
+          description: `You're now viewing the application as a ${demoCredentials.role}.`,
+        });
+
+        // Redirect based on demo account role
+        const redirectPath = getRedirectPath(demoCredentials.role);
+        navigate(redirectPath);
+        return;
+      }
+      
+      // If the user doesn't exist, create a new demo account
+      if (signInError && signInError.message.includes('Invalid login credentials')) {
+        // Create new demo user with auto-confirmation (bypassing email verification)
+        // Using the admin API would be better but not possible in the browser context
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: demoCredentials.email,
           password: demoCredentials.password,
           options: {
             data: {
               full_name: `Demo ${demoCredentials.role.charAt(0).toUpperCase() + demoCredentials.role.slice(1)}`,
-            }
+            },
+            // We need to rely on the Supabase project having email confirmation disabled for this to work
           }
         });
-
+        
         if (signUpError) {
           console.error('Demo account creation error:', signUpError);
           setError(signUpError.message || 'Failed to create demo account');
-          setIsSubmitting(false);
           return;
         }
-      }
-      
-      // Now sign in with the demo account
-      const { error } = await signIn(demoCredentials.email, demoCredentials.password);
-      
-      if (error) {
-        console.error('Demo login error:', error);
-        toast({
-          title: 'Demo Login Error',
-          description: 'There was an issue with the demo account. Please try again or create a regular account.',
-          variant: 'destructive',
-        });
-        setError(error.message || 'Failed to sign in with demo account.');
+        
+        // If account was created successfully, try signing in again
+        if (signUpData?.user) {
+          const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+            email: demoCredentials.email,
+            password: demoCredentials.password
+          });
+          
+          if (secondSignInError) {
+            console.error('Demo login after signup error:', secondSignInError);
+            
+            // Special handling for email confirmation requirements
+            if (secondSignInError.message.includes('Email not confirmed')) {
+              setError('Demo accounts require email confirmation. Please check with the administrator to ensure email confirmation is disabled in the Supabase project settings.');
+              
+              toast({
+                title: 'Demo Account Setup Required',
+                description: 'The demo account needs to be pre-configured by an administrator.',
+                variant: 'destructive',
+              });
+              return;
+            }
+            
+            setError(secondSignInError.message || 'Failed to sign in with demo account');
+            return;
+          }
+          
+          // Show toast notification
+          toast({
+            title: 'Demo Mode Activated',
+            description: `You're now viewing the application as a ${demoCredentials.role}.`,
+          });
+          
+          // Redirect based on demo account role
+          const redirectPath = getRedirectPath(demoCredentials.role);
+          navigate(redirectPath);
+          return;
+        }
+      } else if (signInError) {
+        // Handle other sign-in errors
+        console.error('Demo login error:', signInError);
+        setError(signInError.message || 'Failed to sign in with demo account.');
         return;
       }
       
-      // Redirect based on demo account role
-      const redirectPath = getRedirectPath(demoCredentials.role);
-      
-      // Show toast notification
-      toast({
-        title: 'Demo Mode Activated',
-        description: `You're now viewing the application as a ${demoCredentials.role}.`,
-      });
-      
-      navigate(redirectPath);
     } catch (error) {
       console.error('Demo login error:', error);
       setError('An unexpected error occurred. Please try again.');
