@@ -1,42 +1,12 @@
 
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Utensils, ShoppingBag, Users } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
-import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const { user, userRoles, loading } = useAuth();
-  const navigate = useNavigate();
-  
-  // Redirect authenticated users based on their roles
-  useEffect(() => {
-    if (!loading && user) {
-      // Check user roles and redirect accordingly
-      if (userRoles.includes('owner') || userRoles.includes('manager')) {
-        navigate('/dashboard');
-      } else if (userRoles.includes('chef')) {
-        navigate('/staff-dashboard/kitchen');
-      } else if (userRoles.includes('waiter')) {
-        navigate('/staff-dashboard/orders');
-      } else if (userRoles.includes('staff')) {
-        navigate('/staff-dashboard');
-      } else if (userRoles.includes('customer')) {
-        navigate('/customer/menu');
-      }
-    }
-  }, [user, userRoles, loading, navigate]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <>
       <Helmet>
@@ -83,7 +53,7 @@ const Index = () => {
                     Access all restaurant management features, including staff management, menu control, and analytics.
                   </p>
                   <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=owner">Access Owner Dashboard</Link>
+                    <Link to="/dashboard">Access Owner Dashboard</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -101,7 +71,7 @@ const Index = () => {
                     For waiters, chefs, and other staff members to manage orders, kitchen operations, and service.
                   </p>
                   <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=staff">Access Staff Dashboard</Link>
+                    <Link to="/staff-dashboard">Access Staff Dashboard</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -119,7 +89,7 @@ const Index = () => {
                     Browse restaurant menu, place orders, and manage your customer profile and preferences.
                   </p>
                   <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=customer">Access Customer Portal</Link>
+                    <Link to="/customer/menu">Access Customer Portal</Link>
                   </Button>
                 </CardContent>
               </Card>

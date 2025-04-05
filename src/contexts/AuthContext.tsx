@@ -41,91 +41,102 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check user session on mount and listen for auth state changes
   useEffect(() => {
     console.log('Setting up auth state listener');
-    setLoading(true);
+    
+    try {
+      // First set up the auth state listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, currentSession) => {
+          console.log('Auth state changed:', event);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          // Don't call fetchUserRoles directly in the listener to avoid potential deadlocks
+          if (currentSession?.user) {
+            setTimeout(() => {
+              fetchUserRoles(currentSession.user.id);
+            }, 0);
+          } else {
+            setUserRoles(['customer']);
+            setLoading(false);
+          }
+        }
+      );
 
-    // First set up the auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state changed:', event);
+      // Then check for existing session
+      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+        console.log('Initial session check:', currentSession ? 'Session exists' : 'No session');
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Don't call fetchUserRoles directly in the listener to avoid potential deadlocks
         if (currentSession?.user) {
-          setTimeout(() => {
-            fetchUserRoles(currentSession.user.id);
-          }, 0);
+          fetchUserRoles(currentSession.user.id);
         } else {
-          setUserRoles(['customer']);
+          setLoading(false);
         }
-        
+      })
+      .catch(error => {
+        console.error('Error checking session:', error);
         setLoading(false);
-      }
-    );
+      });
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log('Initial session check:', currentSession ? 'Session exists' : 'No session');
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        fetchUserRoles(currentSession.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.error('Error in auth setup:', error);
+      setLoading(false);
+    }
   }, []);
 
   const fetchUserRoles = async (userId: string) => {
     try {
       console.log('Fetching user roles for:', userId);
       
-      // First try to get roles from profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (profileData && profileData.role) {
-        console.log('Found role in profiles:', profileData.role);
-        // If role is stored as a string
-        if (typeof profileData.role === 'string') {
-          setUserRoles([profileData.role as UserRole]);
-        } 
-        // If role is stored as an array
-        else if (Array.isArray(profileData.role)) {
-          setUserRoles(profileData.role as UserRole[]);
-        }
-      } else {
-        // Fallback to checking staff table if no role in profiles
-        console.log('No profile role found, checking staff table');
-        const { data: staffData } = await supabase
-          .from('staff')
-          .select('role')
-          .eq('user_id', userId);
-          
-        if (staffData && staffData.length > 0) {
-          const roles = staffData.map(staff => staff.role as UserRole);
-          console.log('Found roles in staff table:', roles);
-          setUserRoles(roles);
-        } else {
-          // Default to customer role if no other roles found
-          console.log('No roles found, defaulting to customer');
-          setUserRoles(['customer']);
-        }
-      }
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching user roles:', error);
+      // For now, just set a default role to unblock rendering
       setUserRoles(['customer']);
       setLoading(false);
+      
+      // Continue with the actual role fetch
+      try {
+        // First try to get roles from profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (profileData && profileData.role) {
+          console.log('Found role in profiles:', profileData.role);
+          // If role is stored as a string
+          if (typeof profileData.role === 'string') {
+            setUserRoles([profileData.role as UserRole]);
+          } 
+          // If role is stored as an array
+          else if (Array.isArray(profileData.role)) {
+            setUserRoles(profileData.role as UserRole[]);
+          }
+        } else {
+          // Fallback to checking staff table if no role in profiles
+          console.log('No profile role found, checking staff table');
+          const { data: staffData } = await supabase
+            .from('staff')
+            .select('role')
+            .eq('user_id', userId);
+            
+          if (staffData && staffData.length > 0) {
+            const roles = staffData.map(staff => staff.role as UserRole);
+            console.log('Found roles in staff table:', roles);
+            setUserRoles(roles);
+          } else {
+            // Keep default customer role
+            console.log('No roles found, defaulting to customer');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user roles:', error);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserRoles:', error);
     }
   };
 

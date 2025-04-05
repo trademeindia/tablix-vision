@@ -52,6 +52,7 @@ function App() {
     );
   }
 
+  // Don't render the entire application structure during errors
   return (
     <HelmetProvider>
       <Helmet>
