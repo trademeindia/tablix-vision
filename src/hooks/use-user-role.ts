@@ -53,6 +53,7 @@ export const useUserRole = (): UseUserRoleReturn => {
           if (demoAccountRoles[email]) {
             const roles = demoAccountRoles[email];
             setUserRoles(roles);
+            setLoading(false);
             return roles;
           }
         }
@@ -61,6 +62,7 @@ export const useUserRole = (): UseUserRoleReturn => {
         // This should be replaced with actual database queries in production
         const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
         setUserRoles(mockRoles);
+        setLoading(false);
         return mockRoles;
       }
       
@@ -68,6 +70,7 @@ export const useUserRole = (): UseUserRoleReturn => {
       if (userData && userData.email && demoAccountRoles[userData.email]) {
         const roles = demoAccountRoles[userData.email];
         setUserRoles(roles);
+        setLoading(false);
         return roles;
       }
       
@@ -88,14 +91,14 @@ export const useUserRole = (): UseUserRoleReturn => {
       // For development, let's just return a mock role
       const mockRoles: UserRole[] = ['customer', 'owner', 'manager', 'chef', 'waiter', 'staff'];
       setUserRoles(mockRoles);
+      setLoading(false);
       
       return mockRoles;
     } catch (err) {
       console.error('Error fetching user roles:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
-      return [];
-    } finally {
       setLoading(false);
+      return [];
     }
   }, []);
 
