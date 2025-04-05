@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-type Theme = {
+export type ThemeColors = {
   primaryColor: string;
   backgroundColor: string;
   accentColor: string;
@@ -10,14 +10,17 @@ type Theme = {
 };
 
 interface ThemeContextType {
-  theme: Theme;
+  theme: ThemeColors;
   loading: boolean;
   error: Error | null;
-  updateTheme: (newTheme: Partial<Theme>) => Promise<void>;
+  updateTheme: (newTheme: Partial<ThemeColors>) => Promise<void>;
+  setTheme: (newTheme: ThemeColors) => Promise<void>;
+  isLoading: boolean;
+  resetToDefault: () => Promise<void>;
 }
 
 // Default theme values
-const defaultTheme: Theme = {
+const defaultTheme: ThemeColors = {
   primaryColor: '#0f766e', // Default primary color
   backgroundColor: '#ffffff',
   accentColor: '#06b6d4',
@@ -35,7 +38,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   children, 
   restaurantId 
 }) => {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [theme, setThemeState] = useState<ThemeColors>(defaultTheme);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -64,7 +67,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
         if (data && data.theme_color) {
           console.log("Theme fetched successfully:", data.theme_color);
-          setTheme({
+          setThemeState({
             ...defaultTheme,
             primaryColor: data.theme_color,
             accentColor: data.theme_color,
@@ -83,7 +86,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     fetchTheme();
   }, [restaurantId]);
 
-  const updateTheme = async (newTheme: Partial<Theme>) => {
+  const updateTheme = async (newTheme: Partial<ThemeColors>) => {
     try {
       if (!restaurantId) {
         console.error("Cannot update theme: No restaurant ID provided");
@@ -91,7 +94,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       }
 
       const updatedTheme = { ...theme, ...newTheme };
-      setTheme(updatedTheme);
+      setThemeState(updatedTheme);
 
       // Update in database - only update theme_color for now
       const { error } = await supabase
@@ -114,11 +117,34 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     }
   };
 
+  const setTheme = async (newTheme: ThemeColors) => {
+    try {
+      setThemeState(newTheme);
+      await updateTheme(newTheme);
+    } catch (err) {
+      console.error("Error in setTheme:", err);
+      throw err;
+    }
+  };
+
+  const resetToDefault = async () => {
+    try {
+      setThemeState(defaultTheme);
+      await updateTheme(defaultTheme);
+    } catch (err) {
+      console.error("Error in resetToDefault:", err);
+      throw err;
+    }
+  };
+
   const value = {
     theme,
     loading,
     error,
     updateTheme,
+    setTheme,
+    isLoading: loading,
+    resetToDefault,
   };
 
   return (
