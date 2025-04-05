@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import { useLoginForm } from '@/hooks/auth/use-login-form';
 import RoleTabsSection from '@/components/auth/RoleTabsSection';
@@ -8,6 +8,7 @@ import AuthFormTitle from '@/components/auth/AuthFormTitle';
 import DemoAccountSelector from '@/components/auth/DemoAccountSelector';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, HelpCircle } from "lucide-react";
+import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
 
 const LoginPage = () => {
   const {
@@ -25,6 +26,12 @@ const LoginPage = () => {
   } = useLoginForm();
 
   const [showDemoHelp, setShowDemoHelp] = useState(false);
+  const { initializeDemoAccounts, isInitializing } = useDemoAccounts();
+
+  useEffect(() => {
+    // Initialize demo accounts when the login page loads
+    initializeDemoAccounts();
+  }, [initializeDemoAccounts]);
 
   const toggleDemoHelp = () => setShowDemoHelp(!showDemoHelp);
 
@@ -84,13 +91,16 @@ const LoginPage = () => {
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <AlertTitle className="text-amber-800">Demo Setup Required</AlertTitle>
                 <AlertDescription className="text-sm">
-                  The demo system requires additional configuration. Please contact the administrator to ensure 
-                  email confirmation is disabled in the Supabase project settings.
+                  For demo accounts to work properly, please make sure that email confirmation is disabled
+                  in the Supabase project authentication settings.
                 </AlertDescription>
               </Alert>
             )}
             
-            <DemoAccountSelector onSelectDemo={handleDemoLogin} />
+            <DemoAccountSelector 
+              onSelectDemo={handleDemoLogin}
+              isLoading={isInitializing || isSubmitting} 
+            />
           </div>
         </div>
       </div>

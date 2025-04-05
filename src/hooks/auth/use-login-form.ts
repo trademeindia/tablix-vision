@@ -60,6 +60,8 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setIsSubmitting(true);
     
     try {
+      console.log('Attempting demo login for role:', demoCredentials.role);
+      
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoCredentials.email,
@@ -68,6 +70,8 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
       // If sign in successful, redirect to appropriate page
       if (signInData?.user) {
+        console.log('Demo login successful for existing account');
+        
         // Show toast notification for successful demo login
         toast({
           title: 'Demo Mode Activated',
@@ -80,30 +84,44 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         return;
       }
       
-      // If the user doesn't exist, create a new demo account
-      if (signInError && signInError.message.includes('Invalid login credentials')) {
-        // Create new demo user with auto-confirmation (bypassing email verification)
-        // Using the admin API would be better but not possible in the browser context
+      // If the login failed, create a new demo account
+      if (signInError) {
+        console.log('Demo login failed, attempting to create account:', signInError.message);
+        
+        // Create new demo user
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: demoCredentials.email,
           password: demoCredentials.password,
           options: {
             data: {
               full_name: `Demo ${demoCredentials.role.charAt(0).toUpperCase() + demoCredentials.role.slice(1)}`,
+              role: demoCredentials.role, // Store role in user metadata
             },
-            // We need to rely on the Supabase project having email confirmation disabled for this to work
           }
         });
         
         if (signUpError) {
           console.error('Demo account creation error:', signUpError);
+          
+          if (signUpError.message.includes('User already registered')) {
+            setError('This demo account already exists but could not be accessed. Please try a different demo account or contact support.');
+            setIsSubmitting(false);
+            return;
+          }
+          
           setError(signUpError.message || 'Failed to create demo account');
+          setIsSubmitting(false);
           return;
         }
         
         // If account was created successfully, try signing in again
         if (signUpData?.user) {
-          const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+          console.log('Demo account created, attempting login again');
+          
+          // Wait a moment for the account to be fully registered
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const { data: secondSignInData, error: secondSignInError } = await supabase.auth.signInWithPassword({
             email: demoCredentials.email,
             password: demoCredentials.password
           });
@@ -113,36 +131,38 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             
             // Special handling for email confirmation requirements
             if (secondSignInError.message.includes('Email not confirmed')) {
-              setError('Demo accounts require email confirmation. Please check with the administrator to ensure email confirmation is disabled in the Supabase project settings.');
+              setError('Demo accounts require email confirmation to be disabled in your Supabase project settings.');
               
               toast({
                 title: 'Demo Account Setup Required',
-                description: 'The demo account needs to be pre-configured by an administrator.',
+                description: 'Please check that email confirmation is disabled in the Supabase project settings.',
                 variant: 'destructive',
               });
+              setIsSubmitting(false);
               return;
             }
             
             setError(secondSignInError.message || 'Failed to sign in with demo account');
+            setIsSubmitting(false);
             return;
           }
           
-          // Show toast notification
-          toast({
-            title: 'Demo Mode Activated',
-            description: `You're now viewing the application as a ${demoCredentials.role}.`,
-          });
-          
-          // Redirect based on demo account role
-          const redirectPath = getRedirectPathByRole(demoCredentials.role);
-          navigate(redirectPath);
-          return;
+          // If second login successful
+          if (secondSignInData?.user) {
+            console.log('Second login attempt successful for new demo account');
+            
+            // Show success toast
+            toast({
+              title: 'Demo Mode Activated',
+              description: `You're now viewing the application as a ${demoCredentials.role}.`,
+            });
+            
+            // Redirect based on demo account role
+            const redirectPath = getRedirectPathByRole(demoCredentials.role);
+            navigate(redirectPath);
+            return;
+          }
         }
-      } else if (signInError) {
-        // Handle other sign-in errors
-        console.error('Demo login error:', signInError);
-        setError(signInError.message || 'Failed to sign in with demo account.');
-        return;
       }
       
     } catch (error) {

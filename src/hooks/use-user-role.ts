@@ -31,22 +31,43 @@ export const useUserRole = (): UseUserRoleReturn => {
     setError(null);
     
     try {
-      // For demo accounts, we can try to get the email from the auth.getUser() API
+      // First try to get the user data from auth.getUser() API
       const { data: authData, error: authError } = await supabase.auth.getUser();
       
-      if (!authError && authData?.user?.email) {
-        const email = authData.user.email;
+      if (!authError && authData?.user) {
+        const email = authData.user.email?.toLowerCase();
+        const userMetadata = authData.user.user_metadata;
         
-        // Check if this is a demo account
-        if (Object.prototype.hasOwnProperty.call(demoAccountRoles, email)) {
+        console.log("User data from auth:", { email, metadata: userMetadata });
+        
+        // Check if this is a demo account by email
+        if (email && Object.prototype.hasOwnProperty.call(demoAccountRoles, email)) {
           const roles = demoAccountRoles[email as keyof typeof demoAccountRoles];
+          console.log("Found demo account by email:", roles);
+          setUserRoles(roles);
+          setLoading(false);
+          return roles;
+        }
+        
+        // Check if role is stored in user_metadata
+        if (userMetadata && userMetadata.role) {
+          const role = userMetadata.role as UserRole;
+          console.log("Found role in user metadata:", role);
+          
+          // Map single role to array of roles based on hierarchy
+          let roles: UserRole[] = [role];
+          
+          // Add implied roles
+          if (role === 'owner') roles.push('manager');
+          if (role === 'chef' || role === 'waiter') roles.push('staff');
+          
           setUserRoles(roles);
           setLoading(false);
           return roles;
         }
       }
 
-      // If not a demo account, try to get user profile data
+      // If not determined from metadata, try to get user profile data
       try {
         const { data: userData, error: userError } = await supabase
           .from('profiles')
@@ -57,6 +78,7 @@ export const useUserRole = (): UseUserRoleReturn => {
         if (!userError && userData && userData.role) {
           // If the profile has a role field, use that
           const roles = [userData.role as UserRole];
+          console.log("Found role in profile:", roles);
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -70,18 +92,22 @@ export const useUserRole = (): UseUserRoleReturn => {
       if (authData?.user?.email) {
         const email = authData.user.email.toLowerCase();
         if (email.includes('owner')) {
+          console.log("Defaulting to owner role based on email pattern");
           setUserRoles(['owner', 'manager']);
           setLoading(false);
           return ['owner', 'manager'];
         } else if (email.includes('chef')) {
+          console.log("Defaulting to chef role based on email pattern");
           setUserRoles(['chef', 'staff']);
           setLoading(false);
           return ['chef', 'staff'];
         } else if (email.includes('waiter')) {
+          console.log("Defaulting to waiter role based on email pattern");
           setUserRoles(['waiter', 'staff']);
           setLoading(false);
           return ['waiter', 'staff'];
         } else if (email.includes('staff')) {
+          console.log("Defaulting to staff role based on email pattern");
           setUserRoles(['staff']);
           setLoading(false);
           return ['staff'];
@@ -89,6 +115,7 @@ export const useUserRole = (): UseUserRoleReturn => {
       }
       
       // Default role
+      console.log("Using default customer role");
       const defaultRoles: UserRole[] = ['customer'];
       setUserRoles(defaultRoles);
       setLoading(false);

@@ -44,34 +44,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updatePassword
   } = useSession();
   
-  const { userRoles, fetchUserRoles } = useUserRole();
-  const [rolesLoading, setRolesLoading] = useState(true);
-  const loading = sessionLoading || rolesLoading;
+  const { userRoles, fetchUserRoles, loading: rolesLoading } = useUserRole();
+  const [loading, setLoading] = useState(true);
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
     const loadUserRoles = async () => {
       if (user) {
+        console.log("Auth context: User detected, fetching roles");
         try {
           await fetchUserRoles(user.id);
         } catch (error) {
           console.error("Error fetching user roles:", error);
-        } finally {
-          setRolesLoading(false);
         }
       } else {
-        setRolesLoading(false);
+        console.log("Auth context: No user detected");
       }
+      
+      // We always set loading to false, regardless of whether we have a user or not
+      setLoading(false);
     };
 
-    loadUserRoles();
-  }, [user, fetchUserRoles]);
+    // Only wait for roles if we have a user
+    if (!sessionLoading) {
+      loadUserRoles();
+    }
+  }, [user, sessionLoading, fetchUserRoles]);
 
   const value = {
     user,
     session,
     userRoles,
-    loading,
+    loading: sessionLoading || loading,
     signIn,
     signUp,
     signInWithGoogle,

@@ -2,13 +2,14 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Utensils, Users, ChefHat, ShoppingBag } from 'lucide-react';
+import { Utensils, Users, ChefHat, ShoppingBag, Loader2 } from 'lucide-react';
 
 interface DemoAccountSelectorProps {
   onSelectDemo: (credentials: { email: string; password: string; role: string }) => void;
+  isLoading?: boolean;
 }
 
-const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo }) => {
+const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo, isLoading = false }) => {
   const demoAccounts = [
     { 
       role: 'owner',
@@ -66,8 +67,16 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo 
                     password: account.password,
                     role: account.role
                   })}
+                  disabled={isLoading}
                 >
-                  Try {account.title}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    `Try ${account.title}`
+                  )}
                 </Button>
               </div>
             </CardContent>
