@@ -33,7 +33,7 @@ export const useUserRole = (): UseUserRoleReturn => {
     try {
       // Get the user's email to check if it's a demo account
       const { data: userData, error: userError } = await supabase
-        .from('auth')
+        .from('profiles')
         .select('email')
         .eq('id', userId)
         .single();
@@ -42,6 +42,20 @@ export const useUserRole = (): UseUserRoleReturn => {
       // we'll check if we can detect demo accounts through another method
       if (userError) {
         console.log('Could not fetch user data, checking for demo account through other means');
+        
+        // For demo accounts, we can try to get the email from the auth.getUser() API
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        
+        if (!authError && authData && authData.user && authData.user.email) {
+          const email = authData.user.email;
+          
+          // Check if this is a demo account
+          if (demoAccountRoles[email]) {
+            const roles = demoAccountRoles[email];
+            setUserRoles(roles);
+            return roles;
+          }
+        }
         
         // For development, let's just return a mock role
         // This should be replaced with actual database queries in production
