@@ -6,6 +6,9 @@ import DemoBanner from './DemoBanner';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 
 interface StaffDashboardLayoutProps {
   children: React.ReactNode;
@@ -59,25 +62,22 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
       {/* Demo Banner - shown only for demo accounts */}
       {isDemoAccount && demoRole && <DemoBanner role={demoRole} />}
       
-      <div className="flex flex-1 h-full overflow-hidden lg:flex-row">
-        {/* Mobile sidebar - shown conditionally */}
-        {sidebarOpen && isMobile && (
-          <div className="fixed inset-0 z-40 transition-opacity duration-300 lg:hidden">
-            <div 
-              className="absolute inset-0 bg-slate-900/50" 
-              onClick={() => setSidebarOpen(false)}
-              aria-hidden="true"
-            />
-            <div className="relative h-full w-64 bg-slate-800 shadow-xl">
+      <div className="flex flex-1 h-full overflow-hidden">
+        {/* Mobile sidebar using Sheet component for better mobile experience */}
+        {isMobile && (
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetContent side="left" className="p-0 w-64 sm:max-w-sm">
               <StaffSidebar onCloseSidebar={() => setSidebarOpen(false)} />
-            </div>
-          </div>
+            </SheetContent>
+          </Sheet>
         )}
         
         {/* Desktop sidebar - always visible on larger screens */}
-        <div className={`${isMobile ? 'hidden' : 'hidden lg:block'}`}>
-          <StaffSidebar />
-        </div>
+        {!isMobile && (
+          <div className="hidden lg:block h-full">
+            <StaffSidebar />
+          </div>
+        )}
         
         <div className="flex-1 flex flex-col overflow-hidden">
           <StaffHeader onMenuButtonClick={toggleSidebar} />
