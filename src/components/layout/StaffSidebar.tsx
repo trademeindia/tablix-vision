@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type StaffRole = 'Waiter' | 'Chef' | 'Manager';
 
@@ -66,6 +67,7 @@ interface StaffSidebarProps {
 const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
   
   // Handle location errors gracefully
   let pathname = '/';
@@ -80,7 +82,9 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   }, []);
 
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
+    if (!isMobile) {
+      setCollapsed(!collapsed);
+    }
   };
 
   // Filter nav items based on current role
@@ -93,10 +97,10 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   return (
     <div className={cn(
       "h-full bg-slate-800 text-white flex flex-col transition-all duration-300 ease-in-out border-r border-slate-700",
-      collapsed ? "w-20" : "w-64"
+      collapsed && !isMobile ? "w-20" : "w-full md:w-64"
     )}>
       <div className="p-4 flex items-center justify-between border-b border-slate-700">
-        {!collapsed && (
+        {!(collapsed && !isMobile) && (
           <h1 className="text-xl font-bold">StaffPortal</h1>
         )}
         
@@ -107,23 +111,25 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
               variant="ghost" 
               size="icon"
               onClick={onCloseSidebar}
-              className="text-white hover:bg-slate-700 lg:hidden mr-2"
+              className="text-white hover:bg-slate-700 ml-auto"
             >
               <X className="h-5 w-5" />
             </Button>
           )}
           
           {/* Collapse button - only shown on desktop */}
-          <button 
-            onClick={toggleSidebar} 
-            className={cn(
-              "p-2 rounded-md hover:bg-slate-700 hidden lg:block",
-              collapsed && "mx-auto"
-            )}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <MenuIcon className="h-5 w-5" />
-          </button>
+          {!isMobile && (
+            <button 
+              onClick={toggleSidebar} 
+              className={cn(
+                "p-2 rounded-md hover:bg-slate-700 hidden md:block",
+                collapsed && "mx-auto"
+              )}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <MenuIcon className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
       
@@ -138,12 +144,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
                 pathname === item.href
                   ? "bg-slate-700 text-white"
                   : "text-slate-300 hover:bg-slate-700 hover:text-white",
-                collapsed ? "justify-center" : "justify-start"
+                collapsed && !isMobile ? "justify-center" : "justify-start"
               )}
               onClick={onCloseSidebar}
             >
-              {item.icon}
-              {!collapsed && <span className="ml-3">{item.title}</span>}
+              <span className="flex-shrink-0">{item.icon}</span>
+              {!(collapsed && !isMobile) && <span className="ml-3">{item.title}</span>}
             </Link>
           ))}
         </nav>
@@ -153,12 +159,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
       <div className="p-4">
         <div className={cn(
           "flex items-center",
-          collapsed ? "justify-center" : "justify-start"
+          collapsed && !isMobile ? "justify-center" : "justify-start"
         )}>
           <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
             <span className="text-white font-medium">JS</span>
           </div>
-          {!collapsed && (
+          {!(collapsed && !isMobile) && (
             <div className="ml-3">
               <p className="text-sm font-medium">Jane Smith</p>
               <p className="text-xs text-slate-400">{currentRole}</p>

@@ -6,9 +6,7 @@ import DemoBanner from './DemoBanner';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 interface StaffDashboardLayoutProps {
   children: React.ReactNode;
@@ -37,7 +35,12 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   useEffect(() => {
     // Ensure the component is mounted before showing content
     setIsLoaded(true);
-  }, []);
+    
+    // Close sidebar when route changes on mobile
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location, isMobile]);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -57,11 +60,14 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
       {/* Demo Banner - shown only for demo accounts */}
       {isDemoAccount && demoRole && <DemoBanner role={demoRole} />}
       
+      {/* Header is always visible */}
+      <StaffHeader onMenuButtonClick={toggleSidebar} />
+      
       <div className="flex flex-1 h-full overflow-hidden">
         {/* Mobile sidebar using Sheet component for better mobile experience */}
         {isMobile ? (
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetContent side="left" className="p-0 w-64 sm:max-w-sm">
+            <SheetContent side="left" className="p-0 w-[85%] max-w-[300px] border-r border-slate-200 bg-slate-800">
               <StaffSidebar onCloseSidebar={() => setSidebarOpen(false)} />
             </SheetContent>
           </Sheet>
@@ -72,12 +78,9 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
           </div>
         )}
         
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <StaffHeader onMenuButtonClick={toggleSidebar} />
-          <main className="flex-1 overflow-y-auto p-3 md:p-6">
-            {children}
-          </main>
-        </div>
+        <main className="flex-1 overflow-y-auto p-3 md:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

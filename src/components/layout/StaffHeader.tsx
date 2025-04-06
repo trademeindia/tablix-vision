@@ -37,14 +37,14 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
   });
 
   return (
-    <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-6 bg-white">
+    <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-6 bg-white shadow-sm">
       <div className="flex items-center">
         {/* Always show menu button for toggling the sidebar */}
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={onMenuButtonClick}
-          className="mr-2"
+          className="mr-2 hover:bg-slate-100"
           aria-label="Toggle menu"
         >
           <Menu className="h-5 w-5" />
