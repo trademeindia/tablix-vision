@@ -32,12 +32,6 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     location = useLocation();
   } catch (error) {
     console.error("Error using router:", error);
-    // Render a fallback UI
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading dashboard...</p>
-      </div>
-    );
   }
   
   useEffect(() => {
@@ -49,6 +43,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     setSidebarOpen(!sidebarOpen);
   };
   
+  // Show a loading state initially to prevent flash of content
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -64,17 +59,15 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
       
       <div className="flex flex-1 h-full overflow-hidden">
         {/* Mobile sidebar using Sheet component for better mobile experience */}
-        {isMobile && (
+        {isMobile ? (
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetContent side="left" className="p-0 w-64 sm:max-w-sm">
               <StaffSidebar onCloseSidebar={() => setSidebarOpen(false)} />
             </SheetContent>
           </Sheet>
-        )}
-        
-        {/* Desktop sidebar - always visible on larger screens */}
-        {!isMobile && (
-          <div className="hidden lg:block h-full">
+        ) : (
+          /* Desktop sidebar - always visible on larger screens */
+          <div className="h-full">
             <StaffSidebar />
           </div>
         )}

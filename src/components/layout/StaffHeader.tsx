@@ -5,7 +5,6 @@ import { Avatar } from '@/components/ui/avatar';
 import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { useNavigate } from 'react-router-dom';
 import NotificationsPopover from '@/components/staff/NotificationsPopover';
 import { useRealtimeNotifications } from '@/hooks/notifications';
@@ -17,22 +16,12 @@ interface StaffHeaderProps {
 const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   // In a real app, you would fetch the staff and restaurant info from authentication context
   const staffId = 'staff-id-123';
   const staffName = "Jane Smith";
   const staffRole = "Waiter"; // This would come from your user authentication
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
-
-  // Navigation items for the mobile drawer
-  const navItems = [
-    { label: "Dashboard", path: "/staff-dashboard" },
-    { label: "Orders", path: "/staff-dashboard/orders" },
-    { label: "Kitchen View", path: "/staff-dashboard/kitchen" },
-    { label: "Inventory", path: "/staff-dashboard/inventory" },
-    { label: "Reports", path: "/staff-dashboard/reports" },
-  ];
 
   // Set up real-time notifications
   const { 

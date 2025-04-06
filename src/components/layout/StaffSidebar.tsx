@@ -12,6 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 type StaffRole = 'Waiter' | 'Chef' | 'Manager';
 
@@ -148,7 +149,8 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
         </nav>
       </div>
       
-      <div className="p-4 border-t border-slate-700">
+      <Separator className="bg-slate-700" />
+      <div className="p-4">
         <div className={cn(
           "flex items-center",
           collapsed ? "justify-center" : "justify-start"
