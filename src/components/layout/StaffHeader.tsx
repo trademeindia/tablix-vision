@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import NotificationsPopover from '@/components/staff/NotificationsPopover';
 import { useRealtimeNotifications } from '@/hooks/notifications';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StaffHeaderProps {
   onMenuButtonClick?: () => void;
@@ -16,11 +17,15 @@ interface StaffHeaderProps {
 const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { user, userRoles } = useAuth();
   
-  // In a real app, you would fetch the staff and restaurant info from authentication context
-  const staffId = 'staff-id-123';
-  const staffName = "Jane Smith";
-  const staffRole = "Waiter"; // This would come from your user authentication
+  // Get user information from authentication context
+  const staffName = user?.user_metadata?.full_name || "Staff User";
+  const staffRole = userRoles.includes('chef') ? "Chef" : 
+                    userRoles.includes('waiter') ? "Waiter" : 
+                    userRoles.includes('manager') ? "Manager" : "Staff";
+  
+  const staffId = user?.id || 'staff-id-123';
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
 
   // Set up real-time notifications
@@ -36,15 +41,26 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
     restaurantId
   });
 
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+  };
+
+  const staffInitials = getInitials(staffName);
+
   return (
     <div className="h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-6 bg-white shadow-sm">
       <div className="flex items-center">
-        {/* Always show menu button for toggling the sidebar */}
+        {/* Hamburger menu button with improved touch target */}
         <Button 
           variant="ghost" 
-          size="sm" 
+          size="icon"
           onClick={onMenuButtonClick}
-          className="mr-2 hover:bg-slate-100"
+          className="mr-2 hover:bg-slate-100 -ml-2 h-10 w-10"
           aria-label="Toggle menu"
         >
           <Menu className="h-5 w-5" />
@@ -57,7 +73,7 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
         </h2>
       </div>
       
-      <div className="flex items-center space-x-3 md:space-x-4">
+      <div className="flex items-center space-x-2 md:space-x-4">
         <NotificationsPopover
           notifications={notifications}
           unreadCount={unreadCount}
@@ -70,7 +86,7 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
         
         <div className="flex items-center">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-orange-500 text-white">JS</AvatarFallback>
+            <AvatarFallback className="bg-orange-500 text-white">{staffInitials}</AvatarFallback>
           </Avatar>
         </div>
       </div>

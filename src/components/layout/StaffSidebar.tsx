@@ -9,22 +9,19 @@ import {
   ClipboardList,
   BarChart,
   Menu as MenuIcon,
-  X
+  X,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-type StaffRole = 'Waiter' | 'Chef' | 'Manager';
-
-// In a real app, you would get the staff role from authentication
-const currentRole: StaffRole = 'Manager'; // Changed to Manager to show all menu items
+import { useAuth } from '@/contexts/AuthContext';
 
 type NavItem = {
   title: string;
   href: string;
   icon: React.ReactNode;
-  roles: StaffRole[];
+  roles: string[];
 };
 
 const navItems: NavItem[] = [
@@ -32,31 +29,31 @@ const navItems: NavItem[] = [
     title: "Dashboard",
     href: "/staff-dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
-    roles: ['Waiter', 'Chef', 'Manager'],
+    roles: ['waiter', 'chef', 'manager', 'staff'],
   },
   {
     title: "Orders",
     href: "/staff-dashboard/orders",
     icon: <ShoppingCart className="h-5 w-5" />,
-    roles: ['Waiter', 'Manager'],
+    roles: ['waiter', 'manager', 'staff'],
   },
   {
     title: "Kitchen View",
     href: "/staff-dashboard/kitchen",
     icon: <ChefHat className="h-5 w-5" />,
-    roles: ['Chef', 'Manager'],
+    roles: ['chef', 'manager', 'staff'],
   },
   {
     title: "Inventory",
     href: "/staff-dashboard/inventory",
     icon: <ClipboardList className="h-5 w-5" />,
-    roles: ['Manager'],
+    roles: ['manager', 'chef', 'staff'],
   },
   {
     title: "Reports",
     href: "/staff-dashboard/reports",
     icon: <BarChart className="h-5 w-5" />,
-    roles: ['Manager'],
+    roles: ['manager', 'staff'],
   },
 ];
 
@@ -68,6 +65,13 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+  const { userRoles, user } = useAuth();
+  
+  // Get user information
+  const staffName = user?.user_metadata?.full_name || "Staff User";
+  const staffRole = userRoles.includes('chef') ? "Chef" : 
+                   userRoles.includes('waiter') ? "Waiter" : 
+                   userRoles.includes('manager') ? "Manager" : "Staff";
   
   // Handle location errors gracefully
   let pathname = '/';
@@ -87,8 +91,21 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
     }
   };
 
-  // Filter nav items based on current role
-  const filteredNavItems = navItems.filter(item => item.roles.includes(currentRole));
+  // Filter nav items based on user roles
+  const filteredNavItems = navItems.filter(item => 
+    item.roles.some(role => userRoles.includes(role))
+  );
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+  };
+
+  const staffInitials = getInitials(staffName);
 
   if (!mounted) {
     return <div className="h-full bg-slate-800 w-64"></div>;
@@ -144,7 +161,8 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
                 pathname === item.href
                   ? "bg-slate-700 text-white"
                   : "text-slate-300 hover:bg-slate-700 hover:text-white",
-                collapsed && !isMobile ? "justify-center" : "justify-start"
+                collapsed && !isMobile ? "justify-center" : "justify-start",
+                "active:bg-slate-600" // Add active state for touch feedback
               )}
               onClick={onCloseSidebar}
             >
@@ -162,12 +180,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
           collapsed && !isMobile ? "justify-center" : "justify-start"
         )}>
           <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
-            <span className="text-white font-medium">JS</span>
+            <span className="text-white font-medium">{staffInitials}</span>
           </div>
           {!(collapsed && !isMobile) && (
             <div className="ml-3">
-              <p className="text-sm font-medium">Jane Smith</p>
-              <p className="text-xs text-slate-400">{currentRole}</p>
+              <p className="text-sm font-medium">{staffName}</p>
+              <p className="text-xs text-slate-400">{staffRole}</p>
             </div>
           )}
         </div>

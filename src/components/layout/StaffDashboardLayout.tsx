@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Toaster } from '@/components/ui/toaster';
 
 interface StaffDashboardLayoutProps {
   children: React.ReactNode;
@@ -37,7 +38,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     setIsLoaded(true);
     
     // Close sidebar when route changes on mobile
-    if (isMobile) {
+    if (isMobile && location) {
       setSidebarOpen(false);
     }
   }, [location, isMobile]);
@@ -56,7 +57,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   }
   
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
       {/* Demo Banner - shown only for demo accounts */}
       {isDemoAccount && demoRole && <DemoBanner role={demoRole} />}
       
@@ -67,19 +68,24 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
         {/* Mobile sidebar using Sheet component for better mobile experience */}
         {isMobile ? (
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetContent side="left" className="p-0 w-[85%] max-w-[300px] border-r border-slate-200 bg-slate-800">
+            <SheetContent 
+              side="left" 
+              className="p-0 w-[85%] max-w-[300px] border-r border-slate-200 bg-slate-800"
+              overlayClassName="z-40"
+            >
               <StaffSidebar onCloseSidebar={() => setSidebarOpen(false)} />
             </SheetContent>
           </Sheet>
         ) : (
           /* Desktop sidebar - always visible on larger screens */
-          <div className="h-full">
+          <div className="h-full hidden md:block">
             <StaffSidebar />
           </div>
         )}
         
-        <main className="flex-1 overflow-y-auto p-3 md:p-6">
+        <main className="flex-1 overflow-y-auto p-3 md:p-6 w-full">
           {children}
+          <Toaster />
         </main>
       </div>
     </div>
