@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode, useEffect, useState } from
 import { User, Session } from '@supabase/supabase-js';
 import { useSession } from '@/hooks/use-session';
 import { useUserRole, UserRole } from '@/hooks/use-user-role';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,7 @@ interface AuthContextType {
   signOut: () => Promise<{ error: any | null }>;
   resetPassword: (email: string) => Promise<{ error: any | null }>;
   updatePassword: (password: string) => Promise<{ error: any | null }>;
+  refreshUserRoles: () => Promise<UserRole[]>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { userRoles, fetchUserRoles, loading: rolesLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
   const [lastUserId, setLastUserId] = useState<string | null>(null);
+  const [roleRefreshAttempts, setRoleRefreshAttempts] = useState(0);
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
@@ -69,6 +72,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error("Error fetching user roles:", error);
+        
+        // Retry role fetching if failed (maximum 3 attempts)
+        if (roleRefreshAttempts < 3 && user) {
+          console.log(`Retrying role fetch (attempt ${roleRefreshAttempts + 1}/3)`);
+          setRoleRefreshAttempts(prev => prev + 1);
+          
+          setTimeout(() => {
+            fetchUserRoles(user.id).catch(e => 
+              console.error("Retry failed:", e)
+            );
+          }, 2000); // Retry after 2 seconds
+        }
       } finally {
         // We always set loading to false, regardless of whether we have a user or not
         setLoading(false);
@@ -79,7 +94,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!sessionLoading) {
       loadUserRoles();
     }
-  }, [user, sessionLoading, fetchUserRoles, lastUserId]);
+  }, [user, sessionLoading, fetchUserRoles, lastUserId, roleRefreshAttempts]);
+
+  // Function to manually refresh user roles
+  const refreshUserRoles = async (): Promise<UserRole[]> => {
+    if (!user) {
+      console.warn("Cannot refresh roles: No user logged in");
+      return [];
+    }
+    
+    try {
+      console.log("Manually refreshing user roles for:", user.email);
+      const roles = await fetchUserRoles(user.id);
+      console.log("Refreshed roles:", roles);
+      
+      if (roles.length === 0) {
+        toast.warning("No roles assigned to this user");
+      }
+      
+      return roles;
+    } catch (error) {
+      console.error("Error refreshing user roles:", error);
+      toast.error("Failed to refresh user roles");
+      return userRoles; // Return current roles on failure
+    }
+  };
 
   const value = {
     user,
@@ -92,6 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     resetPassword,
     updatePassword,
+    refreshUserRoles,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
