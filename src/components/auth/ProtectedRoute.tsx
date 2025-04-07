@@ -15,17 +15,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles,
 }) => {
-  const { user, userRoles, loading } = useAuth();
+  const { user, userRoles, loading, refreshUserRoles } = useAuth();
   const location = useLocation();
   const [authChecked, setAuthChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
+  const [autoRetryCount, setAutoRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   // Verify access rights when auth state or required roles change
   useEffect(() => {
-    const checkAccess = () => {
+    const checkAccess = async () => {
       // If still loading, wait
-      if (loading) return;
+      if (loading) {
+        console.log('Protected route: Still loading auth state...');
+        return;
+      }
 
       // If no user, no access
       if (!user) {
@@ -35,12 +39,31 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         return;
       }
 
+      console.log('Protected route: User logged in as', user.email);
+
       // If no role requirement, grant access
       if (!requiredRoles || requiredRoles.length === 0) {
         console.log('Protected route: No roles required, granting access.');
         setAuthChecked(true);
         setHasAccess(true);
         return;
+      }
+
+      // Check if we have any roles yet
+      if (userRoles.length === 0 && autoRetryCount < 2) {
+        console.log('Protected route: No roles detected. Attempting to refresh roles...');
+        setAutoRetryCount(prev => prev + 1);
+        
+        // Try to refresh roles
+        try {
+          const refreshedRoles = await refreshUserRoles();
+          console.log('Protected route: Roles refreshed:', refreshedRoles);
+          
+          // We'll let the next effect run handle the updated roles
+          return;
+        } catch (error) {
+          console.error('Protected route: Failed to refresh roles:', error);
+        }
       }
 
       // Check user roles against required roles
@@ -57,14 +80,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       setHasAccess(hasRequiredRole);
       
       // Show toast for unauthorized access
-      if (!hasRequiredRole) {
+      if (!hasRequiredRole && userRoles.length > 0) {
         toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
       }
     };
 
-    // Call check immediately if not loading, or when loading changes to false
+    // Call check immediately
     checkAccess();
-  }, [user, userRoles, requiredRoles, loading]);
+  }, [user, userRoles, requiredRoles, loading, refreshUserRoles, autoRetryCount]);
 
   // Debug toggle function - only in development
   const toggleDebugInfo = () => {
@@ -75,7 +98,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         requiredRoles,
         hasAccess,
         authChecked,
-        loading
+        loading,
+        location: location.pathname
       };
       setDebugInfo(JSON.stringify(info, null, 2));
     } else {
@@ -90,6 +114,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div className="text-center">
           <Spinner size="lg" className="mx-auto mb-4" />
           <p className="text-slate-600">Verifying access...</p>
+          {autoRetryCount > 0 && (
+            <p className="text-slate-500 text-sm mt-2">Retry attempt: {autoRetryCount}/2</p>
+          )}
         </div>
       </div>
     );

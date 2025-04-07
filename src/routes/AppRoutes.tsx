@@ -7,12 +7,14 @@ import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
 import { useAuth } from '@/contexts/AuthContext';
+import Spinner from '@/components/ui/spinner'; // Import Spinner for loading state
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
   const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
-  const { user, loading } = useAuth();
+  const { user, loading, userRoles } = useAuth();
+  const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -25,6 +27,30 @@ const AppRoutes: React.FC = () => {
       setLoadingError(true);
     }
   }, [location]);
+
+  // Mark initial load as complete once auth loading is done
+  useEffect(() => {
+    if (!loading && !initialLoadComplete) {
+      setInitialLoadComplete(true);
+      console.log('Initial auth load complete:', {
+        user: user?.email,
+        roles: userRoles,
+        path: location.pathname
+      });
+    }
+  }, [loading, user, userRoles, initialLoadComplete, location]);
+
+  // Show loading spinner during the initial auth check
+  if (loading && !initialLoadComplete) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" className="mx-auto mb-4" />
+          <p className="text-slate-600">Loading application...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show error message if route loading failed
   if (loadingError) {
@@ -42,8 +68,21 @@ const AppRoutes: React.FC = () => {
     );
   }
 
+  // Show 404 for invalid paths
+  const isKnownPath = [
+    '/auth', '/dashboard', '/customer', '/staff-dashboard', 
+    '/profile', '/menu', '/orders', '/qr-codes', '/analytics', 
+    '/tables', '/staff', '/customers', '/invoices', '/inventory', 
+    '/google-drive-test', '/marketing', '/settings', '/unauthorized', '/menu360'
+  ].some(prefix => path.startsWith(prefix)) || path === '/';
+
+  if (!isKnownPath && initialLoadComplete) {
+    console.log('Unknown path detected:', path);
+    return <Navigate to="/auth/login" replace />;
+  }
+
   // Always redirect to login if not authenticated and at root path
-  if (path === "/" && !loading) {
+  if (path === "/" && !loading && !user) {
     return <Navigate to="/auth/login" replace />;
   }
 
@@ -72,7 +111,8 @@ const AppRoutes: React.FC = () => {
       path.startsWith('/marketing') ||
       path.startsWith('/settings')
     ) {
-      return <Navigate to="/auth/login" replace />;
+      console.log('Unauthorized access attempt to protected path:', path);
+      return <Navigate to="/auth/login" state={{ from: path }} replace />;
     }
   }
 

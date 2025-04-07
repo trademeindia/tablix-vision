@@ -17,7 +17,7 @@ interface LocationState {
 const UnauthorizedPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, userRoles, signOut } = useAuth();
+  const { user, userRoles, signOut, refreshUserRoles } = useAuth();
   const [showDebug, setShowDebug] = useState(false);
   const [retrying, setRetrying] = useState(false);
   
@@ -29,9 +29,14 @@ const UnauthorizedPage = () => {
   
   // Handle logout
   const handleLogout = async () => {
-    await signOut();
-    toast.success('You have been logged out');
-    navigate('/auth/login', { replace: true });
+    try {
+      await signOut();
+      toast.success('You have been logged out');
+      navigate('/auth/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to log out. Please try again.');
+    }
   };
   
   // Go back to previous page
@@ -44,6 +49,9 @@ const UnauthorizedPage = () => {
     setRetrying(true);
     try {
       toast.info('Refreshing your access permissions...');
+      
+      // Attempt to refresh roles
+      await refreshUserRoles();
       
       // Attempt to navigate to the original destination after a short delay
       // This gives time for any role updates to propagate
@@ -58,15 +66,30 @@ const UnauthorizedPage = () => {
     }
   };
   
+  // Go to dashboard based on role
+  const goToDashboard = () => {
+    // Determine appropriate dashboard based on role
+    if (userRoles.includes('customer')) {
+      navigate('/customer/menu', { replace: true });
+    } else if (userRoles.includes('chef')) {
+      navigate('/staff-dashboard/kitchen', { replace: true });
+    } else if (userRoles.includes('waiter')) {
+      navigate('/staff-dashboard/orders', { replace: true });
+    } else {
+      navigate('/dashboard', { replace: true });
+    }
+  };
+  
   // Log diagnostic information
   useEffect(() => {
     console.log('UnauthorizedPage mounted with state:', {
       fromPath,
       stateUserRoles,
       stateRequiredRoles,
-      currentUserRoles: userRoles
+      currentUserRoles: userRoles,
+      user: user?.email
     });
-  }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles]);
+  }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, user]);
 
   return (
     <>
@@ -85,7 +108,7 @@ const UnauthorizedPage = () => {
                 <div className="mt-2 text-sm">
                   <p>You are logged in as: <span className="font-medium">{user.email}</span></p>
                   <p>Your current role{userRoles.length > 1 ? 's' : ''}: {' '}
-                    <span className="font-medium">{userRoles.join(', ')}</span>
+                    <span className="font-medium">{userRoles.join(', ') || 'None assigned'}</span>
                   </p>
                   {stateRequiredRoles && stateRequiredRoles.length > 0 && (
                     <p>Required role{stateRequiredRoles.length > 1 ? 's' : ''}: {' '}
@@ -127,6 +150,11 @@ const UnauthorizedPage = () => {
                   <p className="text-xs text-slate-600 mt-1">
                     User email: {user?.email || 'Not available'}
                   </p>
+                  {user?.user_metadata && (
+                    <p className="text-xs text-slate-600 mt-1">
+                      User metadata: {JSON.stringify(user.user_metadata, null, 2)}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -152,11 +180,9 @@ const UnauthorizedPage = () => {
               Go Back
             </Button>
             
-            <Button asChild variant="outline">
-              <Link to="/" className="flex items-center justify-center">
-                <Home className="mr-2 h-4 w-4" />
-                Go to Home
-              </Link>
+            <Button onClick={goToDashboard} variant="outline" className="flex items-center justify-center">
+              <Home className="mr-2 h-4 w-4" />
+              Go to Dashboard
             </Button>
             
             <Button variant="ghost" onClick={handleLogout} className="flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50">
