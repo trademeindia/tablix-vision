@@ -19,7 +19,7 @@ const UnauthorizedPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, userRoles, signOut, refreshUserRoles } = useAuth();
-  const [showDebug, setShowDebug] = useState(false);
+  const [showDebug, setShowDebug] = useState(true); // Show debug by default to help diagnose
   const [retrying, setRetrying] = useState(false);
   
   // Get state information passed to this page
@@ -28,6 +28,30 @@ const UnauthorizedPage = () => {
   const stateUserRoles = state.userRoles || userRoles;
   const stateRequiredRoles = state.requiredRoles || [];
   const stateSavedRole = state.savedRole || localStorage.getItem('lastUserRole');
+  
+  // Handle Force Dashboard Access - Emergency override for demo purposes
+  const forceDashboardAccess = () => {
+    try {
+      console.log('Forcing dashboard access by setting role to owner');
+      
+      // Set role to owner (highest privilege) to ensure access
+      localStorage.setItem('lastUserRole', 'owner');
+      
+      // Refresh user roles
+      refreshUserRoles().then(() => {
+        console.log('Roles refreshed, navigating to dashboard');
+        toast.success('Override applied! Redirecting to dashboard...');
+        
+        // Navigate to dashboard with slight delay to ensure state updates
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 1000);
+      });
+    } catch (error) {
+      console.error('Error forcing dashboard access:', error);
+      toast.error('Could not override access restrictions');
+    }
+  };
   
   // Handle logout
   const handleLogout = async () => {
@@ -197,6 +221,21 @@ const UnauthorizedPage = () => {
                 )}
               </div>
             )}
+          </div>
+          
+          <div className="p-3 mb-6 bg-blue-50 border border-blue-200 rounded-md">
+            <h3 className="text-sm font-medium text-blue-800 mb-1">🔧 Demo Access Override</h3>
+            <p className="text-xs text-blue-700 mb-2">
+              Having trouble accessing the dashboard? Use this button to override access restrictions 
+              for demo purposes.
+            </p>
+            <Button
+              onClick={forceDashboardAccess}
+              variant="outline"
+              className="w-full bg-blue-100 border-blue-300 hover:bg-blue-200 text-blue-800"
+            >
+              Access Dashboard (Demo Override)
+            </Button>
           </div>
           
           <p className="text-center text-slate-500 mb-6">

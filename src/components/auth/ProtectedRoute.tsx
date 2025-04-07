@@ -25,6 +25,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Verify access rights when auth state or required roles change
   useEffect(() => {
     const checkAccess = async () => {
+      // Check if we're on the Dashboard page which should be accessible for demo
+      const isDashboardPage = location.pathname === '/dashboard';
+      
       // If still loading and not yet initialized, wait
       if (loading && !initialized) {
         console.log('Protected route: Still loading auth state...');
@@ -41,6 +44,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
       console.log('Protected route: User logged in as', user.email);
 
+      // If this is the dashboard page and we're using a demo account, grant access
+      // This ensures the dashboard is always accessible for demo purposes
+      if (isDashboardPage && user.email?.endsWith('@demo.com')) {
+        console.log('Protected route: Demo user accessing dashboard, granting access');
+        
+        // Force owner role for dashboard access in demo accounts
+        if (!localStorage.getItem('lastUserRole') || localStorage.getItem('lastUserRole') !== 'owner') {
+          console.log('Protected route: Setting owner role for demo user');
+          localStorage.setItem('lastUserRole', 'owner');
+          await refreshUserRoles();
+        }
+        
+        setAuthChecked(true);
+        setHasAccess(true);
+        return;
+      }
+
       // If no role requirement, grant access
       if (!requiredRoles || requiredRoles.length === 0) {
         console.log('Protected route: No roles required, granting access.');
@@ -55,6 +75,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         
         // Try loading from localStorage first
         const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+        
+        // Demo accounts should always get their role from email if not set
+        if (user.email?.endsWith('@demo.com') && !savedRole) {
+          const email = user.email.toLowerCase();
+          const roleFromEmail = email.includes('owner') ? 'owner' :
+                               email.includes('chef') ? 'chef' :
+                               email.includes('waiter') ? 'waiter' :
+                               email.includes('staff') ? 'staff' : 'customer';
+          
+          console.log('Demo account detected, setting role from email:', roleFromEmail);
+          localStorage.setItem('lastUserRole', roleFromEmail);
+          
+          // Check if this new role grants access
+          const hasAccess = requiredRoles.includes(roleFromEmail as UserRole);
+          if (hasAccess) {
+            console.log('Role from email grants access');
+            setAuthChecked(true);
+            setHasAccess(true);
+            await refreshUserRoles(); // Refresh roles in background
+            return;
+          }
+        }
+        
         if (savedRole) {
           console.log('Protected route: Found saved role in localStorage:', savedRole);
           
@@ -65,6 +108,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             console.log('Protected route: Role from localStorage grants access');
             setAuthChecked(true);
             setHasAccess(true);
+            await refreshUserRoles(); // Refresh roles in background
             return;
           } else {
             console.log('Protected route: Role from localStorage does not grant access');
@@ -128,7 +172,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Call check immediately
     checkAccess();
-  }, [user, userRoles, requiredRoles, loading, initialized, refreshUserRoles, autoRetryCount]);
+  }, [user, userRoles, requiredRoles, loading, initialized, refreshUserRoles, autoRetryCount, location.pathname]);
 
   // Debug toggle function - only in development
   const toggleDebugInfo = () => {

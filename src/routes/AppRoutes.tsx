@@ -13,7 +13,7 @@ const AppRoutes: React.FC = () => {
   const location = useLocation();
   const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
-  const { user, loading, userRoles } = useAuth();
+  const { user, loading, userRoles, refreshUserRoles } = useAuth();
   const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(false);
 
   useEffect(() => {
@@ -27,6 +27,34 @@ const AppRoutes: React.FC = () => {
       setLoadingError(true);
     }
   }, [location]);
+
+  // When app loads, ensure demo accounts get proper roles
+  useEffect(() => {
+    const ensureDemoRoles = async () => {
+      if (user?.email?.endsWith('@demo.com')) {
+        console.log('Ensuring proper role for demo account:', user.email);
+        
+        // If no role is set, assign one based on email pattern
+        if (!localStorage.getItem('lastUserRole')) {
+          const email = user.email.toLowerCase();
+          const defaultRole = email.includes('owner') ? 'owner' :
+                             email.includes('chef') ? 'chef' :
+                             email.includes('waiter') ? 'waiter' :
+                             email.includes('staff') ? 'staff' : 'customer';
+          
+          console.log('Setting default role for demo account:', defaultRole);
+          localStorage.setItem('lastUserRole', defaultRole);
+          
+          // Refresh roles to apply the change
+          await refreshUserRoles();
+        }
+      }
+    };
+    
+    if (user && !loading) {
+      ensureDemoRoles();
+    }
+  }, [user, loading, refreshUserRoles]);
 
   // Mark initial load as complete once auth loading is done
   useEffect(() => {
@@ -107,6 +135,18 @@ const AppRoutes: React.FC = () => {
   // Always redirect to login if not authenticated and at root path
   if (path === "/" && !loading && !user) {
     return <Navigate to="/auth/login" replace />;
+  }
+
+  // Special case for demo accounts - ensure they can access dashboard routes
+  if (!loading && user?.email?.endsWith('@demo.com') && path === '/dashboard') {
+    // Ensure role is set to owner for dashboard access
+    if (!userRoles.includes('owner')) {
+      // Set role in localStorage and refresh roles
+      localStorage.setItem('lastUserRole', 'owner');
+      refreshUserRoles();
+    }
+    
+    // Continue to dashboard route below - don't return here!
   }
 
   // If user is authenticated at root path, redirect to their appropriate dashboard

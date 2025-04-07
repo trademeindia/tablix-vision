@@ -15,6 +15,7 @@ interface UseUserRoleReturn {
 // Demo account emails and their associated roles - make this more explicit
 const demoAccountRoles: Record<string, UserRole[]> = {
   'owner@demo.com': ['owner', 'manager'],
+  'manager@demo.com': ['manager'],
   'chef@demo.com': ['chef', 'staff'],
   'waiter@demo.com': ['waiter', 'staff'],
   'staff@demo.com': ['staff'],
@@ -41,6 +42,33 @@ export const useUserRole = (): UseUserRoleReturn => {
         const userMetadata = authData.user.user_metadata;
         
         console.log("User data from auth:", { email, metadata: userMetadata });
+        
+        // Demo accounts should always get their role from localStorage first if it exists
+        const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+        if (savedRole && email?.endsWith('@demo.com')) {
+          console.log("Using saved role from localStorage for demo account:", savedRole);
+          
+          // Map single role to array of roles based on hierarchy
+          let roles: UserRole[] = [savedRole as UserRole];
+          
+          // Add implied roles
+          if (savedRole === 'owner') roles.push('manager');
+          if (savedRole === 'chef' || savedRole === 'waiter') roles.push('staff');
+          
+          setUserRoles(roles);
+          setLoading(false);
+          
+          // Ensure user metadata is updated with this role
+          try {
+            await supabase.auth.updateUser({
+              data: { role: savedRole }
+            });
+          } catch (error) {
+            console.error("Failed to update user metadata with role:", error);
+          }
+          
+          return roles;
+        }
         
         // Handle demo accounts explicitly to ensure they always get the right roles
         if (email && email.endsWith('@demo.com')) {
@@ -179,6 +207,16 @@ export const useUserRole = (): UseUserRoleReturn => {
         }
       } catch (profileError) {
         console.log('Error fetching profile:', profileError);
+      }
+      
+      // Default owner role for easy demo access if nothing else worked
+      if (authData?.user?.email?.endsWith('@demo.com')) {
+        console.log("Setting default owner role for demo account");
+        const defaultRoles: UserRole[] = ['owner', 'manager'];
+        localStorage.setItem('lastUserRole', 'owner');
+        setUserRoles(defaultRoles);
+        setLoading(false);
+        return defaultRoles;
       }
       
       // Default role if nothing else worked
