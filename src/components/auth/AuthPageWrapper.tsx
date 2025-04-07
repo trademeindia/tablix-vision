@@ -2,6 +2,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AuthPageWrapperProps {
   title: string;
@@ -9,6 +10,8 @@ interface AuthPageWrapperProps {
 }
 
 const AuthPageWrapper = ({ title, children }: AuthPageWrapperProps) => {
+  const isMobile = useIsMobile();
+  
   return (
     <>
       <Helmet>
@@ -16,10 +19,10 @@ const AuthPageWrapper = ({ title, children }: AuthPageWrapperProps) => {
       </Helmet>
       
       <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
-        <div className="flex flex-1 flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-1 flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full sm:mx-auto sm:max-w-md">
             <Card className="shadow-xl overflow-hidden border-0 animate-fade-in">
-              <div className="bg-white p-8 rounded-lg">
+              <div className="bg-white p-6 sm:p-8 rounded-lg">
                 {children}
               </div>
             </Card>

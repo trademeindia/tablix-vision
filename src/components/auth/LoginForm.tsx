@@ -35,7 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 }) => {
   return (
     <>
-      <AuthForm onSubmit={handleSubmit} className="mt-6 space-y-6">
+      <AuthForm onSubmit={handleSubmit} className="mt-6 space-y-5">
         <FormError message={error} />
         
         <InputGroup>
@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               id="email"
               type="email"
               placeholder="Enter your email"
-              className="pl-10 h-12 border-slate-200 focus:border-primary rounded-md shadow-sm"
+              className="pl-10 h-11 border-slate-200 focus:border-primary hover:border-slate-300 transition-colors rounded-md shadow-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -55,7 +55,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </InputGroup>
         
         <InputGroup>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
             <Link to="/auth/reset-password" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
               Forgot password?
@@ -72,7 +72,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         <LoadingButton 
           type="submit" 
-          className="w-full h-12 text-base font-medium shadow-md" 
+          className="w-full h-11 text-base font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 duration-200" 
           isLoading={isSubmitting}
           loadingText="Signing in..."
         >

@@ -12,7 +12,7 @@ import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
 import { useLoginForm } from '@/hooks/auth/use-login-form';
 
 const LoginPage = () => {
-  const { signIn, userRoles } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const { isInitializing, initializeDemoAccounts } = useDemoAccounts();
   
@@ -27,6 +27,7 @@ const LoginPage = () => {
     role,
     handleSubmit,
     handleGoogleSignIn,
+    handleDemoLogin,
   } = useLoginForm({ redirectTo: '/dashboard' });
   
   // Ensure demo accounts are created
@@ -38,18 +39,7 @@ const LoginPage = () => {
     try {
       toast.loading('Logging in with demo account...');
       
-      const { error } = await signIn(credentials.email, credentials.password);
-      
-      if (error) {
-        toast.error('Demo login failed: ' + error.message);
-        return;
-      }
-      
-      // Redirect based on role
-      const redirectPath = getRedirectPathByRole(credentials.role);
-      navigate(redirectPath);
-      
-      toast.success(`Logged in as ${credentials.role}`);
+      await handleDemoLogin(credentials);
     } catch (e) {
       console.error('Demo login error:', e);
       toast.error('An unexpected error occurred');
@@ -75,20 +65,20 @@ const LoginPage = () => {
         handleGoogleSignIn={handleGoogleSignIn}
       />
 
-      <div className="text-center my-6">
+      <div className="text-center my-8">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-slate-500">Or try a demo account</span>
+            <span className="bg-white px-4 text-slate-500 font-medium">Or try a demo account</span>
           </div>
         </div>
       </div>
       
       <DemoAccountSelector 
         onSelectDemo={handleSelectDemo}
-        isLoading={isInitializing}
+        isLoading={isInitializing || isSubmitting}
       />
     </AuthPageWrapper>
   );
