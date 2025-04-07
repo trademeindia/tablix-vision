@@ -23,16 +23,28 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           restaurant_id: item.restaurant_id || ""
         } as MenuItem);
       }
+      
+      console.log("Creating menu item with Supabase:", item);
       return await createMenuItem(item);
     },
     onSuccess: (data: MenuItem) => {
-      // Invalidate and refetch menuItems query
-      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      console.log("Menu item created successfully:", data);
       
-      // If using test data, we need to manually update the cache
+      // More specific cache invalidation
+      if (data.restaurant_id) {
+        // Invalidate specific restaurant menu items
+        queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
+      } else {
+        // Fallback to invalidate all menu items
+        queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      }
+      
+      // Update cache manually for test data
       if (usingTestData && data.restaurant_id) {
         const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
+        console.log("Current items in cache before update:", currentItems.length);
         queryClient.setQueryData(['menuItems', data.restaurant_id], [...currentItems, data]);
+        console.log("Updated cache with new item:", data.id);
       }
       
       toast({
@@ -64,18 +76,29 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           restaurant_id: updates.restaurant_id || ""
         } as MenuItem);
       }
+      
+      console.log("Updating menu item with Supabase:", id, updates);
       return await updateMenuItem(id, updates);
     },
     onSuccess: (data: MenuItem) => {
-      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      console.log("Menu item updated successfully:", data);
       
-      // If using test data, manually update the cache
+      // More specific cache invalidation
+      if (data.restaurant_id) {
+        queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      }
+      
+      // Update cache manually for test data
       if (usingTestData && data.restaurant_id) {
         const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
+        console.log("Current items in cache before update:", currentItems.length);
         const updatedItems = currentItems.map(item => 
           item.id === data.id ? data : item
         );
         queryClient.setQueryData(['menuItems', data.restaurant_id], updatedItems);
+        console.log("Updated cache with modified item:", data.id);
       }
       
       toast({
@@ -99,9 +122,14 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         console.log("Using test data mode - simulating item deletion", id);
         return Promise.resolve(true);
       }
+      
+      console.log("Deleting menu item with Supabase:", id);
       return await deleteMenuItem(id);
     },
     onSuccess: (_, deletedId) => {
+      console.log("Menu item deleted successfully:", deletedId);
+      
+      // Invalidate all menu item queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       
       // If using test data, manually update the cache for all restaurant IDs
@@ -117,8 +145,10 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           if (Array.isArray(queryKey) && queryKey.length > 1) {
             const restaurantId = queryKey[1];
             const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', restaurantId]) || [];
+            console.log(`Found restaurant ${restaurantId} with ${currentItems.length} items`);
             const filteredItems = currentItems.filter(item => item.id !== deletedId);
             queryClient.setQueryData(['menuItems', restaurantId], filteredItems);
+            console.log(`Updated cache for restaurant ${restaurantId}, removed item ${deletedId}`);
           }
         });
       }

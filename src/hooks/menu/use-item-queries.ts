@@ -34,6 +34,7 @@ export const useItemQueries = (
     },
     retry: 3,
     staleTime: 1000, // 1 second - shorter stale time to refresh more frequently
+    cacheTime: 5 * 60 * 1000, // 5 minutes cache duration
   });
   
   // Use test data if there are errors with real data or if explicitly requested
@@ -102,7 +103,7 @@ export const useItemQueries = (
         console.log("Periodic refresh of menu items");
         invalidateItemsCache();
       }
-    }, 30000); // Refresh every 30 seconds
+    }, 15000); // Refresh every 15 seconds
     
     return () => clearInterval(interval);
   }, [usingTestData, restaurantId]);

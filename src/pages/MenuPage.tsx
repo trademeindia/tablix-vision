@@ -79,10 +79,18 @@ const MenuPage = () => {
   const handleRefreshAll = useCallback(async () => {
     console.log("Refreshing all menu data");
     try {
+      // Force refetch of both categories and items
       await Promise.all([
         handleRefreshCategories(),
-        queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] })
+        queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] }),
+        queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] })
       ]);
+      
+      // Additional manual refetch after a short delay to ensure data is fresh
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] });
+      }, 500);
+      
       console.log("Data refresh complete");
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -101,6 +109,14 @@ const MenuPage = () => {
   useEffect(() => {
     console.log("Menu page mounted, doing initial data fetch");
     handleRefreshAll();
+    
+    // Set up periodic refresh
+    const interval = setInterval(() => {
+      console.log("Periodic refresh triggered");
+      handleRefreshAll();
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(interval);
   }, [handleRefreshAll]);
 
   // Defensive rendering to ensure the page loads even if some data is missing
@@ -111,7 +127,7 @@ const MenuPage = () => {
           activeTab={activeTab}
           onRefresh={handleRefreshAll}
           onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
-          isLoading={isCategoriesLoading}
+          isLoading={isCategoriesLoading || isItemsLoading}
         />
         
         <MenuInfoCard showModel3dInfo={true} />

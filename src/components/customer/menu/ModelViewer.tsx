@@ -16,6 +16,16 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   const [error, setError] = useState<string | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
   
+  useEffect(() => {
+    // Log when the component is mounted with the model URL
+    console.log("ModelViewer mounted with URL:", modelUrl);
+    
+    // Return cleanup function
+    return () => {
+      console.log("ModelViewer unmounting");
+    };
+  }, [modelUrl]);
+  
   const handleSceneReady = (scene, camera, renderer, controls) => {
     console.log("Scene ready in ModelViewer:", scene ? "Yes" : "No");
     if (scene) {
@@ -32,6 +42,9 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   
   const handleLoadProgress = (progress: number) => {
     setLoadingProgress(progress);
+    if (progress % 20 === 0) { // Log progress at 20% intervals
+      console.log(`Model loading progress: ${progress.toFixed(0)}%`);
+    }
   };
   
   const handleLoadComplete = (model) => {
@@ -54,7 +67,8 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
       <div className="relative w-full h-full">
         <ThreeScene 
           onSceneReady={handleSceneReady}
-          autoRotate={!isLoading && !error}
+          autoRotate={true} // Always enable auto-rotation
+          rotationSpeed={0.01} // Set specific rotation speed
           backgroundColor="#f8f9fa"
         >
           {sceneReady && (
@@ -64,6 +78,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
               onLoadProgress={handleLoadProgress}
               onLoadComplete={handleLoadComplete}
               onLoadError={handleLoadError}
+              center={true} // Center the model
             />
           )}
         </ThreeScene>
@@ -71,6 +86,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
         {!sceneReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
             <Spinner size="lg" />
+            <span className="ml-2 text-sm text-slate-600">Initializing 3D viewer...</span>
           </div>
         )}
         
