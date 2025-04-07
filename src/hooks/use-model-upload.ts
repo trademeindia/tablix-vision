@@ -66,17 +66,30 @@ export const useModelUpload = ({
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `models/${restaurantId}/${menuItemId}-${uuidv4()}.${fileExt}`;
       
-      // Upload to Supabase Storage
+      // Create a function to track progress manually
+      let lastLoaded = 0;
+      const totalSize = selectedFile.size;
+      
+      // Use XMLHttpRequest to track upload progress
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percentage = Math.round((event.loaded / event.total) * 100);
+          setUploadProgress(percentage);
+          lastLoaded = event.loaded;
+        }
+      });
+      
+      // Upload to Supabase Storage without onUploadProgress option
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('public')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: true,
-          onUploadProgress: (progress) => {
-            const percentage = Math.round((progress.loaded / progress.total) * 100);
-            setUploadProgress(percentage);
-          }
+          upsert: true
         });
+      
+      // Set final progress when upload is complete
+      setUploadProgress(100);
       
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
