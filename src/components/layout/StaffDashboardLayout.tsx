@@ -8,6 +8,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetOverlay } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/toaster';
+import Spinner from '@/components/ui/spinner';
 
 interface StaffDashboardLayoutProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const isMobile = useIsMobile();
-  const { user, userRoles } = useAuth();
+  const { user, userRoles, loading: authLoading } = useAuth();
   
   // Check if the user is using a demo account
   const isDemoAccount = user?.email?.endsWith('@demo.com') || false;
@@ -34,11 +35,17 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   }
   
   useEffect(() => {
-    // Ensure the component is mounted before showing content
-    setIsLoaded(true);
+    // Set a small delay to ensure components are mounted properly
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 100);
     
+    return () => clearTimeout(timer);
+  }, []);
+  
+  useEffect(() => {
     // Close sidebar when route changes on mobile
-    if (isMobile && location) {
+    if (isMobile && location && sidebarOpen) {
       setSidebarOpen(false);
     }
   }, [location, isMobile]);
@@ -48,10 +55,13 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   };
   
   // Show a loading state initially to prevent flash of content
-  if (!isLoaded) {
+  if (authLoading || !isLoaded) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading dashboard...</p>
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="text-center">
+          <Spinner size="lg" className="mx-auto mb-4" />
+          <p className="text-slate-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }

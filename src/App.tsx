@@ -8,6 +8,7 @@ import { ThemeProvider } from './hooks/use-theme';
 import ThemeApplier from './components/layout/ThemeProvider';
 import { Toaster } from './components/ui/toaster';
 import AppRoutes from './routes/AppRoutes';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Create a client with updated configuration for error handling
 const queryClient = new QueryClient({
@@ -28,20 +29,22 @@ function App() {
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider restaurantId={restaurantId}>
-        <ThemeApplier restaurantId={restaurantId}>
-          <TooltipProvider>
-            <AuthProvider>
-              <Router>
-                <AppRoutes />
-                <Toaster />
-              </Router>
-            </AuthProvider>
-          </TooltipProvider>
-        </ThemeApplier>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider restaurantId={restaurantId}>
+          <ThemeApplier restaurantId={restaurantId}>
+            <TooltipProvider>
+              <AuthProvider>
+                <Router>
+                  <AppRoutes />
+                  <Toaster />
+                </Router>
+              </AuthProvider>
+            </TooltipProvider>
+          </ThemeApplier>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

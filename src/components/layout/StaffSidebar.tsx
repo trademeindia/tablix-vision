@@ -82,7 +82,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   }
   
   useEffect(() => {
-    setMounted(true);
+    // Short delay to ensure proper mounting
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 50);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const toggleSidebar = () => {
@@ -91,7 +96,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
     }
   };
 
-  // Filter nav items based on user roles
+  // Filter nav items based on user roles - convert strings to UserRole type
   const filteredNavItems = navItems.filter(item => 
     item.roles.some(role => userRoles.includes(role))
   );
@@ -175,7 +180,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
       
       <Separator className="bg-slate-700" />
       <div className="p-4">
-        <div className={cn(
+        <Link to="/profile" className={cn(
           "flex items-center",
           collapsed && !isMobile ? "justify-center" : "justify-start"
         )}>
@@ -188,7 +193,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
               <p className="text-xs text-slate-400">{staffRole}</p>
             </div>
           )}
-        </div>
+        </Link>
       </div>
     </div>
   );

@@ -5,8 +5,25 @@ import StaffDashboardLayout from '@/components/layout/StaffDashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, ChefHat, Bell } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import Spinner from '@/components/ui/spinner';
 
 const StaffDashboardPage = () => {
+  const navigate = useNavigate();
+  const { loading } = useAuth();
+  
+  // Show loading spinner while auth state is loading
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="text-center">
+          <Spinner size="lg" className="mx-auto mb-4" />
+          <p className="text-slate-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <StaffDashboardLayout>
       <div className="mb-6">
@@ -22,7 +39,12 @@ const StaffDashboardPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-orange-500">3</div>
-            <Button variant="outline" size="sm" className="mt-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+              onClick={() => navigate('/staff-dashboard/orders')}
+            >
               <ShoppingCart className="mr-2 h-4 w-4" />
               View Orders
             </Button>
@@ -36,7 +58,12 @@ const StaffDashboardPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-500">2</div>
-            <Button variant="outline" size="sm" className="mt-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+              onClick={() => navigate('/staff-dashboard/kitchen')}
+            >
               <ChefHat className="mr-2 h-4 w-4" />
               Kitchen View
             </Button>

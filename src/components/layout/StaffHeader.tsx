@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Bell, Menu } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { AvatarFallback } from '@/components/ui/avatar';
@@ -37,7 +37,7 @@ const StaffHeader = ({ onMenuButtonClick }: StaffHeaderProps) => {
     isLoading 
   } = useRealtimeNotifications({
     userId: staffId,
-    role: staffRole as any,
+    role: staffRole.toLowerCase() as any,
     restaurantId
   });
 

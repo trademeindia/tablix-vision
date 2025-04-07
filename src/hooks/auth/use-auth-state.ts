@@ -11,22 +11,33 @@ export function useAuthState() {
   useEffect(() => {
     setLoading(true);
 
-    // First set up the auth state listener
+    // Get the session immediately to prevent flickering
+    const getInitialSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+      } catch (error) {
+        console.error('Error getting session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    getInitialSession();
+
+    // Then set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setLoading(false);
+        
+        // Use setTimeout to prevent potential deadlocks with Supabase auth
+        setTimeout(() => {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+        }, 0);
       }
     );
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setLoading(false);
-    });
 
     return () => {
       subscription.unsubscribe();
