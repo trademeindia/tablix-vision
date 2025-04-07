@@ -30,12 +30,23 @@ const UnauthorizedPage = () => {
   // Handle logout
   const handleLogout = async () => {
     try {
+      setRetrying(true);
+      toast.info('Logging you out...');
+      
+      // Clear any role-related localStorage before logout
+      localStorage.removeItem('lastUserRole');
+      
       await signOut();
-      toast.success('You have been logged out');
-      navigate('/auth/login', { replace: true });
+      
+      // After successful logout, navigate to login page
+      setTimeout(() => {
+        navigate('/auth/login', { replace: true });
+        setRetrying(false);
+      }, 500);
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to log out. Please try again.');
+      setRetrying(false);
     }
   };
   
@@ -49,6 +60,9 @@ const UnauthorizedPage = () => {
     setRetrying(true);
     try {
       toast.info('Refreshing your access permissions...');
+      
+      // Clear role from localStorage to force a fresh fetch
+      localStorage.removeItem('lastUserRole');
       
       // Attempt to refresh roles
       await refreshUserRoles();
@@ -150,6 +164,9 @@ const UnauthorizedPage = () => {
                   <p className="text-xs text-slate-600 mt-1">
                     User email: {user?.email || 'Not available'}
                   </p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Local storage role: {localStorage.getItem('lastUserRole') || 'Not set'}
+                  </p>
                   {user?.user_metadata && (
                     <p className="text-xs text-slate-600 mt-1">
                       User metadata: {JSON.stringify(user.user_metadata, null, 2)}
@@ -185,9 +202,14 @@ const UnauthorizedPage = () => {
               Go to Dashboard
             </Button>
             
-            <Button variant="ghost" onClick={handleLogout} className="flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50">
+            <Button 
+              variant="ghost" 
+              onClick={handleLogout} 
+              className="flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50"
+              disabled={retrying}
+            >
               <LogOut className="mr-2 h-4 w-4" />
-              Logout and Login with a Different Account
+              {retrying ? 'Logging out...' : 'Logout and Login with a Different Account'}
             </Button>
           </div>
         </div>

@@ -40,6 +40,16 @@ const AppRoutes: React.FC = () => {
     }
   }, [loading, user, userRoles, initialLoadComplete, location]);
 
+  // Debug logout issues
+  useEffect(() => {
+    if (path === '/auth/login' && user) {
+      console.log('User is logged in but on login page. This is normal during logout process.', {
+        user: user?.email,
+        roles: userRoles
+      });
+    }
+  }, [path, user, userRoles]);
+
   // Show loading spinner during the initial auth check
   if (loading && !initialLoadComplete) {
     return (
@@ -79,6 +89,22 @@ const AppRoutes: React.FC = () => {
   if (!isKnownPath && initialLoadComplete) {
     console.log('Unknown path detected:', path);
     return <Navigate to="/auth/login" replace />;
+  }
+
+  // Special case for login page - only redirect if explicitly on login and authenticated
+  if (path === "/auth/login" && !loading && user) {
+    // Get the preferred redirect path based on user role
+    let redirectPath = '/dashboard';
+    if (userRoles.includes('customer')) {
+      redirectPath = '/customer/menu';
+    } else if (userRoles.includes('chef')) {
+      redirectPath = '/staff-dashboard/kitchen';
+    } else if (userRoles.includes('waiter')) {
+      redirectPath = '/staff-dashboard/orders';
+    }
+    
+    console.log(`User already logged in as ${user.email}, redirecting to ${redirectPath}`);
+    return <Navigate to={redirectPath} replace />;
   }
 
   // Always redirect to login if not authenticated and at root path

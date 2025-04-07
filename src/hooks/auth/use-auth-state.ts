@@ -9,20 +9,24 @@ export function useAuthState() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log('Initializing auth state...');
     setLoading(true);
 
-    // Set up the auth state listener first to avoid missing events
+    // IMPORTANT: Set up the auth state listener FIRST to avoid missing events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log('Auth state changed:', event);
+        console.log('Auth state changed:', event, currentSession?.user?.email);
         
         // Use setTimeout to prevent potential deadlocks with Supabase auth
         setTimeout(() => {
+          // Always update both session and user
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
           
           if (event === 'SIGNED_OUT') {
             console.log('User signed out');
+            // Clear any cached user data or local storage values related to user state
+            localStorage.removeItem('lastUserRole');
           } else if (event === 'SIGNED_IN') {
             console.log('User signed in:', currentSession?.user?.email);
           }
@@ -30,10 +34,15 @@ export function useAuthState() {
       }
     );
 
-    // Then check for existing session
+    // THEN check for existing session
     const getInitialSession = async () => {
       try {
+        console.log('Checking for existing session...');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        console.log('Initial session check result:', currentSession ? 'Session found' : 'No session found');
+        
+        // Always update both session and user when session state changes
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         

@@ -46,6 +46,22 @@ export const useUserRole = (): UseUserRoleReturn => {
         if (email && Object.keys(demoAccountRoles).includes(email)) {
           const roles = demoAccountRoles[email];
           console.log("Found demo account by email:", email, "with roles:", roles);
+          
+          // Update user metadata with this role if missing
+          if (userMetadata?.role === undefined || userMetadata?.role === null) {
+            try {
+              await supabase.auth.updateUser({
+                data: { role: roles[0] }
+              });
+              console.log(`Updated user metadata with role: ${roles[0]}`);
+            } catch (updateError) {
+              console.error("Failed to update user metadata with role:", updateError);
+            }
+          }
+          
+          // Save the last used role in localStorage for persistence
+          localStorage.setItem('lastUserRole', roles[0]);
+          
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -63,6 +79,9 @@ export const useUserRole = (): UseUserRoleReturn => {
           if (role === 'owner') roles.push('manager');
           if (role === 'chef' || role === 'waiter') roles.push('staff');
           
+          // Remember this role for persistence
+          localStorage.setItem('lastUserRole', role);
+          
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -74,33 +93,53 @@ export const useUserRole = (): UseUserRoleReturn => {
             console.log("Assigning owner role based on email pattern");
             const roles: UserRole[] = ['owner', 'manager'];
             setUserRoles(roles);
+            localStorage.setItem('lastUserRole', 'owner');
             setLoading(false);
             return roles;
           } else if (email.includes('chef')) {
             console.log("Assigning chef role based on email pattern");
             const roles: UserRole[] = ['chef', 'staff'];
+            localStorage.setItem('lastUserRole', 'chef');
             setUserRoles(roles);
             setLoading(false);
             return roles;
           } else if (email.includes('waiter')) {
             console.log("Assigning waiter role based on email pattern");
             const roles: UserRole[] = ['waiter', 'staff'];
+            localStorage.setItem('lastUserRole', 'waiter');
             setUserRoles(roles);
             setLoading(false);
             return roles;
           } else if (email.includes('staff')) {
             console.log("Assigning staff role based on email pattern");
             const roles: UserRole[] = ['staff'];
+            localStorage.setItem('lastUserRole', 'staff');
             setUserRoles(roles);
             setLoading(false);
             return roles;
           } else if (email.includes('customer')) {
             console.log("Assigning customer role based on email pattern");
             const roles: UserRole[] = ['customer'];
+            localStorage.setItem('lastUserRole', 'customer');
             setUserRoles(roles);
             setLoading(false);
             return roles;
           }
+        }
+        
+        // Check localStorage as fallback for role persistence between page refreshes
+        const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+        if (savedRole) {
+          console.log("Using saved role from localStorage:", savedRole);
+          let roles: UserRole[] = [savedRole];
+          
+          // Add implied roles
+          if (savedRole === 'owner') roles.push('manager');
+          if (savedRole === 'chef' || savedRole === 'waiter') roles.push('staff');
+          
+          setUserRoles(roles);
+          setLoading(false);
+          return roles;
         }
       }
       
@@ -110,12 +149,13 @@ export const useUserRole = (): UseUserRoleReturn => {
           .from('profiles')
           .select('role')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
         if (!userError && userData && userData.role) {
           // If the profile has a role field, use that
           const roles = Array.isArray(userData.role) ? userData.role as UserRole[] : [userData.role as UserRole];
           console.log("Found role in profile:", roles);
+          localStorage.setItem('lastUserRole', roles[0]);
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -127,6 +167,7 @@ export const useUserRole = (): UseUserRoleReturn => {
       // Default role if nothing else worked
       console.log("Using default customer role");
       const defaultRoles: UserRole[] = ['customer'];
+      localStorage.setItem('lastUserRole', 'customer');
       setUserRoles(defaultRoles);
       setLoading(false);
       return defaultRoles;

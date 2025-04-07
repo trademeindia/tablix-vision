@@ -38,11 +38,18 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         return;
       }
       
-      // Redirect based on role parameter or to home page
+      // Store the selected role in localStorage for persistence
+      localStorage.setItem('lastUserRole', role);
+      
+      // Redirect based on role parameter
       const redirectPath = getRedirectPathByRole(role);
       
       toast.success('Login successful!');
-      navigate(redirectPath);
+      
+      // Add small delay to ensure auth state is updated properly
+      setTimeout(() => {
+        navigate(redirectPath);
+      }, 100);
     } catch (error) {
       console.error('Login error:', error);
       setError('An unexpected error occurred. Please try again.');
@@ -71,6 +78,9 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       console.log('Attempting demo login for role:', demoCredentials.role);
       toast.loading('Logging in with demo account...', { id: 'demo-login' });
       
+      // Clear previous role from localStorage
+      localStorage.removeItem('lastUserRole');
+      
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoCredentials.email,
@@ -80,6 +90,9 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       // If sign in successful, redirect to appropriate page
       if (signInData?.user) {
         console.log('Demo login successful:', signInData.user);
+        
+        // Store the role in localStorage for persistence
+        localStorage.setItem('lastUserRole', demoCredentials.role);
         
         // Ensure user metadata contains the role
         if (!signInData.user.user_metadata?.role) {
@@ -99,17 +112,19 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         toast.dismiss('demo-login');
         toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
 
-        // Add a small delay before redirect to ensure state updates
+        // Redirect based on demo account role
+        const redirectPath = getRedirectPathByRole(demoCredentials.role);
+        console.log('Redirecting to:', redirectPath);
+        
+        // Add small delay to ensure auth state is properly updated
         setTimeout(() => {
-          // Redirect based on demo account role
-          const redirectPath = getRedirectPathByRole(demoCredentials.role);
-          console.log('Redirecting to:', redirectPath);
-          navigate(redirectPath);
-        }, 100);
+          navigate(redirectPath, { replace: true });
+          setIsSubmitting(false);
+        }, 500);
         return;
       }
       
-      // If the login failed, create a new demo account
+      // If the login failed, try creating a new demo account
       if (signInError) {
         console.log('Demo login failed, attempting to create account:', signInError.message);
         
@@ -146,6 +161,9 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         if (signUpData?.user) {
           console.log('Demo account created, attempting login again');
           
+          // Store the role in localStorage for persistence
+          localStorage.setItem('lastUserRole', demoCredentials.role);
+          
           // Wait a moment for the account to be fully registered
           await new Promise(resolve => setTimeout(resolve, 1000));
           
@@ -181,13 +199,14 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             toast.dismiss('demo-login');
             toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
             
-            // Add a small delay before redirect to ensure state updates
+            // Redirect based on demo account role with a delay
+            const redirectPath = getRedirectPathByRole(demoCredentials.role);
+            console.log('Redirecting to:', redirectPath);
+            
             setTimeout(() => {
-              // Redirect based on demo account role
-              const redirectPath = getRedirectPathByRole(demoCredentials.role);
-              console.log('Redirecting to:', redirectPath);
-              navigate(redirectPath);
-            }, 100);
+              navigate(redirectPath, { replace: true });
+              setIsSubmitting(false);
+            }, 500);
             return;
           }
         }

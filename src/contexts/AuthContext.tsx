@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn, 
     signUp, 
     signInWithGoogle, 
-    signOut,
+    signOut: baseSignOut,
     resetPassword,
     updatePassword
   } = useSession();
@@ -51,6 +51,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [lastUserId, setLastUserId] = useState<string | null>(null);
   const [roleRefreshAttempts, setRoleRefreshAttempts] = useState(0);
   const [roleRefreshTimer, setRoleRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Enhanced sign out function that cleans up local state
+  const signOut = async () => {
+    try {
+      console.log("Starting sign out process");
+      
+      // Clear any role-related localStorage items
+      localStorage.removeItem('lastUserRole');
+      
+      // Clear any existing retry timers
+      if (roleRefreshTimer) {
+        clearTimeout(roleRefreshTimer);
+        setRoleRefreshTimer(null);
+      }
+      
+      setLastUserId(null);
+      
+      // Actually sign out from Supabase
+      const result = await baseSignOut();
+      
+      if (!result.error) {
+        console.log("Sign out successful");
+        toast.success('You have been logged out successfully');
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      toast.error('An error occurred during sign out');
+      return { error };
+    }
+  };
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
@@ -130,6 +162,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log("Manually refreshing user roles for:", user.email);
       setLoading(true); // Show loading state during manual refresh
+      
+      // Clear role from localStorage to force a fresh fetch
+      localStorage.removeItem('lastUserRole');
       
       const roles = await fetchUserRoles(user.id);
       console.log("Refreshed roles:", roles);
