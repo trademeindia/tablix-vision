@@ -108,7 +108,9 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       if (usingTestData) {
         // Get all query keys related to menuItems
         const queryCache = queryClient.getQueryCache();
-        const menuItemsQueries = queryCache.findAll(['menuItems']);
+        const menuItemsQueries = queryCache.findAll({
+          queryKey: ['menuItems']
+        });
         
         menuItemsQueries.forEach(query => {
           const queryKey = query.queryKey;
