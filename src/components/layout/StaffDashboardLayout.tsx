@@ -6,7 +6,7 @@ import DemoBanner from './DemoBanner';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent, SheetOverlay } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/toaster';
 import Spinner from '@/components/ui/spinner';
 

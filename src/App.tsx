@@ -10,17 +10,15 @@ import { Toaster } from './components/ui/toaster';
 import AppRoutes from './routes/AppRoutes';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Create a client with updated configuration for error handling
+// Create a client with updated configuration for error handling and state persistence
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
     },
-    mutations: {
-      // Mutations options (if needed)
-    }
   },
 });
 
@@ -34,12 +32,12 @@ function App() {
         <ThemeProvider restaurantId={restaurantId}>
           <ThemeApplier restaurantId={restaurantId}>
             <TooltipProvider>
-              <AuthProvider>
-                <Router>
+              <Router>
+                <AuthProvider>
                   <AppRoutes />
                   <Toaster />
-                </Router>
-              </AuthProvider>
+                </AuthProvider>
+              </Router>
             </TooltipProvider>
           </ThemeApplier>
         </ThemeProvider>

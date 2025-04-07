@@ -1,16 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import AdminRoutes from './AdminRoutes';
 import CustomerRoutes from './CustomerRoutes';
 import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
   const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     try {
@@ -38,6 +40,30 @@ const AppRoutes: React.FC = () => {
         </button>
       </div>
     );
+  }
+
+  // If user is not logged in and trying to access a protected route, redirect to login
+  if (!loading && !user) {
+    if (
+      path.startsWith('/customer') ||
+      path.startsWith('/staff-dashboard') ||
+      path.startsWith('/profile') ||
+      path.startsWith('/dashboard') ||
+      path.startsWith('/menu') ||
+      path.startsWith('/orders') ||
+      path.startsWith('/qr-codes') ||
+      path.startsWith('/analytics') ||
+      path.startsWith('/tables') ||
+      path.startsWith('/staff') ||
+      path.startsWith('/customers') ||
+      path.startsWith('/invoices') ||
+      path.startsWith('/inventory') ||
+      path.startsWith('/google-drive-test') ||
+      path.startsWith('/marketing') ||
+      path.startsWith('/settings')
+    ) {
+      return <Navigate to="/auth/login" replace />;
+    }
   }
 
   // Conditionally render route groups based on the current path
