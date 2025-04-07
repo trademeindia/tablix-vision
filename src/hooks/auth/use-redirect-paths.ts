@@ -1,5 +1,5 @@
 
-import { UserRole } from './use-user-role';
+import { UserRole } from '@/hooks/use-user-role';
 
 export const getRedirectPathByRole = (role: string): string => {
   switch (role) {
