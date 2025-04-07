@@ -1,94 +1,56 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const LandingHeader: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
-  
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-slate-200 shadow-sm">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl text-primary">Menu360</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className={cn("hidden md:flex items-center space-x-6")}>
-          <Link to="#features" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-200">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <RouterLink to="/" className="flex items-center space-x-2">
+            <span className="text-2xl font-bold text-primary">Menu 360</span>
+          </RouterLink>
+        </div>
+        <nav className="hidden md:flex items-center gap-6">
+          <RouterLink to="/#features" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
             Features
-          </Link>
-          <Link to="#pricing" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors">
+          </RouterLink>
+          <RouterLink to="/#how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            How It Works
+          </RouterLink>
+          <RouterLink to="/#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
             Pricing
-          </Link>
-          <Link to="#demo" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors">
-            Demo
-          </Link>
-          <Link to="/auth/login" className="text-sm font-medium text-slate-700 hover:text-primary transition-colors">
-            Login
-          </Link>
+          </RouterLink>
+          <RouterLink to="/auth/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            Sign In
+          </RouterLink>
           <Button asChild size="sm">
-            <Link to="/request-demo">Request Free Demo</Link>
+            <RouterLink to="/auth/signup">Get Started</RouterLink>
           </Button>
         </nav>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <Button variant="ghost" size="sm" onClick={toggleMenu}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        <div className="flex md:hidden">
+          <Button variant="ghost" size="icon">
+            <span className="sr-only">Toggle menu</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-6 w-6"
+            >
+              <line x1="4" x2="20" y1="12" y2="12" />
+              <line x1="4" x2="20" y1="6" y2="6" />
+              <line x1="4" x2="20" y1="18" y2="18" />
+            </svg>
           </Button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 shadow-lg">
-          <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-            <Link 
-              to="#features" 
-              className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Features
-            </Link>
-            <Link 
-              to="#pricing" 
-              className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link 
-              to="#demo" 
-              className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Demo
-            </Link>
-            <Link 
-              to="/auth/login" 
-              className="text-sm font-medium text-slate-700 hover:text-primary transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Login
-            </Link>
-            <Button asChild className="w-full mt-4">
-              <Link to="/request-demo" onClick={() => setIsMenuOpen(false)}>
-                Request Free Demo
-              </Link>
-            </Button>
-          </nav>
-        </div>
-      )}
     </header>
   );
 };

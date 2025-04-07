@@ -59,6 +59,11 @@ const AppRoutes: React.FC = () => {
     }
   }
 
+  // Handle the public customer-menu route separately
+  if (path === '/customer-menu') {
+    return <PublicRoutes />;
+  }
+
   // Conditionally render route groups based on the current path
   if (path.startsWith('/customer')) {
     return <CustomerRoutes />;

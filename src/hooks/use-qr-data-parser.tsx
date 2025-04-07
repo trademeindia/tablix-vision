@@ -31,11 +31,6 @@ export function useQRDataParser(): QRDataParserResult {
       setRestaurantId(restaurantParam);
       localStorage.setItem('tableId', tableParam);
       localStorage.setItem('restaurantId', restaurantParam);
-      
-      // Ensure we're on the correct path
-      if (!location.pathname.includes('/customer-menu')) {
-        navigate(`/customer-menu?restaurant=${restaurantParam}&table=${tableParam}`, { replace: true });
-      }
       return;
     }
     
@@ -49,7 +44,7 @@ export function useQRDataParser(): QRDataParserResult {
       setRestaurantId(storedRestaurantId);
       
       // Redirect to customer-menu with parameters if we're not already there
-      if (!location.pathname.includes('/customer-menu')) {
+      if (!location.pathname.includes('/customer-menu') && !location.pathname.includes('/customer/menu')) {
         navigate(`/customer-menu?restaurant=${storedRestaurantId}&table=${storedTableId}`, { replace: true });
       }
     }

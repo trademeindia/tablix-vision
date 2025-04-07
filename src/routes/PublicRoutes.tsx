@@ -10,13 +10,18 @@ import UpdatePasswordPage from '@/pages/auth/UpdatePasswordPage';
 import AuthCallbackPage from '@/pages/auth/AuthCallbackPage';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import NotFound from '@/pages/NotFound';
+import CustomerMenuPage from '@/pages/customer/MenuPage';
 
 const PublicRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<Menu360LandingPage />} />
+      <Route path="/index" element={<Index />} />
       <Route path="/menu360" element={<Menu360LandingPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      
+      {/* Customer menu as public route for QR scanning */}
+      <Route path="/customer-menu" element={<CustomerMenuPage />} />
       
       {/* Auth routes */}
       <Route path="/auth/login" element={<LoginPage />} />

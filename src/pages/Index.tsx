@@ -29,6 +29,13 @@ const Index = () => {
     }
   }, [user, userRoles, loading, navigate]);
 
+  // For users who directly navigate to /index, redirect them to the root landing page
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/');
+    }
+  }, [loading, user, navigate]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
