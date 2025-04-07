@@ -1,72 +1,49 @@
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-interface ThreeContextProps {
+interface ThreeContextValue {
   scene: THREE.Scene | null;
   camera: THREE.PerspectiveCamera | null;
   renderer: THREE.WebGLRenderer | null;
   controls: OrbitControls | null;
-  modelGroup: THREE.Group | null;
   setThreeObjects: (
-    scene: THREE.Scene, 
-    camera: THREE.PerspectiveCamera, 
-    renderer: THREE.WebGLRenderer, 
+    scene: THREE.Scene,
+    camera: THREE.PerspectiveCamera,
+    renderer: THREE.WebGLRenderer,
     controls: OrbitControls
   ) => void;
 }
 
-const ThreeContext = createContext<ThreeContextProps>({
-  scene: null,
-  camera: null,
-  renderer: null,
-  controls: null,
-  modelGroup: null,
-  setThreeObjects: () => {},
-});
+const ThreeContext = createContext<ThreeContextValue | null>(null);
 
-export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [threeObjects, setThreeObjects] = useState<{
-    scene: THREE.Scene | null;
-    camera: THREE.PerspectiveCamera | null;
-    renderer: THREE.WebGLRenderer | null;
-    controls: OrbitControls | null;
-    modelGroup: THREE.Group | null;
-  }>({
-    scene: null,
-    camera: null,
-    renderer: null,
-    controls: null,
-    modelGroup: null,
-  });
+export const ThreeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [scene, setScene] = useState<THREE.Scene | null>(null);
+  const [camera, setCamera] = useState<THREE.PerspectiveCamera | null>(null);
+  const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
+  const [controls, setControls] = useState<OrbitControls | null>(null);
 
-  const handleSetThreeObjects = useCallback((
-    scene: THREE.Scene, 
-    camera: THREE.PerspectiveCamera, 
-    renderer: THREE.WebGLRenderer, 
+  const setThreeObjects = (
+    scene: THREE.Scene,
+    camera: THREE.PerspectiveCamera,
+    renderer: THREE.WebGLRenderer,
     controls: OrbitControls
   ) => {
-    console.log("Setting Three objects in context");
-    
-    // Create a model group and add it to the scene
-    const modelGroup = new THREE.Group();
-    scene.add(modelGroup);
-    
-    setThreeObjects({
-      scene,
-      camera,
-      renderer,
-      controls,
-      modelGroup,
-    });
-  }, []);
+    setScene(scene);
+    setCamera(camera);
+    setRenderer(renderer);
+    setControls(controls);
+  };
 
   return (
     <ThreeContext.Provider
       value={{
-        ...threeObjects,
-        setThreeObjects: handleSetThreeObjects,
+        scene,
+        camera,
+        renderer,
+        controls,
+        setThreeObjects,
       }}
     >
       {children}
@@ -74,4 +51,12 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-export const useThree = () => useContext(ThreeContext);
+export const useThree = () => {
+  const context = useContext(ThreeContext);
+  
+  if (!context) {
+    throw new Error("useThree must be used within a ThreeProvider");
+  }
+  
+  return context;
+};

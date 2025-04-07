@@ -7,53 +7,31 @@ import { X } from 'lucide-react';
 interface UploadProgressProps {
   isUploading: boolean;
   progress: number;
-  onCancel?: () => void;
+  onCancel: () => void;
 }
 
-const UploadProgress: React.FC<UploadProgressProps> = ({ 
-  isUploading, 
-  progress,
-  onCancel
-}) => {
+const UploadProgress: React.FC<UploadProgressProps> = ({ isUploading, progress, onCancel }) => {
   if (!isUploading) return null;
-  
-  // Calculate estimated time remaining based on progress (simplified version)
-  const progressText = progress < 100 
-    ? `Uploading: ${Math.round(progress)}%` 
-    : 'Processing...';
   
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-sm font-medium text-foreground">
-          {progressText}
-        </p>
-        {onCancel && (
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            onClick={onCancel}
-            className="h-6 px-2"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Cancel</span>
-          </Button>
-        )}
+        <span className="text-sm font-medium">Uploading...</span>
+        <span className="text-sm font-medium">{Math.round(progress)}%</span>
       </div>
-      <Progress 
-        value={progress} 
-        className="h-2"
-        // Add subtle animation for small progress changes
-        style={{
-          transition: "width 0.5s ease"
-        }}
-      />
-      {progress === 100 && (
-        <p className="text-xs text-muted-foreground animate-pulse">
-          Finalizing upload and processing the model...
-        </p>
-      )}
+      <div className="flex items-center gap-2">
+        <Progress value={progress} className="flex-1" />
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={onCancel}
+          className="h-8 w-8 p-0"
+          title="Cancel upload"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Cancel</span>
+        </Button>
+      </div>
     </div>
   );
 };

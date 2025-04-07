@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
@@ -9,6 +8,7 @@ import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import MenuInfoCard from '@/components/menu/MenuInfoCard';
 
 const MenuPage = () => {
   // Use a state for restaurant ID in case we want to make it dynamic in the future
@@ -82,6 +82,8 @@ const MenuPage = () => {
           onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
           isLoading={isCategoriesLoading}
         />
+        
+        <MenuInfoCard showModel3dInfo={true} />
         
         {isErrorVisible && (
           <Alert variant="destructive" className="mb-6">
