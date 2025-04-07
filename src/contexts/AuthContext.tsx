@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useSession } from '@/hooks/use-session';
@@ -56,26 +55,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [roleRefreshTimer, setRoleRefreshTimer] = useState<NodeJS.Timeout | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Enhanced sign out function that cleans up local state
   const signOut = async () => {
     try {
       console.log("Starting sign out process");
       setIsSigningOut(true);
       
-      // Clear any role-related localStorage items first
       localStorage.removeItem('lastUserRole');
       
-      // Clear any existing retry timers
       if (roleRefreshTimer) {
         clearTimeout(roleRefreshTimer);
         setRoleRefreshTimer(null);
       }
       
-      // Reset component state
       setLastUserId(null);
       setRoleRefreshAttempts(0);
       
-      // Actually sign out from Supabase
       const result = await baseSignOut();
       
       if (!result.error) {
@@ -96,25 +90,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Fetch user roles whenever the user changes
   useEffect(() => {
     const loadUserRoles = async () => {
       try {
         if (user && !isSigningOut) {
           console.log("Auth context: User detected, fetching roles for", user.email);
           
-          // Clear any existing retry timers
           if (roleRefreshTimer) {
             clearTimeout(roleRefreshTimer);
             setRoleRefreshTimer(null);
           }
           
-          // Check for demo account - special handling to avoid role confusion
           if (user.email?.endsWith('@demo.com')) {
             const savedRole = localStorage.getItem('lastUserRole');
             if (!savedRole) {
-              // If no role found in localStorage for a demo account,
-              // extract it from email pattern
               const email = user.email.toLowerCase();
               const roleFromEmail = email.includes('owner') ? 'owner' :
                                    email.includes('chef') ? 'chef' :
@@ -126,12 +115,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
           }
           
-          // Prevent duplicate role fetching for same user
           if (lastUserId !== user.id) {
             console.log("User changed, fetching new roles");
             setLastUserId(user.id);
             await fetchUserRoles(user.id);
-            setRoleRefreshAttempts(0); // Reset attempts when successful
+            setRoleRefreshAttempts(0);
           } else {
             console.log("Using cached roles for current user", user.email);
           }
@@ -139,7 +127,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("Auth context: No user detected");
           setLastUserId(null);
           
-          // Clear any existing retry timers when user is logged out
           if (roleRefreshTimer) {
             clearTimeout(roleRefreshTimer);
             setRoleRefreshTimer(null);
@@ -148,7 +135,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error("Error fetching user roles:", error);
         
-        // Retry role fetching if failed (maximum 3 attempts)
         if (roleRefreshAttempts < 3 && user && !isSigningOut) {
           console.log(`Retrying role fetch (attempt ${roleRefreshAttempts + 1}/3)`);
           setRoleRefreshAttempts(prev => prev + 1);
@@ -157,12 +143,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             fetchUserRoles(user.id).catch(e => 
               console.error("Retry failed:", e)
             );
-          }, 2000); // Retry after 2 seconds
+          }, 2000);
           
           setRoleRefreshTimer(timer);
         }
       } finally {
-        // We always set loading to false, regardless of whether we have a user or not
         setLoading(false);
         if (sessionInitialized) {
           setInitialized(true);
@@ -170,20 +155,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    // Only wait for roles if we have a user or session loading finished
     if (!sessionLoading) {
       loadUserRoles();
     }
     
     return () => {
-      // Cleanup timer on unmount
       if (roleRefreshTimer) {
         clearTimeout(roleRefreshTimer);
       }
     };
   }, [user, sessionLoading, sessionInitialized, fetchUserRoles, lastUserId, roleRefreshAttempts, roleRefreshTimer, isSigningOut]);
 
-  // Function to manually refresh user roles
   const refreshUserRoles = async (): Promise<UserRole[]> => {
     if (!user) {
       console.warn("Cannot refresh roles: No user logged in");
@@ -193,9 +175,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     try {
       console.log("Manually refreshing user roles for:", user.email);
-      setLoading(true); // Show loading state during manual refresh
+      setLoading(true);
       
-      // Clear role from localStorage to force a fresh fetch
       localStorage.removeItem('lastUserRole');
       
       const roles = await fetchUserRoles(user.id);
@@ -211,7 +192,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error("Error refreshing user roles:", error);
       toast.error("Failed to refresh user roles");
-      return userRoles; // Return current roles on failure
+      return userRoles;
     } finally {
       setLoading(false);
     }
@@ -232,7 +213,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshUserRoles,
   };
 
-  // Debug auth state in development
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       console.log("Auth Provider State:", {
@@ -250,5 +230,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Re-export UserRole type for convenience
 export type { UserRole };
