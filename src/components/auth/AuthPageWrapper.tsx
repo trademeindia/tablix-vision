@@ -15,16 +15,16 @@ const AuthPageWrapper = ({ title, children }: AuthPageWrapperProps) => {
         <title>{title} | Menu 360</title>
       </Helmet>
       
-      <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
         <div className="flex flex-1 flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="w-full sm:mx-auto sm:max-w-md">
-            <Card className="shadow-lg overflow-hidden border-0">
+            <Card className="shadow-xl overflow-hidden border-0 animate-fade-in">
               <div className="bg-white p-8 rounded-lg">
                 {children}
               </div>
             </Card>
             
-            <p className="text-center mt-6 text-sm text-slate-500">
+            <p className="text-center mt-8 text-sm text-slate-500">
               © {new Date().getFullYear()} Menu 360. All rights reserved.
             </p>
           </div>

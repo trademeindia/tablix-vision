@@ -12,12 +12,12 @@ const WelcomeSection = ({
   subtitle = "The Complete Restaurant Management Platform"
 }: WelcomeSectionProps) => {
   return (
-    <div className="text-center mb-8">
-      <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
-        <Utensils className="h-8 w-8 text-primary" />
+    <div className="text-center mb-8 animate-fade-in">
+      <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-full mb-5 shadow-md">
+        <Utensils className="h-10 w-10 text-primary" />
       </div>
-      <h1 className="text-3xl font-bold text-primary tracking-tight">{title}</h1>
-      <p className="text-slate-600 mt-2 text-lg">{subtitle}</p>
+      <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">{title}</h1>
+      <p className="text-slate-600 mt-3 text-lg max-w-md mx-auto">{subtitle}</p>
     </div>
   );
 };

@@ -21,8 +21,8 @@ interface AuthFormHeaderProps {
 
 export const AuthFormHeader = ({ title, description }: AuthFormHeaderProps) => {
   return (
-    <div className="text-center space-y-2 mb-6">
-      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+    <div className="text-center space-y-2 mb-6 animate-fade-in">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-800">{title}</h1>
       {description && <p className="text-sm text-slate-500">{description}</p>}
     </div>
   );
@@ -34,7 +34,7 @@ interface AuthFormFooterProps {
 
 export const AuthFormFooter = ({ children }: AuthFormFooterProps) => {
   return (
-    <div className="flex flex-col gap-3 mt-8">
+    <div className="flex flex-col gap-3 mt-8 animate-fade-in">
       {children}
     </div>
   );
@@ -51,7 +51,7 @@ export const AuthDivider = ({ text = "or continue with" }: AuthDividerProps) => 
         <div className="w-full border-t border-slate-200"></div>
       </div>
       <div className="relative flex justify-center text-sm">
-        <span className="bg-white px-2 text-slate-500">{text}</span>
+        <span className="bg-white px-3 text-slate-500 font-medium">{text}</span>
       </div>
     </div>
   );

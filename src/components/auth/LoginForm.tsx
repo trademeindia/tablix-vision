@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               id="email"
               type="email"
               placeholder="Enter your email"
-              className="pl-10 h-11 border-slate-200 focus:border-primary"
+              className="pl-10 h-12 border-slate-200 focus:border-primary rounded-md shadow-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -72,11 +72,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         <LoadingButton 
           type="submit" 
-          className="w-full h-11 text-base font-medium" 
+          className="w-full h-12 text-base font-medium shadow-md" 
           isLoading={isSubmitting}
           loadingText="Signing in..."
         >
-          <span className="flex items-center gap-2">
+          <span className="flex items-center justify-center gap-2">
             <LogIn className="h-5 w-5" />
             Sign in
           </span>

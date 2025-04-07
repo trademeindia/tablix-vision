@@ -31,6 +31,17 @@ const LoginPage = () => {
   useEffect(() => {
     // Initialize demo accounts when the login page loads
     initializeDemoAccounts();
+    
+    // Force a refresh to ensure the latest styles are applied
+    console.log('Login page mounted, ensuring styles are applied');
+    
+    // Add class to body for background styling
+    document.body.classList.add('auth-page');
+    
+    return () => {
+      // Clean up body class when component unmounts
+      document.body.classList.remove('auth-page');
+    };
   }, [initializeDemoAccounts]);
 
   const toggleDemoHelp = () => setShowDemoHelp(!showDemoHelp);
@@ -42,7 +53,7 @@ const LoginPage = () => {
         
         <RoleTabsSection role={role} handleRoleChange={handleRoleChange} />
         
-        <div>
+        <div className="animate-fade-in">
           <LoginForm 
             email={email}
             setEmail={setEmail}
@@ -61,11 +72,11 @@ const LoginPage = () => {
                 <span className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-slate-500 flex items-center gap-1">
+                <span className="bg-white px-3 text-slate-500 flex items-center gap-1 font-medium">
                   Or try a demo account
                   <button 
                     onClick={toggleDemoHelp} 
-                    className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="text-slate-400 hover:text-slate-600 focus:outline-none ml-1"
                     aria-label="Demo help"
                   >
                     <HelpCircle className="h-4 w-4" />

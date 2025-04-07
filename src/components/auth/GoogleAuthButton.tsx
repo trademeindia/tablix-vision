@@ -12,7 +12,7 @@ const GoogleAuthButton = ({ onClick, text }: GoogleAuthButtonProps) => {
     <Button
       variant="outline"
       type="button"
-      className="w-full h-11 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+      className="w-full h-12 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
       onClick={onClick}
     >
       <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
