@@ -31,12 +31,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: React.ReactNode;
-  restaurantId?: string; // Made optional with '?'
+  restaurantId?: string;
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
   children, 
-  restaurantId = '' // Default empty string
+  restaurantId = '' 
 }) => {
   const [theme, setThemeState] = useState<ThemeColors>(defaultTheme);
   const [loading, setLoading] = useState(true);
@@ -146,6 +146,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     isLoading: loading,
     resetToDefault,
   };
+
+  // Apply the theme to CSS variables directly within the provider
+  React.useEffect(() => {
+    if (loading) return;
+    
+    if (theme) {
+      document.documentElement.style.setProperty('--color-primary', theme.primaryColor);
+      document.documentElement.style.setProperty('--color-background', theme.backgroundColor);
+      document.documentElement.style.setProperty('--color-accent', theme.accentColor);
+      document.documentElement.style.setProperty('--color-text', theme.textColor);
+    }
+  }, [theme, loading]);
 
   return (
     <ThemeContext.Provider value={value}>

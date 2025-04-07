@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ThemeProvider from './components/layout/ThemeProvider'; // Fixed import
+import ThemeProvider from './components/layout/ThemeProvider';
 import { AuthProvider } from './contexts/AuthContext';
 import { Toaster } from './components/ui/sonner';
 import AppRoutes from './routes/AppRoutes';
