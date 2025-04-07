@@ -8,7 +8,7 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   const queryClient = useQueryClient();
   
   const createItemMutation = useMutation({
-    mutationFn: (item: Partial<MenuItem>) => {
+    mutationFn: async (item: Partial<MenuItem>): Promise<MenuItem> => {
       if (usingTestData) {
         console.log("Using test data mode - simulating item creation", item);
         // Create a fake ID for test mode
@@ -16,10 +16,12 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           ...item,
           id: `new-${Date.now()}`,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }) as MenuItem;
+          updated_at: new Date().toISOString(),
+          name: item.name || "Default Name", // Ensure required properties are present
+          price: item.price || 0
+        } as MenuItem);
       }
-      return createMenuItem(item);
+      return await createMenuItem(item);
     },
     onSuccess: (data: MenuItem) => {
       // Invalidate and refetch menuItems query
@@ -47,16 +49,18 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   });
   
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<MenuItem> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<MenuItem> }): Promise<MenuItem> => {
       if (usingTestData) {
         console.log("Using test data mode - simulating item update", { id, updates });
         return Promise.resolve({
           id,
           ...updates,
-          updated_at: new Date().toISOString()
-        }) as MenuItem;
+          updated_at: new Date().toISOString(),
+          name: updates.name || "Default Name", // Ensure required properties are present
+          price: updates.price !== undefined ? updates.price : 0
+        } as MenuItem);
       }
-      return updateMenuItem(id, updates);
+      return await updateMenuItem(id, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
@@ -76,12 +80,12 @@ export const useItemMutations = (usingTestData: boolean = false) => {
   });
   
   const deleteItemMutation = useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string): Promise<boolean> => {
       if (usingTestData) {
         console.log("Using test data mode - simulating item deletion", id);
         return Promise.resolve(true);
       }
-      return deleteMenuItem(id);
+      return await deleteMenuItem(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
