@@ -50,45 +50,60 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
 
       // Check if we have any roles yet
-      if (userRoles.length === 0 && autoRetryCount < 3) {
-        console.log('Protected route: No roles detected. Attempting to refresh roles... (Attempt ' + (autoRetryCount + 1) + '/3)');
-        setAutoRetryCount(prev => prev + 1);
+      if (userRoles.length === 0) {
+        console.log('Protected route: No roles detected. Checking localStorage...');
         
-        // Try to refresh roles
-        try {
-          const refreshedRoles = await refreshUserRoles();
-          console.log('Protected route: Roles refreshed:', refreshedRoles);
+        // Try loading from localStorage first
+        const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+        if (savedRole) {
+          console.log('Protected route: Found saved role in localStorage:', savedRole);
           
-          // If we have roles now, check access
-          if (refreshedRoles.length > 0) {
-            const hasRequiredRole = refreshedRoles.some(role => requiredRoles.includes(role));
-            setAuthChecked(true);
-            setHasAccess(hasRequiredRole);
-            
-            // Show toast for unauthorized access
-            if (!hasRequiredRole) {
-              toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
-            }
-            return;
-          }
+          // Check if saved role grants access
+          const hasAccess = requiredRoles.includes(savedRole as UserRole);
           
-          // Try loading from localStorage as a fallback
-          const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
-          if (savedRole) {
-            console.log('Protected route: Using saved role from localStorage:', savedRole);
-            
-            // Check if saved role grants access
-            const hasAccess = requiredRoles.includes(savedRole as UserRole);
+          if (hasAccess) {
+            console.log('Protected route: Role from localStorage grants access');
             setAuthChecked(true);
-            setHasAccess(hasAccess);
-            
-            if (!hasAccess) {
-              toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
-            }
+            setHasAccess(true);
             return;
+          } else {
+            console.log('Protected route: Role from localStorage does not grant access');
           }
-        } catch (error) {
-          console.error('Protected route: Failed to refresh roles:', error);
+        }
+        
+        // If role from localStorage doesn't grant access or doesn't exist,
+        // and we haven't retried too many times, try to refresh roles
+        if (autoRetryCount < 3) {
+          console.log('Protected route: No roles detected. Attempting to refresh roles... (Attempt ' + (autoRetryCount + 1) + '/3)');
+          setAutoRetryCount(prev => prev + 1);
+          
+          // Try to refresh roles
+          try {
+            const refreshedRoles = await refreshUserRoles();
+            console.log('Protected route: Roles refreshed:', refreshedRoles);
+            
+            // If we have roles now, check access
+            if (refreshedRoles.length > 0) {
+              const hasRequiredRole = refreshedRoles.some(role => requiredRoles.includes(role));
+              setAuthChecked(true);
+              setHasAccess(hasRequiredRole);
+              
+              // Show toast for unauthorized access
+              if (!hasRequiredRole) {
+                toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
+              }
+              return;
+            }
+          } catch (error) {
+            console.error('Protected route: Failed to refresh roles:', error);
+          }
+        } else {
+          // After max retries, make a decision with whatever we have
+          console.log('Protected route: Max retries reached, making final access decision');
+          setAuthChecked(true);
+          setHasAccess(false);
+          toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
+          return;
         }
       }
 
@@ -126,7 +141,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         authChecked,
         loading,
         initialized,
-        location: location.pathname
+        location: location.pathname,
+        savedRole: localStorage.getItem('lastUserRole')
       };
       setDebugInfo(JSON.stringify(info, null, 2));
     } else {
@@ -161,7 +177,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       ? { 
           from: location.pathname, 
           userRoles: userRoles, 
-          requiredRoles: requiredRoles 
+          requiredRoles: requiredRoles,
+          savedRole: localStorage.getItem('lastUserRole')
         }
       : { from: location.pathname };
 

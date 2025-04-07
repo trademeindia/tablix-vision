@@ -15,14 +15,14 @@ interface UseUserRoleReturn {
 // Demo account emails and their associated roles - make this more explicit
 const demoAccountRoles: Record<string, UserRole[]> = {
   'owner@demo.com': ['owner', 'manager'],
-  'staff@demo.com': ['staff', 'waiter'],
   'chef@demo.com': ['chef', 'staff'],
   'waiter@demo.com': ['waiter', 'staff'],
+  'staff@demo.com': ['staff'],
   'customer@demo.com': ['customer'],
 };
 
 export const useUserRole = (): UseUserRoleReturn => {
-  const [userRoles, setUserRoles] = useState<UserRole[]>([]); // Start with empty array, not assuming customer
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -43,8 +43,25 @@ export const useUserRole = (): UseUserRoleReturn => {
         console.log("User data from auth:", { email, metadata: userMetadata });
         
         // Handle demo accounts explicitly to ensure they always get the right roles
-        if (email && Object.keys(demoAccountRoles).includes(email)) {
-          const roles = demoAccountRoles[email];
+        if (email && email.endsWith('@demo.com')) {
+          // Get role directly from email pattern for demo accounts
+          const roleKey = Object.keys(demoAccountRoles).find(key => 
+            email === key || email.includes(key.split('@')[0])
+          );
+          
+          let roles: UserRole[] = [];
+          
+          if (roleKey) {
+            roles = demoAccountRoles[roleKey];
+          } else {
+            // Fallback for demo accounts with non-standard emails
+            if (email.includes('owner')) roles = ['owner', 'manager'];
+            else if (email.includes('chef')) roles = ['chef', 'staff'];
+            else if (email.includes('waiter')) roles = ['waiter', 'staff'];
+            else if (email.includes('staff')) roles = ['staff'];
+            else roles = ['customer'];
+          }
+          
           console.log("Found demo account by email:", email, "with roles:", roles);
           
           // Update user metadata with this role if missing
@@ -126,21 +143,21 @@ export const useUserRole = (): UseUserRoleReturn => {
             return roles;
           }
         }
+      }
+      
+      // Check localStorage as fallback for role persistence between page refreshes
+      const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+      if (savedRole) {
+        console.log("Using saved role from localStorage:", savedRole);
+        let roles: UserRole[] = [savedRole];
         
-        // Check localStorage as fallback for role persistence between page refreshes
-        const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
-        if (savedRole) {
-          console.log("Using saved role from localStorage:", savedRole);
-          let roles: UserRole[] = [savedRole];
-          
-          // Add implied roles
-          if (savedRole === 'owner') roles.push('manager');
-          if (savedRole === 'chef' || savedRole === 'waiter') roles.push('staff');
-          
-          setUserRoles(roles);
-          setLoading(false);
-          return roles;
-        }
+        // Add implied roles
+        if (savedRole === 'owner') roles.push('manager');
+        if (savedRole === 'chef' || savedRole === 'waiter') roles.push('staff');
+        
+        setUserRoles(roles);
+        setLoading(false);
+        return roles;
       }
       
       // Last resort: try to get user profile data from database
@@ -164,22 +181,6 @@ export const useUserRole = (): UseUserRoleReturn => {
         console.log('Error fetching profile:', profileError);
       }
       
-      console.log("No role found, checking if any saved role exists");
-      // Check localStorage one more time as a final fallback
-      const lastRole = localStorage.getItem('lastUserRole') as UserRole | null;
-      if (lastRole) {
-        console.log("Using last known role from localStorage:", lastRole);
-        let roles: UserRole[] = [lastRole];
-        
-        // Add implied roles
-        if (lastRole === 'owner') roles.push('manager');
-        if (lastRole === 'chef' || lastRole === 'waiter') roles.push('staff');
-        
-        setUserRoles(roles);
-        setLoading(false);
-        return roles;
-      }
-      
       // Default role if nothing else worked
       console.log("Using default customer role");
       const defaultRoles: UserRole[] = ['customer'];
@@ -191,10 +192,24 @@ export const useUserRole = (): UseUserRoleReturn => {
     } catch (err) {
       console.error('Error fetching user roles:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
+      
+      // Try to get role from localStorage as a fallback
+      const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+      if (savedRole) {
+        console.log("Using saved role from localStorage after error:", savedRole);
+        let roles: UserRole[] = [savedRole];
+        
+        // Add implied roles
+        if (savedRole === 'owner') roles.push('manager');
+        if (savedRole === 'chef' || savedRole === 'waiter') roles.push('staff');
+        
+        setUserRoles(roles);
+        setLoading(false);
+        return roles;
+      }
+      
       setLoading(false);
       return ['customer']; // Safe fallback
-    } finally {
-      setLoading(false);
     }
   }, []);
 

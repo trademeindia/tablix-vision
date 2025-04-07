@@ -54,11 +54,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [lastUserId, setLastUserId] = useState<string | null>(null);
   const [roleRefreshAttempts, setRoleRefreshAttempts] = useState(0);
   const [roleRefreshTimer, setRoleRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Enhanced sign out function that cleans up local state
   const signOut = async () => {
     try {
       console.log("Starting sign out process");
+      setIsSigningOut(true);
       
       // Clear any role-related localStorage items first
       localStorage.removeItem('lastUserRole');
@@ -84,10 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.error('An error occurred during sign out: ' + (result.error.message || 'Please try again'));
       }
       
+      setIsSigningOut(false);
       return result;
     } catch (error) {
       console.error("Error during sign out:", error);
       toast.error('An error occurred during sign out');
+      setIsSigningOut(false);
       return { error };
     }
   };
@@ -96,13 +100,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadUserRoles = async () => {
       try {
-        if (user) {
+        if (user && !isSigningOut) {
           console.log("Auth context: User detected, fetching roles for", user.email);
           
           // Clear any existing retry timers
           if (roleRefreshTimer) {
             clearTimeout(roleRefreshTimer);
             setRoleRefreshTimer(null);
+          }
+          
+          // Check for demo account - special handling to avoid role confusion
+          if (user.email?.endsWith('@demo.com')) {
+            const savedRole = localStorage.getItem('lastUserRole');
+            if (!savedRole) {
+              // If no role found in localStorage for a demo account,
+              // extract it from email pattern
+              const email = user.email.toLowerCase();
+              const roleFromEmail = email.includes('owner') ? 'owner' :
+                                   email.includes('chef') ? 'chef' :
+                                   email.includes('waiter') ? 'waiter' :
+                                   email.includes('staff') ? 'staff' : 'customer';
+              
+              console.log("Demo account without saved role, setting from email pattern:", roleFromEmail);
+              localStorage.setItem('lastUserRole', roleFromEmail);
+            }
           }
           
           // Prevent duplicate role fetching for same user
@@ -128,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error("Error fetching user roles:", error);
         
         // Retry role fetching if failed (maximum 3 attempts)
-        if (roleRefreshAttempts < 3 && user) {
+        if (roleRefreshAttempts < 3 && user && !isSigningOut) {
           console.log(`Retrying role fetch (attempt ${roleRefreshAttempts + 1}/3)`);
           setRoleRefreshAttempts(prev => prev + 1);
           
@@ -160,7 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearTimeout(roleRefreshTimer);
       }
     };
-  }, [user, sessionLoading, sessionInitialized, fetchUserRoles, lastUserId, roleRefreshAttempts, roleRefreshTimer]);
+  }, [user, sessionLoading, sessionInitialized, fetchUserRoles, lastUserId, roleRefreshAttempts, roleRefreshTimer, isSigningOut]);
 
   // Function to manually refresh user roles
   const refreshUserRoles = async (): Promise<UserRole[]> => {
@@ -205,7 +226,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signUp,
     signInWithGoogle,
-    signOut: baseSignOut, // Changed to use the base signOut directly to avoid complexity
+    signOut,
     resetPassword,
     updatePassword,
     refreshUserRoles,
@@ -220,7 +241,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         loading: sessionLoading || loading,
         initialized,
         sessionLoading,
-        rolesLoading
+        rolesLoading,
+        lastRole: localStorage.getItem('lastUserRole')
       });
     }
   }, [user, userRoles, sessionLoading, loading, rolesLoading, initialized]);

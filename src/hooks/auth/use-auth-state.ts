@@ -31,6 +31,18 @@ export function useAuthState() {
             localStorage.removeItem('lastUserRole');
           } else if (event === 'SIGNED_IN') {
             console.log('User signed in:', currentSession?.user?.email);
+            
+            // If signing in with a demo account, ensure the role is set correctly
+            const email = currentSession?.user?.email?.toLowerCase();
+            if (email?.endsWith('@demo.com')) {
+              const roleFromEmail = email.includes('owner') ? 'owner' :
+                                   email.includes('chef') ? 'chef' :
+                                   email.includes('waiter') ? 'waiter' :
+                                   email.includes('staff') ? 'staff' : 'customer';
+              
+              console.log('Demo account detected, setting role:', roleFromEmail);
+              localStorage.setItem('lastUserRole', roleFromEmail);
+            }
           }
         }, 0);
       }
@@ -49,6 +61,18 @@ export function useAuthState() {
         
         if (currentSession?.user) {
           console.log('Initial session found for user:', currentSession.user.email);
+          
+          // Check for demo account and ensure role is set
+          const email = currentSession.user.email?.toLowerCase();
+          if (email?.endsWith('@demo.com') && !localStorage.getItem('lastUserRole')) {
+            const roleFromEmail = email.includes('owner') ? 'owner' :
+                                 email.includes('chef') ? 'chef' :
+                                 email.includes('waiter') ? 'waiter' :
+                                 email.includes('staff') ? 'staff' : 'customer';
+            
+            console.log('Demo account detected at init, setting role:', roleFromEmail);
+            localStorage.setItem('lastUserRole', roleFromEmail);
+          }
         }
       } catch (error) {
         console.error('Error getting session:', error);
@@ -63,7 +87,7 @@ export function useAuthState() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [session]);
 
   return { user, session, loading, initialized };
 }

@@ -12,6 +12,7 @@ interface LocationState {
   from?: string;
   userRoles?: string[];
   requiredRoles?: string[];
+  savedRole?: string;
 }
 
 const UnauthorizedPage = () => {
@@ -26,6 +27,7 @@ const UnauthorizedPage = () => {
   const fromPath = state.from || '/';
   const stateUserRoles = state.userRoles || userRoles;
   const stateRequiredRoles = state.requiredRoles || [];
+  const stateSavedRole = state.savedRole || localStorage.getItem('lastUserRole');
   
   // Handle logout
   const handleLogout = async () => {
@@ -51,7 +53,7 @@ const UnauthorizedPage = () => {
       setTimeout(() => {
         navigate('/auth/login', { replace: true });
         setRetrying(false);
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to log out. Please try again.');
@@ -103,6 +105,13 @@ const UnauthorizedPage = () => {
     }
   };
   
+  // Try to login as a different role
+  const goToLoginPage = () => {
+    // We're already logged in, so we need to log out first
+    localStorage.removeItem('lastUserRole');
+    navigate('/auth/login', { replace: true });
+  };
+  
   // Log diagnostic information
   useEffect(() => {
     console.log('UnauthorizedPage mounted with state:', {
@@ -110,6 +119,7 @@ const UnauthorizedPage = () => {
       stateUserRoles,
       stateRequiredRoles,
       currentUserRoles: userRoles,
+      savedRole: localStorage.getItem('lastUserRole'),
       user: user?.email
     });
   }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, user]);
@@ -133,6 +143,11 @@ const UnauthorizedPage = () => {
                   <p>Your current role{userRoles.length > 1 ? 's' : ''}: {' '}
                     <span className="font-medium">{userRoles.join(', ') || 'None assigned'}</span>
                   </p>
+                  {stateSavedRole && (
+                    <p>Saved role in localStorage: {' '}
+                      <span className="font-medium">{stateSavedRole}</span>
+                    </p>
+                  )}
                   {stateRequiredRoles && stateRequiredRoles.length > 0 && (
                     <p>Required role{stateRequiredRoles.length > 1 ? 's' : ''}: {' '}
                       <span className="font-medium">{stateRequiredRoles.join(' or ')}</span>
@@ -143,51 +158,49 @@ const UnauthorizedPage = () => {
             </AlertDescription>
           </Alert>
           
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mb-6">
-              <button 
-                onClick={() => setShowDebug(!showDebug)}
-                className="flex w-full items-center justify-between rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-800 hover:bg-amber-100"
-              >
-                <span className="flex items-center">
-                  <Info className="mr-2 h-4 w-4" />
-                  {showDebug ? 'Hide Debug Information' : 'Show Debug Information'}
-                </span>
-              </button>
-              
-              {showDebug && (
-                <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-md overflow-auto max-h-48">
-                  <h3 className="text-sm font-medium text-slate-800">Debug Information</h3>
+          <div className="mb-6">
+            <button 
+              onClick={() => setShowDebug(!showDebug)}
+              className="flex w-full items-center justify-between rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-800 hover:bg-amber-100"
+            >
+              <span className="flex items-center">
+                <Info className="mr-2 h-4 w-4" />
+                {showDebug ? 'Hide Debug Information' : 'Show Debug Information'}
+              </span>
+            </button>
+            
+            {showDebug && (
+              <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-md overflow-auto max-h-48">
+                <h3 className="text-sm font-medium text-slate-800">Debug Information</h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  Required role{stateRequiredRoles.length > 1 ? 's' : ''}: {stateRequiredRoles.join(', ') || 'None specified'}
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Current role{userRoles.length > 1 ? 's' : ''}: {userRoles.join(', ') || 'None assigned'}
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Attempted to access: {fromPath}
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  User ID: {user?.id || 'Not logged in'}
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  User email: {user?.email || 'Not available'}
+                </p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Local storage role: {localStorage.getItem('lastUserRole') || 'Not set'}
+                </p>
+                {user?.user_metadata && (
                   <p className="text-xs text-slate-600 mt-1">
-                    Required role{stateRequiredRoles.length > 1 ? 's' : ''}: {stateRequiredRoles.join(', ') || 'None specified'}
+                    User metadata: {JSON.stringify(user.user_metadata, null, 2)}
                   </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Current role{userRoles.length > 1 ? 's' : ''}: {userRoles.join(', ') || 'None assigned'}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Attempted to access: {fromPath}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    User ID: {user?.id || 'Not logged in'}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    User email: {user?.email || 'Not available'}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Local storage role: {localStorage.getItem('lastUserRole') || 'Not set'}
-                  </p>
-                  {user?.user_metadata && (
-                    <p className="text-xs text-slate-600 mt-1">
-                      User metadata: {JSON.stringify(user.user_metadata, null, 2)}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
           
           <p className="text-center text-slate-500 mb-6">
-            If you believe this is an error, try refreshing your session or contact your administrator.
+            If you believe this is an error, try refreshing your session, logging in with a different account, or contact your administrator.
           </p>
           
           <div className="flex flex-col space-y-3">
@@ -212,13 +225,22 @@ const UnauthorizedPage = () => {
             </Button>
             
             <Button 
+              variant="outline" 
+              onClick={goToLoginPage} 
+              className="flex items-center justify-center text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Login with a Different Role
+            </Button>
+            
+            <Button 
               variant="ghost" 
               onClick={handleLogout} 
               className="flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50"
               disabled={retrying}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              {retrying ? 'Logging out...' : 'Logout and Login with a Different Account'}
+              {retrying ? 'Logging out...' : 'Logout'}
             </Button>
           </div>
         </div>

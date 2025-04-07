@@ -61,7 +61,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       setTimeout(() => {
         navigate(redirectPath, { replace: true });
         setIsSubmitting(false);
-      }, 500);
+      }, 800);
     } catch (error) {
       console.error('Login error:', error);
       toast.dismiss('login');
@@ -119,6 +119,10 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       // Clear previous role from localStorage
       localStorage.removeItem('lastUserRole');
       
+      // Explicitly set the role based on the demo account type
+      localStorage.setItem('lastUserRole', demoCredentials.role);
+      console.log('Pre-saved demo role to localStorage:', demoCredentials.role);
+      
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoCredentials.email,
@@ -128,10 +132,6 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       // If sign in successful, redirect to appropriate page
       if (signInData?.user) {
         console.log('Demo login successful:', signInData.user);
-        
-        // Store the role in localStorage for persistence
-        localStorage.setItem('lastUserRole', demoCredentials.role);
-        console.log('Saved demo role to localStorage:', demoCredentials.role);
         
         // Ensure user metadata contains the role
         if (!signInData.user.user_metadata?.role) {
@@ -147,6 +147,11 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           }
         }
         
+        // Double-check that role is in localStorage
+        if (!localStorage.getItem('lastUserRole')) {
+          localStorage.setItem('lastUserRole', demoCredentials.role);
+        }
+        
         // Dismiss loading toast and show success
         toast.dismiss('demo-login');
         toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
@@ -155,11 +160,11 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         const redirectPath = getRedirectPathByRole(demoCredentials.role);
         console.log('Demo login successful, redirecting to:', redirectPath);
         
-        // Add small delay to ensure auth state is properly updated
+        // Add sufficient delay to ensure auth state is properly updated
         setTimeout(() => {
           navigate(redirectPath, { replace: true });
           setIsSubmitting(false);
-        }, 1000);
+        }, 1200);
         return;
       }
       
