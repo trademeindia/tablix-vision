@@ -21,7 +21,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   const { user, userRoles, loading: authLoading } = useAuth();
   
   // Check if the user is using a demo account
-  const isDemoAccount = user?.email?.endsWith('@demo.com') || false;
+  const isDemoAccount = user?.email?.includes('@demo.com') || false;
   const demoRole = userRoles.includes('chef') ? 'chef' : 
                   userRoles.includes('waiter') ? 'waiter' : 
                   userRoles.includes('staff') ? 'staff' : '';
@@ -48,7 +48,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     if (isMobile && location && sidebarOpen) {
       setSidebarOpen(false);
     }
-  }, [location, isMobile]);
+  }, [location, isMobile, sidebarOpen]);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

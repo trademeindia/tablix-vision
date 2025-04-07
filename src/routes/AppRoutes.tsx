@@ -42,6 +42,11 @@ const AppRoutes: React.FC = () => {
     );
   }
 
+  // Redirect to login if user is at root path
+  if (path === "/" && !loading && !user) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
   // If user is not logged in and trying to access a protected route, redirect to login
   if (!loading && !user) {
     if (

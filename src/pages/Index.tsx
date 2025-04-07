@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,9 +11,10 @@ const Index = () => {
   const { user, userRoles, loading } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect authenticated users based on their roles
   useEffect(() => {
-    if (!loading && user) {
+    if (loading) return; // Wait for auth to be determined
+    
+    if (user) {
       // Check user roles and redirect accordingly
       if (userRoles.includes('owner') || userRoles.includes('manager')) {
         navigate('/dashboard');
@@ -27,6 +27,9 @@ const Index = () => {
       } else if (userRoles.includes('customer')) {
         navigate('/customer/menu');
       }
+    } else {
+      // If not authenticated, redirect to login
+      navigate('/auth/login');
     }
   }, [user, userRoles, loading, navigate]);
 
