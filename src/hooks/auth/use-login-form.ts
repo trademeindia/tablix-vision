@@ -52,7 +52,10 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle();
+      const { error } = await signInWithGoogle();
+      if (error) {
+        setError('Google sign in failed. Please try again.');
+      }
       // Redirect will be handled by the OAuth callback
     } catch (error) {
       console.error('Google sign in error:', error);
