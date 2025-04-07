@@ -77,7 +77,7 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
           onLoadComplete?.(loadedModel);
         } catch (err) {
           console.error('Error processing loaded model:', err);
-          onLoadError?.(err instanceof Error ? err : new Error('Unknown error processing model'));
+          onLoadError?.(err instanceof Error ? err : new Error(String(err)));
         }
       },
       (progressEvent) => {
@@ -89,7 +89,9 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
       },
       (error) => {
         console.error('Error loading 3D model:', error);
-        onLoadError?.(error);
+        // Ensure error is properly converted to Error type
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        onLoadError?.(errorObj);
       }
     );
     
