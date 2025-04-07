@@ -8,7 +8,7 @@ interface AuthFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
 
 export const AuthForm = ({ className, children, ...props }: AuthFormProps) => {
   return (
-    <form className={cn("space-y-4", className)} {...props}>
+    <form className={cn("space-y-5", className)} {...props}>
       {children}
     </form>
   );
@@ -21,9 +21,9 @@ interface AuthFormHeaderProps {
 
 export const AuthFormHeader = ({ title, description }: AuthFormHeaderProps) => {
   return (
-    <div className="text-center space-y-2">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="text-center space-y-2 mb-6">
+      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+      {description && <p className="text-sm text-slate-500">{description}</p>}
     </div>
   );
 };
@@ -34,7 +34,7 @@ interface AuthFormFooterProps {
 
 export const AuthFormFooter = ({ children }: AuthFormFooterProps) => {
   return (
-    <div className="flex flex-col gap-3 mt-6">
+    <div className="flex flex-col gap-3 mt-8">
       {children}
     </div>
   );

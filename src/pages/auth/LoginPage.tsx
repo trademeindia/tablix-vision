@@ -4,7 +4,7 @@ import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import { useLoginForm } from '@/hooks/auth/use-login-form';
 import RoleTabsSection from '@/components/auth/RoleTabsSection';
 import LoginForm from '@/components/auth/LoginForm';
-import AuthFormTitle from '@/components/auth/AuthFormTitle';
+import WelcomeSection from '@/components/auth/WelcomeSection';
 import DemoAccountSelector from '@/components/auth/DemoAccountSelector';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, HelpCircle } from "lucide-react";
@@ -38,11 +38,11 @@ const LoginPage = () => {
   return (
     <AuthPageWrapper title="Login">
       <div>
+        <WelcomeSection />
+        
         <RoleTabsSection role={role} handleRoleChange={handleRoleChange} />
         
         <div>
-          <AuthFormTitle role={role} isSignup={false} />
-          
           <LoginForm 
             email={email}
             setEmail={setEmail}
@@ -75,7 +75,7 @@ const LoginPage = () => {
             </div>
             
             {showDemoHelp && (
-              <Alert className="mt-4 bg-blue-50 text-blue-800 border-blue-200">
+              <Alert className="mt-4 bg-blue-50 text-blue-800 border-blue-200 animate-fade-in">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertTitle className="text-blue-600">About Demo Mode</AlertTitle>
                 <AlertDescription className="text-sm">
@@ -97,10 +97,12 @@ const LoginPage = () => {
               </Alert>
             )}
             
-            <DemoAccountSelector 
-              onSelectDemo={handleDemoLogin}
-              isLoading={isInitializing || isSubmitting} 
-            />
+            <div className="mt-4">
+              <DemoAccountSelector 
+                onSelectDemo={handleDemoLogin}
+                isLoading={isInitializing || isSubmitting} 
+              />
+            </div>
           </div>
         </div>
       </div>

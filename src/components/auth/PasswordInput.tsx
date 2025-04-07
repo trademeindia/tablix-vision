@@ -29,7 +29,7 @@ const PasswordInput = ({
         id={id}
         type={showPassword ? 'text' : 'password'}
         placeholder={placeholder}
-        className="pr-10"
+        className="pr-10 h-11 border-slate-200 focus:border-primary"
         value={value}
         onChange={onChange}
         required={required}
@@ -37,7 +37,7 @@ const PasswordInput = ({
       />
       <button
         type="button"
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
         onClick={() => setShowPassword(!showPassword)}
       >
         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
