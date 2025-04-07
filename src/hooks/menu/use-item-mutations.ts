@@ -18,7 +18,9 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: item.name || "Default Name", // Ensure required properties are present
-          price: item.price || 0
+          price: item.price || 0,
+          category_id: item.category_id || "",
+          restaurant_id: item.restaurant_id || ""
         } as MenuItem);
       }
       return await createMenuItem(item);
@@ -57,13 +59,25 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           ...updates,
           updated_at: new Date().toISOString(),
           name: updates.name || "Default Name", // Ensure required properties are present
-          price: updates.price !== undefined ? updates.price : 0
+          price: updates.price !== undefined ? updates.price : 0,
+          category_id: updates.category_id || "",
+          restaurant_id: updates.restaurant_id || ""
         } as MenuItem);
       }
       return await updateMenuItem(id, updates);
     },
-    onSuccess: () => {
+    onSuccess: (data: MenuItem) => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      // If using test data, manually update the cache
+      if (usingTestData && data.restaurant_id) {
+        const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
+        const updatedItems = currentItems.map(item => 
+          item.id === data.id ? data : item
+        );
+        queryClient.setQueryData(['menuItems', data.restaurant_id], updatedItems);
+      }
+      
       toast({
         title: "Item updated",
         description: "The menu item has been updated successfully.",
@@ -87,8 +101,26 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       }
       return await deleteMenuItem(id);
     },
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      // If using test data, manually update the cache for all restaurant IDs
+      if (usingTestData) {
+        // Get all query keys related to menuItems
+        const queryCache = queryClient.getQueryCache();
+        const menuItemsQueries = queryCache.findAll(['menuItems']);
+        
+        menuItemsQueries.forEach(query => {
+          const queryKey = query.queryKey;
+          if (Array.isArray(queryKey) && queryKey.length > 1) {
+            const restaurantId = queryKey[1];
+            const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', restaurantId]) || [];
+            const filteredItems = currentItems.filter(item => item.id !== deletedId);
+            queryClient.setQueryData(['menuItems', restaurantId], filteredItems);
+          }
+        });
+      }
+      
       toast({
         title: "Item deleted",
         description: "The menu item has been deleted successfully.",

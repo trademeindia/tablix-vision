@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
 import PageHeader from '@/components/menu/PageHeader';
@@ -76,12 +76,18 @@ const MenuPage = () => {
   } = useMenuPageData(restaurantId);
 
   // Enhanced refresh function that ensures both categories and items are refreshed
-  const handleRefreshAll = async () => {
+  const handleRefreshAll = useCallback(async () => {
     console.log("Refreshing all menu data");
-    await handleRefreshCategories();
-    // Also manually invalidate the menuItems query to force a refresh
-    queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
-  };
+    try {
+      await Promise.all([
+        handleRefreshCategories(),
+        queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] })
+      ]);
+      console.log("Data refresh complete");
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+  }, [handleRefreshCategories, queryClient, restaurantId]);
 
   // Automatically refresh data after dialog closes
   useEffect(() => {
@@ -89,7 +95,13 @@ const MenuPage = () => {
       console.log("Dialog closed, refreshing data");
       handleRefreshAll();
     }
-  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen]);
+  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, handleRefreshAll]);
+
+  // Also refresh when component mounts
+  useEffect(() => {
+    console.log("Menu page mounted, doing initial data fetch");
+    handleRefreshAll();
+  }, [handleRefreshAll]);
 
   // Defensive rendering to ensure the page loads even if some data is missing
   return (

@@ -24,14 +24,16 @@ export const useItemQueries = (
     queryFn: async () => {
       try {
         console.log("Fetching menu items for restaurant:", restaurantId);
-        return await fetchMenuItems(undefined, restaurantId);
+        const items = await fetchMenuItems(undefined, restaurantId);
+        console.log("Fetched items:", items);
+        return items;
       } catch (error) {
         console.error("Error in fetchMenuItems:", error);
         throw error;
       }
     },
     retry: 3,
-    staleTime: 5000, // 5 seconds
+    staleTime: 1000, // 1 second - shorter stale time to refresh more frequently
   });
   
   // Use test data if there are errors with real data or if explicitly requested
@@ -73,7 +75,7 @@ export const useItemQueries = (
       // Use test data after multiple retries
       setTimeout(() => {
         setUsingTestData(true);
-      }, 5000);
+      }, 1000);
       
       const timer = setTimeout(() => {
         refetchItems();
@@ -92,6 +94,18 @@ export const useItemQueries = (
     console.log("Manually invalidating items cache");
     queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
   };
+  
+  // Set up a periodic refresh to ensure data stays updated
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!usingTestData) {
+        console.log("Periodic refresh of menu items");
+        invalidateItemsCache();
+      }
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [usingTestData, restaurantId]);
 
   return {
     menuItems,

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import ItemForm from '@/components/menu/ItemForm';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import { useItemMutations } from '@/hooks/menu/use-item-mutations';
+import { toast } from '@/hooks/use-toast';
 
 interface EditItemDialogProps {
   isOpen: boolean;
@@ -30,15 +31,37 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   
   const handleUpdateItem = async (data: Partial<MenuItem>) => {
     if (selectedItem) {
-      updateItemMutation.mutate({ 
-        id: selectedItem.id, 
-        updates: data 
-      }, {
-        onSuccess: () => {
-          setIsOpen(false);
-          setSelectedItem(null);
+      try {
+        // Ensure restaurant_id is included in the updates
+        const updateData = {
+          ...data,
+          restaurant_id: restaurantId
+        };
+        
+        console.log("Updating menu item with data:", { id: selectedItem.id, updates: updateData });
+        
+        await updateItemMutation.mutateAsync({ 
+          id: selectedItem.id, 
+          updates: updateData 
+        });
+        
+        // Close dialog and clean up selection after successful update
+        setIsOpen(false);
+        setSelectedItem(null);
+        
+        // Refresh data after update
+        if (onRefreshCategories) {
+          console.log("Refreshing data after item update");
+          onRefreshCategories();
         }
-      });
+      } catch (error) {
+        console.error("Error in handleUpdateItem:", error);
+        toast({
+          title: "Failed to update menu item",
+          description: "Please try again or check the console for more details.",
+          variant: "destructive",
+        });
+      }
     }
   };
   

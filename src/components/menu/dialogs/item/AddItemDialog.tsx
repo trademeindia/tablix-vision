@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import ItemForm from '@/components/menu/ItemForm';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import { useItemMutations } from '@/hooks/menu/use-item-mutations';
+import { toast } from '@/hooks/use-toast';
 
 interface AddItemDialogProps {
   isOpen: boolean;
@@ -25,18 +26,33 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   const { createItemMutation } = useItemMutations(usingTestData);
   
   const handleAddItem = async (data: Partial<MenuItem>) => {
-    createItemMutation.mutate({
-      ...data,
-      restaurant_id: restaurantId
-    }, {
-      onSuccess: () => {
-        setIsOpen(false);
-        // Ensure we refresh the categories and items after creating a new item
-        if (onRefreshCategories) {
-          onRefreshCategories();
-        }
+    try {
+      // Ensure restaurant_id is included in the data
+      const itemData = {
+        ...data,
+        restaurant_id: restaurantId
+      };
+      
+      console.log("Creating menu item with data:", itemData);
+      
+      await createItemMutation.mutateAsync(itemData);
+      
+      // Close dialog after successful creation
+      setIsOpen(false);
+      
+      // Refresh categories and items after creating a new item
+      if (onRefreshCategories) {
+        console.log("Refreshing categories after item creation");
+        onRefreshCategories();
       }
-    });
+    } catch (error) {
+      console.error("Error in handleAddItem:", error);
+      toast({
+        title: "Failed to add menu item",
+        description: "Please try again or check the console for more details.",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
