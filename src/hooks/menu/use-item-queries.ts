@@ -34,7 +34,7 @@ export const useItemQueries = (
     },
     retry: 3,
     staleTime: 1000, // 1 second - shorter stale time to refresh more frequently
-    cacheTime: 5 * 60 * 1000, // 5 minutes cache duration
+    gcTime: 5 * 60 * 1000, // 5 minutes cache duration (renamed from cacheTime)
   });
   
   // Use test data if there are errors with real data or if explicitly requested

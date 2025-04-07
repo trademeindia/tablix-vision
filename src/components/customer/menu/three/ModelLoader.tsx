@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useThree } from './useThree';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 
 interface ModelLoaderProps {

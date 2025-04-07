@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface ThreeContextType {
   scene: THREE.Scene | null;
@@ -32,11 +31,9 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [controls, setControls] = useState<OrbitControls | null>(null);
   const animationFrameId = useRef<number | null>(null);
   
-  // Auto-rotation settings
   const autoRotateRef = useRef<boolean>(true);
   const rotationSpeedRef = useRef<number>(0.01);
   
-  // Set auto-rotation
   const setAutoRotate = useCallback((autoRotate: boolean) => {
     autoRotateRef.current = autoRotate;
     if (controls) {
@@ -44,18 +41,16 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [controls]);
   
-  // Set rotation speed
   const setRotationSpeed = useCallback((speed: number) => {
     rotationSpeedRef.current = speed;
     if (controls) {
-      controls.autoRotateSpeed = speed * 10; // Convert to OrbitControls speed scale
+      controls.autoRotateSpeed = speed * 10;
     }
   }, [controls]);
 
   const initializeScene = useCallback((container: HTMLElement, backgroundColor = '#ffffff') => {
     if (!container) return;
     
-    // Clean up any previous scene
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
     }
@@ -63,15 +58,12 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const width = container.offsetWidth;
     const height = container.offsetHeight;
     
-    // Create scene
     const newScene = new THREE.Scene();
     newScene.background = new THREE.Color(backgroundColor);
     
-    // Create camera
     const newCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     newCamera.position.z = 5;
     
-    // Create renderer
     const newRenderer = new THREE.WebGLRenderer({ 
       antialias: true,
       alpha: true,
@@ -81,27 +73,22 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     newRenderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(newRenderer.domElement);
     
-    // Add orbit controls
     const newControls = new OrbitControls(newCamera, newRenderer.domElement);
     newControls.enableDamping = true;
     newControls.dampingFactor = 0.05;
     newControls.minDistance = 2;
     newControls.maxDistance = 10;
     
-    // Apply auto-rotation settings
     newControls.autoRotate = autoRotateRef.current;
     newControls.autoRotateSpeed = rotationSpeedRef.current * 10;
     
-    // Add ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     newScene.add(ambientLight);
     
-    // Add directional light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(1, 1, 1);
     newScene.add(directionalLight);
     
-    // Animation loop
     const animate = () => {
       animationFrameId.current = requestAnimationFrame(animate);
       
@@ -111,7 +98,6 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     animate();
     
-    // Set state
     setScene(newScene);
     setCamera(newCamera);
     setRenderer(newRenderer);
@@ -119,7 +105,6 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     console.log('Three.js scene initialized');
     
-    // Cleanup function
     return () => {
       console.log('Cleaning up Three.js scene');
       if (animationFrameId.current) {
@@ -129,14 +114,12 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       container.removeChild(newRenderer.domElement);
       
-      // Dispose of resources
       newScene.clear();
       newRenderer.dispose();
       newControls.dispose();
     };
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (animationFrameId.current) {
