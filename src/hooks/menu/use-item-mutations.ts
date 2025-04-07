@@ -21,8 +21,16 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       }
       return createMenuItem(item);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate and refetch menuItems query
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      
+      // If using test data, we need to manually update the cache
+      if (usingTestData) {
+        const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
+        queryClient.setQueryData(['menuItems', data.restaurant_id], [...currentItems, data]);
+      }
+      
       toast({
         title: "Item created",
         description: "The menu item has been created successfully.",

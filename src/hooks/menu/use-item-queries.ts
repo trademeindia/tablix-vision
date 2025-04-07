@@ -23,6 +23,7 @@ export const useItemQueries = (
     queryKey: ['menuItems', restaurantId],
     queryFn: async () => {
       try {
+        console.log("Fetching menu items for restaurant:", restaurantId);
         return await fetchMenuItems(undefined, restaurantId);
       } catch (error) {
         console.error("Error in fetchMenuItems:", error);
@@ -88,7 +89,8 @@ export const useItemQueries = (
 
   // Manually invalidate the query cache when needed
   const invalidateItemsCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+    console.log("Manually invalidating items cache");
+    queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
   };
 
   return {

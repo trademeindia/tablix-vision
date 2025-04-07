@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
@@ -9,8 +10,10 @@ import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import MenuInfoCard from '@/components/menu/MenuInfoCard';
+import { useQueryClient } from '@tanstack/react-query';
 
 const MenuPage = () => {
+  const queryClient = useQueryClient();
   // Use a state for restaurant ID in case we want to make it dynamic in the future
   const [restaurantId] = useState("00000000-0000-0000-0000-000000000000");
   const [isErrorVisible, setIsErrorVisible] = useState(false);
@@ -72,13 +75,29 @@ const MenuPage = () => {
     usingTestData
   } = useMenuPageData(restaurantId);
 
+  // Enhanced refresh function that ensures both categories and items are refreshed
+  const handleRefreshAll = async () => {
+    console.log("Refreshing all menu data");
+    await handleRefreshCategories();
+    // Also manually invalidate the menuItems query to force a refresh
+    queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
+  };
+
+  // Automatically refresh data after dialog closes
+  useEffect(() => {
+    if (!isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen) {
+      console.log("Dialog closed, refreshing data");
+      handleRefreshAll();
+    }
+  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen]);
+
   // Defensive rendering to ensure the page loads even if some data is missing
   return (
     <DashboardLayout>
       <div className="container mx-auto py-6">
         <PageHeader 
           activeTab={activeTab}
-          onRefresh={handleRefreshCategories}
+          onRefresh={handleRefreshAll}
           onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
           isLoading={isCategoriesLoading}
         />
@@ -142,7 +161,7 @@ const MenuPage = () => {
           setSelectedItem={setSelectedItem}
           categories={categories || []}
           restaurantId={restaurantId}
-          onRefreshCategories={handleRefreshCategories}
+          onRefreshCategories={handleRefreshAll}
           usingTestData={usingTestData}
         />
       </div>

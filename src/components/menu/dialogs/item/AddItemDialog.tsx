@@ -29,7 +29,13 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       ...data,
       restaurant_id: restaurantId
     }, {
-      onSuccess: () => setIsOpen(false)
+      onSuccess: () => {
+        setIsOpen(false);
+        // Ensure we refresh the categories and items after creating a new item
+        if (onRefreshCategories) {
+          onRefreshCategories();
+        }
+      }
     });
   };
   
