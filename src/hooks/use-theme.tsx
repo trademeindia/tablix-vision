@@ -31,12 +31,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: React.ReactNode;
-  restaurantId: string;
+  restaurantId?: string; // Made optional with '?'
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
   children, 
-  restaurantId 
+  restaurantId = '' // Default empty string
 }) => {
   const [theme, setThemeState] = useState<ThemeColors>(defaultTheme);
   const [loading, setLoading] = useState(true);

@@ -4,10 +4,10 @@ import { useTheme } from '@/hooks/use-theme';
 
 interface ThemeApplierProps {
   children: React.ReactNode;
-  restaurantId: string;
+  restaurantId?: string; // Made optional with '?'
 }
 
-const ThemeApplier: React.FC<ThemeApplierProps> = ({ children }) => {
+const ThemeApplier: React.FC<ThemeApplierProps> = ({ children, restaurantId = '' }) => {
   const { theme, loading, error } = useTheme();
 
   // Apply the theme to CSS variables
