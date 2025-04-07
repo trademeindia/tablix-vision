@@ -6,7 +6,7 @@ import DemoBanner from './DemoBanner';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetOverlay } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/toaster';
 
 interface StaffDashboardLayoutProps {
@@ -71,7 +71,6 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
             <SheetContent 
               side="left" 
               className="p-0 w-[85%] max-w-[300px] border-r border-slate-200 bg-slate-800"
-              overlayClassName="z-40"
             >
               <StaffSidebar onCloseSidebar={() => setSidebarOpen(false)} />
             </SheetContent>

@@ -15,13 +15,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
 
 type NavItem = {
   title: string;
   href: string;
   icon: React.ReactNode;
-  roles: string[];
+  roles: UserRole[];
 };
 
 const navItems: NavItem[] = [
@@ -69,9 +69,9 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   
   // Get user information
   const staffName = user?.user_metadata?.full_name || "Staff User";
-  const staffRole = userRoles.includes('chef') ? "Chef" : 
-                   userRoles.includes('waiter') ? "Waiter" : 
-                   userRoles.includes('manager') ? "Manager" : "Staff";
+  const staffRole = userRoles.includes('chef' as UserRole) ? "Chef" : 
+                   userRoles.includes('waiter' as UserRole) ? "Waiter" : 
+                   userRoles.includes('manager' as UserRole) ? "Manager" : "Staff";
   
   // Handle location errors gracefully
   let pathname = '/';
