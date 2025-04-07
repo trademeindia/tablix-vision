@@ -4,9 +4,10 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Spinner from '@/components/ui/spinner';
 import { Helmet } from 'react-helmet-async';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, userRoles } = useAuth();
   
   if (loading) {
     return (
@@ -24,8 +25,14 @@ const Index = () => {
     return <Navigate to="/auth/login" replace />;
   }
 
-  // If authenticated, redirect to the appropriate dashboard
-  return <Navigate to="/dashboard" replace />;
+  // If authenticated, redirect based on role
+  let redirectPath = '/dashboard'; // default
+  
+  if (userRoles.length > 0) {
+    redirectPath = getRedirectPathByRole(userRoles[0]);
+  }
+  
+  return <Navigate to={redirectPath} replace />;
 };
 
 export default Index;
