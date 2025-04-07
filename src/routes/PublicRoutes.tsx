@@ -18,7 +18,7 @@ const PublicRoutes: React.FC = () => {
       <Route path="/menu360" element={<Menu360LandingPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       
-      {/* Auth routes */}
+      {/* Auth routes - these are now our default landing pages */}
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/signup" element={<SignupPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />

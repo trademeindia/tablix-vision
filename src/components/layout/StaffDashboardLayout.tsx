@@ -38,7 +38,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     // Set a small delay to ensure components are mounted properly
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 100);
+    }, 200); // Increased from 100ms to 200ms to ensure complete loading
     
     return () => clearTimeout(timer);
   }, []);

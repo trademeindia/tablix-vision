@@ -42,9 +42,14 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Redirect to login if user is at root path
-  if (path === "/" && !loading && !user) {
+  // Always redirect to login if not authenticated and at root path
+  if (path === "/" && !loading) {
     return <Navigate to="/auth/login" replace />;
+  }
+
+  // If user is authenticated at root path, redirect to their appropriate dashboard
+  if (path === "/" && !loading && user) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   // If user is not logged in and trying to access a protected route, redirect to login
@@ -96,7 +101,7 @@ const AppRoutes: React.FC = () => {
     return <AdminRoutes />;
   }
   
-  // Default to public routes
+  // Default to public routes for any other paths
   return <PublicRoutes />;
 };
 
