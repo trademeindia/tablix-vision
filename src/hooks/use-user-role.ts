@@ -31,6 +31,8 @@ export const useUserRole = (): UseUserRoleReturn => {
     setError(null);
     
     try {
+      console.log("Fetching user roles for userId:", userId);
+      
       // First try to get the user data from auth.getUser() API
       const { data: authData, error: authError } = await supabase.auth.getUser();
       
@@ -41,9 +43,9 @@ export const useUserRole = (): UseUserRoleReturn => {
         console.log("User data from auth:", { email, metadata: userMetadata });
         
         // Check if this is a demo account by email
-        if (email && Object.prototype.hasOwnProperty.call(demoAccountRoles, email)) {
+        if (email && Object.keys(demoAccountRoles).includes(email)) {
           const roles = demoAccountRoles[email as keyof typeof demoAccountRoles];
-          console.log("Found demo account by email:", roles);
+          console.log("Found demo account by email:", email, "with roles:", roles);
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -65,6 +67,18 @@ export const useUserRole = (): UseUserRoleReturn => {
           setLoading(false);
           return roles;
         }
+
+        // If role not found in metadata, check if the email matches a demo pattern
+        if (email) {
+          for (const [demoEmail, roles] of Object.entries(demoAccountRoles)) {
+            if (email === demoEmail) {
+              console.log("Matched email to demo account:", demoEmail, "with roles:", roles);
+              setUserRoles(roles);
+              setLoading(false);
+              return roles;
+            }
+          }
+        }
       }
 
       // If not determined from metadata, try to get user profile data
@@ -77,7 +91,7 @@ export const useUserRole = (): UseUserRoleReturn => {
 
         if (!userError && userData && userData.role) {
           // If the profile has a role field, use that
-          const roles = [userData.role as UserRole];
+          const roles = Array.isArray(userData.role) ? userData.role as UserRole[] : [userData.role as UserRole];
           console.log("Found role in profile:", roles);
           setUserRoles(roles);
           setLoading(false);
@@ -88,7 +102,7 @@ export const useUserRole = (): UseUserRoleReturn => {
         // Continue to use demo or mock roles if profile fetch fails
       }
       
-      // For development, let's just return a mock role based on the demo email patterns
+      // For development, check if the email follows a pattern for role assignment
       if (authData?.user?.email) {
         const email = authData.user.email.toLowerCase();
         if (email.includes('owner')) {
@@ -111,6 +125,11 @@ export const useUserRole = (): UseUserRoleReturn => {
           setUserRoles(['staff']);
           setLoading(false);
           return ['staff'];
+        } else if (email.includes('customer')) {
+          console.log("Defaulting to customer role based on email pattern");
+          setUserRoles(['customer']);
+          setLoading(false);
+          return ['customer'];
         }
       }
       

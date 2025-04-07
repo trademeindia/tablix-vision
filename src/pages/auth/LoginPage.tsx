@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
 import WelcomeSection from '@/components/auth/WelcomeSection';
 import LoginForm from '@/components/auth/LoginForm';
@@ -12,9 +12,10 @@ import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
 import { useLoginForm } from '@/hooks/auth/use-login-form';
 
 const LoginPage = () => {
-  const { signIn } = useAuth();
+  const { user, userRoles, loading } = useAuth();
   const navigate = useNavigate();
   const { isInitializing, initializeDemoAccounts } = useDemoAccounts();
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
   
   // Use the login form hook to manage form state and submission
   const {
@@ -30,19 +31,44 @@ const LoginPage = () => {
     handleDemoLogin,
   } = useLoginForm({ redirectTo: '/dashboard' });
   
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      console.log('User already logged in, redirecting...', { user, roles: userRoles });
+      const redirectPath = userRoles.length > 0 ? getRedirectPathByRole(userRoles[0]) : '/dashboard';
+      console.log('Redirecting to:', redirectPath);
+      navigate(redirectPath, { replace: true });
+    }
+  }, [user, loading, navigate, userRoles]);
+  
   // Ensure demo accounts are created
-  React.useEffect(() => {
+  useEffect(() => {
     initializeDemoAccounts();
   }, [initializeDemoAccounts]);
   
+  // Debug function - only used during development
+  const toggleDebugInfo = () => {
+    if (!debugInfo) {
+      const info = { 
+        user: user ? { id: user.id, email: user.email, metadata: user.user_metadata } : null,
+        roles: userRoles,
+        loading,
+        isSubmitting,
+        error
+      };
+      setDebugInfo(JSON.stringify(info, null, 2));
+    } else {
+      setDebugInfo(null);
+    }
+  };
+  
   const handleSelectDemo = async (credentials: { email: string; password: string; role: string }) => {
     try {
-      toast.loading('Logging in with demo account...');
-      
+      console.log('Starting demo login process with credentials:', credentials.email, 'role:', credentials.role);
       await handleDemoLogin(credentials);
     } catch (e) {
       console.error('Demo login error:', e);
-      toast.error('An unexpected error occurred');
+      toast.error('An unexpected error occurred during demo login');
     }
   };
 
@@ -80,6 +106,24 @@ const LoginPage = () => {
         onSelectDemo={handleSelectDemo}
         isLoading={isInitializing || isSubmitting}
       />
+      
+      {/* Hidden debug button - only visible in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 text-center">
+          <button 
+            type="button" 
+            onClick={toggleDebugInfo}
+            className="text-xs text-slate-400 hover:text-slate-600"
+          >
+            {debugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
+          </button>
+          {debugInfo && (
+            <pre className="mt-2 p-2 bg-slate-100 rounded text-xs text-left overflow-auto max-h-40">
+              {debugInfo}
+            </pre>
+          )}
+        </div>
+      )}
     </AuthPageWrapper>
   );
 };

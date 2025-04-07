@@ -69,6 +69,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     
     try {
       console.log('Attempting demo login for role:', demoCredentials.role);
+      toast.loading('Logging in with demo account...', { id: 'demo-login' });
       
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -78,14 +79,33 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
       // If sign in successful, redirect to appropriate page
       if (signInData?.user) {
-        console.log('Demo login successful for existing account');
+        console.log('Demo login successful:', signInData.user);
         
-        // Show toast notification for successful demo login
+        // Ensure user metadata contains the role
+        if (!signInData.user.user_metadata?.role) {
+          console.log('Demo user lacks role in metadata, updating with:', demoCredentials.role);
+          
+          // Update the user metadata with the role
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: { role: demoCredentials.role }
+          });
+          
+          if (updateError) {
+            console.error('Error updating user role:', updateError);
+          }
+        }
+        
+        // Dismiss loading toast and show success
+        toast.dismiss('demo-login');
         toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
 
-        // Redirect based on demo account role
-        const redirectPath = getRedirectPathByRole(demoCredentials.role);
-        navigate(redirectPath);
+        // Add a small delay before redirect to ensure state updates
+        setTimeout(() => {
+          // Redirect based on demo account role
+          const redirectPath = getRedirectPathByRole(demoCredentials.role);
+          console.log('Redirecting to:', redirectPath);
+          navigate(redirectPath);
+        }, 100);
         return;
       }
       
@@ -107,14 +127,17 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         
         if (signUpError) {
           console.error('Demo account creation error:', signUpError);
+          toast.dismiss('demo-login');
           
           if (signUpError.message.includes('User already registered')) {
             setError('This demo account already exists but could not be accessed. Please try a different demo account or contact support.');
+            toast.error('Demo login failed: This account exists but could not be accessed.');
             setIsSubmitting(false);
             return;
           }
           
           setError(signUpError.message || 'Failed to create demo account');
+          toast.error('Demo account creation failed: ' + (signUpError.message || 'Unknown error'));
           setIsSubmitting(false);
           return;
         }
@@ -124,7 +147,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           console.log('Demo account created, attempting login again');
           
           // Wait a moment for the account to be fully registered
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           const { data: secondSignInData, error: secondSignInError } = await supabase.auth.signInWithPassword({
             email: demoCredentials.email,
@@ -133,6 +156,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           
           if (secondSignInError) {
             console.error('Demo login after signup error:', secondSignInError);
+            toast.dismiss('demo-login');
             
             // Special handling for email confirmation requirements
             if (secondSignInError.message.includes('Email not confirmed')) {
@@ -144,6 +168,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             }
             
             setError(secondSignInError.message || 'Failed to sign in with demo account');
+            toast.error('Demo login failed: ' + (secondSignInError.message || 'Unknown error'));
             setIsSubmitting(false);
             return;
           }
@@ -152,19 +177,30 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           if (secondSignInData?.user) {
             console.log('Second login attempt successful for new demo account');
             
-            // Show success toast
+            // Dismiss loading toast and show success
+            toast.dismiss('demo-login');
             toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
             
-            // Redirect based on demo account role
-            const redirectPath = getRedirectPathByRole(demoCredentials.role);
-            navigate(redirectPath);
+            // Add a small delay before redirect to ensure state updates
+            setTimeout(() => {
+              // Redirect based on demo account role
+              const redirectPath = getRedirectPathByRole(demoCredentials.role);
+              console.log('Redirecting to:', redirectPath);
+              navigate(redirectPath);
+            }, 100);
             return;
           }
         }
       }
       
+      // If we reached here, something went wrong that wasn't caught in other conditions
+      toast.dismiss('demo-login');
+      toast.error('Demo login failed with an unexpected error');
+      setError('Demo login failed. Please try again or contact support.');
     } catch (error) {
       console.error('Demo login error:', error);
+      toast.dismiss('demo-login');
+      toast.error('An unexpected error occurred during demo login');
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);

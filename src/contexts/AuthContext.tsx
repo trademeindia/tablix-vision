@@ -46,30 +46,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const { userRoles, fetchUserRoles, loading: rolesLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
+  const [lastUserId, setLastUserId] = useState<string | null>(null);
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
     const loadUserRoles = async () => {
-      if (user) {
-        console.log("Auth context: User detected, fetching roles");
-        try {
-          await fetchUserRoles(user.id);
-        } catch (error) {
-          console.error("Error fetching user roles:", error);
+      try {
+        if (user) {
+          console.log("Auth context: User detected, fetching roles");
+          
+          // Prevent duplicate role fetching for same user
+          if (lastUserId !== user.id) {
+            console.log("User changed, fetching new roles");
+            setLastUserId(user.id);
+            await fetchUserRoles(user.id);
+          } else {
+            console.log("Using cached roles for current user");
+          }
+        } else {
+          console.log("Auth context: No user detected");
+          setLastUserId(null);
         }
-      } else {
-        console.log("Auth context: No user detected");
+      } catch (error) {
+        console.error("Error fetching user roles:", error);
+      } finally {
+        // We always set loading to false, regardless of whether we have a user or not
+        setLoading(false);
       }
-      
-      // We always set loading to false, regardless of whether we have a user or not
-      setLoading(false);
     };
 
-    // Only wait for roles if we have a user
+    // Only wait for roles if we have a user or session loading finished
     if (!sessionLoading) {
       loadUserRoles();
     }
-  }, [user, sessionLoading, fetchUserRoles]);
+  }, [user, sessionLoading, fetchUserRoles, lastUserId]);
 
   const value = {
     user,
