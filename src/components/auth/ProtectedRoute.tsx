@@ -31,14 +31,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
+  // For demo accounts, bypass role checking to ensure they can access dashboard
+  const isDemoAccount = user.email?.endsWith('@demo.com') || false;
+  
   // Check if user has required roles (if specified)
-  if (requiredRoles && requiredRoles.length > 0) {
+  if (requiredRoles && requiredRoles.length > 0 && !isDemoAccount) {
     // Check if user has at least one of the required roles
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
     
     if (!hasRequiredRole) {
+      // Save debugging information to help troubleshoot
+      const debugInfo = {
+        requiredRoles,
+        userRoles,
+        location: location.pathname,
+        isDemoAccount,
+      };
+      console.log("Access denied debugging info:", debugInfo);
+      
       // Redirect to unauthorized page if user doesn't have required role
-      return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+      return <Navigate to="/unauthorized" state={{ 
+        from: location,
+        requiredRoles: requiredRoles,
+        userRoles: userRoles,
+      }} replace />;
     }
   }
 

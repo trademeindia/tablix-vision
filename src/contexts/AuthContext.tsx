@@ -53,6 +53,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (user) {
         console.log("Auth context: User detected, fetching roles");
         try {
+          // Retrieve from localStorage first for immediate use
+          const savedRole = localStorage.getItem('userRole');
+          if (savedRole) {
+            console.log("Auth context: Found saved role in localStorage");
+          }
+          
+          // Then fetch latest from backend as well
           await fetchUserRoles(user.id);
         } catch (error) {
           console.error("Error fetching user roles:", error);
@@ -71,6 +78,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user, sessionLoading, fetchUserRoles]);
 
+  // Listen for demo override
+  useEffect(() => {
+    const demoOverride = localStorage.getItem('demoOverride');
+    if (demoOverride === 'true') {
+      console.log("Demo override is active");
+    }
+  }, []);
+
+  // Handle clean logout
+  const handleSignOut = async () => {
+    // Clear any saved role data
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('demoOverride');
+    // Perform supabase signout
+    return signOut();
+  };
+
   const value = {
     user,
     session,
@@ -79,7 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signUp,
     signInWithGoogle,
-    signOut,
+    signOut: handleSignOut,
     resetPassword,
     updatePassword,
   };

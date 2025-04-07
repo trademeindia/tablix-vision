@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 // Define the possible user roles as a union type
@@ -26,6 +26,28 @@ export const useUserRole = (): UseUserRoleReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  // Check the localStorage for saved role data
+  useEffect(() => {
+    const savedRole = localStorage.getItem('userRole');
+    if (savedRole) {
+      try {
+        const parsedRoles = JSON.parse(savedRole) as UserRole[];
+        if (Array.isArray(parsedRoles) && parsedRoles.length > 0) {
+          setUserRoles(parsedRoles);
+          console.log('Restored roles from localStorage:', parsedRoles);
+        }
+      } catch (e) {
+        console.error('Error parsing saved roles:', e);
+        // If single string stored instead of array, convert it
+        if (typeof savedRole === 'string') {
+          const roleArray = [savedRole as UserRole];
+          setUserRoles(roleArray);
+          console.log('Restored role from localStorage (string):', roleArray);
+        }
+      }
+    }
+  }, []);
+
   const fetchUserRoles = useCallback(async (userId: string): Promise<UserRole[]> => {
     setLoading(true);
     setError(null);
@@ -44,6 +66,10 @@ export const useUserRole = (): UseUserRoleReturn => {
         if (email && Object.prototype.hasOwnProperty.call(demoAccountRoles, email)) {
           const roles = demoAccountRoles[email as keyof typeof demoAccountRoles];
           console.log("Found demo account by email:", roles);
+          
+          // Save roles to localStorage for persistence
+          localStorage.setItem('userRole', JSON.stringify(roles));
+          
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -60,6 +86,9 @@ export const useUserRole = (): UseUserRoleReturn => {
           // Add implied roles
           if (role === 'owner') roles.push('manager');
           if (role === 'chef' || role === 'waiter') roles.push('staff');
+          
+          // Save roles to localStorage for persistence
+          localStorage.setItem('userRole', JSON.stringify(roles));
           
           setUserRoles(roles);
           setLoading(false);
@@ -79,6 +108,10 @@ export const useUserRole = (): UseUserRoleReturn => {
           // If the profile has a role field, use that
           const roles = [userData.role as UserRole];
           console.log("Found role in profile:", roles);
+          
+          // Save roles to localStorage for persistence
+          localStorage.setItem('userRole', JSON.stringify(roles));
+          
           setUserRoles(roles);
           setLoading(false);
           return roles;
@@ -91,32 +124,38 @@ export const useUserRole = (): UseUserRoleReturn => {
       // For development, let's just return a mock role based on the demo email patterns
       if (authData?.user?.email) {
         const email = authData.user.email.toLowerCase();
+        
+        let defaultRoles: UserRole[] = ['customer'];
+        
         if (email.includes('owner')) {
           console.log("Defaulting to owner role based on email pattern");
-          setUserRoles(['owner', 'manager']);
-          setLoading(false);
-          return ['owner', 'manager'];
+          defaultRoles = ['owner', 'manager'];
         } else if (email.includes('chef')) {
           console.log("Defaulting to chef role based on email pattern");
-          setUserRoles(['chef', 'staff']);
-          setLoading(false);
-          return ['chef', 'staff'];
+          defaultRoles = ['chef', 'staff'];
         } else if (email.includes('waiter')) {
           console.log("Defaulting to waiter role based on email pattern");
-          setUserRoles(['waiter', 'staff']);
-          setLoading(false);
-          return ['waiter', 'staff'];
+          defaultRoles = ['waiter', 'staff'];
         } else if (email.includes('staff')) {
           console.log("Defaulting to staff role based on email pattern");
-          setUserRoles(['staff']);
-          setLoading(false);
-          return ['staff'];
+          defaultRoles = ['staff'];
         }
+        
+        // Save roles to localStorage for persistence
+        localStorage.setItem('userRole', JSON.stringify(defaultRoles));
+        
+        setUserRoles(defaultRoles);
+        setLoading(false);
+        return defaultRoles;
       }
       
       // Default role
       console.log("Using default customer role");
       const defaultRoles: UserRole[] = ['customer'];
+      
+      // Save roles to localStorage for persistence
+      localStorage.setItem('userRole', JSON.stringify(defaultRoles));
+      
       setUserRoles(defaultRoles);
       setLoading(false);
       return defaultRoles;
@@ -128,6 +167,11 @@ export const useUserRole = (): UseUserRoleReturn => {
       return ['customer'];
     }
   }, []);
+  
+  // Log the current roles for debugging
+  useEffect(() => {
+    console.info("Refreshed roles:", userRoles);
+  }, [userRoles]);
 
   return {
     userRoles,

@@ -1,16 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import AdminRoutes from './AdminRoutes';
 import CustomerRoutes from './CustomerRoutes';
 import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
+  const { user, userRoles } = useAuth();
   const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
+
+  // Check for demo override
+  const isDemoOverrideActive = localStorage.getItem('demoOverride') === 'true';
+  const isDemoUser = user?.email?.endsWith('@demo.com') || false;
 
   useEffect(() => {
     try {
@@ -38,6 +44,19 @@ const AppRoutes: React.FC = () => {
         </button>
       </div>
     );
+  }
+
+  // For demo users with override active, redirect to dashboard
+  if (isDemoUser && isDemoOverrideActive && path === '/unauthorized') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Special case for the unauthorized page when using demo override
+  if (path === '/unauthorized' && isDemoUser && location.state?.from?.pathname) {
+    // If we're on the unauthorized page but demo override is active, redirect to the original destination
+    if (isDemoOverrideActive) {
+      return <Navigate to={location.state.from.pathname} replace />;
+    }
   }
 
   // Conditionally render route groups based on the current path
