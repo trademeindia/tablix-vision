@@ -9,11 +9,25 @@ import { useNavigate } from 'react-router-dom';
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 import { toast } from 'sonner';
 import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
+import { useLoginForm } from '@/hooks/auth/use-login-form';
 
 const LoginPage = () => {
   const { signIn, userRoles } = useAuth();
   const navigate = useNavigate();
   const { isInitializing, initializeDemoAccounts } = useDemoAccounts();
+  
+  // Use the login form hook to manage form state and submission
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    isSubmitting,
+    error,
+    role,
+    handleSubmit,
+    handleGoogleSignIn,
+  } = useLoginForm();
   
   // Ensure demo accounts are created
   React.useEffect(() => {
@@ -47,7 +61,17 @@ const LoginPage = () => {
         subtitle="Log in to manage your restaurant"
       />
       
-      <LoginForm />
+      <LoginForm 
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        isSubmitting={isSubmitting}
+        error={error}
+        role={role}
+        handleSubmit={handleSubmit}
+        handleGoogleSignIn={handleGoogleSignIn}
+      />
 
       <div className="text-center my-6">
         <div className="relative">
