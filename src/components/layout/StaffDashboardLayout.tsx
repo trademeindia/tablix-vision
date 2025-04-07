@@ -6,7 +6,7 @@ import DemoBanner from './DemoBanner';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetOverlay } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/toaster';
 import Spinner from '@/components/ui/spinner';
 
@@ -21,7 +21,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   const { user, userRoles, loading: authLoading } = useAuth();
   
   // Check if the user is using a demo account
-  const isDemoAccount = user?.email?.includes('@demo.com') || false;
+  const isDemoAccount = user?.email?.endsWith('@demo.com') || false;
   const demoRole = userRoles.includes('chef') ? 'chef' : 
                   userRoles.includes('waiter') ? 'waiter' : 
                   userRoles.includes('staff') ? 'staff' : '';
@@ -38,7 +38,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     // Set a small delay to ensure components are mounted properly
     const timer = setTimeout(() => {
       setIsLoaded(true);
-    }, 300); // Increased from 200ms to 300ms to ensure complete loading
+    }, 100);
     
     return () => clearTimeout(timer);
   }, []);
@@ -48,7 +48,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     if (isMobile && location && sidebarOpen) {
       setSidebarOpen(false);
     }
-  }, [location, isMobile, sidebarOpen]);
+  }, [location, isMobile]);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

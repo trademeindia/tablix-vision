@@ -12,28 +12,19 @@ import DeleteAccountDialog from '@/components/profile/DeleteAccountDialog';
 import AccountSettingsForm from '@/components/profile/AccountSettingsForm';
 
 const ProfilePage = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { loading, error, profile, fetchProfile } = useProfile();
   const [activeTab, setActiveTab] = useState('profile');
-  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
-    // Only fetch profile when auth is loaded and user exists
-    if (!authLoading && user && !profileLoaded) {
-      fetchProfile().then(() => {
-        setProfileLoaded(true);
-      });
-    }
-  }, [authLoading, user, fetchProfile, profileLoaded]);
+    // Fetch profile data when component mounts
+    fetchProfile();
+  }, [fetchProfile]);
 
-  // Show loading state when either auth is loading or profile is loading but not yet started
-  if (authLoading || (loading && !profileLoaded)) {
+  if (loading) {
     return (
       <div className="flex h-[calc(100vh-80px)] items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" className="mx-auto mb-4" />
-          <p className="text-slate-600">Loading your profile...</p>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }

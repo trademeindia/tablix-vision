@@ -8,7 +8,7 @@ interface AuthFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
 
 export const AuthForm = ({ className, children, ...props }: AuthFormProps) => {
   return (
-    <form className={cn("space-y-5", className)} {...props}>
+    <form className={cn("space-y-4", className)} {...props}>
       {children}
     </form>
   );
@@ -21,9 +21,9 @@ interface AuthFormHeaderProps {
 
 export const AuthFormHeader = ({ title, description }: AuthFormHeaderProps) => {
   return (
-    <div className="text-center space-y-2 mb-6 animate-fade-in">
-      <h1 className="text-2xl font-bold tracking-tight text-slate-800">{title}</h1>
-      {description && <p className="text-sm text-slate-500">{description}</p>}
+    <div className="text-center space-y-2">
+      <h1 className="text-2xl font-bold">{title}</h1>
+      {description && <p className="text-sm text-muted-foreground">{description}</p>}
     </div>
   );
 };
@@ -34,7 +34,7 @@ interface AuthFormFooterProps {
 
 export const AuthFormFooter = ({ children }: AuthFormFooterProps) => {
   return (
-    <div className="flex flex-col gap-3 mt-8 animate-fade-in">
+    <div className="flex flex-col gap-3 mt-6">
       {children}
     </div>
   );
@@ -51,7 +51,7 @@ export const AuthDivider = ({ text = "or continue with" }: AuthDividerProps) => 
         <div className="w-full border-t border-slate-200"></div>
       </div>
       <div className="relative flex justify-center text-sm">
-        <span className="bg-white px-3 text-slate-500 font-medium">{text}</span>
+        <span className="bg-white px-2 text-slate-500">{text}</span>
       </div>
     </div>
   );

@@ -1,129 +1,109 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthPageWrapper from '@/components/auth/AuthPageWrapper';
-import WelcomeSection from '@/components/auth/WelcomeSection';
-import LoginForm from '@/components/auth/LoginForm';
-import DemoAccountSelector from '@/components/auth/DemoAccountSelector';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
-import { toast } from 'sonner';
-import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
 import { useLoginForm } from '@/hooks/auth/use-login-form';
+import RoleTabsSection from '@/components/auth/RoleTabsSection';
+import LoginForm from '@/components/auth/LoginForm';
+import AuthFormTitle from '@/components/auth/AuthFormTitle';
+import DemoAccountSelector from '@/components/auth/DemoAccountSelector';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, HelpCircle } from "lucide-react";
+import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
 
 const LoginPage = () => {
-  const { user, userRoles, loading } = useAuth();
-  const navigate = useNavigate();
-  const { isInitializing, initializeDemoAccounts } = useDemoAccounts();
-  const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  
-  // Use the login form hook to manage form state and submission
   const {
     email,
     setEmail,
-    password,
+    password, 
     setPassword,
     isSubmitting,
     error,
     role,
+    handleRoleChange,
     handleSubmit,
     handleGoogleSignIn,
-    handleDemoLogin,
-  } = useLoginForm({ redirectTo: '/dashboard' });
-  
-  // Redirect if already logged in
+    handleDemoLogin
+  } = useLoginForm();
+
+  const [showDemoHelp, setShowDemoHelp] = useState(false);
+  const { initializeDemoAccounts, isInitializing } = useDemoAccounts();
+
   useEffect(() => {
-    if (!loading && user) {
-      console.log('User already logged in, redirecting...', { user, roles: userRoles });
-      const redirectPath = userRoles.length > 0 ? getRedirectPathByRole(userRoles[0]) : '/dashboard';
-      console.log('Redirecting to:', redirectPath);
-      navigate(redirectPath, { replace: true });
-    }
-  }, [user, loading, navigate, userRoles]);
-  
-  // Ensure demo accounts are created
-  useEffect(() => {
+    // Initialize demo accounts when the login page loads
     initializeDemoAccounts();
   }, [initializeDemoAccounts]);
-  
-  // Debug function - only used during development
-  const toggleDebugInfo = () => {
-    if (!debugInfo) {
-      const info = { 
-        user: user ? { id: user.id, email: user.email, metadata: user.user_metadata } : null,
-        roles: userRoles,
-        loading,
-        isSubmitting,
-        error
-      };
-      setDebugInfo(JSON.stringify(info, null, 2));
-    } else {
-      setDebugInfo(null);
-    }
-  };
-  
-  const handleSelectDemo = async (credentials: { email: string; password: string; role: string }) => {
-    try {
-      console.log('Starting demo login process with credentials:', credentials.email, 'role:', credentials.role);
-      await handleDemoLogin(credentials);
-    } catch (e) {
-      console.error('Demo login error:', e);
-      toast.error('An unexpected error occurred during demo login');
-    }
-  };
+
+  const toggleDemoHelp = () => setShowDemoHelp(!showDemoHelp);
 
   return (
     <AuthPageWrapper title="Login">
-      <WelcomeSection 
-        title="Welcome Back"
-        subtitle="Log in to manage your restaurant"
-      />
-      
-      <LoginForm 
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        isSubmitting={isSubmitting}
-        error={error}
-        role={role}
-        handleSubmit={handleSubmit}
-        handleGoogleSignIn={handleGoogleSignIn}
-      />
-
-      <div className="text-center my-8">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-4 text-slate-500 font-medium">Or try a demo account</span>
+      <div>
+        <RoleTabsSection role={role} handleRoleChange={handleRoleChange} />
+        
+        <div>
+          <AuthFormTitle role={role} isSignup={false} />
+          
+          <LoginForm 
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            isSubmitting={isSubmitting}
+            error={error}
+            role={role}
+            handleSubmit={handleSubmit}
+            handleGoogleSignIn={handleGoogleSignIn}
+          />
+          
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-slate-500 flex items-center gap-1">
+                  Or try a demo account
+                  <button 
+                    onClick={toggleDemoHelp} 
+                    className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                    aria-label="Demo help"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </button>
+                </span>
+              </div>
+            </div>
+            
+            {showDemoHelp && (
+              <Alert className="mt-4 bg-blue-50 text-blue-800 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-600">About Demo Mode</AlertTitle>
+                <AlertDescription className="text-sm">
+                  Demo accounts provide instant access to the application with pre-populated data. 
+                  No email verification is required. You'll be able to explore the interface and features 
+                  but with limited functionality.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {error && error.includes('email confirmation') && (
+              <Alert className="mt-4 bg-amber-50 text-amber-800 border-amber-200">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-800">Demo Setup Required</AlertTitle>
+                <AlertDescription className="text-sm">
+                  For demo accounts to work properly, please make sure that email confirmation is disabled
+                  in the Supabase project authentication settings.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <DemoAccountSelector 
+              onSelectDemo={handleDemoLogin}
+              isLoading={isInitializing || isSubmitting} 
+            />
           </div>
         </div>
       </div>
-      
-      <DemoAccountSelector 
-        onSelectDemo={handleSelectDemo}
-        isLoading={isInitializing || isSubmitting}
-      />
-      
-      {/* Hidden debug button - only visible in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 text-center">
-          <button 
-            type="button" 
-            onClick={toggleDebugInfo}
-            className="text-xs text-slate-400 hover:text-slate-600"
-          >
-            {debugInfo ? 'Hide Debug Info' : 'Show Debug Info'}
-          </button>
-          {debugInfo && (
-            <pre className="mt-2 p-2 bg-slate-100 rounded text-xs text-left overflow-auto max-h-40">
-              {debugInfo}
-            </pre>
-          )}
-        </div>
-      )}
     </AuthPageWrapper>
   );
 };

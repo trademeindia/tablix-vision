@@ -35,18 +35,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
 }) => {
   return (
     <>
-      <AuthForm onSubmit={handleSubmit} className="mt-6 space-y-5">
+      <AuthForm onSubmit={handleSubmit} className="mt-4">
         <FormError message={error} />
         
         <InputGroup>
-          <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email</Label>
+          <Label htmlFor="email">Email</Label>
           <InputIconWrapper>
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               id="email"
               type="email"
               placeholder="Enter your email"
-              className="pl-10 h-11 border-slate-200 focus:border-primary hover:border-slate-300 transition-colors rounded-md shadow-sm"
+              className="pl-10"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -55,9 +55,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </InputGroup>
         
         <InputGroup>
-          <div className="flex justify-between items-center">
-            <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
-            <Link to="/auth/reset-password" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+          <div className="flex justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link to="/auth/reset-password" className="text-sm font-medium text-primary hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -72,12 +72,12 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         <LoadingButton 
           type="submit" 
-          className="w-full h-11 text-base font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 duration-200" 
+          className="w-full" 
           isLoading={isSubmitting}
           loadingText="Signing in..."
         >
-          <span className="flex items-center justify-center gap-2">
-            <LogIn className="h-5 w-5" />
+          <span className="flex items-center gap-2">
+            <LogIn className="h-4 w-4" />
             Sign in
           </span>
         </LoadingButton>
@@ -93,7 +93,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <AuthFormFooter>
         <p className="text-sm text-center text-slate-600">
           Don't have an account?{' '}
-          <Link to={`/auth/signup?role=${role}`} className="font-medium text-primary hover:text-primary/80 transition-colors">
+          <Link to={`/auth/signup?role=${role}`} className="font-medium text-primary hover:underline">
             Sign up
           </Link>
         </p>

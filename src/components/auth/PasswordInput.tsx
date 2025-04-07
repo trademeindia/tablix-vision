@@ -29,7 +29,7 @@ const PasswordInput = ({
         id={id}
         type={showPassword ? 'text' : 'password'}
         placeholder={placeholder}
-        className="pr-10 h-12 border-slate-200 focus:border-primary rounded-md shadow-sm"
+        className="pr-10"
         value={value}
         onChange={onChange}
         required={required}
@@ -37,9 +37,8 @@ const PasswordInput = ({
       />
       <button
         type="button"
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
         onClick={() => setShowPassword(!showPassword)}
-        aria-label={showPassword ? "Hide password" : "Show password"}
       >
         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>

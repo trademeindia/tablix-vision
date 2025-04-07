@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import Spinner from '@/components/ui/spinner';
 
 interface LoadingButtonProps extends ButtonProps {
   isLoading?: boolean;
@@ -18,8 +18,8 @@ const LoadingButton = ({
   return (
     <Button disabled={isLoading} {...props}>
       {isLoading ? (
-        <span className="flex items-center justify-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="flex items-center gap-2">
+          <Spinner size="sm" />
           {loadingText}
         </span>
       ) : (

@@ -1,18 +1,29 @@
 
 import React from 'react';
-import { ThemeProvider as ThemeContextProvider } from '@/hooks/use-theme';
+import { useTheme } from '@/hooks/use-theme';
 
-interface ThemeProviderProps {
+interface ThemeApplierProps {
   children: React.ReactNode;
-  restaurantId?: string;
+  restaurantId: string;
 }
 
-const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, restaurantId = '' }) => {
-  return (
-    <ThemeContextProvider restaurantId={restaurantId}>
-      {children}
-    </ThemeContextProvider>
-  );
+const ThemeApplier: React.FC<ThemeApplierProps> = ({ children }) => {
+  const { theme, loading, error } = useTheme();
+
+  // Apply the theme to CSS variables
+  React.useEffect(() => {
+    if (loading) return;
+    
+    if (theme) {
+      document.documentElement.style.setProperty('--color-primary', theme.primaryColor);
+      document.documentElement.style.setProperty('--color-background', theme.backgroundColor);
+      document.documentElement.style.setProperty('--color-accent', theme.accentColor);
+      document.documentElement.style.setProperty('--color-text', theme.textColor);
+    }
+  }, [theme, loading]);
+
+  // Always render children, even with errors or during loading
+  return <>{children}</>;
 };
 
-export default ThemeProvider;
+export default ThemeApplier;

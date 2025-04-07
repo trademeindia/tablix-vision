@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import Spinner from '@/components/ui/spinner';
 import { Helmet } from 'react-helmet-async';
 import { UserRole } from '@/hooks/use-user-role';
-import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
@@ -64,8 +63,12 @@ const AuthCallbackPage = () => {
             if (profileData && profileData.role) {
               // Redirect based on role
               const role = profileData.role as UserRole;
-              const redirectPath = getRedirectPathByRole(role);
-              
+              const redirectPath = 
+                role === 'customer' ? '/customer/menu' :
+                role === 'waiter' ? '/staff-dashboard/orders' :
+                role === 'chef' ? '/staff-dashboard/kitchen' :
+                role === 'manager' || role === 'owner' ? '/' : '/';
+                
               navigate(redirectPath);
               return;
             }

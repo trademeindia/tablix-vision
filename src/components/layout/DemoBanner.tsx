@@ -25,9 +25,8 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ role }) => {
 
   const roleText = 
     role === 'owner' ? 'Restaurant Owner' :
-    role === 'manager' ? 'Restaurant Manager' :
     role === 'staff' ? 'Staff Member' :
-    role === 'chef' ? 'Kitchen Chef' :
+    role === 'chef' ? 'Chef' :
     role === 'waiter' ? 'Waiter' :
     'Customer';
 
