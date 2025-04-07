@@ -7,27 +7,28 @@ export function useAuthState() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     console.log('Initializing auth state...');
     setLoading(true);
 
-    // IMPORTANT: Set up the auth state listener FIRST to avoid missing events
+    // Important: Set up the auth state listener FIRST to avoid missing events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.email);
+        console.log('Auth state changed:', event);
         
         // Use setTimeout to prevent potential deadlocks with Supabase auth
         setTimeout(() => {
-          // Always update both session and user together
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
+          // Only update state if the session actually changed
+          if (JSON.stringify(currentSession) !== JSON.stringify(session)) {
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+          }
           
           if (event === 'SIGNED_OUT') {
-            console.log('User signed out - clearing local storage');
-            // Clear any cached user data or local storage values related to user state
+            console.log('User signed out');
             localStorage.removeItem('lastUserRole');
-            // Remove any other auth-related items from localStorage if needed
           } else if (event === 'SIGNED_IN') {
             console.log('User signed in:', currentSession?.user?.email);
           }
@@ -43,7 +44,6 @@ export function useAuthState() {
         
         console.log('Initial session check result:', currentSession ? 'Session found' : 'No session found');
         
-        // Always update both session and user when session state changes
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -54,6 +54,7 @@ export function useAuthState() {
         console.error('Error getting session:', error);
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
     
@@ -64,5 +65,5 @@ export function useAuthState() {
     };
   }, []);
 
-  return { user, session, loading };
+  return { user, session, loading, initialized };
 }

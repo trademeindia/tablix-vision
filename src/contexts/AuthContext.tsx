@@ -17,6 +17,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: any | null }>;
   updatePassword: (password: string) => Promise<{ error: any | null }>;
   refreshUserRoles: () => Promise<UserRole[]>;
+  initialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,7 +38,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { 
     user, 
     session, 
-    loading: sessionLoading, 
+    loading: sessionLoading,
+    initialized: sessionInitialized,
     signIn, 
     signUp, 
     signInWithGoogle, 
@@ -48,6 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const { userRoles, fetchUserRoles, loading: rolesLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const [lastUserId, setLastUserId] = useState<string | null>(null);
   const [roleRefreshAttempts, setRoleRefreshAttempts] = useState(0);
   const [roleRefreshTimer, setRoleRefreshTimer] = useState<NodeJS.Timeout | null>(null);
@@ -140,6 +143,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         // We always set loading to false, regardless of whether we have a user or not
         setLoading(false);
+        if (sessionInitialized) {
+          setInitialized(true);
+        }
       }
     };
 
@@ -154,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearTimeout(roleRefreshTimer);
       }
     };
-  }, [user, sessionLoading, fetchUserRoles, lastUserId, roleRefreshAttempts, roleRefreshTimer]);
+  }, [user, sessionLoading, sessionInitialized, fetchUserRoles, lastUserId, roleRefreshAttempts, roleRefreshTimer]);
 
   // Function to manually refresh user roles
   const refreshUserRoles = async (): Promise<UserRole[]> => {
@@ -195,10 +201,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     userRoles,
     loading: sessionLoading || loading,
+    initialized,
     signIn,
     signUp,
     signInWithGoogle,
-    signOut,
+    signOut: baseSignOut, // Changed to use the base signOut directly to avoid complexity
     resetPassword,
     updatePassword,
     refreshUserRoles,
@@ -211,11 +218,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: user ? { id: user.id, email: user.email } : null,
         userRoles,
         loading: sessionLoading || loading,
+        initialized,
         sessionLoading,
         rolesLoading
       });
     }
-  }, [user, userRoles, sessionLoading, loading, rolesLoading]);
+  }, [user, userRoles, sessionLoading, loading, rolesLoading, initialized]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

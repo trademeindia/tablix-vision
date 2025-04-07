@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles,
 }) => {
-  const { user, userRoles, loading, refreshUserRoles } = useAuth();
+  const { user, userRoles, loading, initialized, refreshUserRoles } = useAuth();
   const location = useLocation();
   const [authChecked, setAuthChecked] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -25,8 +25,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Verify access rights when auth state or required roles change
   useEffect(() => {
     const checkAccess = async () => {
-      // If still loading, wait
-      if (loading) {
+      // If still loading and not yet initialized, wait
+      if (loading && !initialized) {
         console.log('Protected route: Still loading auth state...');
         return;
       }
@@ -113,7 +113,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Call check immediately
     checkAccess();
-  }, [user, userRoles, requiredRoles, loading, refreshUserRoles, autoRetryCount]);
+  }, [user, userRoles, requiredRoles, loading, initialized, refreshUserRoles, autoRetryCount]);
 
   // Debug toggle function - only in development
   const toggleDebugInfo = () => {
@@ -125,6 +125,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         hasAccess,
         authChecked,
         loading,
+        initialized,
         location: location.pathname
       };
       setDebugInfo(JSON.stringify(info, null, 2));
@@ -134,7 +135,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   };
 
   // Show loading state while checking authentication
-  if (loading || !authChecked) {
+  if ((loading && !initialized) || !authChecked) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
