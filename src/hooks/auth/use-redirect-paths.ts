@@ -1,22 +1,21 @@
 
-/**
- * Helper function to determine the redirect path based on user role
- */
-export const getRedirectPathByRole = (userRole: string): string => {
-  switch(userRole) {
-    case 'customer':
-      return '/customer/menu';
+import { UserRole } from './use-user-role';
+
+export const getRedirectPathByRole = (role: string): string => {
+  switch (role) {
+    case 'owner':
+    case 'manager':
+      return '/dashboard';
     case 'chef':
       return '/staff-dashboard/kitchen';
     case 'waiter':
-      return '/staff-dashboard/orders';
-    case 'owner':
-      return '/dashboard';
-    case 'manager':
-      return '/dashboard';
     case 'staff':
-      return '/staff-dashboard';
+      return '/staff-dashboard/orders';
+    case 'customer':
+      return '/customer/menu';
     default:
+      // Default to main dashboard if role is unknown
+      console.warn(`Unknown role: ${role}, redirecting to default dashboard`);
       return '/dashboard';
   }
 };

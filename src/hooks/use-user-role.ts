@@ -22,7 +22,7 @@ const demoAccountRoles: Record<string, UserRole[]> = {
 };
 
 export const useUserRole = (): UseUserRoleReturn => {
-  const [userRoles, setUserRoles] = useState<UserRole[]>(['customer']); // Default to customer for development
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]); // Start with empty array, not assuming customer
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -162,6 +162,22 @@ export const useUserRole = (): UseUserRoleReturn => {
         }
       } catch (profileError) {
         console.log('Error fetching profile:', profileError);
+      }
+      
+      console.log("No role found, checking if any saved role exists");
+      // Check localStorage one more time as a final fallback
+      const lastRole = localStorage.getItem('lastUserRole') as UserRole | null;
+      if (lastRole) {
+        console.log("Using last known role from localStorage:", lastRole);
+        let roles: UserRole[] = [lastRole];
+        
+        // Add implied roles
+        if (lastRole === 'owner') roles.push('manager');
+        if (lastRole === 'chef' || lastRole === 'waiter') roles.push('staff');
+        
+        setUserRoles(roles);
+        setLoading(false);
+        return roles;
       }
       
       // Default role if nothing else worked

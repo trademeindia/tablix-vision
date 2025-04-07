@@ -19,14 +19,15 @@ export function useAuthState() {
         
         // Use setTimeout to prevent potential deadlocks with Supabase auth
         setTimeout(() => {
-          // Always update both session and user
+          // Always update both session and user together
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
           
           if (event === 'SIGNED_OUT') {
-            console.log('User signed out');
+            console.log('User signed out - clearing local storage');
             // Clear any cached user data or local storage values related to user state
             localStorage.removeItem('lastUserRole');
+            // Remove any other auth-related items from localStorage if needed
           } else if (event === 'SIGNED_IN') {
             console.log('User signed in:', currentSession?.user?.email);
           }

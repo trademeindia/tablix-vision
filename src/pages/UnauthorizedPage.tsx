@@ -36,13 +36,22 @@ const UnauthorizedPage = () => {
       // Clear any role-related localStorage before logout
       localStorage.removeItem('lastUserRole');
       
-      await signOut();
+      // Perform the logout
+      const result = await signOut();
       
-      // After successful logout, navigate to login page
+      if (result.error) {
+        console.error('Logout error:', result.error);
+        toast.error('Failed to log out properly. Please try again.');
+        setRetrying(false);
+        return;
+      }
+      
+      // After successful logout, navigate to login page with a slight delay
+      // to ensure the auth state is fully updated
       setTimeout(() => {
         navigate('/auth/login', { replace: true });
         setRetrying(false);
-      }, 500);
+      }, 1000);
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to log out. Please try again.');

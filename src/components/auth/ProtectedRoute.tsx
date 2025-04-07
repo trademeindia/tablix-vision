@@ -50,8 +50,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       }
 
       // Check if we have any roles yet
-      if (userRoles.length === 0 && autoRetryCount < 2) {
-        console.log('Protected route: No roles detected. Attempting to refresh roles...');
+      if (userRoles.length === 0 && autoRetryCount < 3) {
+        console.log('Protected route: No roles detected. Attempting to refresh roles... (Attempt ' + (autoRetryCount + 1) + '/3)');
         setAutoRetryCount(prev => prev + 1);
         
         // Try to refresh roles
@@ -59,8 +59,34 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           const refreshedRoles = await refreshUserRoles();
           console.log('Protected route: Roles refreshed:', refreshedRoles);
           
-          // We'll let the next effect run handle the updated roles
-          return;
+          // If we have roles now, check access
+          if (refreshedRoles.length > 0) {
+            const hasRequiredRole = refreshedRoles.some(role => requiredRoles.includes(role));
+            setAuthChecked(true);
+            setHasAccess(hasRequiredRole);
+            
+            // Show toast for unauthorized access
+            if (!hasRequiredRole) {
+              toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
+            }
+            return;
+          }
+          
+          // Try loading from localStorage as a fallback
+          const savedRole = localStorage.getItem('lastUserRole') as UserRole | null;
+          if (savedRole) {
+            console.log('Protected route: Using saved role from localStorage:', savedRole);
+            
+            // Check if saved role grants access
+            const hasAccess = requiredRoles.includes(savedRole as UserRole);
+            setAuthChecked(true);
+            setHasAccess(hasAccess);
+            
+            if (!hasAccess) {
+              toast.error(`Access denied: You need ${requiredRoles.join(' or ')} role to access this page.`);
+            }
+            return;
+          }
         } catch (error) {
           console.error('Protected route: Failed to refresh roles:', error);
         }
@@ -115,7 +141,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           <Spinner size="lg" className="mx-auto mb-4" />
           <p className="text-slate-600">Verifying access...</p>
           {autoRetryCount > 0 && (
-            <p className="text-slate-500 text-sm mt-2">Retry attempt: {autoRetryCount}/2</p>
+            <p className="text-slate-500 text-sm mt-2">Retry attempt: {autoRetryCount}/3</p>
           )}
         </div>
       </div>

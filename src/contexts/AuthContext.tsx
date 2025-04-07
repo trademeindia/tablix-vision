@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log("Starting sign out process");
       
-      // Clear any role-related localStorage items
+      // Clear any role-related localStorage items first
       localStorage.removeItem('lastUserRole');
       
       // Clear any existing retry timers
@@ -66,7 +66,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setRoleRefreshTimer(null);
       }
       
+      // Reset component state
       setLastUserId(null);
+      setRoleRefreshAttempts(0);
       
       // Actually sign out from Supabase
       const result = await baseSignOut();
@@ -74,6 +76,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!result.error) {
         console.log("Sign out successful");
         toast.success('You have been logged out successfully');
+      } else {
+        console.error("Error during sign out:", result.error);
+        toast.error('An error occurred during sign out: ' + (result.error.message || 'Please try again'));
       }
       
       return result;

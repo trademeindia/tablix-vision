@@ -7,7 +7,7 @@ import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
 import { useAuth } from '@/contexts/AuthContext';
-import Spinner from '@/components/ui/spinner'; // Import Spinner for loading state
+import Spinner from '@/components/ui/spinner';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -40,16 +40,6 @@ const AppRoutes: React.FC = () => {
     }
   }, [loading, user, userRoles, initialLoadComplete, location]);
 
-  // Debug logout issues
-  useEffect(() => {
-    if (path === '/auth/login' && user) {
-      console.log('User is logged in but on login page. This is normal during logout process.', {
-        user: user?.email,
-        roles: userRoles
-      });
-    }
-  }, [path, user, userRoles]);
-
   // Show loading spinner during the initial auth check
   if (loading && !initialLoadComplete) {
     return (
@@ -57,6 +47,7 @@ const AppRoutes: React.FC = () => {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto mb-4" />
           <p className="text-slate-600">Loading application...</p>
+          <p className="text-sm text-slate-500 mt-2">Verifying authentication...</p>
         </div>
       </div>
     );
@@ -95,12 +86,18 @@ const AppRoutes: React.FC = () => {
   if (path === "/auth/login" && !loading && user) {
     // Get the preferred redirect path based on user role
     let redirectPath = '/dashboard';
-    if (userRoles.includes('customer')) {
-      redirectPath = '/customer/menu';
-    } else if (userRoles.includes('chef')) {
-      redirectPath = '/staff-dashboard/kitchen';
-    } else if (userRoles.includes('waiter')) {
-      redirectPath = '/staff-dashboard/orders';
+    
+    // Only redirect based on role if we have roles
+    if (userRoles && userRoles.length > 0) {
+      if (userRoles.includes('owner') || userRoles.includes('manager')) {
+        redirectPath = '/dashboard';
+      } else if (userRoles.includes('customer')) {
+        redirectPath = '/customer/menu';
+      } else if (userRoles.includes('chef')) {
+        redirectPath = '/staff-dashboard/kitchen';
+      } else if (userRoles.includes('waiter') || userRoles.includes('staff')) {
+        redirectPath = '/staff-dashboard/orders';
+      }
     }
     
     console.log(`User already logged in as ${user.email}, redirecting to ${redirectPath}`);
@@ -114,7 +111,20 @@ const AppRoutes: React.FC = () => {
 
   // If user is authenticated at root path, redirect to their appropriate dashboard
   if (path === "/" && !loading && user) {
-    return <Navigate to="/dashboard" replace />;
+    // Determine which dashboard to show based on role
+    let redirectPath = '/dashboard'; // Default to owner dashboard
+    
+    if (userRoles && userRoles.length > 0) {
+      if (userRoles.includes('customer')) {
+        redirectPath = '/customer/menu';
+      } else if (userRoles.includes('chef')) {
+        redirectPath = '/staff-dashboard/kitchen';
+      } else if (userRoles.includes('waiter') || userRoles.includes('staff')) {
+        redirectPath = '/staff-dashboard/orders';
+      }
+    }
+    
+    return <Navigate to={redirectPath} replace />;
   }
 
   // If user is not logged in and trying to access a protected route, redirect to login

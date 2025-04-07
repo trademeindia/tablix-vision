@@ -29,10 +29,18 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setIsSubmitting(true);
     
     try {
+      // Clear any previous role data
+      localStorage.removeItem('lastUserRole');
+      
+      console.log('Starting regular login flow with email:', email);
+      toast.loading('Logging in...', { id: 'login' });
+      
       const { error } = await signIn(email, password);
       
       if (error) {
         console.error('Login error:', error);
+        toast.dismiss('login');
+        toast.error('Login failed: ' + (error.message || 'Please check your credentials'));
         setError(error.message || 'Failed to sign in. Please check your credentials.');
         setIsSubmitting(false);
         return;
@@ -40,18 +48,24 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       
       // Store the selected role in localStorage for persistence
       localStorage.setItem('lastUserRole', role);
+      console.log('Saved role to localStorage:', role);
       
       // Redirect based on role parameter
       const redirectPath = getRedirectPathByRole(role);
+      console.log('Login successful, redirecting to:', redirectPath);
       
+      toast.dismiss('login');
       toast.success('Login successful!');
       
       // Add small delay to ensure auth state is updated properly
       setTimeout(() => {
-        navigate(redirectPath);
-      }, 100);
+        navigate(redirectPath, { replace: true });
+        setIsSubmitting(false);
+      }, 500);
     } catch (error) {
       console.error('Login error:', error);
+      toast.dismiss('login');
+      toast.error('An unexpected error occurred during login');
       setError('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
     }
@@ -59,14 +73,38 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
   const handleGoogleSignIn = async () => {
     try {
+      console.log('Starting Google sign in flow');
+      setIsSubmitting(true);
+      toast.loading('Logging in with Google...', { id: 'google-login' });
+      
+      // Clear any previous role data
+      localStorage.removeItem('lastUserRole');
+      
       const { error } = await signInWithGoogle();
+      
       if (error) {
+        console.error('Google sign in error:', error);
+        toast.dismiss('google-login');
+        toast.error('Google sign in failed: ' + (error.message || 'Please try again'));
         setError('Google sign in failed. Please try again.');
+        setIsSubmitting(false);
+        return;
       }
+      
+      // Set a default role for Google sign-in (we'll update this on callback)
+      localStorage.setItem('lastUserRole', 'customer');
+      
+      // Toast message will be handled by the OAuth callback
+      toast.dismiss('google-login');
+      
       // Redirect will be handled by the OAuth callback
+      setIsSubmitting(false);
     } catch (error) {
       console.error('Google sign in error:', error);
+      toast.dismiss('google-login');
+      toast.error('An unexpected error occurred during Google login');
       setError('Google sign in failed. Please try again.');
+      setIsSubmitting(false);
     }
   };
   
@@ -93,6 +131,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         
         // Store the role in localStorage for persistence
         localStorage.setItem('lastUserRole', demoCredentials.role);
+        console.log('Saved demo role to localStorage:', demoCredentials.role);
         
         // Ensure user metadata contains the role
         if (!signInData.user.user_metadata?.role) {
@@ -114,13 +153,13 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
         // Redirect based on demo account role
         const redirectPath = getRedirectPathByRole(demoCredentials.role);
-        console.log('Redirecting to:', redirectPath);
+        console.log('Demo login successful, redirecting to:', redirectPath);
         
         // Add small delay to ensure auth state is properly updated
         setTimeout(() => {
           navigate(redirectPath, { replace: true });
           setIsSubmitting(false);
-        }, 500);
+        }, 1000);
         return;
       }
       
@@ -206,7 +245,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             setTimeout(() => {
               navigate(redirectPath, { replace: true });
               setIsSubmitting(false);
-            }, 500);
+            }, 1000);
             return;
           }
         }
