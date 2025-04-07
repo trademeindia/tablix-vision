@@ -23,9 +23,9 @@ const MenuInfoCard: React.FC<MenuInfoCardProps> = ({ showModel3dInfo = true }) =
               <div className="mt-3 bg-blue-50 p-2 rounded-md flex items-start space-x-2">
                 <Box className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
                 <div className="text-xs text-blue-700">
-                  <p className="font-medium">New: 3D Model Support</p>
+                  <p className="font-medium">3D Model Support</p>
                   <p className="mt-0.5">
-                    You can now upload 3D models (GLB/GLTF format) for your menu items. 
+                    You can now upload 3D models (GLB/GLTF format) directly to Supabase storage. 
                     Add a model when creating or editing an item, and customers will 
                     be able to view it in 3D from the menu.
                   </p>

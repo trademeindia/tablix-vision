@@ -16,7 +16,7 @@ const UploadProgress: React.FC<UploadProgressProps> = ({ isUploading, progress, 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium">Uploading...</span>
+        <span className="text-sm font-medium">Uploading to Supabase...</span>
         <span className="text-sm font-medium">{Math.round(progress)}%</span>
       </div>
       <div className="flex items-center gap-2">
