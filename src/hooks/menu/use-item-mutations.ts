@@ -17,16 +17,16 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           id: `new-${Date.now()}`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        }) as any;
+        }) as MenuItem;
       }
       return createMenuItem(item);
     },
-    onSuccess: (data) => {
+    onSuccess: (data: MenuItem) => {
       // Invalidate and refetch menuItems query
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       
       // If using test data, we need to manually update the cache
-      if (usingTestData) {
+      if (usingTestData && data.restaurant_id) {
         const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
         queryClient.setQueryData(['menuItems', data.restaurant_id], [...currentItems, data]);
       }
@@ -54,7 +54,7 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           id,
           ...updates,
           updated_at: new Date().toISOString()
-        }) as any;
+        }) as MenuItem;
       }
       return updateMenuItem(id, updates);
     },
