@@ -6,9 +6,6 @@ import DemoBanner from './DemoBanner';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent, SheetOverlay } from '@/components/ui/sheet';
-import { Toaster } from '@/components/ui/toaster';
-import Spinner from '@/components/ui/spinner';
 
 interface StaffDashboardLayoutProps {
   children: React.ReactNode;
@@ -18,7 +15,7 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const isMobile = useIsMobile();
-  const { user, userRoles, loading: authLoading } = useAuth();
+  const { user, userRoles } = useAuth();
   
   // Check if the user is using a demo account
   const isDemoAccount = user?.email?.endsWith('@demo.com') || false;
@@ -32,70 +29,62 @@ const StaffDashboardLayout: React.FC<StaffDashboardLayoutProps> = ({ children })
     location = useLocation();
   } catch (error) {
     console.error("Error using router:", error);
+    // Render a fallback UI
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading dashboard...</p>
+      </div>
+    );
   }
   
   useEffect(() => {
-    // Set a small delay to ensure components are mounted properly
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    // Ensure the component is mounted before showing content
+    setIsLoaded(true);
   }, []);
-  
-  useEffect(() => {
-    // Close sidebar when route changes on mobile
-    if (isMobile && location && sidebarOpen) {
-      setSidebarOpen(false);
-    }
-  }, [location, isMobile]);
   
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
   
-  // Show a loading state initially to prevent flash of content
-  if (authLoading || !isLoaded) {
+  if (!isLoaded) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-50">
-        <div className="text-center">
-          <Spinner size="lg" className="mx-auto mb-4" />
-          <p className="text-slate-600">Loading dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading dashboard...</p>
       </div>
     );
   }
   
   return (
-    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-50">
       {/* Demo Banner - shown only for demo accounts */}
       {isDemoAccount && demoRole && <DemoBanner role={demoRole} />}
       
-      {/* Header is always visible */}
-      <StaffHeader onMenuButtonClick={toggleSidebar} />
-      
-      <div className="flex flex-1 h-full overflow-hidden">
-        {/* Mobile sidebar using Sheet component for better mobile experience */}
-        {isMobile ? (
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetContent 
-              side="left" 
-              className="p-0 w-[85%] max-w-[300px] border-r border-slate-200 bg-slate-800"
-            >
+      <div className="flex flex-1 h-full overflow-hidden lg:flex-row">
+        {/* Mobile sidebar - shown conditionally */}
+        {sidebarOpen && isMobile && (
+          <div className="fixed inset-0 z-40 transition-opacity duration-300 lg:hidden">
+            <div 
+              className="absolute inset-0 bg-slate-900/50" 
+              onClick={() => setSidebarOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="relative h-full w-64 bg-slate-800 shadow-xl">
               <StaffSidebar onCloseSidebar={() => setSidebarOpen(false)} />
-            </SheetContent>
-          </Sheet>
-        ) : (
-          /* Desktop sidebar - always visible on larger screens */
-          <div className="h-full hidden md:block">
-            <StaffSidebar />
+            </div>
           </div>
         )}
         
-        <main className="flex-1 overflow-y-auto p-3 md:p-6 w-full">
-          {children}
-          <Toaster />
-        </main>
+        {/* Desktop sidebar - always visible on larger screens */}
+        <div className={`${isMobile ? 'hidden' : 'hidden lg:block'}`}>
+          <StaffSidebar />
+        </div>
+        
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <StaffHeader onMenuButtonClick={toggleSidebar} />
+          <main className="flex-1 overflow-y-auto p-3 md:p-6">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );
