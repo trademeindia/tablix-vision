@@ -10,6 +10,8 @@ interface DemoAccountSelectorProps {
 }
 
 const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo, isLoading = false }) => {
+  const [selectedAccount, setSelectedAccount] = React.useState<string | null>(null);
+  
   const demoAccounts = [
     { 
       role: 'owner',
@@ -45,12 +47,24 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
     }
   ];
 
+  const handleClick = (account: any) => {
+    setSelectedAccount(account.role);
+    onSelectDemo({
+      email: account.email,
+      password: account.password,
+      role: account.role
+    });
+  };
+
   return (
     <div className="mt-8 mb-4">
       <h3 className="text-lg font-semibold text-center mb-4">Demo Accounts</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {demoAccounts.map((account) => (
-          <Card key={account.role} className="hover:shadow-md transition-shadow">
+          <Card 
+            key={account.role} 
+            className={`hover:shadow-md transition-shadow ${selectedAccount === account.role ? 'ring-2 ring-primary' : ''}`}
+          >
             <CardContent className="pt-6 flex flex-col h-full">
               <div className="flex flex-col items-center flex-1">
                 <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
@@ -61,18 +75,14 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full"
-                  onClick={() => onSelectDemo({
-                    email: account.email,
-                    password: account.password,
-                    role: account.role
-                  })}
+                  className={`w-full ${selectedAccount === account.role && isLoading ? 'opacity-80' : ''}`}
+                  onClick={() => handleClick(account)}
                   disabled={isLoading}
                 >
-                  {isLoading ? (
+                  {isLoading && selectedAccount === account.role ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
+                      Signing in...
                     </>
                   ) : (
                     `Try ${account.title}`

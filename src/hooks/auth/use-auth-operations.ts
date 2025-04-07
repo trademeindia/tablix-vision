@@ -1,36 +1,34 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export function useAuthOperations() {
-  const { toast } = useToast();
-
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('Attempting to sign in with email:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+      
       if (error) {
         console.error('Error signing in:', error.message);
-        toast({
-          title: 'Sign In Failed',
-          description: error.message || 'An error occurred while signing in.',
-          variant: 'destructive',
-        });
+        toast.error(error.message || 'An error occurred while signing in.');
+        return { error, data: null };
       }
-      return { error };
-    } catch (error) {
-      console.error('Error signing in:', error);
-      toast({
-        title: 'Sign In Failed',
-        description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
-      return { error };
+      
+      console.log('Sign in successful for:', email);
+      return { error: null, data };
+    } catch (error: any) {
+      console.error('Unexpected error signing in:', error);
+      toast.error('An unexpected error occurred. Please try again.');
+      return { error, data: null };
     }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -42,32 +40,23 @@ export function useAuthOperations() {
       
       if (error) {
         console.error('Signup error:', error.message);
-        toast({
-          title: 'Sign Up Failed',
-          description: error.message || 'Failed to create an account.',
-          variant: 'destructive',
-        });
+        toast.error(error.message || 'Failed to create an account.');
+        return { error, data: null };
       } else {
-        toast({
-          title: 'Account created successfully',
-          description: 'Please check your email to confirm your account.',
-        });
+        toast.success('Account created successfully! Please check your email to confirm your account.');
+        console.log('Account created successfully for:', email);
+        return { error: null, data };
       }
-      
-      return { error };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing up:', error);
-      toast({
-        title: 'Sign Up Failed',
-        description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
-      return { error };
+      toast.error('An unexpected error occurred. Please try again.');
+      return { error, data: null };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
+      console.log('Attempting to sign in with Google');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -77,40 +66,35 @@ export function useAuthOperations() {
       
       if (error) {
         console.error('Google Sign In error:', error.message);
-        toast({
-          title: 'Google Sign In Failed',
-          description: error.message || 'An error occurred while trying to sign in with Google.',
-          variant: 'destructive',
-        });
+        toast.error(error.message || 'An error occurred while trying to sign in with Google.');
+        return { error };
       }
-    } catch (error) {
+      
+      return { error: null };
+    } catch (error: any) {
       console.error('Error signing in with Google:', error);
-      toast({
-        title: 'Google Sign In Failed',
-        description: 'An unexpected error occurred while trying to sign in with Google.',
-        variant: 'destructive',
-      });
+      toast.error('An unexpected error occurred while trying to sign in with Google.');
+      return { error };
     }
   };
 
   const signOut = async () => {
     try {
+      console.log('Attempting to sign out');
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
         console.error('Error signing out:', error.message);
-        toast({
-          title: 'Sign Out Failed',
-          description: error.message || 'An error occurred while trying to sign out.',
-          variant: 'destructive',
-        });
+        toast.error(error.message || 'An error occurred while trying to sign out.');
+        return { error };
       }
-    } catch (error) {
+      
+      console.log('Sign out successful');
+      return { error: null };
+    } catch (error: any) {
       console.error('Error signing out:', error);
-      toast({
-        title: 'Sign Out Failed',
-        description: 'An unexpected error occurred while trying to sign out.',
-        variant: 'destructive',
-      });
+      toast.error('An unexpected error occurred while trying to sign out.');
+      return { error };
     }
   };
 

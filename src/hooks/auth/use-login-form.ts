@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { getRedirectPathByRole } from './use-redirect-paths';
 
@@ -17,7 +17,6 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
   const [error, setError] = useState<string | null>(null);
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [role, setRole] = useState<string>('customer');
 
   const handleRoleChange = (newRole: string) => {
@@ -35,24 +34,30 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       if (error) {
         console.error('Login error:', error);
         setError(error.message || 'Failed to sign in. Please check your credentials.');
+        setIsSubmitting(false);
         return;
       }
       
       // Redirect based on role parameter or to home page
       const redirectPath = getRedirectPathByRole(role);
       
+      toast.success('Login successful!');
       navigate(redirectPath);
     } catch (error) {
       console.error('Login error:', error);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
-    // Redirect will be handled by the OAuth callback
+    try {
+      await signInWithGoogle();
+      // Redirect will be handled by the OAuth callback
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      setError('Google sign in failed. Please try again.');
+    }
   };
   
   const handleDemoLogin = async (demoCredentials: { email: string; password: string; role: string }) => {
@@ -73,10 +78,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         console.log('Demo login successful for existing account');
         
         // Show toast notification for successful demo login
-        toast({
-          title: 'Demo Mode Activated',
-          description: `You're now viewing the application as a ${demoCredentials.role}.`,
-        });
+        toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
 
         // Redirect based on demo account role
         const redirectPath = getRedirectPathByRole(demoCredentials.role);
@@ -133,11 +135,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             if (secondSignInError.message.includes('Email not confirmed')) {
               setError('Demo accounts require email confirmation to be disabled in your Supabase project settings.');
               
-              toast({
-                title: 'Demo Account Setup Required',
-                description: 'Please check that email confirmation is disabled in the Supabase project settings.',
-                variant: 'destructive',
-              });
+              toast.error('Demo Account Setup Required: Please check that email confirmation is disabled in the Supabase project settings.');
               setIsSubmitting(false);
               return;
             }
@@ -152,10 +150,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             console.log('Second login attempt successful for new demo account');
             
             // Show success toast
-            toast({
-              title: 'Demo Mode Activated',
-              description: `You're now viewing the application as a ${demoCredentials.role}.`,
-            });
+            toast.success(`You're now viewing the application as a ${demoCredentials.role}.`);
             
             // Redirect based on demo account role
             const redirectPath = getRedirectPathByRole(demoCredentials.role);

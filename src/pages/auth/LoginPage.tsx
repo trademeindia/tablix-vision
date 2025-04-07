@@ -27,7 +27,7 @@ const LoginPage = () => {
     role,
     handleSubmit,
     handleGoogleSignIn,
-  } = useLoginForm();
+  } = useLoginForm({ redirectTo: '/dashboard' });
   
   // Ensure demo accounts are created
   React.useEffect(() => {
@@ -36,6 +36,8 @@ const LoginPage = () => {
   
   const handleSelectDemo = async (credentials: { email: string; password: string; role: string }) => {
     try {
+      toast.loading('Logging in with demo account...');
+      
       const { error } = await signIn(credentials.email, credentials.password);
       
       if (error) {
