@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Utensils, ShoppingBag, Users } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const Index = () => {
   const { user, userRoles, loading } = useAuth();

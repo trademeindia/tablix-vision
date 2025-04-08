@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { UserRole } from '@/hooks/use-user-role';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +74,9 @@ const AuthCallbackPage = () => {
               console.log('Created new profile. Redirecting to customer menu.');
               setStatus('Profile created. Redirecting...');
               
+              // Update localStorage with role for immediate use
+              localStorage.setItem('userRole', JSON.stringify(['customer']));
+              
               // Redirect to customer page
               navigate('/customer/menu');
               return;
@@ -87,12 +91,16 @@ const AuthCallbackPage = () => {
             
             // Redirect based on role
             const role = profileData.role as UserRole;
-            const redirectPath = 
-              role === 'customer' ? '/customer/menu' :
-              role === 'waiter' ? '/staff-dashboard/orders' :
-              role === 'chef' ? '/staff-dashboard/kitchen' :
-              role === 'manager' || role === 'owner' ? '/dashboard' : '/';
-              
+            
+            // Set the user role in localStorage for immediate use
+            let roles: UserRole[] = [role];
+            // Add implied roles
+            if (role === 'owner') roles.push('manager');
+            if (role === 'chef' || role === 'waiter') roles.push('staff');
+            
+            localStorage.setItem('userRole', JSON.stringify(roles));
+            
+            const redirectPath = getRedirectPathByRole(role);
             console.log(`Redirecting to ${redirectPath} based on role ${role}`);
             navigate(redirectPath);
             return;

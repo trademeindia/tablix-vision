@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
-  const { user, userRoles } = useAuth();
+  const { user, userRoles, loading } = useAuth();
   const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
 
@@ -44,6 +44,23 @@ const AppRoutes: React.FC = () => {
         </button>
       </div>
     );
+  }
+
+  // Redirect authenticated users to appropriate dashboard from root path
+  if (path === '/' && user && !loading) {
+    console.log('Authenticated user at root path. Redirecting based on role:', userRoles);
+    
+    if (userRoles.includes('owner') || userRoles.includes('manager')) {
+      return <Navigate to="/dashboard" replace />;
+    } else if (userRoles.includes('chef')) {
+      return <Navigate to="/staff-dashboard/kitchen" replace />;
+    } else if (userRoles.includes('waiter')) {
+      return <Navigate to="/staff-dashboard/orders" replace />;
+    } else if (userRoles.includes('staff')) {
+      return <Navigate to="/staff-dashboard" replace />;
+    } else if (userRoles.includes('customer')) {
+      return <Navigate to="/customer/menu" replace />;
+    }
   }
 
   // For demo users with override active, redirect to dashboard
