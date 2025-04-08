@@ -77,7 +77,8 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
           onLoadComplete?.(loadedModel);
         } catch (err) {
           console.error('Error processing loaded model:', err);
-          onLoadError?.(err instanceof Error ? err : new Error(String(err)));
+          const error = err instanceof Error ? err : new Error(String(err));
+          onLoadError?.(error);
         }
       },
       (progressEvent) => {

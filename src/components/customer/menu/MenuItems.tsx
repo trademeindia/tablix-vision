@@ -44,6 +44,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
       return;
     }
     
+    console.log("Opening 3D model viewer with URL:", modelUrl);
     setSelectedModel(modelUrl);
     setModelViewerOpen(true);
   };

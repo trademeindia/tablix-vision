@@ -9,6 +9,7 @@ import ModelUploader from '../ModelUploader';
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { lazy, Suspense } from 'react';
+import Spinner from '@/components/ui/spinner';
 
 // Lazy load the ModelViewer component
 const ModelViewer = lazy(() => import('@/components/customer/menu/ModelViewer'));
@@ -31,6 +32,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
   onUploadComplete 
 }) => {
   const [showModelPreview, setShowModelPreview] = useState(false);
+  const modelUrl = form.getValues('model_url');
   
   return (
     <div className="space-y-6">
@@ -142,9 +144,16 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
             <DialogTitle>3D Model Preview</DialogTitle>
           </DialogHeader>
           <div className="w-full aspect-square bg-slate-100 rounded-md overflow-hidden">
-            <Suspense fallback={<div className="h-full w-full flex items-center justify-center">Loading model...</div>}>
-              <ModelViewer modelUrl={form.getValues('model_url')} />
-            </Suspense>
+            {showModelPreview && modelUrl && (
+              <Suspense fallback={
+                <div className="h-full w-full flex items-center justify-center">
+                  <Spinner size="lg" />
+                  <span className="ml-2">Loading 3D model...</span>
+                </div>
+              }>
+                <ModelViewer modelUrl={modelUrl} />
+              </Suspense>
+            )}
           </div>
         </DialogContent>
       </Dialog>

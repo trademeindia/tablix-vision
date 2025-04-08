@@ -6,8 +6,9 @@ import { toast } from '@/hooks/use-toast';
 
 export function useTestData(restaurantId: string | null) {
   const queryClient = useQueryClient();
-  const [usingTestData, setUsingTestData] = useState(true); // Changed to default to true
+  const [usingTestData, setUsingTestData] = useState(true); // Default to true
   const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
+  const [toastShown, setToastShown] = useState(false); // Track if toast has been shown
 
   // Generate test data if needed
   useEffect(() => {
@@ -20,12 +21,16 @@ export function useTestData(restaurantId: string | null) {
       queryClient.setQueryData(['menuCategories', restaurantId], data.categories);
       queryClient.setQueryData(['menuItems', restaurantId], data.items);
       
-      toast({
-        title: "Demo Mode",
-        description: "You're viewing a demonstration. All features are fully functional!",
-      });
+      // Only show toast if it hasn't been shown yet in this session
+      if (!toastShown) {
+        toast({
+          title: "Demo Mode",
+          description: "You're viewing a demonstration. All features are fully functional!",
+        });
+        setToastShown(true);
+      }
     }
-  }, [restaurantId, testData, queryClient]);
+  }, [restaurantId, testData, queryClient, toastShown]);
 
   return {
     usingTestData,
