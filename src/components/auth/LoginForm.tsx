@@ -9,6 +9,7 @@ import LoadingButton from '@/components/auth/LoadingButton';
 import FormError from '@/components/auth/FormError';
 import PasswordInput from '@/components/auth/PasswordInput';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LoginFormProps {
   email: string;
@@ -33,31 +34,34 @@ const LoginForm: React.FC<LoginFormProps> = ({
   handleSubmit,
   handleGoogleSignIn
 }) => {
+  const isMobile = useIsMobile();
+
   return (
     <>
       <AuthForm onSubmit={handleSubmit} className="mt-4">
         <FormError message={error} />
         
         <InputGroup>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email</Label>
           <InputIconWrapper>
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               id="email"
               type="email"
               placeholder="Enter your email"
-              className="pl-10"
+              className="pl-10 bg-white transition-all border-slate-300 focus-visible:border-primary/70"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
             />
           </InputIconWrapper>
         </InputGroup>
         
         <InputGroup>
           <div className="flex justify-between">
-            <Label htmlFor="password">Password</Label>
-            <Link to="/auth/reset-password" className="text-sm font-medium text-primary hover:underline">
+            <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
+            <Link to="/auth/reset-password" className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors">
               Forgot password?
             </Link>
           </div>
@@ -72,11 +76,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         <LoadingButton 
           type="submit" 
-          className="w-full" 
+          className="w-full px-4 py-2 mt-2 bg-primary hover:bg-primary/90 transition-colors"
           isLoading={isSubmitting}
           loadingText="Signing in..."
         >
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 justify-center">
             <LogIn className="h-4 w-4" />
             Sign in
           </span>
@@ -91,9 +95,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
       </AuthForm>
       
       <AuthFormFooter>
-        <p className="text-sm text-center text-slate-600">
+        <p className="text-sm text-center text-slate-600 mt-4">
           Don't have an account?{' '}
-          <Link to={`/auth/signup?role=${role}`} className="font-medium text-primary hover:underline">
+          <Link to={`/auth/signup?role=${role}`} className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors">
             Sign up
           </Link>
         </p>

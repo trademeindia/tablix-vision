@@ -21,9 +21,9 @@ interface AuthFormHeaderProps {
 
 export const AuthFormHeader = ({ title, description }: AuthFormHeaderProps) => {
   return (
-    <div className="text-center space-y-2">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+    <div className="text-center space-y-2 mb-6">
+      <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
+      {description && <p className="text-sm text-slate-600">{description}</p>}
     </div>
   );
 };
@@ -34,7 +34,7 @@ interface AuthFormFooterProps {
 
 export const AuthFormFooter = ({ children }: AuthFormFooterProps) => {
   return (
-    <div className="flex flex-col gap-3 mt-6">
+    <div className="flex flex-col gap-3">
       {children}
     </div>
   );

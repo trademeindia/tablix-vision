@@ -8,12 +8,18 @@ interface AuthFormTitleProps {
 }
 
 const AuthFormTitle: React.FC<AuthFormTitleProps> = ({ role, isSignup = false }) => {
-  const title = role === 'customer' ? `Customer ${isSignup ? 'Sign Up' : 'Login'}` : 
-               role === 'staff' ? `Staff ${isSignup ? 'Sign Up' : 'Login'}` : 
-               `Owner ${isSignup ? 'Sign Up' : 'Login'}`;
+  const getRoleTitle = () => {
+    switch (role) {
+      case 'customer': return 'Customer';
+      case 'staff': return 'Staff';
+      default: return 'Restaurant Owner';
+    }
+  };
 
-  const description = isSignup ? 'Create a new account to get started' : 
-                     'Enter your credentials to access your account';
+  const title = `${getRoleTitle()} ${isSignup ? 'Sign Up' : 'Sign In'}`;
+  const description = isSignup 
+    ? 'Create a new account to get started with Menu 360' 
+    : 'Enter your credentials to access your dashboard';
 
   return (
     <AuthFormHeader 
