@@ -1,10 +1,96 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
+import * as THREE from 'three';
+
+// Custom hook for the 3D revolving food effect
+const useRevolvingFood = (containerRef, imageUrl, rotationSpeed = 0.01) => {
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    
+    // Initialize Three.js scene
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    
+    renderer.setSize(width, height);
+    renderer.setClearColor(0xf1f5f9, 1); // Match slate-100 background
+    container.innerHTML = '';
+    container.appendChild(renderer.domElement);
+    
+    // Create rotating food item using a textured plane
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(imageUrl || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3');
+    const material = new THREE.MeshBasicMaterial({ 
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+    
+    const food = new THREE.Mesh(geometry, material);
+    scene.add(food);
+    camera.position.z = 3;
+    
+    // Animation loop
+    const animate = () => {
+      requestAnimationFrame(animate);
+      food.rotation.y += rotationSpeed;
+      renderer.render(scene, camera);
+    };
+    
+    animate();
+    
+    // Handle resize
+    const handleResize = () => {
+      const newWidth = container.clientWidth;
+      const newHeight = container.clientHeight;
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newWidth, newHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+    };
+  }, [containerRef, imageUrl, rotationSpeed]);
+};
+
+const FoodCard = ({ index }) => {
+  const containerRef = useRef(null);
+  
+  // Different food images for each card
+  const foodImages = [
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800', // Pizza
+    'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800', // Pasta
+    'https://images.unsplash.com/photo-1551024739-78e9d60c45ca?w=800', // Burger
+    'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800'   // Dessert
+  ];
+  
+  useRevolvingFood(containerRef, foodImages[index % foodImages.length]);
+  
+  return (
+    <div className="rounded-lg bg-slate-100 p-2 flex flex-col">
+      <div ref={containerRef} className="w-full h-16 mb-2"></div>
+      <div className="text-xs font-medium">Menu Item {index}</div>
+      <div className="text-xs text-slate-500 mt-1">₹ {120 + index*10}</div>
+    </div>
+  );
+};
 
 const HeroSection: React.FC = () => {
   return (
@@ -56,11 +142,7 @@ const HeroSection: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3 flex-1 overflow-hidden">
                       {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="rounded-lg bg-slate-100 p-2 flex flex-col">
-                          <div className="rounded bg-slate-200 w-full h-16 mb-2"></div>
-                          <div className="text-xs font-medium">Menu Item {i}</div>
-                          <div className="text-xs text-slate-500 mt-1">₹ {120 + i*10}</div>
-                        </div>
+                        <FoodCard key={i} index={i} />
                       ))}
                     </div>
                     <div className="mt-4 pt-3 border-t">
