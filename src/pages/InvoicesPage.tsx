@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { useInvoices } from '@/hooks/invoice/use-invoices';
 import { useInvoiceActions } from '@/hooks/invoice/use-invoice-actions';
 import InvoiceDialog from '@/components/invoice/list/InvoiceDialog';
+import InvoiceStats from '@/components/invoice/InvoiceStats';
 
 const InvoicesPage = () => {
   const navigate = useNavigate();
@@ -56,6 +57,11 @@ const InvoicesPage = () => {
           <Plus className="h-4 w-4 mr-2" />
           Create Invoice
         </Button>
+      </div>
+      
+      {/* Invoice statistics section */}
+      <div className="mb-6">
+        <InvoiceStats invoices={invoices} isLoading={isLoading} />
       </div>
       
       <InvoiceList 

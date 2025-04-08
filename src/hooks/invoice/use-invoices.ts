@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getRestaurantInvoices, getInvoiceById } from '@/services/invoice';
 import { Invoice } from '@/services/invoice/types';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useInvoices = (restaurantId: string) => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -34,6 +35,46 @@ export const useInvoices = (restaurantId: string) => {
 
     fetchInvoices();
   }, [restaurantId]);
+
+  // Set up real-time listener for invoice changes
+  useEffect(() => {
+    // Set up a realtime subscription to invoices table
+    const channel = supabase
+      .channel('invoices-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'invoices',
+          filter: `restaurant_id=eq.${restaurantId}`
+        }, 
+        async (payload) => {
+          console.log('Realtime invoice update:', payload);
+          
+          // Refresh the invoice list when changes occur
+          try {
+            const updatedInvoices = await getRestaurantInvoices(restaurantId);
+            setInvoices(updatedInvoices);
+            
+            // If the current selected invoice was updated, refresh it too
+            if (selectedInvoice && payload.new.id === selectedInvoice.id) {
+              const updatedInvoice = await getInvoiceById(selectedInvoice.id);
+              if (updatedInvoice) {
+                setSelectedInvoice(updatedInvoice);
+              }
+            }
+          } catch (error) {
+            console.error('Error refreshing invoices after update:', error);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      // Clean up the subscription when component unmounts
+      supabase.removeChannel(channel);
+    };
+  }, [restaurantId, selectedInvoice]);
 
   // If invoiceId param exists, load that specific invoice
   useEffect(() => {
