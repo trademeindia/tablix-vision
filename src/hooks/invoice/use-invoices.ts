@@ -57,7 +57,11 @@ export const useInvoices = (restaurantId: string) => {
             setInvoices(updatedInvoices);
             
             // If the current selected invoice was updated, refresh it too
-            if (selectedInvoice && payload.new.id === selectedInvoice.id) {
+            if (selectedInvoice && 
+                payload.new && 
+                typeof payload.new === 'object' && 
+                'id' in payload.new && 
+                payload.new.id === selectedInvoice.id) {
               const updatedInvoice = await getInvoiceById(selectedInvoice.id);
               if (updatedInvoice) {
                 setSelectedInvoice(updatedInvoice);
