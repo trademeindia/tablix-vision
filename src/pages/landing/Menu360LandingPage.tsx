@@ -45,30 +45,9 @@ const Menu360LandingPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Menu 360° - Complete Restaurant Management System | India's #1 QR Ordering Solution</title>
-        <meta name="description" content="Streamline your restaurant operations with QR ordering, digital menu, automated payments, and powerful business insights. Trusted by 500+ restaurants across India." />
+        <title>Menu 360 - The Complete Restaurant Management Platform</title>
+        <meta name="description" content="Streamline your restaurant operations with QR ordering, automated payments, dynamic menu management, and powerful business insights." />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        
-        {/* Additional SEO meta tags for Indian market */}
-        <meta name="keywords" content="restaurant management, QR code menu, digital menu India, restaurant QR ordering, restaurant technology India, contactless dining, UPI payment integration, restaurant software India, restaurant POS system, restaurant management app India" />
-        <meta property="og:title" content="Menu 360° - Complete Restaurant Management System | India's #1 QR Ordering Solution" />
-        <meta property="og:description" content="Streamline your restaurant operations with QR ordering, digital menu, automated payments, and powerful business insights. Trusted by 500+ restaurants across India." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://menu360.in" />
-        <meta property="og:image" content="https://menu360.in/og-image.jpg" />
-        <meta property="og:locale" content="en_IN" />
-        
-        {/* Twitter Card data */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Menu 360° - Complete Restaurant Management System | India's #1 QR Ordering Solution" />
-        <meta name="twitter:description" content="Streamline your restaurant operations with QR ordering, digital menu, automated payments, and powerful business insights. Trusted by 500+ restaurants across India." />
-        <meta name="twitter:image" content="https://menu360.in/twitter-image.jpg" />
-        
-        {/* Regional and local business markup */}
-        <meta name="geo.region" content="IN" />
-        <meta name="geo.placename" content="India" />
-        <link rel="alternate" href="https://menu360.in/hi" hrefLang="hi-in" />
-        <link rel="canonical" href="https://menu360.in" />
       </Helmet>
       <div className="min-h-screen flex flex-col bg-background">
         <LandingHeader />
