@@ -7,7 +7,7 @@ import { Order } from '../order/types';
 export const createInvoice = async (
   data: Omit<Invoice, 'id' | 'invoice_number' | 'created_at' | 'updated_at' | 'items'>,
   items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
-): Promise<{ invoice: Invoice | null; error: string | null }> {
+): Promise<{ invoice: Invoice | null; error: string | null }> => {
   try {
     console.log('Creating invoice:', data);
     console.log('Invoice items:', items);
@@ -97,7 +97,7 @@ export const createInvoice = async (
 };
 
 // Create an invoice from an order
-export const createInvoiceFromOrder = async (order: Order): Promise<{ invoice: Invoice | null; error: string | null }> {
+export const createInvoiceFromOrder = async (order: Order): Promise<{ invoice: Invoice | null; error: string | null }> => {
   try {
     console.log('Creating invoice from order:', order);
     
