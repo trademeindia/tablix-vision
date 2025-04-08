@@ -68,10 +68,20 @@ export function useAuthOperations() {
 
   const signInWithGoogle = async () => {
     try {
+      // Use the absolute URL for the redirect to avoid issues on mobile
+      const currentOrigin = window.location.origin;
+      const redirectUrl = `${currentOrigin}/auth/callback`;
+      
+      console.log('Initiating Google sign-in with redirect URL:', redirectUrl);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       
