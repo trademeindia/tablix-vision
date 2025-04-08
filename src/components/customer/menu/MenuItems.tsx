@@ -129,7 +129,13 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
       </div>
       
       {/* 3D Model Viewer Dialog */}
-      <Dialog open={modelViewerOpen} onOpenChange={setModelViewerOpen}>
+      <Dialog 
+        open={modelViewerOpen} 
+        onOpenChange={(open) => {
+          // Only set if closing to avoid double state updates
+          if (!open) setModelViewerOpen(false);
+        }}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>3D Model Viewer</DialogTitle>

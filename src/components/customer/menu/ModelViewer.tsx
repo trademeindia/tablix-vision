@@ -1,5 +1,5 @@
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF } from '@react-three/drei';
 import Spinner from '@/components/ui/spinner';
@@ -7,7 +7,7 @@ import Spinner from '@/components/ui/spinner';
 // The 3D model component
 const Model = ({ url }: { url: string }) => {
   const { scene } = useGLTF(url);
-  return <primitive object={scene} />;
+  return <primitive object={scene} scale={1.5} position={[0, 0, 0]} />;
 };
 
 interface ModelViewerProps {
@@ -17,9 +17,23 @@ interface ModelViewerProps {
 const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Cleanup GLTF cache on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Attempt to clear the cache for this specific model
+      try {
+        useGLTF.preload(modelUrl);
+        useGLTF.clear(modelUrl);
+      } catch (e) {
+        console.log("Cache cleanup failed, but that's okay");
+      }
+    };
+  }, [modelUrl]);
   
   // Log when the component is mounted with the model URL
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("ModelViewer mounted with URL:", modelUrl);
     
     // Return cleanup function
@@ -34,15 +48,20 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
     setIsLoading(false);
   };
   
+  const handleModelLoad = () => {
+    console.log("3D model loaded successfully");
+    setIsLoading(false);
+  };
+  
   if (!modelUrl) {
     return <div className="p-4 text-center">No model URL provided</div>;
   }
   
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" ref={containerRef}>
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
-        onCreated={() => setIsLoading(false)}
+        onCreated={() => console.log("Canvas created")}
       >
         <ambientLight intensity={0.7} />
         <directionalLight position={[1, 1, 1]} intensity={0.8} />
@@ -74,6 +93,17 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
           </div>
         </div>
       )}
+
+      {/* Load status for debugging */}
+      <div className="hidden">
+        <img 
+          src={modelUrl} 
+          alt="Preload" 
+          onLoad={handleModelLoad} 
+          onError={(e) => handleError(e.nativeEvent as unknown as ErrorEvent)} 
+          style={{display: 'none'}}
+        />
+      </div>
     </div>
   );
 };

@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Box, Plus, Minus, Info } from 'lucide-react';
 import { MenuItem } from '@/types/menu';
 import { Badge } from '@/components/ui/badge';
-import ModelViewer from './ModelViewer';
 import { Suspense, lazy } from 'react';
 import Spinner from '@/components/ui/spinner';
+
+// Lazy load the ModelViewer component
+const ModelViewer = lazy(() => import('./ModelViewer'));
 
 interface ItemDetailsProps {
   item: MenuItem;
@@ -132,7 +134,12 @@ const ItemDetails: React.FC<ItemDetailsProps> = ({ item, onAddToOrder }) => {
       )}
       
       {/* 3D Model Viewer Dialog */}
-      <Dialog open={modelViewerOpen} onOpenChange={setModelViewerOpen}>
+      <Dialog 
+        open={modelViewerOpen} 
+        onOpenChange={(open) => {
+          if (!open) setModelViewerOpen(false);
+        }}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>3D Model View</DialogTitle>

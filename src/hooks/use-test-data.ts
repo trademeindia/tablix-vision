@@ -8,7 +8,11 @@ export function useTestData(restaurantId: string | null) {
   const queryClient = useQueryClient();
   const [usingTestData, setUsingTestData] = useState(true); // Default to true
   const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
-  const [toastShown, setToastShown] = useState(false); // Track if toast has been shown
+  
+  // Check localStorage for toast shown status
+  const [toastShown, setToastShown] = useState(() => {
+    return localStorage.getItem('demoToastShown') === 'true';
+  });
 
   // Generate test data if needed
   useEffect(() => {
@@ -27,6 +31,8 @@ export function useTestData(restaurantId: string | null) {
           title: "Demo Mode",
           description: "You're viewing a demonstration. All features are fully functional!",
         });
+        // Set localStorage flag to prevent showing toast again
+        localStorage.setItem('demoToastShown', 'true');
         setToastShown(true);
       }
     }
