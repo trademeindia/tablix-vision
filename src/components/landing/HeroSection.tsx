@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useIsMobile } from '@/hooks/use-mobile';
+
 const HeroSection: React.FC = () => {
   return <section id="hero" className="relative bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
       <div className="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(to_bottom,transparent,black)]"></div>
@@ -11,8 +13,11 @@ const HeroSection: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12 lg:gap-16">
           {/* Hero Content */}
           <div className="flex-1 space-y-6 text-center lg:text-left">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">Automate, Analyse, & Grow Your Restaurant with 
-Menu 360</h1>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
+              Automate, Analyse, & Grow <br/>
+              Your Restaurant with <br/>
+              Menu 360
+            </h1>
             <p className="text-lg md:text-xl text-slate-700 max-w-2xl mx-auto lg:mx-0">The complete mobile-first platform powered by AI for seamless QR ordering, automated payments, dynamic menu management, and powerful business insights.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button asChild size="lg" className="font-medium">
@@ -69,4 +74,5 @@ Menu 360</h1>
       </div>
     </section>;
 };
+
 export default HeroSection;
