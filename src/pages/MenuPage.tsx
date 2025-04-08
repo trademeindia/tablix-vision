@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
 import PageHeader from '@/components/menu/PageHeader';
@@ -16,6 +17,8 @@ const MenuPage = () => {
   // Use a state for restaurant ID in case we want to make it dynamic in the future
   const [restaurantId] = useState("00000000-0000-0000-0000-000000000000");
   const [isErrorVisible, setIsErrorVisible] = useState(false);
+  const isRefreshing = useRef(false);
+  const dialogCloseTimestamp = useRef<number | null>(null);
   
   useEffect(() => {
     // Check for database errors and show a helpful message after a short delay
@@ -76,46 +79,68 @@ const MenuPage = () => {
 
   // Enhanced refresh function that ensures both categories and items are refreshed
   const handleRefreshAll = useCallback(async () => {
+    // Prevent multiple simultaneous refreshes
+    if (isRefreshing.current) {
+      console.log("Already refreshing, skip this refresh request");
+      return;
+    }
+    
     console.log("Refreshing all menu data");
+    isRefreshing.current = true;
+    
     try {
       // Force refetch of both categories and items
       await Promise.all([
         handleRefreshCategories(),
-        queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] }),
-        queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] })
+        queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] })
       ]);
       
       // Additional manual refetch after a short delay to ensure data is fresh
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] });
+        isRefreshing.current = false;
+        console.log("Data refresh complete");
       }, 500);
-      
-      console.log("Data refresh complete");
     } catch (error) {
       console.error("Error refreshing data:", error);
+      isRefreshing.current = false;
     }
   }, [handleRefreshCategories, queryClient, restaurantId]);
 
-  // Automatically refresh data after dialog closes
+  // Automatically refresh data after dialog closes, with debounce
   useEffect(() => {
-    if (!isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen) {
-      console.log("Dialog closed, refreshing data");
-      handleRefreshAll();
+    // Only refresh when a dialog has just been closed
+    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen;
+    const currentTime = Date.now();
+    
+    if (dialogsClosed) {
+      // Set close timestamp when a dialog closes
+      if (dialogCloseTimestamp.current === null) {
+        dialogCloseTimestamp.current = currentTime;
+        
+        console.log("Dialog closed, refreshing data");
+        // Use setTimeout to prevent excessive refreshing
+        const refreshTimeout = setTimeout(() => {
+          handleRefreshAll();
+          dialogCloseTimestamp.current = null;
+        }, 200);
+        
+        return () => clearTimeout(refreshTimeout);
+      }
+    } else {
+      // Reset timestamp when dialog is open
+      dialogCloseTimestamp.current = null;
     }
   }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, handleRefreshAll]);
 
   // Also refresh when component mounts
   useEffect(() => {
     console.log("Menu page mounted, doing initial data fetch");
-    handleRefreshAll();
-    
-    // Set up periodic refresh
-    const interval = setInterval(() => {
-      console.log("Periodic refresh triggered");
+    const initialLoadTimeout = setTimeout(() => {
       handleRefreshAll();
-    }, 30000); // Every 30 seconds
+    }, 300); // slight delay for better UI experience
     
-    return () => clearInterval(interval);
+    return () => clearTimeout(initialLoadTimeout);
   }, [handleRefreshAll]);
 
   // Defensive rendering to ensure the page loads even if some data is missing
@@ -126,7 +151,7 @@ const MenuPage = () => {
           activeTab={activeTab}
           onRefresh={handleRefreshAll}
           onAdd={() => activeTab === 'categories' ? setIsAddCategoryOpen(true) : setIsAddItemOpen(true)}
-          isLoading={isCategoriesLoading || isItemsLoading}
+          isLoading={isCategoriesLoading || isItemsLoading || isRefreshing.current}
         />
         
         <MenuInfoCard showModel3dInfo={true} />

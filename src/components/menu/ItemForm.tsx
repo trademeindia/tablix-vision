@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { MenuItem, MenuCategory } from '@/types/menu';
@@ -35,6 +35,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
     resetForm 
   } = useItemForm(initialData, categories, async (data) => {
     try {
+      // Prevent accidental form resubmission
+      if (isSubmitting) {
+        console.log("Already submitting, preventing duplicate submission");
+        return;
+      }
+      
       await onSubmit(data);
       
       toast({
@@ -55,9 +61,14 @@ const ItemForm: React.FC<ItemFormProps> = ({
     }
   });
 
+  const handleSubmit = useCallback((event: React.FormEvent) => {
+    event.preventDefault();
+    form.handleSubmit(handleFormSubmit)(event);
+  }, [form, handleFormSubmit]);
+  
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8">
         <BasicInfoFields 
           form={form} 
           categories={categories} 
@@ -85,4 +96,4 @@ const ItemForm: React.FC<ItemFormProps> = ({
   );
 };
 
-export default ItemForm;
+export default React.memo(ItemForm);
