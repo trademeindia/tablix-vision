@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import InvoiceList from '@/components/invoice/InvoiceList';
 import { Button } from '@/components/ui/button';
-import { Plus, Database } from 'lucide-react';
+import { Plus, Database, RefreshCw } from 'lucide-react';
 import { useInvoices } from '@/hooks/invoice/use-invoices';
 import { useInvoiceActions } from '@/hooks/invoice/use-invoice-actions';
 import InvoiceDialog from '@/components/invoice/list/InvoiceDialog';
@@ -89,6 +89,14 @@ const InvoicesPage = () => {
           <p className="text-slate-500">Manage your restaurant invoices</p>
         </div>
         <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            onClick={refreshInvoices}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button 
             variant="outline" 
             onClick={handleGenerateSampleInvoices} 

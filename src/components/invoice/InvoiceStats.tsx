@@ -20,8 +20,11 @@ const InvoiceStats = ({ invoices, isLoading }: InvoiceStatsProps) => {
         paid: 0,
         paidAmount: 0,
         draft: 0,
+        draftAmount: 0,
         issued: 0,
+        issuedAmount: 0,
         cancelled: 0,
+        cancelledAmount: 0
       };
     }
 
@@ -37,12 +40,15 @@ const InvoiceStats = ({ invoices, isLoading }: InvoiceStatsProps) => {
             break;
           case 'draft':
             acc.draft += 1;
+            acc.draftAmount += invoice.final_amount;
             break;
           case 'issued':
             acc.issued += 1;
+            acc.issuedAmount += invoice.final_amount;
             break;
           case 'cancelled':
             acc.cancelled += 1;
+            acc.cancelledAmount += invoice.final_amount;
             break;
         }
 
@@ -54,8 +60,11 @@ const InvoiceStats = ({ invoices, isLoading }: InvoiceStatsProps) => {
         paid: 0,
         paidAmount: 0,
         draft: 0,
+        draftAmount: 0,
         issued: 0,
+        issuedAmount: 0,
         cancelled: 0,
+        cancelledAmount: 0
       }
     );
   }, [invoices]);
@@ -77,7 +86,7 @@ const InvoiceStats = ({ invoices, isLoading }: InvoiceStatsProps) => {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <StatCard 
         title="Total Invoices"
         value={stats.total.toString()}
@@ -86,7 +95,7 @@ const InvoiceStats = ({ invoices, isLoading }: InvoiceStatsProps) => {
       />
       
       <StatCard 
-        title="Paid Invoices"
+        title="Paid"
         value={stats.paid.toString()}
         subValue={formatCurrency(stats.paidAmount)}
         icon={<BadgeCheck className="h-5 w-5 text-green-500" />}
@@ -95,14 +104,22 @@ const InvoiceStats = ({ invoices, isLoading }: InvoiceStatsProps) => {
       <StatCard 
         title="Pending Payment"
         value={stats.issued.toString()}
+        subValue={formatCurrency(stats.issuedAmount)}
         icon={<Clock className="h-5 w-5 text-amber-500" />}
       />
       
       <StatCard 
-        title="Collection Rate"
-        value={stats.total ? `${Math.round((stats.paid / stats.total) * 100)}%` : '0%'}
-        subValue={stats.paid ? `${stats.paid}/${stats.total} invoices` : '0/0 invoices'}
-        icon={<CircleDollarSign className="h-5 w-5 text-blue-500" />}
+        title="Draft"
+        value={stats.draft.toString()}
+        subValue={formatCurrency(stats.draftAmount)}
+        icon={<AlertCircle className="h-5 w-5 text-blue-500" />}
+      />
+      
+      <StatCard 
+        title="Cancelled"
+        value={stats.cancelled.toString()}
+        subValue={formatCurrency(stats.cancelledAmount)}
+        icon={<BadgeX className="h-5 w-5 text-red-500" />}
       />
     </div>
   );

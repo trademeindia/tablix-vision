@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Invoice, generateInvoiceNumber, TABLES } from './types';
 
-// Create a sample invoice for testing
+// Create sample invoices for testing
 export const createSampleInvoices = async (restaurantId: string): Promise<boolean> => {
   try {
     // Check authentication
@@ -12,7 +12,7 @@ export const createSampleInvoices = async (restaurantId: string): Promise<boolea
       return false;
     }
     
-    // Sample invoices data
+    // Sample invoices data with more varied examples
     const sampleInvoices = [
       {
         invoice_number: generateInvoiceNumber(restaurantId),
@@ -65,6 +65,44 @@ export const createSampleInvoices = async (restaurantId: string): Promise<boolea
         status: 'draft',
         notes: 'Takeout order',
         created_at: new Date().toISOString() // Today
+      },
+      {
+        invoice_number: generateInvoiceNumber(restaurantId),
+        restaurant_id: restaurantId,
+        customer_name: 'Priya Sharma',
+        total_amount: 235.75,
+        tax_amount: 11.79,
+        discount_amount: 20.00,
+        final_amount: 227.54,
+        status: 'paid',
+        notes: 'Corporate event',
+        payment_method: 'Bank Transfer',
+        payment_reference: 'TRFR-78952',
+        created_at: new Date(Date.now() - 86400000 * 2).toISOString() // 2 days ago
+      },
+      {
+        invoice_number: generateInvoiceNumber(restaurantId),
+        restaurant_id: restaurantId,
+        customer_name: 'David Wilson',
+        total_amount: 78.50,
+        tax_amount: 3.93,
+        discount_amount: 0,
+        final_amount: 82.43,
+        status: 'issued',
+        notes: 'Family dinner',
+        created_at: new Date(Date.now() - 86400000 * 4).toISOString() // 4 days ago
+      },
+      {
+        invoice_number: generateInvoiceNumber(restaurantId),
+        restaurant_id: restaurantId,
+        customer_name: 'Alex Morgan',
+        total_amount: 55.25,
+        tax_amount: 2.76,
+        discount_amount: 10.00,
+        final_amount: 48.01,
+        status: 'cancelled',
+        notes: 'Order cancelled by customer',
+        created_at: new Date(Date.now() - 86400000 * 1.5).toISOString() // 1.5 days ago
       }
     ];
     
@@ -82,31 +120,40 @@ export const createSampleInvoices = async (restaurantId: string): Promise<boolea
     // Create sample invoice items for each invoice
     const sampleItems = [];
     
+    // Menu items with prices for more realistic invoice items
+    const menuItems = [
+      { name: 'Margherita Pizza', price: 15.99, description: 'Classic cheese and tomato pizza' },
+      { name: 'Caesar Salad', price: 8.95, description: 'Romaine lettuce, croutons, parmesan' },
+      { name: 'Grilled Salmon', price: 24.50, description: 'Fresh salmon with lemon herb sauce' },
+      { name: 'Chicken Tikka Masala', price: 18.75, description: 'Spicy chicken curry with rice' },
+      { name: 'Vegetable Risotto', price: 14.50, description: 'Creamy arborio rice with seasonal vegetables' },
+      { name: 'Beef Burger', price: 16.95, description: 'House special burger with fries' },
+      { name: 'Pasta Carbonara', price: 14.95, description: 'Classic Italian pasta with bacon and egg' },
+      { name: 'House Wine (Glass)', price: 9.00, description: 'Selection of red or white wine' },
+      { name: 'Chocolate Mousse', price: 7.50, description: 'Rich chocolate dessert' },
+      { name: 'Cheesecake', price: 8.95, description: 'New York style cheesecake' },
+      { name: 'Espresso', price: 3.50, description: 'Double shot espresso' },
+      { name: 'Garlic Bread', price: 5.95, description: 'Oven baked with melted cheese' }
+    ];
+    
     for (const invoice of invoices) {
       // Generate 2-4 items per invoice
       const numItems = Math.floor(Math.random() * 3) + 2;
-      const menuItems = [
-        { name: 'Margherita Pizza', price: 15.99 },
-        { name: 'Caesar Salad', price: 8.95 },
-        { name: 'Grilled Salmon', price: 24.50 },
-        { name: 'Chicken Parmesan', price: 18.75 },
-        { name: 'Veggie Burger', price: 12.95 },
-        { name: 'Tiramisu', price: 7.50 },
-        { name: 'Pasta Carbonara', price: 14.95 },
-        { name: 'House Wine (Glass)', price: 9.00 }
-      ];
+      
+      // Create a copy of the menuItems array to avoid duplicates
+      const availableItems = [...menuItems];
       
       // Randomly select items for this invoice
-      const invoiceItems = [];
       for (let i = 0; i < numItems; i++) {
-        const randomIndex = Math.floor(Math.random() * menuItems.length);
-        const menuItem = menuItems[randomIndex];
+        const randomIndex = Math.floor(Math.random() * availableItems.length);
+        const menuItem = availableItems.splice(randomIndex, 1)[0]; // Remove the selected item
+        
         const quantity = Math.floor(Math.random() * 2) + 1;
         
-        invoiceItems.push({
+        sampleItems.push({
           invoice_id: invoice.id,
           name: menuItem.name,
-          description: `Fresh ${menuItem.name.toLowerCase()}`,
+          description: menuItem.description,
           quantity: quantity,
           unit_price: menuItem.price,
           total_price: menuItem.price * quantity,
@@ -114,8 +161,6 @@ export const createSampleInvoices = async (restaurantId: string): Promise<boolea
           discount_percentage: i === 0 ? 10 : 0 // Apply discount to first item only
         });
       }
-      
-      sampleItems.push(...invoiceItems);
     }
     
     // Insert sample invoice items
