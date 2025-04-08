@@ -46,7 +46,8 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Redirect authenticated users to appropriate dashboard from root path
+  // Only redirect authenticated users from the root path
+  // Don't redirect from other paths like /customer/menu or /customer-menu
   if (path === '/' && user && !loading) {
     console.log('Authenticated user at root path. Redirecting based on role:', userRoles);
     
@@ -77,6 +78,7 @@ const AppRoutes: React.FC = () => {
   }
 
   // Handle the public customer-menu route separately
+  // But only if the path is explicitly /customer-menu
   if (path === '/customer-menu') {
     return <PublicRoutes />;
   }

@@ -34,18 +34,22 @@ export function useQRDataParser(): QRDataParserResult {
       return;
     }
     
-    // Check localStorage for returning customers
-    const storedTableId = localStorage.getItem('tableId');
-    const storedRestaurantId = localStorage.getItem('restaurantId');
-    
-    if (storedTableId && storedRestaurantId) {
-      console.log("Using stored restaurant/table:", { restaurantId: storedRestaurantId, tableId: storedTableId });
-      setTableId(storedTableId);
-      setRestaurantId(storedRestaurantId);
+    // Only check localStorage if already in customer menu paths
+    // This prevents auto-redirecting when visiting the site fresh
+    if (location.pathname.includes('/customer-menu') || location.pathname.includes('/customer/menu')) {
+      // Check localStorage for returning customers
+      const storedTableId = localStorage.getItem('tableId');
+      const storedRestaurantId = localStorage.getItem('restaurantId');
       
-      // Redirect to customer-menu with parameters if we're not already there
-      if (!location.pathname.includes('/customer-menu') && !location.pathname.includes('/customer/menu')) {
-        navigate(`/customer-menu?restaurant=${storedRestaurantId}&table=${storedTableId}`, { replace: true });
+      if (storedTableId && storedRestaurantId) {
+        console.log("Using stored restaurant/table:", { restaurantId: storedRestaurantId, tableId: storedTableId });
+        setTableId(storedTableId);
+        setRestaurantId(storedRestaurantId);
+        
+        // Redirect to customer-menu with parameters if we're not already there
+        if (!location.pathname.includes('/customer-menu') && !location.pathname.includes('/customer/menu')) {
+          navigate(`/customer-menu?restaurant=${storedRestaurantId}&table=${storedTableId}`, { replace: true });
+        }
       }
     }
   }, [location.search, location.pathname, navigate]);
