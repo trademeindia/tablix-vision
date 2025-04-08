@@ -14,7 +14,7 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         // Create a fake ID for test mode
         return Promise.resolve({
           ...item,
-          id: `new-${Date.now()}`,
+          id: `test-${Date.now()}`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: item.name || "Default Name", // Ensure required properties are present

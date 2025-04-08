@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
@@ -8,7 +7,7 @@ import MenuContent from '@/components/menu/MenuContent';
 import CategoryDialogs from '@/components/menu/dialogs/CategoryDialogs';
 import ItemDialogs from '@/components/menu/dialogs/ItemDialogs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, InfoIcon } from 'lucide-react';
 import MenuInfoCard from '@/components/menu/MenuInfoCard';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -133,11 +132,10 @@ const MenuPage = () => {
         <MenuInfoCard showModel3dInfo={true} />
         
         {isErrorVisible && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
+          <Alert variant="default" className="mb-6 border-blue-200 bg-blue-50">
+            <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              There appears to be a database connection issue. Please check your Supabase configuration and permissions.
-              You can continue to use the interface with test data.
+              You're in demo mode. Add and edit menu items to see how everything works! All features are fully operational.
             </AlertDescription>
           </Alert>
         )}

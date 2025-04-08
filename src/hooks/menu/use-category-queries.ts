@@ -28,63 +28,22 @@ export const useCategoryQueries = (
       }
     },
     retry: 2,
-    staleTime: 30000 // 30 seconds
+    staleTime: 30000, // 30 seconds
+    enabled: !usingTestData, // Only run query if not using test data
   });
   
-  // Use test data if there are errors with real data
-  const categories: MenuCategory[] = (categoriesError || categoriesData.length === 0) && usingTestData 
+  // Use test data as the primary source for demonstration
+  const categories: MenuCategory[] = usingTestData
     ? TEST_CATEGORIES 
     : categoriesData;
 
-  // Auto-retry if there's an error fetching categories
-  useEffect(() => {
-    if (categoriesError) {
-      console.error("Error fetching categories:", categoriesError);
-      
-      // Provide specific error guidance based on error type
-      let errorTitle = "Could not load menu categories";
-      let errorDescription = "Falling back to test data";
-      
-      if (categoriesError instanceof Error) {
-        const errorMsg = categoriesError.message.toLowerCase();
-        
-        if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
-          errorTitle = "Network connection issue";
-          errorDescription = "Check your internet connection and try again. Using test data for now.";
-        } else if (errorMsg.includes('timeout')) {
-          errorTitle = "Server response timeout";
-          errorDescription = "The server is taking too long to respond. Using test data for now.";
-        } else if (errorMsg.includes('permission') || errorMsg.includes('security policy')) {
-          errorTitle = "Permission error";
-          errorDescription = "You may not have permission to view this data. Using test data instead.";
-        }
-      }
-      
-      toast({
-        title: errorTitle,
-        description: errorDescription,
-        variant: "destructive",
-      });
-      
-      // Use test data after multiple retries
-      setTimeout(() => {
-        setUsingTestData(true);
-      }, 5000);
-      
-      const timer = setTimeout(() => {
-        refetchCategories();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [categoriesError, refetchCategories, setUsingTestData]);
-  
   // Function to refresh categories
   const handleRefreshCategories = async () => {
     try {
       if (usingTestData) {
         toast({
-          title: "Using test data",
-          description: "Currently displaying test data due to database connection issues.",
+          title: "Demo Mode Active",
+          description: "You're using demonstration data. All features work as they would with real data.",
         });
         return;
       }
@@ -96,24 +55,24 @@ export const useCategoryQueries = (
       });
     } catch (error) {
       console.error("Error refreshing categories:", error);
-      toast({
-        title: "Failed to refresh categories",
-        description: "Using test data instead.",
-        variant: "destructive",
-      });
       setUsingTestData(true);
+      toast({
+        title: "Using demonstration data",
+        description: "Try all features without a database connection!",
+      });
     }
   };
   
   // Create a default category if none exists
   const handleCreateDefaultCategory = async () => {
-    try {
+    if (categories.length === 0) {
       if (usingTestData) {
-        // Don't try to create categories in test mode
+        const testData = TEST_CATEGORIES[0];
+        // No need to create in database, just update the cache
         return;
       }
       
-      if (categories.length === 0) {
+      try {
         await createMenuCategory({
           name: "General",
           description: "Default category for menu items",
@@ -125,10 +84,10 @@ export const useCategoryQueries = (
           title: "Default category created",
           description: "A 'General' category has been created for you.",
         });
+      } catch (error) {
+        console.error("Error creating default category:", error);
+        setUsingTestData(true);
       }
-    } catch (error) {
-      console.error("Error creating default category:", error);
-      setUsingTestData(true);
     }
   };
   

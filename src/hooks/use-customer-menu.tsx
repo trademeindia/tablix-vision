@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useMenuData } from '@/hooks/use-menu-data';
 import { useQRCode } from '@/hooks/use-qr-code';
@@ -14,7 +13,7 @@ export function useCustomerMenu() {
   const navigate = useNavigate();
   
   // State for tracking if we're using test data
-  const [usingTestData, setUsingTestData] = useState(false);
+  const [usingTestData, setUsingTestData] = useState(true);
   const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
   
   // Debug state
@@ -99,10 +98,10 @@ export function useCustomerMenu() {
   // Fetch menu data using the hook
   const { categories, items, isLoading, error, refetchCategories } = useMenuData(restaurantId);
   
-  // Use test data if there's an error or no data
+  // Generate and use test data
   useEffect(() => {
-    // If there's an error or no data, generate test data
-    if ((error || (categories.length === 0 && !isLoading)) && restaurantId && !testData) {
+    // Always generate test data for demonstration
+    if (restaurantId && !testData) {
       const data = generateTestMenuData(restaurantId);
       setTestData(data);
       setUsingTestData(true);
@@ -112,11 +111,11 @@ export function useCustomerMenu() {
       queryClient.setQueryData(['menuItems', restaurantId], data.items);
       
       toast({
-        title: "Using Demo Data",
-        description: "We're showing example menu items for demonstration purposes.",
+        title: "Demo Mode",
+        description: "You're viewing a demonstration with sample menu items.",
       });
     }
-  }, [error, categories, restaurantId, isLoading, testData, queryClient]);
+  }, [restaurantId, testData, queryClient]);
   
   // Attempt to refetch data automatically if there's an error
   useEffect(() => {

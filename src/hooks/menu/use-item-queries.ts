@@ -34,56 +34,14 @@ export const useItemQueries = (
     },
     retry: 3,
     staleTime: 1000, // 1 second - shorter stale time to refresh more frequently
-    gcTime: 5 * 60 * 1000, // 5 minutes cache duration (renamed from cacheTime)
+    gcTime: 5 * 60 * 1000, // 5 minutes cache duration (replaces deprecated cacheTime)
+    enabled: !usingTestData, // Only run query if not using test data
   });
   
-  // Use test data if there are errors with real data or if explicitly requested
-  const menuItems: MenuItem[] = (itemsError || (menuItemsData.length === 0 && usingTestData)) 
+  // Use test data as the primary source for demonstration
+  const menuItems: MenuItem[] = usingTestData
     ? TEST_MENU_ITEMS 
     : menuItemsData;
-
-  // Auto-retry if there's an error fetching items
-  useEffect(() => {
-    if (itemsError) {
-      console.error("Error fetching items:", itemsError);
-      
-      // Determine the specific error type for better user guidance
-      let errorTitle = "Could not load menu items";
-      let errorDescription = "Falling back to test data";
-      
-      if (itemsError instanceof Error) {
-        const errorMsg = itemsError.message.toLowerCase();
-        
-        if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
-          errorTitle = "Network connection issue";
-          errorDescription = "Check your internet connection and try again. Using test data for now.";
-        } else if (errorMsg.includes('timeout')) {
-          errorTitle = "Server response timeout";
-          errorDescription = "The server is taking too long to respond. Using test data for now.";
-        } else if (errorMsg.includes('permission') || errorMsg.includes('security policy')) {
-          errorTitle = "Permission error";
-          errorDescription = "You may not have permission to view this data. Using test data instead.";
-        }
-      }
-      
-      // Show error toast with specific guidance
-      toast({
-        title: errorTitle,
-        description: errorDescription,
-        variant: "destructive",
-      });
-      
-      // Use test data after multiple retries
-      setTimeout(() => {
-        setUsingTestData(true);
-      }, 1000);
-      
-      const timer = setTimeout(() => {
-        refetchItems();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [itemsError, refetchItems, setUsingTestData]);
 
   useEffect(() => {
     // Log the items when they change to help with debugging

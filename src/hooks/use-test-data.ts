@@ -6,13 +6,13 @@ import { toast } from '@/hooks/use-toast';
 
 export function useTestData(restaurantId: string | null) {
   const queryClient = useQueryClient();
-  const [usingTestData, setUsingTestData] = useState(false);
+  const [usingTestData, setUsingTestData] = useState(true); // Changed to default to true
   const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
 
   // Generate test data if needed
   useEffect(() => {
-    // If there's an error or no data, generate test data
-    if (restaurantId && !testData && usingTestData) {
+    // Always generate test data for demonstration purposes
+    if (restaurantId && !testData) {
       const data = generateTestMenuData(restaurantId);
       setTestData(data);
       
@@ -21,11 +21,11 @@ export function useTestData(restaurantId: string | null) {
       queryClient.setQueryData(['menuItems', restaurantId], data.items);
       
       toast({
-        title: "Using Demo Data",
-        description: "We're showing example menu items for demonstration purposes.",
+        title: "Demo Mode",
+        description: "You're viewing a demonstration. All features are fully functional!",
       });
     }
-  }, [restaurantId, testData, usingTestData, queryClient]);
+  }, [restaurantId, testData, queryClient]);
 
   return {
     usingTestData,

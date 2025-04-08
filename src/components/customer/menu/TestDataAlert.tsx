@@ -15,7 +15,7 @@ const TestDataAlert: React.FC<TestDataAlertProps> = ({ isVisible }) => {
       <InfoIcon className="h-4 w-4" />
       <AlertTitle>Demo Mode</AlertTitle>
       <AlertDescription>
-        You're viewing demo menu items. All functions (adding to cart, ordering, etc.) will work for testing.
+        You're viewing a demonstration. Add and edit menu items to see how the app works! All functions (adding to cart, ordering, etc.) are fully operational.
       </AlertDescription>
     </Alert>
   );
