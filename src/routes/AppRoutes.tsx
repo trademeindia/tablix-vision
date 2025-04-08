@@ -60,7 +60,9 @@ const AppRoutes: React.FC = () => {
     } else if (userRoles.includes('staff')) {
       return <Navigate to="/staff-dashboard" replace />;
     } else if (userRoles.includes('customer')) {
-      return <Navigate to="/customer/menu" replace />;
+      // IMPORTANT: Don't automatically redirect customers to menu page
+      // Let them manually navigate to avoid redirection loop
+      return <PublicRoutes />;
     }
   }
 

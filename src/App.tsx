@@ -29,13 +29,18 @@ const RouteHandler = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // If this is a direct visit to a customer URL and not from a previous navigation
-    // (meaning it's a direct load of the URL), redirect to landing page
+    // Only redirect first-time visitors from the /customer/menu path
+    // AND only if they directly accessed that URL (not navigated from within the app)
     if (location.pathname === '/customer/menu' && !document.referrer.includes(window.location.host)) {
-      const hasVisitedBefore = localStorage.getItem('hasVisitedBefore');
-      if (!hasVisitedBefore) {
-        // First time visitor, redirect to landing page
-        localStorage.setItem('hasVisitedBefore', 'true');
+      // Check if there are any table/restaurant parameters - if not, it's likely a direct access
+      const params = new URLSearchParams(location.search);
+      const hasTableParam = params.has('table');
+      const hasRestaurantParam = params.has('restaurant');
+      
+      // Only redirect if no specific table/restaurant was requested
+      if (!hasTableParam && !hasRestaurantParam) {
+        // First time visitor without specific table - redirect to landing page
+        console.log('First time visit to customer menu without parameters - redirecting to landing page');
         navigate('/', { replace: true });
       }
     }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
@@ -34,9 +33,10 @@ export function useQRDataParser(): QRDataParserResult {
       return;
     }
     
-    // Only check localStorage if already in customer menu paths
-    // This prevents auto-redirecting when visiting the site fresh
-    if (location.pathname.includes('/customer-menu') || location.pathname.includes('/customer/menu')) {
+    // Only check localStorage if we're explicitly on customer menu paths AND there are no URL parameters
+    if ((location.pathname.includes('/customer-menu') || location.pathname.includes('/customer/menu')) 
+        && !location.search.includes('table=') && !location.search.includes('restaurant=')) {
+      
       // Check localStorage for returning customers
       const storedTableId = localStorage.getItem('tableId');
       const storedRestaurantId = localStorage.getItem('restaurantId');
@@ -46,10 +46,8 @@ export function useQRDataParser(): QRDataParserResult {
         setTableId(storedTableId);
         setRestaurantId(storedRestaurantId);
         
-        // Redirect to customer-menu with parameters if we're not already there
-        if (!location.pathname.includes('/customer-menu') && !location.pathname.includes('/customer/menu')) {
-          navigate(`/customer-menu?restaurant=${storedRestaurantId}&table=${storedTableId}`, { replace: true });
-        }
+        // Don't auto-redirect - let the user navigate manually or explicitly scan a QR code
+        // This prevents unwanted redirects when the user is trying to access the landing page
       }
     }
   }, [location.search, location.pathname, navigate]);
