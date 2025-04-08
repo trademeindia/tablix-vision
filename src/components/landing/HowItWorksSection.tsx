@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Upload, Utensils, QrCode, Rocket } from 'lucide-react';
+import { Upload, Utensils, QrCode, Rocket, ArrowRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface StepProps {
