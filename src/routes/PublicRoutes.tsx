@@ -19,8 +19,6 @@ const PublicRoutes: React.FC = () => {
       <Route path="/index" element={<Index />} />
       <Route path="/menu360" element={<Menu360LandingPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      <Route path="/request-demo" element={<Menu360LandingPage />} />
-      <Route path="/contact" element={<Menu360LandingPage />} />
       
       {/* Customer menu as public route for QR scanning */}
       <Route path="/customer-menu" element={<CustomerMenuPage />} />

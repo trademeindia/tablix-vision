@@ -1,6 +1,5 @@
 
-import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
 import HeroSection from '@/components/landing/HeroSection';
 import ProblemSolutionSection from '@/components/landing/ProblemSolutionSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
@@ -17,25 +16,6 @@ import { Helmet } from 'react-helmet-async';
 const Menu360LandingPage: React.FC = () => {
   // Add error boundary to catch rendering issues
   const [hasError, setHasError] = React.useState(false);
-  const location = useLocation();
-
-  // Handle anchor links
-  useEffect(() => {
-    // Check if there's a hash in the URL (anchor link)
-    if (location.hash) {
-      // Wait a moment for the DOM to be ready
-      setTimeout(() => {
-        const id = location.hash.replace('#', '');
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      // If no hash, scroll to top
-      window.scrollTo(0, 0);
-    }
-  }, [location]);
 
   React.useEffect(() => {
     const handleError = () => {

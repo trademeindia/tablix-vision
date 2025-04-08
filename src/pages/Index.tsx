@@ -56,7 +56,7 @@ const Index = () => {
             <h1 className="text-2xl font-bold text-primary">Menu 360</h1>
             <div className="space-x-2">
               <Button variant="outline" asChild>
-                <Link to="/">About</Link>
+                <Link to="/menu360">About</Link>
               </Button>
               <Button asChild>
                 <Link to="/auth/login">Sign In</Link>
@@ -147,7 +147,7 @@ const Index = () => {
                 <br />No sign-up required!
               </p>
               <Button variant="outline" asChild>
-                <Link to="/">Learn More About Menu 360</Link>
+                <Link to="/menu360">Learn More About Menu 360</Link>
               </Button>
             </div>
           </div>
