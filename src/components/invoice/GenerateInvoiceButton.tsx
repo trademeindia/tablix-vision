@@ -38,7 +38,7 @@ const GenerateInvoiceButton: React.FC<GenerateInvoiceButtonProps> = ({
     setIsGenerating(true);
     
     try {
-      // Fix: Access the result correctly with destructuring
+      // Properly destructure the result
       const { invoice, error } = await createInvoiceFromOrder(order);
       
       if (invoice && invoice.id) {

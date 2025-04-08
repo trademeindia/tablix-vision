@@ -27,7 +27,6 @@ export const createInvoice = async (
       ...data,
       customer_id: data.customer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.customer_id) ? data.customer_id : null,
       order_id: data.order_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.order_id) ? data.order_id : null,
-      // Removing user_id since it doesn't exist in the database schema
     };
     
     // Insert the invoice into the database
@@ -47,7 +46,6 @@ export const createInvoice = async (
         notes: validatedData.notes,
         payment_method: validatedData.payment_method,
         payment_reference: validatedData.payment_reference,
-        // Removing user_id field as it doesn't exist in the schema
       })
       .select()
       .single();

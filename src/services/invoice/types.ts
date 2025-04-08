@@ -19,7 +19,6 @@ export interface Invoice {
   created_at?: string;
   updated_at?: string;
   items: InvoiceItem[];
-  user_id?: string; // Add user_id field to the Invoice interface
 }
 
 export interface InvoiceItem {
@@ -66,7 +65,6 @@ export const ensureInvoiceProperties = (invoiceData: any, itemsData: any[]): Inv
     created_at: invoiceData.created_at,
     updated_at: invoiceData.updated_at,
     items: itemsData || [],
-    user_id: invoiceData.user_id,
   };
 };
 

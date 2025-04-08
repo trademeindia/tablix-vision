@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getRestaurantInvoices, getInvoiceById } from '@/services/invoice';
 import { Invoice } from '@/services/invoice/types';
@@ -14,27 +14,30 @@ export const useInvoices = (restaurantId: string) => {
   const { invoiceId } = useParams();
   const navigate = useNavigate();
 
+  // Function to fetch and refresh invoices
+  const refreshInvoices = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getRestaurantInvoices(restaurantId);
+      setInvoices(data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load invoices',
+        variant: 'destructive',
+      });
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [restaurantId]);
+
   // Load invoices on component mount
   useEffect(() => {
-    const fetchInvoices = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getRestaurantInvoices(restaurantId);
-        setInvoices(data);
-      } catch (error) {
-        console.error('Error fetching invoices:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load invoices',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchInvoices();
-  }, [restaurantId]);
+    refreshInvoices();
+  }, [refreshInvoices]);
 
   // Set up real-time listener for invoice changes
   useEffect(() => {
@@ -132,6 +135,7 @@ export const useInvoices = (restaurantId: string) => {
     invoiceDialogOpen,
     setInvoiceDialogOpen,
     handleViewInvoice,
-    handleCloseInvoiceDialog
+    handleCloseInvoiceDialog,
+    refreshInvoices
   };
 };

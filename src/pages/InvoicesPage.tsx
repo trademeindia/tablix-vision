@@ -1,17 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import InvoiceList from '@/components/invoice/InvoiceList';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Database } from 'lucide-react';
 import { useInvoices } from '@/hooks/invoice/use-invoices';
 import { useInvoiceActions } from '@/hooks/invoice/use-invoice-actions';
 import InvoiceDialog from '@/components/invoice/list/InvoiceDialog';
 import InvoiceStats from '@/components/invoice/InvoiceStats';
+import { createSampleInvoices } from '@/services/invoice';
+import { toast } from '@/hooks/use-toast';
 
 const InvoicesPage = () => {
   const navigate = useNavigate();
+  const [isGeneratingSamples, setIsGeneratingSamples] = useState(false);
 
   // Mock restaurant data - in a real app, get this from context or API
   const restaurantData = {
@@ -29,7 +32,8 @@ const InvoicesPage = () => {
     invoiceDialogOpen,
     setInvoiceDialogOpen,
     handleViewInvoice,
-    handleCloseInvoiceDialog
+    handleCloseInvoiceDialog,
+    refreshInvoices
   } = useInvoices(restaurantData.id);
 
   const {
@@ -47,6 +51,36 @@ const InvoicesPage = () => {
     navigate('/invoices/create');
   };
 
+  const handleGenerateSampleInvoices = async () => {
+    setIsGeneratingSamples(true);
+    try {
+      const success = await createSampleInvoices(restaurantData.id);
+      if (success) {
+        toast({
+          title: 'Success',
+          description: 'Sample invoices have been generated successfully',
+        });
+        // Refresh the invoice list
+        await refreshInvoices();
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate sample invoices',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error generating sample invoices:', error);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingSamples(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="flex justify-between items-center mb-6">
@@ -54,10 +88,20 @@ const InvoicesPage = () => {
           <h1 className="text-2xl font-bold">Invoices</h1>
           <p className="text-slate-500">Manage your restaurant invoices</p>
         </div>
-        <Button onClick={handleCreateInvoice}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Invoice
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={handleGenerateSampleInvoices} 
+            disabled={isGeneratingSamples}
+          >
+            <Database className="h-4 w-4 mr-2" />
+            {isGeneratingSamples ? 'Generating...' : 'Generate Samples'}
+          </Button>
+          <Button onClick={handleCreateInvoice}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Invoice
+          </Button>
+        </div>
       </div>
       
       {/* Invoice statistics section */}
