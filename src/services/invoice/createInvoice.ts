@@ -7,10 +7,17 @@ import { Order } from '../order/types';
 export const createInvoice = async (
   data: Omit<Invoice, 'id' | 'invoice_number' | 'created_at' | 'updated_at' | 'items'>,
   items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
-): Promise<Invoice | null> => {
+): Promise<{ invoice: Invoice | null; error: string | null }> {
   try {
     console.log('Creating invoice:', data);
     console.log('Invoice items:', items);
+    
+    // Check authentication
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    if (authError || !userData.user) {
+      console.error('Authentication error:', authError);
+      return { invoice: null, error: 'Authentication error: You must be logged in to create an invoice' };
+    }
     
     // Generate a unique invoice number
     const invoiceNumber = generateInvoiceNumber(data.restaurant_id);
@@ -21,7 +28,7 @@ export const createInvoice = async (
       customer_id: data.customer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.customer_id) ? data.customer_id : null,
       order_id: data.order_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.order_id) ? data.order_id : null,
       // Adding user_id for RLS policies
-      user_id: (await supabase.auth.getUser()).data.user?.id
+      user_id: userData.user.id
     };
     
     // Insert the invoice into the database
@@ -48,7 +55,7 @@ export const createInvoice = async (
     
     if (invoiceError) {
       console.error('Error creating invoice:', invoiceError);
-      return null;
+      return { invoice: null, error: `Database error: ${invoiceError.message || 'Failed to create invoice'}` };
     }
     
     // Insert the invoice items
@@ -72,7 +79,7 @@ export const createInvoice = async (
       console.error('Error creating invoice items:', itemsError);
       // Attempt to delete the invoice if items fail
       await supabase.from(TABLES.INVOICES).delete().eq('id', invoiceData.id);
-      return null;
+      return { invoice: null, error: `Database error: ${itemsError.message || 'Failed to create invoice items'}` };
     }
     
     // Construct the full invoice object to return, ensuring the status is properly typed
@@ -82,15 +89,15 @@ export const createInvoice = async (
       items: itemsData as InvoiceItem[]
     };
     
-    return invoice;
-  } catch (error) {
+    return { invoice, error: null };
+  } catch (error: any) {
     console.error('Error in createInvoice:', error);
-    return null;
+    return { invoice: null, error: `Unexpected error: ${error?.message || 'An unknown error occurred'}` };
   }
 };
 
 // Create an invoice from an order
-export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | null> => {
+export const createInvoiceFromOrder = async (order: Order): Promise<{ invoice: Invoice | null; error: string | null }> {
   try {
     console.log('Creating invoice from order:', order);
     
@@ -109,11 +116,14 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
         .select('*')
         .eq('invoice_id', existingInvoice.id);
       
-      return {
-        ...existingInvoice,
-        status: existingInvoice.status as Invoice['status'],
-        items: items || []
-      } as Invoice;
+      return { 
+        invoice: {
+          ...existingInvoice,
+          status: existingInvoice.status as Invoice['status'],
+          items: items || []
+        } as Invoice,
+        error: null
+      };
     }
     
     const orderItems = order.items || [];
@@ -151,9 +161,9 @@ export const createInvoiceFromOrder = async (order: Order): Promise<Invoice | nu
       payment_reference: order.payment_reference
     };
     
-    return createInvoice(invoiceData, invoiceItems);
-  } catch (error) {
+    return await createInvoice(invoiceData, invoiceItems);
+  } catch (error: any) {
     console.error('Error in createInvoiceFromOrder:', error);
-    return null;
+    return { invoice: null, error: `Unexpected error: ${error?.message || 'An unknown error occurred'}` };
   }
 };

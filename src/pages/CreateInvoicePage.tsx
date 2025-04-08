@@ -18,6 +18,7 @@ const CreateInvoicePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   // Mock restaurant data - in a real app, get this from context or API
   const restaurantData = {
@@ -28,10 +29,18 @@ const CreateInvoicePage = () => {
   // Get current user ID on component mount
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error) {
+        console.error('Authentication error:', error);
+        setError('Authentication error: Please log in to create invoices');
+      } else if (data?.user) {
         setUserId(data.user.id);
+      } else {
+        setError('Authentication error: User not found');
       }
+      
+      setAuthChecked(true);
     };
     
     getCurrentUser();
@@ -124,18 +133,33 @@ const CreateInvoicePage = () => {
       return;
     }
 
+    if (!authChecked) {
+      setError('Please wait while we verify your account');
+      return;
+    }
+
+    if (!userId) {
+      setError('Authentication error: You must be logged in to create an invoice');
+      toast({
+        title: 'Authentication Error',
+        description: 'You must be logged in to create an invoice',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Add user ID to the invoice data for RLS
-      const invoice = await createInvoice(
+      const { invoice, error: invoiceError } = await createInvoice(
         {
           ...invoiceData,
           restaurant_id: restaurantData.id,
           total_amount: totals.subtotal,
           tax_amount: totals.tax,
           discount_amount: totals.discount,
-          final_amount: totals.total
+          final_amount: totals.total,
+          user_id: userId // Ensure user_id is passed
         },
         items
       );
@@ -149,19 +173,20 @@ const CreateInvoicePage = () => {
         // Navigate to the invoice page
         navigate(`/invoices/${invoice.id}`);
       } else {
-        setError('Failed to create invoice. Please check your input and try again.');
+        setError(invoiceError || 'Failed to create invoice. Please check your input and try again.');
         toast({
           title: 'Error',
-          description: 'Failed to create invoice',
+          description: invoiceError || 'Failed to create invoice',
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating invoice:', error);
-      setError('An unexpected error occurred. Please try again.');
+      const errorMessage = error?.message || 'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -184,6 +209,14 @@ const CreateInvoicePage = () => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {!userId && authChecked && (
+        <Alert variant="warning" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Authentication Required</AlertTitle>
+          <AlertDescription>You must be logged in to create invoices</AlertDescription>
         </Alert>
       )}
 
