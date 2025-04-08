@@ -43,7 +43,8 @@ const InvoicesPage = () => {
   } = useInvoiceActions(selectedInvoice, setSelectedInvoice, setInvoices, restaurantData.name);
 
   const handleCreateInvoice = () => {
-    navigate('/create-invoice');
+    // Update to use the same path as defined in the routes
+    navigate('/invoices/create');
   };
 
   return (

@@ -109,7 +109,24 @@ const AdminRoutes: React.FC = () => {
         } 
       />
       <Route 
+        path="/invoices/:invoiceId" 
+        element={
+          <ProtectedRoute requiredRoles={['owner', 'manager']}>
+            <InvoicesPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/invoices/create" 
+        element={
+          <ProtectedRoute requiredRoles={['owner', 'manager']}>
+            <CreateInvoicePage />
+          </ProtectedRoute>
+        } 
+      />
+      {/* Add support for the /create-invoice path as well */}
+      <Route 
+        path="/create-invoice" 
         element={
           <ProtectedRoute requiredRoles={['owner', 'manager']}>
             <CreateInvoicePage />
