@@ -38,23 +38,24 @@ const GenerateInvoiceButton: React.FC<GenerateInvoiceButtonProps> = ({
     setIsGenerating(true);
     
     try {
-      const invoice = await createInvoiceFromOrder(order);
+      // Fix: Access the result correctly with destructuring
+      const { invoice, error } = await createInvoiceFromOrder(order);
       
-      if (invoice) {
+      if (invoice && invoice.id) {
         toast({
           title: "Success",
           description: "Invoice generated successfully",
         });
         
-        if (onSuccess && invoice.id) {
+        if (onSuccess) {
           onSuccess(invoice.id);
-        } else if (invoice.id) {
+        } else {
           navigate(`/invoices/${invoice.id}`);
         }
       } else {
         toast({
           title: "Error",
-          description: "Failed to generate invoice. Please try again.",
+          description: error || "Failed to generate invoice. Please try again.",
           variant: "destructive",
         });
       }
