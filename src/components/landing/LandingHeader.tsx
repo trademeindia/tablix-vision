@@ -1,9 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger 
+} from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
 
 const LandingHeader: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  
+  const closeSheet = () => {
+    setOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-200">
       <div className="container flex h-16 items-center justify-between">
@@ -12,6 +24,8 @@ const LandingHeader: React.FC = () => {
             <span className="text-2xl font-bold text-primary">Menu 360</span>
           </RouterLink>
         </div>
+        
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <RouterLink to="/#features" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
             Features
@@ -29,26 +43,53 @@ const LandingHeader: React.FC = () => {
             <RouterLink to="/auth/signup">Get Started</RouterLink>
           </Button>
         </nav>
+        
+        {/* Mobile Navigation */}
         <div className="flex md:hidden">
-          <Button variant="ghost" size="icon">
-            <span className="sr-only">Toggle menu</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6"
-            >
-              <line x1="4" x2="20" y1="12" y2="12" />
-              <line x1="4" x2="20" y1="6" y2="6" />
-              <line x1="4" x2="20" y1="18" y2="18" />
-            </svg>
-          </Button>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Menu">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[80%] sm:w-[350px] py-10">
+              <div className="flex flex-col gap-6 px-2">
+                <RouterLink 
+                  to="/#features" 
+                  className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
+                  onClick={closeSheet}
+                >
+                  Features
+                </RouterLink>
+                <RouterLink 
+                  to="/#how-it-works" 
+                  className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
+                  onClick={closeSheet}
+                >
+                  How It Works
+                </RouterLink>
+                <RouterLink 
+                  to="/#pricing" 
+                  className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
+                  onClick={closeSheet}
+                >
+                  Pricing
+                </RouterLink>
+                <RouterLink 
+                  to="/auth/login" 
+                  className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
+                  onClick={closeSheet}
+                >
+                  Sign In
+                </RouterLink>
+                <Button asChild className="mt-4">
+                  <RouterLink to="/auth/signup" onClick={closeSheet}>
+                    Get Started
+                  </RouterLink>
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
