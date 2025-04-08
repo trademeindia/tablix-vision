@@ -19,7 +19,9 @@ export const createInvoice = async (
     const validatedData = {
       ...data,
       customer_id: data.customer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.customer_id) ? data.customer_id : null,
-      order_id: data.order_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.order_id) ? data.order_id : null
+      order_id: data.order_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(data.order_id) ? data.order_id : null,
+      // Adding user_id for RLS policies
+      user_id: (await supabase.auth.getUser()).data.user?.id
     };
     
     // Insert the invoice into the database
@@ -38,7 +40,8 @@ export const createInvoice = async (
         status: validatedData.status,
         notes: validatedData.notes,
         payment_method: validatedData.payment_method,
-        payment_reference: validatedData.payment_reference
+        payment_reference: validatedData.payment_reference,
+        user_id: validatedData.user_id, // Added user_id for RLS
       })
       .select()
       .single();

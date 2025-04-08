@@ -11,17 +11,31 @@ import { Invoice, InvoiceItem } from '@/services/invoice/types';
 import InvoiceInfoSection from '@/components/invoice/create/InvoiceInfoSection';
 import InvoiceItemsSection from '@/components/invoice/create/InvoiceItemsSection';
 import InvoiceSummarySection from '@/components/invoice/create/InvoiceSummarySection';
+import { supabase } from '@/integrations/supabase/client';
 
 const CreateInvoicePage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Mock restaurant data - in a real app, get this from context or API
   const restaurantData = {
     id: '123e4567-e89b-12d3-a456-426614174000',
     name: 'Gourmet Delight Restaurant',
   };
+
+  // Get current user ID on component mount
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUserId(data.user.id);
+      }
+    };
+    
+    getCurrentUser();
+  }, []);
 
   // Invoice form state
   const [invoiceData, setInvoiceData] = useState({
@@ -113,6 +127,7 @@ const CreateInvoicePage = () => {
     setIsSubmitting(true);
 
     try {
+      // Add user ID to the invoice data for RLS
       const invoice = await createInvoice(
         {
           ...invoiceData,
@@ -120,7 +135,7 @@ const CreateInvoicePage = () => {
           total_amount: totals.subtotal,
           tax_amount: totals.tax,
           discount_amount: totals.discount,
-          final_amount: totals.total,
+          final_amount: totals.total
         },
         items
       );
