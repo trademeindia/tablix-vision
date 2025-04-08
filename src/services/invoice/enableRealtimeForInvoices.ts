@@ -3,57 +3,25 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Enable real-time updates for the invoices table.
- * Call this function during application initialization.
+ * This function logs the intent, but the actual real-time functionality
+ * is implemented in the useInvoices hook through client-side channel subscriptions.
+ * 
+ * Note: This is a simplified implementation that doesn't require backend setup.
+ * Real-time functionality is handled directly through Supabase's client-side channels.
  */
 export const enableRealtimeForInvoices = async (): Promise<void> => {
   try {
-    // Instead of using RPC, use the REST API directly
-    const { data: publications, error: pubError } = await supabase
-      .from('pg_publication')
-      .select('*')
-      .eq('name', 'supabase_realtime');
-
-    if (pubError) {
-      console.error('Error checking realtime publications:', pubError);
-      return;
-    }
-
-    // Check if publication exists
-    const publicationExists = publications && publications.length > 0;
-
-    // Enable realtime for invoices table
-    console.log('Enabling realtime for invoices table...');
+    console.log('Setting up real-time subscriptions for invoices table...');
     
-    // Execute ALTER query to enable REPLICA IDENTITY FULL on invoices table
-    const { error: alterError } = await supabase.rpc(
-      'execute_sql',
-      {
-        query: 'ALTER TABLE invoices REPLICA IDENTITY FULL;'
-      }
-    );
+    // With the client-side Supabase real-time functionality, 
+    // we don't need to explicitly enable real-time on the table.
+    // The subscription is handled in the useInvoices hook.
     
-    if (alterError) {
-      console.error('Error setting REPLICA IDENTITY FULL:', alterError);
-    }
+    // If future implementation needs server-side real-time setup,
+    // it would require administrative access to manage publications,
+    // which should be done through migrations or the Supabase dashboard.
     
-    // Add table to publication
-    const { error: addError } = await supabase.rpc(
-      'execute_sql',
-      {
-        query: `
-          INSERT INTO pg_publication_tables (pubname, schemaname, tablename)
-          VALUES ('supabase_realtime', 'public', 'invoices')
-          ON CONFLICT (pubname, schemaname, tablename) DO NOTHING;
-        `
-      }
-    );
-    
-    if (addError) {
-      console.error('Error adding table to publication:', addError);
-    } else {
-      console.log('Realtime enabled for invoices table');
-    }
   } catch (error) {
-    console.error('Error enabling realtime for invoices table:', error);
+    console.error('Error in enableRealtimeForInvoices:', error);
   }
 };
