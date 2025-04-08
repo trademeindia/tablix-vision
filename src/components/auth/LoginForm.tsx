@@ -59,7 +59,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </InputGroup>
         
         <InputGroup>
-          <div className="flex justify-between">
+          <div className="flex justify-between flex-wrap">
             <Label htmlFor="password" className="text-sm font-medium text-slate-700">Password</Label>
             <Link to="/auth/reset-password" className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors">
               Forgot password?
@@ -76,7 +76,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         
         <LoadingButton 
           type="submit" 
-          className="w-full px-4 py-2 mt-2 bg-primary hover:bg-primary/90 transition-colors"
+          className="w-full px-4 py-2 mt-4 bg-primary hover:bg-primary/90 transition-colors"
           isLoading={isSubmitting}
           loadingText="Signing in..."
         >

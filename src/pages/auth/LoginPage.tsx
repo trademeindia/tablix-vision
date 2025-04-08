@@ -51,25 +51,25 @@ const LoginPage = () => {
                   <p className="mb-4 text-primary-foreground/90">Access your restaurant management dashboard to:</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2">
-                      <Coffee className="h-4 w-4" />
+                      <Coffee className="h-4 w-4 flex-shrink-0" />
                       <span>Manage your digital menus</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Coffee className="h-4 w-4" />
+                      <Coffee className="h-4 w-4 flex-shrink-0" />
                       <span>Process orders efficiently</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Coffee className="h-4 w-4" />
+                      <Coffee className="h-4 w-4 flex-shrink-0" />
                       <span>Track restaurant analytics</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <Coffee className="h-4 w-4" />
+                      <Coffee className="h-4 w-4 flex-shrink-0" />
                       <span>Engage with your customers</span>
                     </li>
                   </ul>
                 </div>
                 <div className="border-t border-primary-foreground/20 pt-4 mt-auto">
-                  <p className="text-sm text-primary-foreground/80">
+                  <p className="text-sm text-primary-foreground/80 break-words">
                     The complete solution for modern restaurants
                   </p>
                 </div>
@@ -77,7 +77,7 @@ const LoginPage = () => {
             </div>
             
             {/* Right side - Form */}
-            <div className="md:w-2/3 p-6 sm:p-8">
+            <div className="md:w-2/3 p-4 sm:p-6 md:p-8">
               <div className={isMobile ? "py-2" : "py-4"}>
                 <RoleTabsSection role={role} handleRoleChange={handleRoleChange} />
                 

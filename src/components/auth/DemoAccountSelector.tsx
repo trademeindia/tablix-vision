@@ -46,22 +46,24 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
   ];
 
   return (
-    <div className="mt-8 mb-4">
+    <div className="mt-6 mb-4">
       <h3 className="text-lg font-semibold text-center mb-4">Demo Accounts</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {demoAccounts.map((account) => (
           <Card key={account.role} className="hover:shadow-md transition-shadow">
-            <CardContent className="pt-6 flex flex-col h-full">
-              <div className="flex flex-col items-center flex-1">
-                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mr-3 flex-shrink-0">
                   {account.icon}
                 </div>
-                <h4 className="font-semibold mb-1">{account.title}</h4>
-                <p className="text-sm text-slate-500 text-center mb-4 flex-1">{account.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm">{account.title}</h4>
+                  <p className="text-xs text-slate-500 line-clamp-2">{account.description}</p>
+                </div>
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full"
+                  className="ml-2 flex-shrink-0"
                   onClick={() => onSelectDemo({
                     email: account.email,
                     password: account.password,
@@ -70,12 +72,9 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
-                    </>
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    `Try ${account.title}`
+                    "Try"
                   )}
                 </Button>
               </div>

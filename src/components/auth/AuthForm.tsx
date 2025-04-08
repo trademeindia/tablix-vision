@@ -21,9 +21,9 @@ interface AuthFormHeaderProps {
 
 export const AuthFormHeader = ({ title, description }: AuthFormHeaderProps) => {
   return (
-    <div className="text-center space-y-2 mb-6">
-      <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
-      {description && <p className="text-sm text-slate-600">{description}</p>}
+    <div className="text-center space-y-1 mb-4 sm:mb-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-slate-800">{title}</h1>
+      {description && <p className="text-sm text-slate-600 px-2">{description}</p>}
     </div>
   );
 };
@@ -46,11 +46,11 @@ interface AuthDividerProps {
 
 export const AuthDivider = ({ text = "or continue with" }: AuthDividerProps) => {
   return (
-    <div className="relative my-6">
+    <div className="relative my-5">
       <div className="absolute inset-0 flex items-center">
         <div className="w-full border-t border-slate-200"></div>
       </div>
-      <div className="relative flex justify-center text-sm">
+      <div className="relative flex justify-center text-xs sm:text-sm">
         <span className="bg-white px-2 text-slate-500">{text}</span>
       </div>
     </div>
@@ -80,3 +80,5 @@ export const InputIconWrapper = ({ children }: InputIconWrapperProps) => {
     </div>
   );
 };
+
+export default { AuthForm, AuthFormHeader, AuthFormFooter, AuthDivider, InputGroup, InputIconWrapper };
