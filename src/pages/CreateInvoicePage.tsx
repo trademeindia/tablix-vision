@@ -159,7 +159,7 @@ const CreateInvoicePage = () => {
           tax_amount: totals.tax,
           discount_amount: totals.discount,
           final_amount: totals.total,
-          user_id: userId // Ensure user_id is passed
+          // Removed user_id field as it doesn't exist in the schema
         },
         items
       );
