@@ -20,12 +20,12 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const { 
-    initializeScene, 
     scene, 
     camera, 
     renderer, 
     controls,
-    animationFrameId,
+    domElement,
+    initializeScene,
     setAutoRotate,
     setRotationSpeed
   } = useThree();
