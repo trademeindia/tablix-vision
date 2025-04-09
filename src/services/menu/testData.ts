@@ -161,7 +161,7 @@ export const generateTestMenuData = (restaurant_id: string): { categories: MenuC
       image_url: "https://images.unsplash.com/photo-1615832493239-de59be8d5e29?w=800&auto=format&fit=crop",
       allergens: { isVegetarian: true, items: ["dairy", "gluten"] }
     },
-    // 3D Model items
+    // 3D Model items with working URLs
     {
       id: "item-11",
       name: "3D Burger Deluxe",
@@ -172,7 +172,7 @@ export const generateTestMenuData = (restaurant_id: string): { categories: MenuC
       is_available: true,
       image_url: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&auto=format&fit=crop",
       media_type: "3d",
-      model_url: "https://models.readyplayer.me/64d3a8bc86c8c409fa3cf153.glb",
+      model_url: "https://threejs.org/examples/models/gltf/Soldier.glb", // Working example from Three.js
       allergens: { items: ["gluten", "dairy"] }
     },
     {
@@ -185,10 +185,10 @@ export const generateTestMenuData = (restaurant_id: string): { categories: MenuC
       is_available: true,
       image_url: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&auto=format&fit=crop",
       media_type: "3d",
-      model_url: "https://models.readyplayer.me/645cb58986c38baa4fa87c76.glb",
+      model_url: "https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf", // Working example from Three.js
       allergens: { items: ["fish", "shellfish"] }
     },
-    // Animated GIF items
+    // Animated GIF items with working URLs
     {
       id: "item-13",
       name: "Flaming Crème Brûlée",
@@ -197,7 +197,7 @@ export const generateTestMenuData = (restaurant_id: string): { categories: MenuC
       category_id: "cat-6",
       restaurant_id,
       is_available: true,
-      image_url: "https://media.giphy.com/media/CKlafeh1NAxz35KTq4/giphy.gif",
+      image_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExODJkN2loMGJkcWF0NXl2ajFheXU0bm5tYTl3NjdvbXdxZTk1bHRoayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CUvJMoKM5xTTgrlLcn/giphy.gif", // Updated working Giphy URL
       allergens: { isVegetarian: true, items: ["dairy", "eggs"] }
     },
     {
@@ -208,7 +208,7 @@ export const generateTestMenuData = (restaurant_id: string): { categories: MenuC
       category_id: "cat-6",
       restaurant_id,
       is_available: true,
-      image_url: "https://media.giphy.com/media/THIuVYJKksLZYzu02I/giphy.gif",
+      image_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGZxaThrMnBpeWQ3c3NrdWswNWl4ODIwNHpqeXZqb2Y4bWxuZ3dmbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/GoDvRqoEyHWcU/giphy.gif", // Updated working Giphy URL
       allergens: { isVegetarian: true, items: ["dairy"] }
     },
     {
@@ -219,7 +219,7 @@ export const generateTestMenuData = (restaurant_id: string): { categories: MenuC
       category_id: "cat-6",
       restaurant_id,
       is_available: true,
-      image_url: "https://media.giphy.com/media/mJhRUoBJiSL1KybMk2/giphy.gif",
+      image_url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExODB4OGhrcXRqdXg2bWs1bnZtaHVqd3hqbjF4MHAyMG9qbDRqZGdheiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3bznGxwE0c9RYVVoba/giphy.gif", // Updated working Giphy URL
       allergens: { items: ["gluten"] }
     }
   ];

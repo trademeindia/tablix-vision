@@ -20,26 +20,34 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
   
   // Set up the Three.js scene
   const threeInstance = useThree();
   
   // Initialize the scene when the component mounts
   useEffect(() => {
-    if (containerRef.current && threeInstance) {
-      const domElement = threeInstance.initializeScene();
-      
-      if (domElement && containerRef.current) {
-        // Clear any existing children first
-        while (containerRef.current.firstChild) {
-          containerRef.current.removeChild(containerRef.current.firstChild);
-        }
-        
-        containerRef.current.appendChild(domElement);
-        
-        // Set auto-rotate based on prop
-        threeInstance.setAutoRotate(autoRotate);
+    if (!containerRef.current || !threeInstance) return;
+    
+    const domElement = threeInstance.initializeScene();
+    
+    if (domElement && containerRef.current) {
+      // Clear any existing children first
+      while (containerRef.current.firstChild) {
+        containerRef.current.removeChild(containerRef.current.firstChild);
       }
+      
+      containerRef.current.appendChild(domElement);
+      
+      // Set auto-rotate based on prop
+      threeInstance.setAutoRotate(autoRotate);
+      
+      // Set initial size
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      threeInstance.renderer.setSize(width, height);
+      threeInstance.camera.aspect = width / height;
+      threeInstance.camera.updateProjectionMatrix();
     }
     
     // Clean up function
@@ -47,6 +55,10 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
       if (containerRef.current && threeInstance.domElement && 
           containerRef.current.contains(threeInstance.domElement)) {
         containerRef.current.removeChild(threeInstance.domElement);
+      }
+      
+      if (threeInstance.animationFrameId) {
+        cancelAnimationFrame(threeInstance.animationFrameId);
       }
     };
   }, [threeInstance, autoRotate]);
@@ -56,6 +68,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
     setLoading(true);
     setLoadProgress(0);
     setError(null);
+    setModelLoaded(false);
   };
   
   const handleLoadProgress = (progress: number) => {
@@ -64,6 +77,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   
   const handleLoadComplete = () => {
     setLoading(false);
+    setModelLoaded(true);
   };
   
   const handleLoadError = (err: Error) => {
@@ -73,11 +87,12 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   };
   
   return (
-    <div className={`relative w-full h-full ${className || ''}`}>
+    <div className={`relative w-full h-full ${className || ''}`} style={{ minHeight: '250px' }}>
       {/* Container for the Three.js canvas */}
       <div 
         ref={containerRef} 
         className="w-full h-full bg-slate-100 overflow-hidden rounded-md"
+        style={{ minHeight: '250px' }}
       />
       
       {/* Model Loader component */}
@@ -94,7 +109,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
       )}
       
       {/* Controls for the model (orbit, zoom, etc.) */}
-      <ModelControls autoRotate={autoRotate} />
+      {modelLoaded && <ModelControls autoRotate={autoRotate} />}
       
       {/* Loading overlay */}
       {loading && (

@@ -27,12 +27,12 @@ export const useRefreshMenuData = (
         queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] })
       ]);
       
-      // Additional manual refetch after a short delay to ensure data is fresh
+      // Manual refetch after a longer delay to prevent rapid refreshes
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] });
         isRefreshing.current = false;
         console.log("Data refresh complete");
-      }, 500);
+      }, 1000); // Increased from 500ms to 1000ms to reduce flicker
     } catch (error) {
       console.error("Error refreshing data:", error);
       isRefreshing.current = false;

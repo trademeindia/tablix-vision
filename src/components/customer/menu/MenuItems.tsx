@@ -4,7 +4,7 @@ import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, Box, ImageOff } from 'lucide-react';
+import { Plus, Box, ImageOff, Film } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { lazy, Suspense } from 'react';
 import { toast } from '@/hooks/use-toast';
@@ -55,6 +55,11 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     e.currentTarget.parentElement?.classList.add('image-error');
   };
   
+  const isGif = (url: string | undefined): boolean => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.gif') || url.includes('giphy.com') || url.includes('tenor.com');
+  };
+  
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -73,6 +78,14 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
                   <div className="absolute inset-0 flex items-center justify-center image-error-fallback opacity-0">
                     <ImageOff className="h-8 w-8 text-slate-400" />
                   </div>
+                  
+                  {/* GIF indicator */}
+                  {isGif(item.image_url) && (
+                    <div className="absolute top-2 right-14 bg-purple-600/90 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                      <Film className="h-3 w-3 mr-1" />
+                      <span>GIF</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-400">

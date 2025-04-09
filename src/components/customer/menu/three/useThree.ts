@@ -14,7 +14,8 @@ export const useThree = () => {
   
   const [renderer] = useState(() => new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true
+    alpha: true,
+    powerPreference: 'high-performance'
   }));
   
   const [domElement, setDomElement] = useState<HTMLCanvasElement | null>(null);
@@ -31,18 +32,18 @@ export const useThree = () => {
       
       // Set up renderer
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setClearColor(0xf0f0f0, 0);
+      renderer.setClearColor(0xf8f9fa, 0); // Light gray background with transparency
       
       // Set up camera
       camera.position.set(0, 0, 5);
       camera.lookAt(0, 0, 0);
       
       // Add ambient light
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
       scene.add(ambientLight);
       
       // Add directional light
-      const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
       dirLight.position.set(5, 5, 5);
       scene.add(dirLight);
       
@@ -58,21 +59,20 @@ export const useThree = () => {
       controls.current.autoRotate = autoRotate.current;
       controls.current.autoRotateSpeed = rotationSpeed.current;
       
-      // Start animation loop
+      // Animate with proper cleanup
       const animate = () => {
-        animationFrameId.current = requestAnimationFrame(animate);
-        
         if (controls.current) {
           controls.current.update();
         }
         
         renderer.render(scene, camera);
+        animationFrameId.current = requestAnimationFrame(animate);
       };
       
       animate();
     }
     
-    return domElement;
+    return renderer.domElement;
   };
   
   // Set auto-rotate
@@ -107,6 +107,18 @@ export const useThree = () => {
     };
     
     window.addEventListener('resize', handleResize);
+    
+    // Run initial resize once
+    if (domElement && domElement.parentElement) {
+      const parent = domElement.parentElement;
+      const width = parent.clientWidth;
+      const height = parent.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      
+      renderer.setSize(width, height);
+    }
     
     return () => {
       window.removeEventListener('resize', handleResize);
