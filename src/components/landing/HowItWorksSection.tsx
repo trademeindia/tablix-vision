@@ -54,7 +54,7 @@ const HowItWorksSection: React.FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="bg-slate-50 py-16 md:py-24">
+    <section id="how-it-works" className="bg-slate-50 py-16 md:py-24 relative">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
@@ -65,7 +65,6 @@ const HowItWorksSection: React.FC = () => {
           </p>
         </div>
         
-        {/* Mobile View - Vertical Steps */}
         <div className="grid gap-8 md:gap-12 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
           {steps.map((step, index) => (
             <Step 
@@ -76,6 +75,14 @@ const HowItWorksSection: React.FC = () => {
               description={step.description}
             />
           ))}
+        </div>
+
+        <div className="mt-16 mx-auto max-w-4xl overflow-hidden rounded-xl shadow-lg">
+          <img 
+            src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" 
+            alt="Restaurant management interface" 
+            className="w-full h-auto object-cover"
+          />
         </div>
       </div>
     </section>

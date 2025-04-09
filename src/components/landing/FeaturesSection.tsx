@@ -55,8 +55,13 @@ const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
+    <section id="features" className="py-16 md:py-24 relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/5"></div>
+        <div className="absolute top-1/3 left-0 w-40 h-40 rounded-full bg-primary/5"></div>
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-primary/5"></div>
+      </div>
+      <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
             Unlock Efficiency & Elevate Your Guest Experience
@@ -75,6 +80,38 @@ const FeaturesSection: React.FC = () => {
               description={feature.description}
             />
           ))}
+        </div>
+
+        <div className="mt-16 bg-white p-6 rounded-xl shadow-md overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-6 md:mb-0 md:pr-8">
+              <h3 className="text-xl font-bold mb-4">Interactive Visual Menus</h3>
+              <p className="text-slate-600 mb-4">
+                Showcase your dishes with high-quality images, GIFs, and even interactive 3D models that customers can rotate and explore.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <div className="mr-2 text-green-500">✓</div>
+                  <span>Supports high-resolution images</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="mr-2 text-green-500">✓</div>
+                  <span>Animated GIFs for special presentations</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="mr-2 text-green-500">✓</div>
+                  <span>Interactive 3D models for immersive experience</span>
+                </li>
+              </ul>
+            </div>
+            <div className="md:w-1/2">
+              <img 
+                src="https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                alt="Restaurant dish showcase" 
+                className="rounded-lg shadow-sm w-full h-auto"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>

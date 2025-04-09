@@ -28,8 +28,15 @@ const SolutionPoint: React.FC<PainPointProps> = ({ icon, text }) => (
 
 const ProblemSolutionSection: React.FC = () => {
   return (
-    <section id="problem-solution" className="bg-slate-50 py-16 md:py-24">
-      <div className="container mx-auto px-4">
+    <section id="problem-solution" className="bg-slate-50 py-16 md:py-24 relative">
+      <div className="absolute top-0 right-0 w-full md:w-1/2 h-full opacity-10 pointer-events-none">
+        <img 
+          src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+          alt="Restaurant staff working" 
+          className="object-cover h-full w-full"
+        />
+      </div>
+      <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
             Overwhelmed by Operations? Losing Orders? Falling Behind?
