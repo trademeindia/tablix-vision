@@ -46,7 +46,7 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Only redirect authenticated users from the root path
+  // Only redirect authenticated users from the root path after login
   // Don't redirect from other paths like /customer/menu or /customer-menu
   if (path === '/' && user && !loading) {
     console.log('Authenticated user at root path. Redirecting based on role:', userRoles);
