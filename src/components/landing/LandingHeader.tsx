@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Sheet, 
@@ -11,9 +11,24 @@ import { Menu } from 'lucide-react';
 
 const LandingHeader: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
   
   const closeSheet = () => {
     setOpen(false);
+  };
+
+  // Smooth scroll function for anchor links
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    closeSheet();
+    
+    // Only attempt to scroll if we're on the landing page
+    if (location.pathname === '/' || location.pathname === '/menu360') {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
   };
 
   return (
@@ -35,15 +50,27 @@ const LandingHeader: React.FC = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          <RouterLink to="/#features" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+          <a 
+            href="#features" 
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            onClick={(e) => scrollToSection(e, 'features')}
+          >
             Features
-          </RouterLink>
-          <RouterLink to="/#how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+          </a>
+          <a 
+            href="#how-it-works" 
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            onClick={(e) => scrollToSection(e, 'how-it-works')}
+          >
             How It Works
-          </RouterLink>
-          <RouterLink to="/#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+          </a>
+          <a 
+            href="#pricing" 
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            onClick={(e) => scrollToSection(e, 'pricing')}
+          >
             Pricing
-          </RouterLink>
+          </a>
           <RouterLink to="/auth/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
             Sign In
           </RouterLink>
@@ -62,27 +89,27 @@ const LandingHeader: React.FC = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[80%] sm:w-[350px] py-10">
               <div className="flex flex-col gap-6 px-2">
-                <RouterLink 
-                  to="/#features" 
+                <a 
+                  href="#features" 
                   className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
-                  onClick={closeSheet}
+                  onClick={(e) => scrollToSection(e, 'features')}
                 >
                   Features
-                </RouterLink>
-                <RouterLink 
-                  to="/#how-it-works" 
+                </a>
+                <a 
+                  href="#how-it-works" 
                   className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
-                  onClick={closeSheet}
+                  onClick={(e) => scrollToSection(e, 'how-it-works')}
                 >
                   How It Works
-                </RouterLink>
-                <RouterLink 
-                  to="/#pricing" 
+                </a>
+                <a 
+                  href="#pricing" 
                   className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
-                  onClick={closeSheet}
+                  onClick={(e) => scrollToSection(e, 'pricing')}
                 >
                   Pricing
-                </RouterLink>
+                </a>
                 <RouterLink 
                   to="/auth/login" 
                   className="flex items-center py-3 text-base font-medium text-gray-600 hover:text-gray-900 border-b border-gray-100"
