@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 
 interface AuthPageWrapperProps {
   title: string;
@@ -17,7 +18,9 @@ const AuthPageWrapper = ({ title, children }: AuthPageWrapperProps) => {
       <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="flex flex-1 flex-col justify-center py-6 px-4 sm:px-6 lg:px-8">
           <div className="mb-6 sm:mb-8 text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold text-primary">Menu 360</h1>
+            <Link to="/">
+              <h1 className="text-2xl sm:text-3xl font-bold text-primary">Menu 360</h1>
+            </Link>
             <p className="text-slate-600 mt-1 sm:mt-2 px-4">The Complete Restaurant Management Platform</p>
           </div>
           
