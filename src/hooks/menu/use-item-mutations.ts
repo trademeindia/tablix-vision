@@ -45,53 +45,31 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       // Update cache manually for test data
       if (usingTestData && data.restaurant_id) {
         const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
-        console.log("Current items in cache before update:", currentItems.length);
         queryClient.setQueryData(['menuItems', data.restaurant_id], [...currentItems, data]);
-        console.log("Updated cache with new item:", data.id);
       }
-      
-      toast({
-        title: "Item created",
-        description: "The menu item has been created successfully.",
-      });
     },
-    onError: (error) => {
-      console.error("Error creating item:", error);
+    onError: (error: any) => {
+      console.error("Error creating menu item:", error);
       toast({
         title: "Failed to create menu item",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
     }
   });
   
   const updateItemMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<MenuItem> }): Promise<MenuItem> => {
+    mutationFn: async ({id, updates}: {id: string, updates: Partial<MenuItem>}): Promise<MenuItem> => {
       if (usingTestData) {
-        console.log("Using test data mode - simulating item update", { id, updates });
-        
+        console.log("Using test data mode - simulating item update", id, updates);
         // Simulate network delay for realistic testing
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Get current items to merge with updates
-        const currentItems = queryClient.getQueryData<MenuItem[]>(
-          ['menuItems', updates.restaurant_id]
-        ) || [];
-        
-        const existingItem = currentItems.find(item => item.id === id) || {
-          id,
-          name: "Default Item",
-          price: 0,
-          category_id: "",
-          restaurant_id: updates.restaurant_id,
-          created_at: new Date().toISOString()
-        };
-        
-        // Merge existing item with updates
+        // Create a fake updated item for test mode
         return {
-          ...existingItem,
           ...updates,
-          updated_at: new Date().toISOString()
+          id,
+          updated_at: new Date().toISOString(),
         } as MenuItem;
       }
       
@@ -103,33 +81,27 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       
       // More specific cache invalidation
       if (data.restaurant_id) {
-        // Update cache manually for test data
-        if (usingTestData) {
-          const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
-          console.log("Current items in cache before update:", currentItems.length);
-          const updatedItems = currentItems.map(item => 
-            item.id === data.id ? data : item
-          );
-          queryClient.setQueryData(['menuItems', data.restaurant_id], updatedItems);
-          console.log("Updated cache with modified item:", data.id);
-        } else {
-          // For real data, invalidate the cache
-          queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
-        }
+        // Invalidate specific restaurant menu items
+        queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
       } else {
+        // Fallback to invalidate all menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       }
       
-      toast({
-        title: "Item updated",
-        description: "The menu item has been updated successfully.",
-      });
+      // Update cache manually for test data
+      if (usingTestData && data.restaurant_id) {
+        const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
+        const updatedItems = currentItems.map(item => 
+          item.id === data.id ? { ...item, ...data } : item
+        );
+        queryClient.setQueryData(['menuItems', data.restaurant_id], updatedItems);
+      }
     },
-    onError: (error) => {
-      console.error("Error updating item:", error);
+    onError: (error: any) => {
+      console.error("Error updating menu item:", error);
       toast({
         title: "Failed to update menu item",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
     }
@@ -147,43 +119,34 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       console.log("Deleting menu item with Supabase:", id);
       return await deleteMenuItem(id);
     },
-    onSuccess: (_, deletedId) => {
-      console.log("Menu item deleted successfully:", deletedId);
+    onSuccess: (data, variables, context) => {
+      const id = variables; // The id passed to deleteItemMutation.mutate()
+      console.log("Menu item deleted successfully:", id);
       
-      // Invalidate all menu item queries to ensure fresh data
+      // Refresh all menu items queries since we don't know the restaurant_id here
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       
-      // If using test data, manually update the cache for all restaurant IDs
+      // For test data, remove the item from all related caches
       if (usingTestData) {
-        // Get all query keys related to menuItems
+        // Get all query keys
         const queryCache = queryClient.getQueryCache();
-        const menuItemsQueries = queryCache.findAll({
-          queryKey: ['menuItems']
-        });
+        const queryKeys = queryCache.getAll().map(cache => cache.queryKey);
         
-        menuItemsQueries.forEach(query => {
-          const queryKey = query.queryKey;
-          if (Array.isArray(queryKey) && queryKey.length > 1) {
-            const restaurantId = queryKey[1];
-            const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', restaurantId]) || [];
-            console.log(`Found restaurant ${restaurantId} with ${currentItems.length} items`);
-            const filteredItems = currentItems.filter(item => item.id !== deletedId);
-            queryClient.setQueryData(['menuItems', restaurantId], filteredItems);
-            console.log(`Updated cache for restaurant ${restaurantId}, removed item ${deletedId}`);
+        // Find all menuItems queries and update them
+        queryKeys.forEach(key => {
+          if (Array.isArray(key) && key[0] === 'menuItems') {
+            const items = queryClient.getQueryData<MenuItem[]>(key) || [];
+            const filteredItems = items.filter(item => item.id !== id);
+            queryClient.setQueryData(key, filteredItems);
           }
         });
       }
-      
-      toast({
-        title: "Item deleted",
-        description: "The menu item has been deleted successfully.",
-      });
     },
-    onError: (error) => {
-      console.error("Error deleting item:", error);
+    onError: (error: any) => {
+      console.error("Error deleting menu item:", error);
       toast({
         title: "Failed to delete menu item",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
     }

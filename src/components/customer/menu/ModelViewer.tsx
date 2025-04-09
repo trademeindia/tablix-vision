@@ -1,109 +1,131 @@
 
-import React, { useState, Suspense, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
+import React, { useRef, useEffect, useState } from 'react';
+import { useThree } from './three/useThree';
+import ModelLoader from './three/ModelLoader';
+import ModelControls from './three/ModelControls';
 import Spinner from '@/components/ui/spinner';
-
-// The 3D model component
-const Model = ({ url }: { url: string }) => {
-  const { scene } = useGLTF(url);
-  return <primitive object={scene} scale={1.5} position={[0, 0, 0]} />;
-};
 
 interface ModelViewerProps {
   modelUrl: string;
+  autoRotate?: boolean;
+  className?: string;
 }
 
-const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const ModelViewer: React.FC<ModelViewerProps> = ({ 
+  modelUrl, 
+  autoRotate = true,
+  className 
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [error, setError] = useState<Error | null>(null);
   
-  // Cleanup GLTF cache on unmount to prevent memory leaks
+  // Set up the Three.js scene
+  const { scene, camera, renderer, domElement } = useThree();
+  
+  // Add DOM element when scene is ready
   useEffect(() => {
+    if (!containerRef.current || !domElement) return;
+    
+    // Clear any existing children first
+    while (containerRef.current.firstChild) {
+      containerRef.current.removeChild(containerRef.current.firstChild);
+    }
+    
+    containerRef.current.appendChild(domElement);
+    
+    // Handle resize
+    const handleResize = () => {
+      if (!containerRef.current || !camera || !renderer) return;
+      
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      
+      renderer.setSize(width, height);
+    };
+    
+    // Initial sizing
+    handleResize();
+    
+    // Set up resize listener
+    window.addEventListener('resize', handleResize);
+    
     return () => {
-      // Attempt to clear the cache for this specific model
-      try {
-        useGLTF.preload(modelUrl);
-        useGLTF.clear(modelUrl);
-      } catch (e) {
-        console.log("Cache cleanup failed, but that's okay");
+      window.removeEventListener('resize', handleResize);
+      if (containerRef.current && domElement && containerRef.current.contains(domElement)) {
+        containerRef.current.removeChild(domElement);
       }
     };
-  }, [modelUrl]);
+  }, [domElement, camera, renderer]);
   
-  // Log when the component is mounted with the model URL
-  useEffect(() => {
-    console.log("ModelViewer mounted with URL:", modelUrl);
-    
-    // Return cleanup function
-    return () => {
-      console.log("ModelViewer unmounting");
-    };
-  }, [modelUrl]);
-  
-  const handleError = (e: ErrorEvent) => {
-    console.error("Error loading model:", e);
-    setError("Failed to load 3D model");
-    setIsLoading(false);
+  // Handle loading states
+  const handleLoadStart = () => {
+    setLoading(true);
+    setLoadProgress(0);
+    setError(null);
   };
   
-  const handleModelLoad = () => {
-    console.log("3D model loaded successfully");
-    setIsLoading(false);
+  const handleLoadProgress = (progress: number) => {
+    setLoadProgress(progress);
   };
   
-  if (!modelUrl) {
-    return <div className="p-4 text-center">No model URL provided</div>;
-  }
+  const handleLoadComplete = () => {
+    setLoading(false);
+  };
+  
+  const handleLoadError = (err: Error) => {
+    console.error('Error loading 3D model:', err);
+    setError(err);
+    setLoading(false);
+  };
   
   return (
-    <div className="relative w-full h-full" ref={containerRef}>
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 50 }}
-        onCreated={() => console.log("Canvas created")}
-      >
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[1, 1, 1]} intensity={0.8} />
-        <Suspense fallback={null}>
-          <Model url={modelUrl} />
-          <OrbitControls 
-            autoRotate
-            autoRotateSpeed={2}
-            enableZoom={true}
-            enablePan={true}
-            minDistance={2}
-            maxDistance={8}
-          />
-        </Suspense>
-      </Canvas>
+    <div className={`relative w-full h-full ${className || ''}`}>
+      {/* Container for the Three.js canvas */}
+      <div 
+        ref={containerRef} 
+        className="w-full h-full bg-slate-100 overflow-hidden rounded-md"
+      />
       
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-          <Spinner size="lg" />
-          <span className="ml-2 text-sm text-slate-600">Loading 3D model...</span>
-        </div>
+      {/* Model Loader component */}
+      {modelUrl && (
+        <ModelLoader 
+          modelUrl={modelUrl}
+          onLoadStart={handleLoadStart}
+          onLoadProgress={handleLoadProgress}
+          onLoadComplete={handleLoadComplete}
+          onLoadError={handleLoadError}
+          center={true}
+          scale={1.0}
+        />
       )}
       
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-          <div className="text-red-500 text-center">
-            <p className="font-medium">Error</p>
-            <p className="text-sm">{error}</p>
+      {/* Controls for the model (orbit, zoom, etc.) */}
+      <ModelControls autoRotate={autoRotate} />
+      
+      {/* Loading overlay */}
+      {loading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/80 z-10">
+          <Spinner size="lg" />
+          <div className="mt-2 text-sm text-slate-600">
+            Loading 3D Model... {loadProgress > 0 ? `${Math.round(loadProgress)}%` : ''}
           </div>
         </div>
       )}
-
-      {/* Load status for debugging */}
-      <div className="hidden">
-        <img 
-          src={modelUrl} 
-          alt="Preload" 
-          onLoad={handleModelLoad} 
-          onError={(e) => handleError(e.nativeEvent as unknown as ErrorEvent)} 
-          style={{display: 'none'}}
-        />
-      </div>
+      
+      {/* Error overlay */}
+      {error && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/90 z-10 p-4">
+          <div className="text-red-500 mb-2">Failed to load 3D model</div>
+          <div className="text-xs text-slate-600 text-center max-w-xs overflow-hidden">
+            {error.message}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

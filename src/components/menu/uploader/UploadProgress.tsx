@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { X } from 'lucide-react';
 
 interface UploadProgressProps {
@@ -10,28 +10,30 @@ interface UploadProgressProps {
   onCancel: () => void;
 }
 
-const UploadProgress: React.FC<UploadProgressProps> = ({ isUploading, progress, onCancel }) => {
+const UploadProgress: React.FC<UploadProgressProps> = ({
+  isUploading,
+  progress,
+  onCancel
+}) => {
   if (!isUploading) return null;
   
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-medium">Uploading to Supabase...</span>
-        <span className="text-sm font-medium">{Math.round(progress)}%</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Progress value={progress} className="flex-1" />
+        <div className="text-xs font-medium">
+          Uploading... {Math.round(progress)}%
+        </div>
         <Button 
-          size="sm" 
           variant="ghost" 
+          size="sm" 
           onClick={onCancel}
-          className="h-8 w-8 p-0"
-          title="Cancel upload"
+          className="h-6 w-6 p-0"
         >
-          <X className="h-4 w-4" />
-          <span className="sr-only">Cancel</span>
+          <X className="h-3 w-3" />
+          <span className="sr-only">Cancel upload</span>
         </Button>
       </div>
+      <Progress value={progress} className="h-2" />
     </div>
   );
 };
