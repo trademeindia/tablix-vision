@@ -13,7 +13,8 @@ import {
   ChefHat,
   CalendarClock,
   BarChart3,
-  CircleDollarSign
+  CircleDollarSign,
+  Home
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -45,23 +46,27 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-sidebar-background">
-      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
+    <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl">
+      <div className="flex items-center justify-between px-5 py-6 border-b border-slate-700/50">
         <Link to="/dashboard" className="flex items-center">
-          <span className="text-xl font-bold text-white">Menu360</span>
+          <div className="bg-blue-500 p-2 rounded-lg mr-2">
+            <Home className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Menu360</span>
         </Link>
         {onCloseSidebar && (
           <button 
             onClick={onCloseSidebar}
-            className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 lg:hidden"
+            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/70 transition-all lg:hidden"
+            aria-label="Close sidebar"
           >
             <PanelLeftClose className="h-5 w-5" />
-            <span className="sr-only">Close sidebar</span>
           </button>
         )}
       </div>
-      <div className="flex-1 flex flex-col overflow-y-auto pt-5 pb-4">
-        <nav className="mt-1 flex-1 px-2 space-y-1">
+      
+      <div className="flex-1 flex flex-col overflow-y-auto pt-5 pb-4 px-3">
+        <nav className="mt-2 flex-1 space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname.startsWith(item.href);
             return (
@@ -69,25 +74,42 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
                 key={item.name}
                 to={item.href}
                 className={cn(
+                  "group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
                   isActive
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                  'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
+                    ? "bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white shadow-md"
+                    : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                 )}
                 onClick={onCloseSidebar}
               >
                 <item.icon
                   className={cn(
-                    isActive ? 'text-white' : 'text-gray-400 group-hover:text-white',
-                    'mr-3 flex-shrink-0 h-5 w-5'
+                    "mr-3 flex-shrink-0 h-5 w-5",
+                    isActive 
+                      ? "text-blue-200"
+                      : "text-slate-400 group-hover:text-slate-200"
                   )}
                   aria-hidden="true"
                 />
-                {item.name}
+                <span className={isActive ? "font-semibold" : ""}>{item.name}</span>
+                {isActive && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+                )}
               </Link>
             );
           })}
         </nav>
+      </div>
+      
+      <div className="p-4 border-t border-slate-700/50">
+        <div className="flex items-center">
+          <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">
+            M
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-white">Restaurant Admin</p>
+            <p className="text-xs text-slate-400">admin@restaurant.com</p>
+          </div>
+        </div>
       </div>
     </div>
   );
