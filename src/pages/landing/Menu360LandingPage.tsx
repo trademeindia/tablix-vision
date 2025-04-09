@@ -24,7 +24,34 @@ const Menu360LandingPage: React.FC = () => {
     };
 
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    
+    // Set up scroll restoration
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    
+    // Handle hash navigation on page load
+    const handleInitialScroll = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const id = hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+      }
+    };
+    
+    handleInitialScroll();
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
+      }
+    };
   }, []);
 
   if (hasError) {
@@ -55,11 +82,17 @@ const Menu360LandingPage: React.FC = () => {
           <main className="flex-grow">
             <HeroSection />
             <ProblemSolutionSection />
-            <FeaturesSection />
-            <HowItWorksSection />
+            <div id="features">
+              <FeaturesSection />
+            </div>
+            <div id="how-it-works">
+              <HowItWorksSection />
+            </div>
             <VisualShowcaseSection />
             <TestimonialsSection />
-            <PricingSection />
+            <div id="pricing">
+              <PricingSection />
+            </div>
             <FinalCTASection />
           </main>
         </PageTransition>
