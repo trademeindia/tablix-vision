@@ -9,7 +9,8 @@ import {
   ClipboardList,
   BarChart,
   Menu as MenuIcon,
-  X
+  X,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -91,12 +92,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
 
   return (
     <div className={cn(
-      "h-full bg-slate-800 text-white flex flex-col transition-all duration-300 ease-in-out border-r border-slate-700",
+      "h-full bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col transition-all duration-300 ease-in-out border-r border-slate-700",
       collapsed ? "w-20" : "w-64"
     )}>
       <div className="p-4 flex items-center justify-between border-b border-slate-700">
         {!collapsed && (
-          <h1 className="text-xl font-bold">StaffPortal</h1>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">StaffPortal</h1>
         )}
         
         <div className="flex items-center">
@@ -135,7 +136,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
               className={cn(
                 "flex items-center px-3 py-3 text-sm rounded-md transition-colors",
                 pathname === item.href
-                  ? "bg-slate-700 text-white"
+                  ? "bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white"
                   : "text-slate-300 hover:bg-slate-700 hover:text-white",
                 collapsed ? "justify-center" : "justify-start"
               )}
@@ -143,6 +144,9 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
             >
               {item.icon}
               {!collapsed && <span className="ml-3">{item.title}</span>}
+              {pathname === item.href && !collapsed && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+              )}
             </Link>
           ))}
         </nav>
@@ -153,12 +157,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
           "flex items-center",
           collapsed ? "justify-center" : "justify-start"
         )}>
-          <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center">
-            <span className="text-white font-medium">JS</span>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center">
+            <User className="h-4 w-4 text-white" />
           </div>
           {!collapsed && (
             <div className="ml-3">
-              <p className="text-sm font-medium">Jane Smith</p>
+              <p className="text-sm font-medium text-white">Jane Smith</p>
               <p className="text-xs text-slate-400">{currentRole}</p>
             </div>
           )}

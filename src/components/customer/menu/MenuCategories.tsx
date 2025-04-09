@@ -27,7 +27,9 @@ const MenuCategories: React.FC<MenuCategoriesProps> = ({
             key={category.id}
             variant={selectedCategory === category.id ? "default" : "outline"}
             size="sm"
-            className="rounded-full px-4"
+            className={`rounded-full px-4 transition-all ${
+              selectedCategory === category.id ? "shadow-md" : ""
+            }`}
             onClick={() => onSelectCategory(category.id)}
           >
             {category.name}
