@@ -34,7 +34,9 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
     // Clean up previous models
     scene.children.forEach(child => {
       if (child instanceof THREE.Group || child instanceof THREE.Mesh) {
-        if (child !== scene && !(child instanceof THREE.Light) && !(child instanceof THREE.Camera)) {
+        // Fixed: Don't compare Group/Mesh with Scene directly
+        // Instead check if it's not a light or camera
+        if (!(child instanceof THREE.Light) && !(child instanceof THREE.Camera)) {
           scene.remove(child);
         }
       }
@@ -99,8 +101,10 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
     // Cleanup function
     return () => {
       scene.children.forEach(child => {
+        // Fixed: Don't compare Group directly with Scene
+        // Instead check if it's not a light or camera
         if (child instanceof THREE.Group) {
-          if (child !== scene && !(child instanceof THREE.Light) && !(child instanceof THREE.Camera)) {
+          if (!(child instanceof THREE.Light) && !(child instanceof THREE.Camera)) {
             scene.remove(child);
           }
         }
