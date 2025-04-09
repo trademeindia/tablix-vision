@@ -74,7 +74,8 @@ const MenuPage = () => {
     handleViewItem,
     
     // Test data status
-    usingTestData
+    usingTestData,
+    setUsingTestData
   } = useMenuPageData(restaurantId);
 
   // Enhanced refresh function that ensures both categories and items are refreshed
@@ -110,7 +111,8 @@ const MenuPage = () => {
   // Automatically refresh data after dialog closes, with debounce
   useEffect(() => {
     // Only refresh when a dialog has just been closed
-    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen;
+    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen && 
+                         !isAddCategoryOpen && !isEditCategoryOpen && !isDeleteCategoryOpen;
     const currentTime = Date.now();
     
     if (dialogsClosed) {
@@ -131,17 +133,25 @@ const MenuPage = () => {
       // Reset timestamp when dialog is open
       dialogCloseTimestamp.current = null;
     }
-  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, handleRefreshAll]);
+  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, 
+      isAddCategoryOpen, isEditCategoryOpen, isDeleteCategoryOpen, 
+      handleRefreshAll]);
 
   // Also refresh when component mounts
   useEffect(() => {
     console.log("Menu page mounted, doing initial data fetch");
+    
+    // Try to use real data first
+    if (usingTestData) {
+      setUsingTestData(false);
+    }
+    
     const initialLoadTimeout = setTimeout(() => {
       handleRefreshAll();
     }, 300); // slight delay for better UI experience
     
     return () => clearTimeout(initialLoadTimeout);
-  }, [handleRefreshAll]);
+  }, [handleRefreshAll, usingTestData, setUsingTestData]);
 
   // Defensive rendering to ensure the page loads even if some data is missing
   return (
