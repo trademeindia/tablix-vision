@@ -22,45 +22,34 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   const [error, setError] = useState<Error | null>(null);
   
   // Set up the Three.js scene
-  const { scene, camera, renderer, domElement } = useThree();
+  const threeInstance = useThree();
   
-  // Add DOM element when scene is ready
+  // Initialize the scene when the component mounts
   useEffect(() => {
-    if (!containerRef.current || !domElement) return;
-    
-    // Clear any existing children first
-    while (containerRef.current.firstChild) {
-      containerRef.current.removeChild(containerRef.current.firstChild);
+    if (containerRef.current && threeInstance) {
+      const domElement = threeInstance.initializeScene();
+      
+      if (domElement && containerRef.current) {
+        // Clear any existing children first
+        while (containerRef.current.firstChild) {
+          containerRef.current.removeChild(containerRef.current.firstChild);
+        }
+        
+        containerRef.current.appendChild(domElement);
+        
+        // Set auto-rotate based on prop
+        threeInstance.setAutoRotate(autoRotate);
+      }
     }
     
-    containerRef.current.appendChild(domElement);
-    
-    // Handle resize
-    const handleResize = () => {
-      if (!containerRef.current || !camera || !renderer) return;
-      
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      
-      renderer.setSize(width, height);
-    };
-    
-    // Initial sizing
-    handleResize();
-    
-    // Set up resize listener
-    window.addEventListener('resize', handleResize);
-    
+    // Clean up function
     return () => {
-      window.removeEventListener('resize', handleResize);
-      if (containerRef.current && domElement && containerRef.current.contains(domElement)) {
-        containerRef.current.removeChild(domElement);
+      if (containerRef.current && threeInstance.domElement && 
+          containerRef.current.contains(threeInstance.domElement)) {
+        containerRef.current.removeChild(threeInstance.domElement);
       }
     };
-  }, [domElement, camera, renderer]);
+  }, [threeInstance, autoRotate]);
   
   // Handle loading states
   const handleLoadStart = () => {
@@ -92,7 +81,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
       />
       
       {/* Model Loader component */}
-      {modelUrl && (
+      {modelUrl && threeInstance.scene && (
         <ModelLoader 
           modelUrl={modelUrl}
           onLoadStart={handleLoadStart}
