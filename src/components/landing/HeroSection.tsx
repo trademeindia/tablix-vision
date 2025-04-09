@@ -40,12 +40,7 @@ const HeroSection: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-primary/5 rounded-xl"></div>
               <div className="relative bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200">
                 <AspectRatio ratio={9 / 16} className="bg-white">
-                  <img 
-                    src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                    alt="Restaurant management dashboard" 
-                    className="object-cover h-full w-full opacity-75"
-                  />
-                  <div className="absolute inset-0 bg-white/80 p-4 flex flex-col">
+                  <div className="p-4 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
                         <div className="w-10 h-10 rounded-full bg-primary"></div>
