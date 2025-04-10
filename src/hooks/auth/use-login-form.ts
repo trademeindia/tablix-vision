@@ -35,17 +35,24 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       if (error) {
         console.error('Login error:', error);
         setError(error.message || 'Failed to sign in. Please check your credentials.');
+        setIsSubmitting(false);
         return;
       }
       
       // Redirect based on role parameter or to home page
       const redirectPath = getRedirectPathByRole(role);
       
+      // Show toast notification for successful login
+      toast({
+        title: 'Login Successful',
+        description: `Welcome back! You're being redirected to your ${role} dashboard.`,
+      });
+      
+      console.log(`Login successful. Redirecting to: ${redirectPath}`);
       navigate(redirectPath);
     } catch (error) {
       console.error('Login error:', error);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -80,6 +87,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
         // Redirect based on demo account role
         const redirectPath = getRedirectPathByRole(demoCredentials.role);
+        console.log(`Demo login successful. Redirecting to: ${redirectPath}`);
         navigate(redirectPath);
         return;
       }
@@ -159,6 +167,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             
             // Redirect based on demo account role
             const redirectPath = getRedirectPathByRole(demoCredentials.role);
+            console.log(`New demo account created. Redirecting to: ${redirectPath}`);
             navigate(redirectPath);
             return;
           }

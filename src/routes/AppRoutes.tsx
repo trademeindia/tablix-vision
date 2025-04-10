@@ -7,6 +7,7 @@ import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
 import { useAuth } from '@/contexts/AuthContext';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -47,23 +48,18 @@ const AppRoutes: React.FC = () => {
   }
 
   // Only redirect authenticated users from the root path after login
-  // Don't redirect from other paths like /customer/menu or /customer-menu
   if (path === '/' && user && !loading) {
     console.log('Authenticated user at root path. Redirecting based on role:', userRoles);
     
-    if (userRoles.includes('owner') || userRoles.includes('manager')) {
-      return <Navigate to="/dashboard" replace />;
-    } else if (userRoles.includes('chef')) {
-      return <Navigate to="/staff-dashboard/kitchen" replace />;
-    } else if (userRoles.includes('waiter')) {
-      return <Navigate to="/staff-dashboard/orders" replace />;
-    } else if (userRoles.includes('staff')) {
-      return <Navigate to="/staff-dashboard" replace />;
-    } else if (userRoles.includes('customer')) {
-      // IMPORTANT: Don't automatically redirect customers to menu page
-      // Let them manually navigate to avoid redirection loop
-      return <PublicRoutes />;
-    }
+    // Get appropriate redirect path based on user role
+    const redirectPath = getRedirectPathByRole(userRoles[0]);
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  // Prevent customers from accessing admin routes
+  if (path.startsWith('/dashboard') && userRoles.includes('customer') && !isDemoOverrideActive) {
+    console.log('Customer attempting to access admin dashboard. Redirecting to customer menu.');
+    return <Navigate to="/customer/menu" replace />;
   }
 
   // For demo users with override active, redirect to dashboard
@@ -89,6 +85,11 @@ const AppRoutes: React.FC = () => {
   if (path.startsWith('/customer')) {
     return <CustomerRoutes />;
   } else if (path.startsWith('/staff-dashboard')) {
+    // Prevent customers from accessing staff routes
+    if (userRoles.includes('customer') && !isDemoOverrideActive) {
+      console.log('Customer attempting to access staff routes. Redirecting to customer menu.');
+      return <Navigate to="/customer/menu" replace />;
+    }
     return <StaffRoutes />;
   } else if (path.startsWith('/profile')) {
     return <ProfileRoutes />;
@@ -107,6 +108,11 @@ const AppRoutes: React.FC = () => {
     path.startsWith('/marketing') ||
     path.startsWith('/settings')
   ) {
+    // Prevent customers from accessing any admin routes
+    if (userRoles.includes('customer') && !isDemoOverrideActive) {
+      console.log('Customer attempting to access admin routes. Redirecting to customer menu.');
+      return <Navigate to="/customer/menu" replace />;
+    }
     return <AdminRoutes />;
   }
   
