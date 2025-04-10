@@ -6,7 +6,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Home, RefreshCw, LogIn } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
-import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const UnauthorizedPage = () => {
   const location = useLocation();
@@ -34,17 +33,6 @@ const UnauthorizedPage = () => {
       user: user?.email
     });
   }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, savedRole, user]);
-
-  const handleGoToAppropriateHome = () => {
-    // Redirect to appropriate homepage based on user role
-    if (userRoles.length > 0) {
-      const redirectPath = getRedirectPathByRole(userRoles[0]);
-      navigate(redirectPath);
-    } else {
-      // Default to customer menu if no role found
-      navigate('/customer/menu');
-    }
-  };
 
   const handleRefreshAccess = () => {
     // Force a refresh of the access
@@ -89,26 +77,6 @@ const UnauthorizedPage = () => {
               You do not have permission to access this page.
             </AlertDescription>
           </Alert>
-          
-          {userRoles.includes('customer') && (
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-md mb-6">
-              <h3 className="flex items-center text-blue-700 font-semibold mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1v-3a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                Customer Menu Access
-              </h3>
-              <p className="text-sm text-blue-700 mb-4">
-                As a customer, you have access to our menu and ordering system, but not to administrative areas.
-              </p>
-              <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
-                onClick={handleGoToAppropriateHome}
-              >
-                Go to Customer Menu
-              </Button>
-            </div>
-          )}
           
           {user && (
             <div className="bg-white p-4 rounded-md shadow mb-4">
@@ -170,15 +138,6 @@ const UnauthorizedPage = () => {
             <Button 
               variant="default" 
               className="w-full flex items-center justify-center"
-              onClick={handleGoToAppropriateHome}
-            >
-              <Home className="mr-2 h-4 w-4" />
-              Go to Home Page
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="w-full"
               onClick={handleRefreshAccess}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -192,6 +151,15 @@ const UnauthorizedPage = () => {
             >
               <span className="mr-2">←</span>
               Go Back
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="w-full"
+              onClick={handleGoToDashboard}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              Go to Dashboard
             </Button>
             
             <Button 

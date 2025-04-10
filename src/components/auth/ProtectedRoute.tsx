@@ -40,12 +40,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
     
     if (!hasRequiredRole) {
-      // Special handling for customer role - redirect to customer menu instead of unauthorized page
-      if (userRoles.includes('customer')) {
-        console.log("Customer accessing restricted area. Redirecting to customer menu...");
-        return <Navigate to="/customer/menu" replace />;
-      }
-      
       // Save debugging information to help troubleshoot
       const debugInfo = {
         requiredRoles,
