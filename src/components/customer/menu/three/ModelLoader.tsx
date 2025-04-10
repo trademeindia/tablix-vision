@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useThree } from './useThree';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
@@ -24,6 +24,7 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
   scale = 1.0
 }) => {
   const { scene, camera } = useThree();
+  const [model, setModel] = useState<THREE.Group | null>(null);
   
   useEffect(() => {
     if (!scene || !camera || !modelUrl) return;
@@ -31,16 +32,12 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
     console.log(`Loading 3D model from URL: ${modelUrl}`);
     onLoadStart?.();
     
-    // Clean up previous models
-    scene.children.forEach(child => {
-      if (child instanceof THREE.Group || child instanceof THREE.Mesh) {
-        // Fixed: Don't compare Group/Mesh with Scene directly
-        // Instead check if it's not a light or camera
-        if (!(child instanceof THREE.Light) && !(child instanceof THREE.Camera)) {
-          scene.remove(child);
-        }
-      }
-    });
+    // Clean up previous model
+    if (model) {
+      console.log('Removing previous model from scene');
+      scene.remove(model);
+      setModel(null);
+    }
     
     const loader = new GLTFLoader();
     
@@ -71,6 +68,7 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
           
           // Add the model to the scene
           scene.add(loadedModel);
+          setModel(loadedModel);
           
           // Position camera to see the model
           camera.position.set(0, 0, 5);
@@ -100,17 +98,12 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
     
     // Cleanup function
     return () => {
-      scene.children.forEach(child => {
-        // Fixed: Don't compare Group directly with Scene
-        // Instead check if it's not a light or camera
-        if (child instanceof THREE.Group) {
-          if (!(child instanceof THREE.Light) && !(child instanceof THREE.Camera)) {
-            scene.remove(child);
-          }
-        }
-      });
+      if (model && scene) {
+        console.log('Cleaning up 3D model');
+        scene.remove(model);
+      }
     };
-  }, [scene, camera, modelUrl, onLoadStart, onLoadComplete, onLoadError, onLoadProgress, center, scale]);
+  }, [scene, camera, modelUrl, model, onLoadStart, onLoadComplete, onLoadError, onLoadProgress, center, scale]);
   
   return null; // This component doesn't render anything
 };

@@ -33,12 +33,10 @@ export const useItemMutations = (usingTestData: boolean = false) => {
     onSuccess: (data: MenuItem) => {
       console.log("Menu item created successfully:", data);
       
-      // Immediately invalidate cache to show new item
+      // More specific cache invalidation
       if (data.restaurant_id) {
         // Invalidate specific restaurant menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
-        // Force an immediate refetch to get the newest data
-        queryClient.refetchQueries({ queryKey: ['menuItems', data.restaurant_id] });
       } else {
         // Fallback to invalidate all menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems'] });
@@ -49,11 +47,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
         queryClient.setQueryData(['menuItems', data.restaurant_id], [...currentItems, data]);
       }
-      
-      toast({
-        title: "Menu item created",
-        description: `"${data.name}" has been added to your menu`,
-      });
     },
     onError: (error: any) => {
       console.error("Error creating menu item:", error);
@@ -86,12 +79,10 @@ export const useItemMutations = (usingTestData: boolean = false) => {
     onSuccess: (data: MenuItem) => {
       console.log("Menu item updated successfully:", data);
       
-      // Immediately invalidate cache to show updates
+      // More specific cache invalidation
       if (data.restaurant_id) {
         // Invalidate specific restaurant menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
-        // Force an immediate refetch to get the newest data
-        queryClient.refetchQueries({ queryKey: ['menuItems', data.restaurant_id] });
       } else {
         // Fallback to invalidate all menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems'] });
@@ -105,11 +96,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         );
         queryClient.setQueryData(['menuItems', data.restaurant_id], updatedItems);
       }
-      
-      toast({
-        title: "Menu item updated",
-        description: `"${data.name}" has been updated successfully`,
-      });
     },
     onError: (error: any) => {
       console.error("Error updating menu item:", error);
@@ -139,8 +125,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       
       // Refresh all menu items queries since we don't know the restaurant_id here
       queryClient.invalidateQueries({ queryKey: ['menuItems'] });
-      // Force an immediate refetch
-      queryClient.refetchQueries({ queryKey: ['menuItems'] });
       
       // For test data, remove the item from all related caches
       if (usingTestData) {
@@ -157,11 +141,6 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           }
         });
       }
-      
-      toast({
-        title: "Menu item deleted",
-        description: "Item has been removed from your menu",
-      });
     },
     onError: (error: any) => {
       console.error("Error deleting menu item:", error);

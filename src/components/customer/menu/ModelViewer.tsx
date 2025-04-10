@@ -20,55 +20,53 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
-  const [modelLoaded, setModelLoaded] = useState(false);
   
   // Set up the Three.js scene
-  const threeInstance = useThree();
+  const { scene, camera, renderer, domElement } = useThree();
   
-  // Initialize the scene when the component mounts
+  // Add DOM element when scene is ready
   useEffect(() => {
-    if (!containerRef.current || !threeInstance) return;
+    if (!containerRef.current || !domElement) return;
     
-    const domElement = threeInstance.initializeScene();
-    
-    if (domElement && containerRef.current) {
-      // Clear any existing children first
-      while (containerRef.current.firstChild) {
-        containerRef.current.removeChild(containerRef.current.firstChild);
-      }
-      
-      containerRef.current.appendChild(domElement);
-      
-      // Set auto-rotate based on prop
-      threeInstance.setAutoRotate(autoRotate);
-      
-      // Set initial size
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      threeInstance.renderer.setSize(width, height);
-      threeInstance.camera.aspect = width / height;
-      threeInstance.camera.updateProjectionMatrix();
+    // Clear any existing children first
+    while (containerRef.current.firstChild) {
+      containerRef.current.removeChild(containerRef.current.firstChild);
     }
     
-    // Clean up function
-    return () => {
-      if (containerRef.current && threeInstance.domElement && 
-          containerRef.current.contains(threeInstance.domElement)) {
-        containerRef.current.removeChild(threeInstance.domElement);
-      }
+    containerRef.current.appendChild(domElement);
+    
+    // Handle resize
+    const handleResize = () => {
+      if (!containerRef.current || !camera || !renderer) return;
       
-      if (threeInstance.animationFrameId) {
-        cancelAnimationFrame(threeInstance.animationFrameId);
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      
+      renderer.setSize(width, height);
+    };
+    
+    // Initial sizing
+    handleResize();
+    
+    // Set up resize listener
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (containerRef.current && domElement && containerRef.current.contains(domElement)) {
+        containerRef.current.removeChild(domElement);
       }
     };
-  }, [threeInstance, autoRotate]);
+  }, [domElement, camera, renderer]);
   
   // Handle loading states
   const handleLoadStart = () => {
     setLoading(true);
     setLoadProgress(0);
     setError(null);
-    setModelLoaded(false);
   };
   
   const handleLoadProgress = (progress: number) => {
@@ -77,7 +75,6 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   
   const handleLoadComplete = () => {
     setLoading(false);
-    setModelLoaded(true);
   };
   
   const handleLoadError = (err: Error) => {
@@ -87,16 +84,15 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   };
   
   return (
-    <div className={`relative w-full h-full ${className || ''}`} style={{ minHeight: '250px' }}>
+    <div className={`relative w-full h-full ${className || ''}`}>
       {/* Container for the Three.js canvas */}
       <div 
         ref={containerRef} 
         className="w-full h-full bg-slate-100 overflow-hidden rounded-md"
-        style={{ minHeight: '250px' }}
       />
       
       {/* Model Loader component */}
-      {modelUrl && threeInstance.scene && (
+      {modelUrl && (
         <ModelLoader 
           modelUrl={modelUrl}
           onLoadStart={handleLoadStart}
@@ -109,7 +105,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
       )}
       
       {/* Controls for the model (orbit, zoom, etc.) */}
-      {modelLoaded && <ModelControls autoRotate={autoRotate} />}
+      <ModelControls autoRotate={autoRotate} />
       
       {/* Loading overlay */}
       {loading && (

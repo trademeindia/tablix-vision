@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useMenuData } from '@/hooks/use-menu-data';
 import { useQRCode } from '@/hooks/use-qr-code';
@@ -13,7 +12,7 @@ export function useCustomerMenu() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // State for tracking if we're using test data - default to true for demonstration
+  // State for tracking if we're using test data
   const [usingTestData, setUsingTestData] = useState(true);
   const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
   
@@ -24,14 +23,12 @@ export function useCustomerMenu() {
     parsedRestaurantId: string | null;
     locationSearch: string;
     locationPathname: string;
-    hasTestData: boolean;
   }>({
     scannedQrData: null,
     parsedTableId: null,
     parsedRestaurantId: null,
     locationSearch: location.search,
     locationPathname: location.pathname,
-    hasTestData: false
   });
   
   // QR code scanning hooks
@@ -48,9 +45,8 @@ export function useCustomerMenu() {
       parsedRestaurantId: restaurantId,
       locationSearch: location.search,
       locationPathname: location.pathname,
-      hasTestData: testData !== null
     }));
-  }, [tableId, restaurantId, location.search, location.pathname, testData]);
+  }, [tableId, restaurantId, location.search, location.pathname]);
   
   // Parse URL parameters on load
   useEffect(() => {
@@ -84,13 +80,15 @@ export function useCustomerMenu() {
       
       if (resId) {
         console.log("Prefetching menu data for restaurant:", resId);
-        // Generate test data immediately to ensure consistent data
-        const generatedTestData = generateTestMenuData(resId);
-        setTestData(generatedTestData);
-        
         // Prefetch menu data once we have a restaurant ID
-        queryClient.setQueryData(['menuCategories', resId], generatedTestData.categories);
-        queryClient.setQueryData(['menuItems', resId], generatedTestData.items);
+        queryClient.prefetchQuery({
+          queryKey: ['menuCategories', resId],
+          queryFn: () => Promise.resolve([]),
+        });
+        queryClient.prefetchQuery({
+          queryKey: ['menuItems', resId],
+          queryFn: () => Promise.resolve([]),
+        });
       }
     } catch (error) {
       console.error("Error parsing QR URL:", error);
@@ -100,21 +98,21 @@ export function useCustomerMenu() {
   // Fetch menu data using the hook
   const { categories, items, isLoading, error, refetchCategories } = useMenuData(restaurantId);
   
-  // Generate and use test data immediately when restaurant ID is available
+  // Generate and use test data
   useEffect(() => {
-    if (restaurantId && (!testData || testData.categories[0].restaurant_id !== restaurantId)) {
-      console.log("Generating fresh test data for restaurant:", restaurantId);
-      const generatedData = generateTestMenuData(restaurantId);
-      setTestData(generatedData);
+    // Always generate test data for demonstration
+    if (restaurantId && !testData) {
+      const data = generateTestMenuData(restaurantId);
+      setTestData(data);
       setUsingTestData(true);
       
       // Update react-query cache with test data
-      queryClient.setQueryData(['menuCategories', restaurantId], generatedData.categories);
-      queryClient.setQueryData(['menuItems', restaurantId], generatedData.items);
+      queryClient.setQueryData(['menuCategories', restaurantId], data.categories);
+      queryClient.setQueryData(['menuItems', restaurantId], data.items);
       
       toast({
-        title: "Sample Menu Data",
-        description: "You're viewing a demonstration with GIFs and 3D model examples. Check the 'Showcase Items' category!",
+        title: "Demo Mode",
+        description: "You're viewing a demonstration with sample menu items.",
       });
     }
   }, [restaurantId, testData, queryClient]);
@@ -124,36 +122,31 @@ export function useCustomerMenu() {
     if (error && restaurantId) {
       console.error("Error fetching menu data:", error);
       toast({
-        title: "Using sample menu",
-        description: "Check out the 'Showcase Items' category for interactive examples!",
-        variant: "default",
+        title: "Could not load menu",
+        description: "Trying again...",
+        variant: "destructive",
       });
       
-      // Ensure we're using test data if there was an error
-      if (!usingTestData) {
-        setUsingTestData(true);
-        const generatedData = generateTestMenuData(restaurantId);
-        setTestData(generatedData);
-        
-        // Update cache
-        queryClient.setQueryData(['menuCategories', restaurantId], generatedData.categories);
-        queryClient.setQueryData(['menuItems', restaurantId], generatedData.items);
-      }
+      // Try to refetch after a delay
+      const timer = setTimeout(() => {
+        refetchCategories();
+      }, 3000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [error, restaurantId, usingTestData, queryClient]);
+  }, [error, refetchCategories, restaurantId]);
   
   // Manually rescan QR code
   const handleRescan = useCallback(() => {
     localStorage.removeItem('tableId');
     localStorage.removeItem('restaurantId');
-    setTestData(null);
     startScanning();
   }, [startScanning]);
   
   // Determine if we should show debug info
   const showDebugInfo = process.env.NODE_ENV === 'development' || new URLSearchParams(location.search).has('debug');
   
-  // Use test data for demonstration purposes
+  // We're now using test data if there was an error or no real data
   const finalCategories = usingTestData && testData ? testData.categories : categories;
   const finalItems = usingTestData && testData ? testData.items : items;
   

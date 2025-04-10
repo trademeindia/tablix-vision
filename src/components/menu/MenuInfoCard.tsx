@@ -1,42 +1,41 @@
 
 import React from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Box, ImageIcon } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Box, Info } from 'lucide-react';
 
 interface MenuInfoCardProps {
   showModel3dInfo?: boolean;
 }
 
-const MenuInfoCard: React.FC<MenuInfoCardProps> = ({ showModel3dInfo = false }) => {
+const MenuInfoCard: React.FC<MenuInfoCardProps> = ({ showModel3dInfo = true }) => {
   return (
-    <div className="mb-6 space-y-4">
-      <Alert variant="default" className="border-blue-200 bg-blue-50">
-        <InfoIcon className="h-4 w-4" />
-        <AlertDescription>
-          Create categories to organize your menu, then add individual items with descriptions and prices.
-        </AlertDescription>
-      </Alert>
-
-      {showModel3dInfo && (
-        <Alert variant="default" className="border-purple-200 bg-purple-50">
-          <Box className="h-4 w-4 text-purple-500" />
-          <AlertDescription className="flex flex-col space-y-2">
-            <span>Your menu now supports rich media types:</span>
-            <ul className="list-disc list-inside text-sm ml-1 space-y-1">
-              <li className="flex items-center">
-                <Box className="h-3 w-3 mr-1 text-purple-500" />
-                <span><strong>3D Models</strong> - Give customers an interactive 360° view of dishes</span>
-              </li>
-              <li className="flex items-center">
-                <ImageIcon className="h-3 w-3 mr-1 text-purple-500" />
-                <span><strong>Animated GIFs</strong> - Showcase food preparation or presentation in motion</span>
-              </li>
-            </ul>
-            <span className="text-sm italic">Check out the "Showcase Items" category in the sample menu to see examples.</span>
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
+    <Card className="mb-6">
+      <CardContent className="p-4">
+        <div className="flex items-start space-x-3">
+          <Info className="h-5 w-5 text-blue-500 mt-0.5 shrink-0" />
+          <div>
+            <h3 className="font-medium text-sm mb-1">Menu Management</h3>
+            <p className="text-sm text-muted-foreground mb-2">
+              Create categories and add items to organize your restaurant menu. Items can be moved between categories and reordered.
+            </p>
+            
+            {showModel3dInfo && (
+              <div className="mt-3 bg-blue-50 p-2 rounded-md flex items-start space-x-2">
+                <Box className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                <div className="text-xs text-blue-700">
+                  <p className="font-medium">3D Model Support</p>
+                  <p className="mt-0.5">
+                    You can now upload 3D models (GLB/GLTF format) directly to Supabase storage. 
+                    Add a model when creating or editing an item, and customers will 
+                    be able to view it in 3D from the menu.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,146 +1,87 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-export const useThree = () => {
+export function useThree() {
   const [scene] = useState(() => new THREE.Scene());
-  const [camera] = useState(() => new THREE.PerspectiveCamera(
-    75, // field of view
-    1, // aspect ratio (placeholder value, will be updated)
-    0.1, // near clipping plane
-    1000 // far clipping plane
-  ));
+  const [camera] = useState(() => new THREE.PerspectiveCamera(75, 1, 0.1, 1000));
+  const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
+  const requestRef = useRef<number>();
+  const previousTimeRef = useRef<number>();
   
-  const [renderer] = useState(() => new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-    powerPreference: 'high-performance'
-  }));
-  
-  const [domElement, setDomElement] = useState<HTMLCanvasElement | null>(null);
-  const controls = useRef<OrbitControls | null>(null);
-  const animationFrameId = useRef<number | null>(null);
-  const autoRotate = useRef(true);
-  const rotationSpeed = useRef(1);
-  
-  // Initialize the scene
-  const initializeScene = () => {
-    if (!domElement) {
-      // Create the DOM element if it doesn't exist
-      const canvas = renderer.domElement;
-      
-      // Set up renderer
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setClearColor(0xf8f9fa, 0); // Light gray background with transparency
+  // Set up renderer and scene once on mount
+  useEffect(() => {
+    try {
+      // Create renderer
+      const newRenderer = new THREE.WebGLRenderer({ 
+        antialias: true,
+        alpha: true
+      });
+      newRenderer.setClearColor(0xf1f5f9, 1); // Light gray background
+      newRenderer.setPixelRatio(window.devicePixelRatio);
+      newRenderer.shadowMap.enabled = true;
       
       // Set up camera
-      camera.position.set(0, 0, 5);
-      camera.lookAt(0, 0, 0);
+      camera.position.z = 5;
       
-      // Add ambient light
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      // Add ambient light for basic illumination
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
       scene.add(ambientLight);
       
-      // Add directional light
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      dirLight.position.set(5, 5, 5);
-      scene.add(dirLight);
+      // Add directional light for shadows and better definition
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(5, 5, 5);
+      scene.add(directionalLight);
       
-      // Set the created canvas as the DOM element
-      setDomElement(canvas);
+      // Add additional light from the opposite side
+      const secondaryLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      secondaryLight.position.set(-5, 5, -5);
+      scene.add(secondaryLight);
       
-      // Set up controls
-      controls.current = new OrbitControls(camera, canvas);
-      controls.current.enableDamping = true;
-      controls.current.dampingFactor = 0.2;
-      controls.current.rotateSpeed = 0.5;
-      controls.current.enableZoom = true;
-      controls.current.autoRotate = autoRotate.current;
-      controls.current.autoRotateSpeed = rotationSpeed.current;
+      setRenderer(newRenderer);
       
-      // Animate with proper cleanup
-      const animate = () => {
-        if (controls.current) {
-          controls.current.update();
+      // Animation loop
+      const animate = (time: number) => {
+        if (previousTimeRef.current !== undefined) {
+          // Animation logic can go here
         }
         
-        renderer.render(scene, camera);
-        animationFrameId.current = requestAnimationFrame(animate);
+        previousTimeRef.current = time;
+        if (newRenderer) {
+          newRenderer.render(scene, camera);
+        }
+        requestRef.current = requestAnimationFrame(animate);
       };
       
-      animate();
-    }
-    
-    return renderer.domElement;
-  };
-  
-  // Set auto-rotate
-  const setAutoRotate = (value: boolean) => {
-    autoRotate.current = value;
-    if (controls.current) {
-      controls.current.autoRotate = value;
-    }
-  };
-  
-  // Set rotation speed
-  const setRotationSpeed = (value: number) => {
-    rotationSpeed.current = value;
-    if (controls.current) {
-      controls.current.autoRotateSpeed = value;
-    }
-  };
-  
-  // Resize handler
-  useEffect(() => {
-    const handleResize = () => {
-      if (domElement && domElement.parentElement) {
-        const parent = domElement.parentElement;
-        const width = parent.clientWidth;
-        const height = parent.clientHeight;
+      requestRef.current = requestAnimationFrame(animate);
+      
+      // Clean up
+      return () => {
+        if (requestRef.current) {
+          cancelAnimationFrame(requestRef.current);
+        }
         
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
+        // Clean up scene
+        scene.clear();
         
-        renderer.setSize(width, height);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    
-    // Run initial resize once
-    if (domElement && domElement.parentElement) {
-      const parent = domElement.parentElement;
-      const width = parent.clientWidth;
-      const height = parent.clientHeight;
-      
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      
-      renderer.setSize(width, height);
+        // Dispose of renderer
+        if (newRenderer) {
+          newRenderer.dispose();
+          if (newRenderer.domElement && newRenderer.domElement.parentNode) {
+            newRenderer.domElement.parentNode.removeChild(newRenderer.domElement);
+          }
+        }
+      };
+    } catch (err) {
+      console.error("Error initializing Three.js:", err);
+      return () => {};
     }
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      
-      // Clean up animation frame
-      if (animationFrameId.current !== null) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
-  }, [domElement, camera, renderer]);
+  }, [scene, camera]);
   
   return {
     scene,
     camera,
     renderer,
-    domElement,
-    initializeScene,
-    controls: controls.current,
-    animationFrameId: animationFrameId.current,
-    setAutoRotate,
-    setRotationSpeed
+    domElement: renderer?.domElement
   };
-};
-
-export default useThree;
+}

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { AlertTriangle, Film, Box } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 interface TestDataAlertProps {
   isVisible: boolean;
@@ -10,17 +11,13 @@ const TestDataAlert: React.FC<TestDataAlertProps> = ({ isVisible }) => {
   if (!isVisible) return null;
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-amber-50 border-t border-amber-200 p-3 text-sm text-amber-800 z-50 flex items-center justify-center">
-      <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
-      <div className="flex flex-col">
-        <span className="font-semibold">
-          Demo Menu
-        </span>
-        <span className="text-xs">
-          Check out animated <Film className="h-3 w-3 inline mx-1" /> GIFs and interactive <Box className="h-3 w-3 inline mx-1" /> 3D models in the "Showcase Items" category!
-        </span>
-      </div>
-    </div>
+    <Alert className="my-4 border-blue-200 bg-blue-50">
+      <InfoIcon className="h-4 w-4 text-blue-500" />
+      <AlertTitle className="text-blue-700">Demo Mode</AlertTitle>
+      <AlertDescription>
+        You're viewing a demonstration. Add and edit menu items to see how the app works! All functions (adding to cart, ordering, etc.) are fully operational.
+      </AlertDescription>
+    </Alert>
   );
 };
 

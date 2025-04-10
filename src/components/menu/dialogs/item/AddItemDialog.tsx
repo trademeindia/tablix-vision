@@ -42,10 +42,8 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       
       // Refresh categories and items after creating a new item
       if (onRefreshCategories) {
-        console.log("Refreshing data after item creation");
-        setTimeout(() => {
-          onRefreshCategories();
-        }, 300); // Add a small delay to ensure DB operations complete
+        console.log("Refreshing categories after item creation");
+        onRefreshCategories();
       }
     } catch (error) {
       console.error("Error in handleAddItem:", error);

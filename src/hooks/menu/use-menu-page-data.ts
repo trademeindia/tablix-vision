@@ -96,7 +96,6 @@ export const useMenuPageData = (restaurantId: string) => {
     handleViewItem,
     
     // Test data status
-    usingTestData,
-    setUsingTestData
+    usingTestData
   };
 };
