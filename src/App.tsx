@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -23,28 +23,14 @@ const queryClient = new QueryClient({
   },
 });
 
-// Handler for first-time visits
+// Handler for route monitoring
 const RouteHandler = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Only redirect first-time visitors from the /customer/menu path
-    // AND only if they directly accessed that URL (not navigated from within the app)
-    if (location.pathname === '/customer/menu' && !document.referrer.includes(window.location.host)) {
-      // Check if there are any table/restaurant parameters - if not, it's likely a direct access
-      const params = new URLSearchParams(location.search);
-      const hasTableParam = params.has('table');
-      const hasRestaurantParam = params.has('restaurant');
-      
-      // Only redirect if no specific table/restaurant was requested
-      if (!hasTableParam && !hasRestaurantParam) {
-        // First time visitor without specific table - redirect to landing page
-        console.log('First time visit to customer menu without parameters - redirecting to landing page');
-        navigate('/', { replace: true });
-      }
-    }
-  }, [location, navigate]);
+  
+  React.useEffect(() => {
+    // Log route changes for debugging
+    console.log('Route changed to:', location.pathname);
+  }, [location]);
 
   return <AppRoutes />;
 };
