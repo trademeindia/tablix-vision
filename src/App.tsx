@@ -9,17 +9,15 @@ import ThemeApplier from './components/layout/ThemeProvider';
 import { Toaster } from './components/ui/toaster';
 import AppRoutes from './routes/AppRoutes';
 
-// Create a client with updated configuration for error handling
+// Optimize query client with better caching and reduced network requests
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 10 * 60 * 1000, // 10 minutes, increased from 5
+      cacheTime: 15 * 60 * 1000, // 15 minutes
     },
-    mutations: {
-      // Mutations options (if needed)
-    }
   },
 });
 
@@ -28,8 +26,10 @@ const RouteHandler = () => {
   const location = useLocation();
   
   React.useEffect(() => {
-    // Log route changes for debugging
-    console.log('Route changed to:', location.pathname);
+    // Log route changes for debugging - only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Route changed to:', location.pathname);
+    }
   }, [location]);
 
   return <AppRoutes />;
@@ -39,8 +39,6 @@ function App() {
   // Using a demo restaurant ID - for reliable testing
   const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
   
-  console.log("App initializing with restaurant ID:", restaurantId);
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider restaurantId={restaurantId}>

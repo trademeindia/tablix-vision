@@ -9,20 +9,45 @@ export function useAuthState() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log("Initializing auth state...");
-    setLoading(true);
+    // First, check localStorage for cached user to prevent initial flicker
+    const cachedUserString = localStorage.getItem('cachedUser');
+    if (cachedUserString) {
+      try {
+        const cachedUser = JSON.parse(cachedUserString);
+        // Only use cached user data temporarily until real auth check completes
+        setUser(cachedUser);
+      } catch (e) {
+        // Invalid cache, ignore
+        localStorage.removeItem('cachedUser');
+      }
+    }
 
-    // First set up the auth state listener
+    // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log('Auth state changed:', event);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Auth state changed:', event);
+        }
+        
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
+        
+        // Cache current user for faster future loads
+        if (currentSession?.user) {
+          // Store a simplified version to reduce storage size
+          const userToCache = {
+            id: currentSession.user.id,
+            email: currentSession.user.email,
+            user_metadata: currentSession.user.user_metadata
+          };
+          localStorage.setItem('cachedUser', JSON.stringify(userToCache));
+        }
         
         // If user logged out, clear localStorage
         if (event === 'SIGNED_OUT') {
           localStorage.removeItem('userRole');
           localStorage.removeItem('demoOverride');
+          localStorage.removeItem('cachedUser');
         }
         
         // When user signs in or updates, we should persist their email for role lookup
@@ -35,7 +60,6 @@ export function useAuthState() {
     );
 
     // Then check for existing session
-    console.log("Checking for existing session...");
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
