@@ -7,20 +7,109 @@ export function useAuthOperations() {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Check if this is a demo account
+      const isDemoAccount = email.endsWith('@demo.com');
+      
+      if (isDemoAccount) {
+        console.log('Attempting to sign in with demo account:', email);
+        
+        // For demo accounts, ensure we handle them specially
+        localStorage.setItem('demoOverride', 'true');
+        console.log('Demo override activated');
+      }
+      
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      
       if (error) {
         console.error('Error signing in:', error.message);
+        
+        if (isDemoAccount && error.message.includes('Invalid login credentials')) {
+          toast({
+            title: 'Creating Demo Account',
+            description: 'First-time demo access: Creating your account...',
+          });
+          
+          // If demo login fails, try creating the account
+          return await createDemoAccount(email, password);
+        }
+        
         toast({
           title: 'Sign In Failed',
           description: error.message || 'An error occurred while signing in.',
           variant: 'destructive',
         });
+      } else if (isDemoAccount) {
+        toast({
+          title: 'Demo Mode Activated',
+          description: 'You now have full access to the demo dashboard.',
+        });
       }
+      
       return { error };
     } catch (error) {
       console.error('Error signing in:', error);
       toast({
         title: 'Sign In Failed',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+      return { error };
+    }
+  };
+
+  const createDemoAccount = async (email: string, password: string) => {
+    try {
+      // Extract role from email prefix
+      const role = email.split('@')[0].toLowerCase();
+      const name = `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            role: role,
+          },
+        },
+      });
+      
+      if (error) {
+        console.error('Error creating demo account:', error.message);
+        toast({
+          title: 'Demo Account Creation Failed',
+          description: error.message || 'Failed to create a demo account.',
+          variant: 'destructive',
+        });
+        return { error };
+      }
+      
+      // If account creation successful, try signing in again
+      const { error: signInError } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+      
+      if (signInError) {
+        console.error('Error signing in after demo account creation:', signInError.message);
+        toast({
+          title: 'Demo Account Created',
+          description: 'Account created but sign-in failed. Please try again.',
+          variant: 'destructive',
+        });
+        return { error: signInError };
+      }
+      
+      toast({
+        title: 'Demo Account Created',
+        description: 'Welcome to the demo! You now have access to all features.',
+      });
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Error in demo account creation:', error);
+      toast({
+        title: 'Demo Account Creation Failed',
         description: 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
@@ -105,6 +194,9 @@ export function useAuthOperations() {
 
   const signOut = async () => {
     try {
+      // Clear demo override flag
+      localStorage.removeItem('demoOverride');
+      
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Error signing out:', error.message);

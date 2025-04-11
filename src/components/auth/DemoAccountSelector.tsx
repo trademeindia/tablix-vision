@@ -50,7 +50,7 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       <h3 className="text-lg font-semibold text-center mb-4">Demo Accounts</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {demoAccounts.map((account) => (
-          <Card key={account.role} className="hover:shadow-md transition-shadow">
+          <Card key={account.role} className={`hover:shadow-md transition-shadow ${account.role === 'owner' ? 'border-green-300 bg-green-50' : ''}`}>
             <CardContent className="p-4">
               <div className="flex items-center">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mr-3 flex-shrink-0">
@@ -62,8 +62,8 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
                 </div>
                 <Button 
                   size="sm" 
-                  variant="outline" 
-                  className="ml-2 flex-shrink-0"
+                  variant={account.role === 'owner' ? "default" : "outline"}
+                  className={`ml-2 flex-shrink-0 ${account.role === 'owner' ? 'bg-green-600 hover:bg-green-700' : ''}`}
                   onClick={() => onSelectDemo({
                     email: account.email,
                     password: account.password,
@@ -74,7 +74,7 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "Try"
+                    account.role === 'owner' ? "Access" : "Try"
                   )}
                 </Button>
               </div>
@@ -83,7 +83,7 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
         ))}
       </div>
       <div className="mt-4 text-xs text-center text-slate-500">
-        Note: Demo accounts provide a tour of the interface with limited functionality
+        Click on any demo account above to instantly access the dashboard
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { AlertCircle, HelpCircle, Coffee } from "lucide-react";
 import { useDemoAccounts } from '@/hooks/auth/use-demo-accounts';
 import { Card } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
 
 const LoginPage = () => {
   const {
@@ -27,7 +28,7 @@ const LoginPage = () => {
     handleDemoLogin
   } = useLoginForm();
 
-  const [showDemoHelp, setShowDemoHelp] = useState(false);
+  const [showDemoHelp, setShowDemoHelp] = useState(true); // Set to true to display demo help by default
   const { initializeDemoAccounts, isInitializing } = useDemoAccounts();
   const isMobile = useIsMobile();
 
@@ -37,10 +38,46 @@ const LoginPage = () => {
   }, [initializeDemoAccounts]);
 
   const toggleDemoHelp = () => setShowDemoHelp(!showDemoHelp);
+  
+  // Quick access to demo account login
+  const handleQuickDemoAccess = () => {
+    handleDemoLogin({
+      email: 'owner@demo.com',
+      password: 'demo123',
+      role: 'owner'
+    });
+  };
 
   return (
     <AuthPageWrapper title="Login">
       <div className="p-2 sm:p-4">
+        <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
+          <AlertCircle className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-700 font-medium">Quick Access</AlertTitle>
+          <AlertDescription className="text-sm">
+            Click the button below to log in instantly as a Restaurant Owner and access the dashboard.
+            <div className="mt-2">
+              <Button 
+                onClick={handleQuickDemoAccess} 
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                disabled={isSubmitting || isInitializing}
+              >
+                {isSubmitting || isInitializing ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading...
+                  </span>
+                ) : (
+                  "Login as Restaurant Owner"
+                )}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+        
         <Card className="border-0 shadow-lg overflow-hidden">
           <div className="flex flex-col md:flex-row">
             {/* Left side - Decorative panel for larger screens */}
@@ -103,7 +140,7 @@ const LoginPage = () => {
                       </div>
                       <div className="relative flex justify-center text-sm">
                         <span className="bg-white px-2 text-slate-500 flex items-center gap-1">
-                          Or try a demo account
+                          <strong>Try a demo account</strong>
                           <button 
                             onClick={toggleDemoHelp} 
                             className="text-slate-400 hover:text-slate-600 focus:outline-none"
@@ -122,7 +159,7 @@ const LoginPage = () => {
                         <AlertDescription className="text-sm">
                           Demo accounts provide instant access to the application with pre-populated data. 
                           No email verification is required. You'll be able to explore the interface and features 
-                          but with limited functionality.
+                          with full functionality.
                         </AlertDescription>
                       </Alert>
                     )}

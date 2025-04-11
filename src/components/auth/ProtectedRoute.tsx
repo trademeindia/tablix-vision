@@ -31,11 +31,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // For demo accounts, bypass role checking to ensure they can access dashboard
+  // For demo accounts, check if override is active
   const isDemoAccount = user.email?.endsWith('@demo.com') || false;
+  const isDemoOverrideActive = localStorage.getItem('demoOverride') === 'true';
+  
+  // If demo override is active, allow access regardless of roles
+  if (isDemoAccount && isDemoOverrideActive) {
+    console.log("Demo override is active, allowing access to:", location.pathname);
+    return <>{children}</>;
+  }
   
   // Check if user has required roles (if specified)
-  if (requiredRoles && requiredRoles.length > 0 && !isDemoAccount) {
+  if (requiredRoles && requiredRoles.length > 0) {
     // Check if user has at least one of the required roles
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
     
@@ -46,6 +53,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         userRoles,
         location: location.pathname,
         isDemoAccount,
+        isDemoOverrideActive
       };
       console.log("Access denied debugging info:", debugInfo);
       

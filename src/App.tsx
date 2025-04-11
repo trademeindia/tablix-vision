@@ -50,9 +50,8 @@ const RouteHandler = () => {
 };
 
 function App() {
-  // Using a demo restaurant ID - in a real app, this would come from authentication or URL params
-  // This ID might not exist, but our updated ThemeProvider will handle that gracefully
-  const restaurantId = '123e4567-e89b-12d3-a456-426614174000'; // Demo ID - our code now handles missing restaurants
+  // Using a demo restaurant ID - for reliable testing
+  const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
   
   console.log("App initializing with restaurant ID:", restaurantId);
 
