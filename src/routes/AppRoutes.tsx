@@ -49,8 +49,13 @@ const AppRoutes: React.FC = () => {
   // Handle initial page load - prevent automatic redirects except explicit ones
   useEffect(() => {
     if (!loading) {
-      // Mark that initial load is complete
-      setInitialLoad(false);
+      // Mark that initial load is complete after a short delay
+      // This delay ensures landing page is visible before any redirects
+      const timer = setTimeout(() => {
+        setInitialLoad(false);
+      }, 5000); // 5 second delay before allowing redirects
+      
+      return () => clearTimeout(timer);
     }
   }, [loading]);
 
@@ -70,14 +75,14 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Critical: If we're at the root path (/) AND it's the initial load, show the landing page
-  // regardless of authentication status. This prevents the "bounce" effect.
-  if (path === '/' && initialLoad) {
+  // Critical: If we're at the root path (/) OR menu360 path, always show the landing page
+  // This prevents the "bounce" effect completely for these key landing pages
+  if (path === '/' || path === '/menu360') {
     return <PublicRoutes />;
   }
   
-  // Only redirect authenticated users from the root path after login AND explicit navigation
-  if (path === '/' && user && !loading && !initialLoad) {
+  // Only redirect authenticated users from other pages after login AND explicit navigation
+  if (path === '/index' && user && !loading && !initialLoad) {
     return <Navigate to={redirectPath} replace />;
   }
 

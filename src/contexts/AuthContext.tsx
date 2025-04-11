@@ -49,6 +49,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const { toast } = useToast();
+  
+  // Track if this is an intentional login (not just page load)
+  const [isIntentionalLogin, setIsIntentionalLogin] = useState<boolean>(false);
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
@@ -65,8 +68,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Then fetch latest from backend as well
           await fetchUserRoles(user.id);
           
-          // Show toast notification for successful login with role, but only for non-initial loads
-          if (!loading && userRoles.length > 0 && initialLoadComplete) {
+          // Check the current URL path
+          const currentPath = window.location.pathname;
+          
+          // Only show welcome toast if:
+          // 1. We are not on the landing page (/) or menu360 page
+          // 2. This is not the initial page load (prevents auto-redirect)
+          // 3. This appears to be an intentional login
+          const isLandingPage = currentPath === '/' || currentPath === '/menu360';
+          
+          if (!isLandingPage && initialLoadComplete && userRoles.length > 0 && isIntentionalLogin) {
             // Make sure we have a valid role before using it
             const primaryRole = userRoles[0] ? 
               userRoles[0].charAt(0).toUpperCase() + userRoles[0].slice(1) : 
@@ -76,15 +87,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               title: `Welcome, ${primaryRole}`,
               description: `You've successfully logged in to the ${primaryRole} dashboard.`,
             });
+            
+            // Reset intentional login flag
+            setIsIntentionalLogin(false);
           }
         } catch (error) {
           console.error("Error fetching user roles:", error);
-          // If roles fetch fails, show a generic welcome message for non-initial loads
-          if (initialLoadComplete) {
+          // Show welcome toast only for intentional logins
+          if (initialLoadComplete && isIntentionalLogin) {
             toast({
               title: `Welcome back`,
               description: `You've successfully logged in to your dashboard.`,
             });
+            // Reset intentional login flag
+            setIsIntentionalLogin(false);
           }
         }
       } else {
@@ -103,7 +119,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!sessionLoading) {
       loadUserRoles();
     }
-  }, [user, sessionLoading, fetchUserRoles, loading, userRoles, toast, initialLoadComplete]);
+  }, [user, sessionLoading, fetchUserRoles, loading, userRoles, toast, initialLoadComplete, isIntentionalLogin]);
+
+  // Intercept signIn, signUp, and signInWithGoogle to set intentional login flag
+  const enhancedSignIn = async (email: string, password: string) => {
+    setIsIntentionalLogin(true);
+    return signIn(email, password);
+  };
+  
+  const enhancedSignUp = async (email: string, password: string, name: string) => {
+    setIsIntentionalLogin(true);
+    return signUp(email, password, name);
+  };
+  
+  const enhancedSignInWithGoogle = async () => {
+    setIsIntentionalLogin(true);
+    return signInWithGoogle();
+  };
 
   // Listen for demo override
   useEffect(() => {
@@ -132,9 +164,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     userRoles,
     loading: sessionLoading || loading,
-    signIn,
-    signUp,
-    signInWithGoogle,
+    signIn: enhancedSignIn,
+    signUp: enhancedSignUp,
+    signInWithGoogle: enhancedSignInWithGoogle,
     signOut: handleSignOut,
     resetPassword,
     updatePassword,
