@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Utensils, Users, ChefHat, ShoppingBag, Loader2 } from 'lucide-react';
+import { Utensils, Users, ChefHat, Settings, Loader2 } from 'lucide-react';
 
 interface DemoAccountSelectorProps {
   onSelectDemo: (credentials: { email: string; password: string; role: string }) => void;
@@ -23,8 +23,19 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       buttonColor: 'bg-green-600 hover:bg-green-700'
     },
     {
+      role: 'manager',
+      title: 'Restaurant Manager',
+      description: 'Access the management dashboard with full control',
+      icon: <Settings className="h-8 w-8 text-purple-600" />,
+      email: 'manager@demo.com',
+      password: 'demo123',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-300',
+      buttonColor: ''
+    },
+    {
       role: 'chef',
-      title: 'Kitchen Chef',
+      title: 'Kitchen Staff',
       description: 'Access the kitchen dashboard with order management',
       icon: <ChefHat className="h-8 w-8 text-orange-600" />,
       email: 'chef@demo.com',
@@ -42,17 +53,6 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       password: 'demo123',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-300',
-      buttonColor: ''
-    },
-    {
-      role: 'customer',
-      title: 'Customer',
-      description: 'Browse menu and place orders as a customer',
-      icon: <ShoppingBag className="h-8 w-8 text-amber-600" />,
-      email: 'customer@demo.com',
-      password: 'demo123',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-300',
       buttonColor: ''
     }
   ];

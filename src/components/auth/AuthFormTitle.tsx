@@ -10,9 +10,11 @@ interface AuthFormTitleProps {
 const AuthFormTitle: React.FC<AuthFormTitleProps> = ({ role, isSignup = false }) => {
   const getRoleTitle = () => {
     switch (role) {
-      case 'customer': return 'Customer';
-      case 'staff': return 'Staff';
-      default: return 'Restaurant Owner';
+      case 'owner': return 'Restaurant Owner';
+      case 'manager': return 'Restaurant Manager';
+      case 'waiter': return 'Restaurant Waiter';
+      case 'chef': return 'Kitchen Staff';
+      default: return 'Restaurant Staff';
     }
   };
 

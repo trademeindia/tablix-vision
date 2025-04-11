@@ -15,6 +15,7 @@ interface UseUserRoleReturn {
 // Demo account emails and their associated roles
 const demoAccountRoles: Record<string, UserRole[]> = {
   'owner@demo.com': ['owner', 'manager'],
+  'manager@demo.com': ['manager'],
   'staff@demo.com': ['staff', 'waiter'],
   'chef@demo.com': ['chef', 'staff'],
   'waiter@demo.com': ['waiter', 'staff'],

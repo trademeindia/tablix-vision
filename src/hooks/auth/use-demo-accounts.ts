@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,6 +17,12 @@ export const demoAccounts: DemoAccount[] = [
     name: 'Demo Owner'
   },
   {
+    email: 'manager@demo.com',
+    password: 'demo123',
+    role: 'manager',
+    name: 'Demo Manager'
+  },
+  {
     email: 'chef@demo.com',
     password: 'demo123',
     role: 'chef',
@@ -28,12 +33,6 @@ export const demoAccounts: DemoAccount[] = [
     password: 'demo123',
     role: 'waiter',
     name: 'Demo Waiter'
-  },
-  {
-    email: 'customer@demo.com',
-    password: 'demo123',
-    role: 'customer',
-    name: 'Demo Customer'
   }
 ];
 

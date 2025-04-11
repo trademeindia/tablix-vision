@@ -1,4 +1,3 @@
-
 /**
  * Helper function to determine the redirect path based on user role
  */
@@ -21,6 +20,7 @@ export const getRedirectPathByRole = (userRole: string | null | undefined): stri
     case 'staff':
       return '/staff-dashboard';
     case 'customer':
+      // Keep customer role for QR code scanning access
       return '/customer/menu';
     default:
       // Fallback to customer menu as default

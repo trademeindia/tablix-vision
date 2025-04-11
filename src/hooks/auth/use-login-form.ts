@@ -18,7 +18,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [role, setRole] = useState<string>('customer');
+  const [role, setRole] = useState<string>('owner');
 
   const handleRoleChange = (newRole: string) => {
     setRole(newRole);

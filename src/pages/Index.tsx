@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Utensils, ShoppingBag, Users, ChefHat } from 'lucide-react';
+import { Utensils, ShoppingBag, Users, ChefHat, Settings } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
@@ -93,12 +93,30 @@ const Index = () => {
                 </CardContent>
               </Card>
               
+              <Card className="hover:shadow-lg transition-shadow border-purple-300 bg-purple-50">
+                <CardHeader className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
+                    <Settings className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <CardTitle>Restaurant Manager</CardTitle>
+                  <CardDescription>Management dashboard access</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="mb-6 text-slate-600">
+                    Manage restaurant operations and staff.
+                  </p>
+                  <Button className="w-full" variant="outline" asChild>
+                    <Link to="/auth/login?role=manager">Access as Manager</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              
               <Card className="hover:shadow-lg transition-shadow border-orange-300 bg-orange-50">
                 <CardHeader className="text-center">
                   <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
                     <ChefHat className="h-8 w-8 text-orange-600" />
                   </div>
-                  <CardTitle>Kitchen Chef</CardTitle>
+                  <CardTitle>Kitchen Staff</CardTitle>
                   <CardDescription>Kitchen order management</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
@@ -106,7 +124,7 @@ const Index = () => {
                     Manage kitchen operations and orders.
                   </p>
                   <Button className="w-full" variant="outline" asChild>
-                    <Link to="/auth/login?role=chef">Access as Chef</Link>
+                    <Link to="/auth/login?role=chef">Access as Kitchen</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -116,7 +134,7 @@ const Index = () => {
                   <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
-                  <CardTitle>Restaurant Staff</CardTitle>
+                  <CardTitle>Restaurant Waiter</CardTitle>
                   <CardDescription>Order & service management</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
@@ -125,24 +143,6 @@ const Index = () => {
                   </p>
                   <Button className="w-full" variant="outline" asChild>
                     <Link to="/auth/login?role=waiter">Access as Waiter</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              
-              <Card className="hover:shadow-lg transition-shadow border-amber-300 bg-amber-50">
-                <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
-                    <ShoppingBag className="h-8 w-8 text-amber-600" />
-                  </div>
-                  <CardTitle>Customer</CardTitle>
-                  <CardDescription>Menu browsing & ordering</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="mb-6 text-slate-600">
-                    Browse menu and place orders.
-                  </p>
-                  <Button className="w-full" variant="outline" asChild>
-                    <Link to="/auth/login?role=customer">Access as Customer</Link>
                   </Button>
                 </CardContent>
               </Card>

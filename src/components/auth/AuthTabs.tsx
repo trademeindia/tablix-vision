@@ -10,10 +10,11 @@ interface AuthTabsProps {
 const AuthTabs = ({ defaultRole, onChange }: AuthTabsProps) => {
   return (
     <Tabs defaultValue={defaultRole} className="w-full" onValueChange={onChange}>
-      <TabsList className="grid w-full grid-cols-3 mb-4">
-        <TabsTrigger value="customer">Customer</TabsTrigger>
-        <TabsTrigger value="staff">Staff</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-4 mb-4">
         <TabsTrigger value="owner">Owner</TabsTrigger>
+        <TabsTrigger value="manager">Manager</TabsTrigger>
+        <TabsTrigger value="waiter">Waiter</TabsTrigger>
+        <TabsTrigger value="chef">Kitchen</TabsTrigger>
       </TabsList>
     </Tabs>
   );
