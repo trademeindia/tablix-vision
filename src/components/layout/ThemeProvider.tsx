@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useTheme } from '@/hooks/use-theme';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ThemeApplierProps {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ const ThemeApplier: React.FC<ThemeApplierProps> = ({ children }) => {
   }, [theme, loading]);
 
   // Always render children, even with errors or during loading
+  // This ensures the application is usable even if theme loading fails
   return <>{children}</>;
 };
 
