@@ -52,7 +52,7 @@ const AppRoutes: React.FC = () => {
   if (path === '/' && user && !loading) {
     console.log('Authenticated user at root path. Redirecting based on role:', userRoles);
     
-    if (userRoles.length > 0) {
+    if (userRoles && userRoles.length > 0) {
       const primaryRole = userRoles[0];
       const redirectPath = getRedirectPathByRole(primaryRole);
       console.log(`Redirecting to ${redirectPath} based on primary role ${primaryRole}`);
@@ -65,7 +65,7 @@ const AppRoutes: React.FC = () => {
 
   // For demo users with override active, redirect to appropriate dashboard based on role
   if (isDemoUser && isDemoOverrideActive && path === '/unauthorized') {
-    if (userRoles.length > 0) {
+    if (userRoles && userRoles.length > 0) {
       const primaryRole = userRoles[0];
       const redirectPath = getRedirectPathByRole(primaryRole);
       console.log(`Demo user with override, redirecting to ${redirectPath}`);

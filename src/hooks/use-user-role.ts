@@ -40,9 +40,15 @@ export const useUserRole = (): UseUserRoleReturn => {
         console.error('Error parsing saved roles:', e);
         // If single string stored instead of array, convert it
         if (typeof savedRole === 'string') {
-          const roleArray = [savedRole as UserRole];
-          setUserRoles(roleArray);
-          console.log('Restored role from localStorage (string):', roleArray);
+          try {
+            const roleArray = [savedRole as UserRole];
+            setUserRoles(roleArray);
+            console.log('Restored role from localStorage (string):', roleArray);
+          } catch (conversionError) {
+            console.error('Error converting role string:', conversionError);
+            // In case of any issues, default to customer role
+            setUserRoles(['customer']);
+          }
         }
       }
     }
@@ -61,6 +67,27 @@ export const useUserRole = (): UseUserRoleReturn => {
         const userMetadata = authData.user.user_metadata;
         
         console.log("User data from auth:", { email, metadata: userMetadata });
+        
+        // Check if a selected role was stored during login
+        const selectedRole = localStorage.getItem('selectedRole');
+        if (selectedRole) {
+          console.log("Found selected role in localStorage:", selectedRole);
+          
+          // Map single role to array of roles based on hierarchy
+          let roles: UserRole[] = [selectedRole as UserRole];
+          
+          // Add implied roles
+          if (selectedRole === 'owner') roles.push('manager');
+          if (selectedRole === 'chef' || selectedRole === 'waiter') roles.push('staff');
+          
+          // Save roles to localStorage for persistence
+          localStorage.setItem('userRole', JSON.stringify(roles));
+          localStorage.removeItem('selectedRole'); // Clean up
+          
+          setUserRoles(roles);
+          setLoading(false);
+          return roles;
+        }
         
         // Check if this is a demo account by email
         if (email && Object.prototype.hasOwnProperty.call(demoAccountRoles, email)) {
@@ -102,7 +129,7 @@ export const useUserRole = (): UseUserRoleReturn => {
           .from('profiles')
           .select('role')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
         if (!userError && userData && userData.role) {
           // If the profile has a role field, use that
@@ -164,13 +191,17 @@ export const useUserRole = (): UseUserRoleReturn => {
       console.error('Error fetching user roles:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch user roles'));
       setLoading(false);
-      return ['customer'];
+      
+      // On error, still return a default role to prevent application errors
+      const defaultRoles: UserRole[] = ['customer'];
+      setUserRoles(defaultRoles);
+      return defaultRoles;
     }
   }, []);
   
   // Log the current roles for debugging
   useEffect(() => {
-    console.info("Refreshed roles:", userRoles);
+    console.info("Current user roles:", userRoles);
   }, [userRoles]);
 
   return {

@@ -14,6 +14,7 @@ const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('Processing authentication...');
   const [isProcessing, setIsProcessing] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,6 +32,14 @@ const AuthCallbackPage = () => {
           throw error;
         }
         
+        // Save debug info
+        setDebugInfo({
+          hasSession: !!data.session,
+          hasUser: !!data.session?.user,
+          provider: data.session?.user?.app_metadata?.provider || 'none',
+          email: data.session?.user?.email || 'none',
+        });
+        
         console.log('Session retrieved:', data.session ? 'Valid session' : 'No session');
         setStatus('Session retrieved. Checking user profile...');
         
@@ -44,11 +53,15 @@ const AuthCallbackPage = () => {
           if (selectedRole) {
             console.log('Found selected role in localStorage:', selectedRole);
             
+            // Validate the role to ensure it's a valid UserRole
+            const validRoles = ['owner', 'manager', 'chef', 'waiter', 'staff', 'customer'];
+            const validatedRole = validRoles.includes(selectedRole) ? selectedRole : 'customer';
+            
             // Set the user role in localStorage for immediate use
-            let roles: UserRole[] = [selectedRole as UserRole];
+            let roles: UserRole[] = [validatedRole as UserRole];
             // Add implied roles
-            if (selectedRole === 'owner') roles.push('manager');
-            if (selectedRole === 'chef' || selectedRole === 'waiter') roles.push('staff');
+            if (validatedRole === 'owner') roles.push('manager');
+            if (validatedRole === 'chef' || validatedRole === 'waiter') roles.push('staff');
             
             localStorage.setItem('userRole', JSON.stringify(roles));
             localStorage.removeItem('selectedRole'); // Clean up
@@ -62,11 +75,11 @@ const AuthCallbackPage = () => {
             // Show toast notification for successful login
             toast({
               title: 'Login Successful',
-              description: `Welcome to your ${selectedRole} dashboard!`,
+              description: `Welcome to your ${validatedRole} dashboard!`,
             });
             
-            const redirectPath = getRedirectPathByRole(selectedRole);
-            console.log(`Redirecting to ${redirectPath} based on selected role ${selectedRole}`);
+            const redirectPath = getRedirectPathByRole(validatedRole);
+            console.log(`Redirecting to ${redirectPath} based on selected role ${validatedRole}`);
             navigate(redirectPath);
             return;
           }
@@ -169,6 +182,13 @@ const AuthCallbackPage = () => {
         setError(error.message || 'Authentication failed');
         setStatus('Authentication error occurred');
         
+        // Update debug info with error details
+        setDebugInfo(prev => ({
+          ...prev,
+          error: error.message,
+          errorCode: error.code || 'unknown',
+        }));
+        
         // Redirect to login after a delay
         setTimeout(() => {
           navigate('/auth/login');
@@ -209,6 +229,9 @@ const AuthCallbackPage = () => {
                 <div className="mt-4 text-left p-3 bg-slate-50 rounded text-sm font-mono overflow-auto max-h-32">
                   <p className="text-slate-500 mb-2 text-xs">Debug info:</p>
                   <p className="text-slate-700">Current URL: {window.location.href}</p>
+                  {Object.entries(debugInfo).map(([key, value]) => (
+                    <p key={key} className="text-slate-700">{key}: {typeof value === 'object' ? JSON.stringify(value) : String(value)}</p>
+                  ))}
                 </div>
               )}
             </div>

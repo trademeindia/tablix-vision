@@ -2,7 +2,13 @@
 /**
  * Helper function to determine the redirect path based on user role
  */
-export const getRedirectPathByRole = (userRole: string): string => {
+export const getRedirectPathByRole = (userRole: string | null | undefined): string => {
+  // Handle null or undefined roles
+  if (!userRole) {
+    console.log('No role provided, defaulting to customer menu');
+    return '/customer/menu';
+  }
+  
   switch (userRole.toLowerCase()) {
     case 'owner':
       return '/dashboard';

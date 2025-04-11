@@ -66,7 +66,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Show toast notification for successful login with role
           if (!loading && userRoles.length > 0) {
-            const primaryRole = userRoles[0].charAt(0).toUpperCase() + userRoles[0].slice(1);
+            // Make sure we have a valid role before using it
+            const primaryRole = userRoles[0] ? 
+              userRoles[0].charAt(0).toUpperCase() + userRoles[0].slice(1) : 
+              'User';
+              
             toast({
               title: `Welcome, ${primaryRole}`,
               description: `You've successfully logged in to the ${primaryRole} dashboard.`,
@@ -74,6 +78,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         } catch (error) {
           console.error("Error fetching user roles:", error);
+          // If roles fetch fails, show a generic welcome message
+          toast({
+            title: `Welcome back`,
+            description: `You've successfully logged in to your dashboard.`,
+          });
         }
       } else {
         console.log("Auth context: No user detected");
@@ -102,6 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Clear any saved role data
     localStorage.removeItem('userRole');
     localStorage.removeItem('demoOverride');
+    localStorage.removeItem('selectedRole');
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out.",
