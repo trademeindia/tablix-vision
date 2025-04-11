@@ -21,6 +21,7 @@ const UnauthorizedPage = () => {
   // Debug info
   const savedRole = localStorage.getItem('userRole') || 'none';
   const isDemoAccount = user?.email?.endsWith('@demo.com') || false;
+  const isGoogleAuth = user?.app_metadata?.provider === 'google' || false;
   
   useEffect(() => {
     // Log debug information to help troubleshoot
@@ -30,9 +31,10 @@ const UnauthorizedPage = () => {
       stateRequiredRoles,
       currentUserRoles: userRoles,
       savedRole,
-      user: user?.email
+      user: user?.email,
+      isGoogleAuth
     });
-  }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, savedRole, user]);
+  }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, savedRole, user, isGoogleAuth]);
 
   const handleRefreshAccess = () => {
     // Force a refresh of the access
@@ -40,7 +42,7 @@ const UnauthorizedPage = () => {
   };
 
   const handleDemoAccess = () => {
-    // For demo accounts, allow them to override access restrictions
+    // For demo accounts or Google auth, allow them to override access restrictions
     localStorage.setItem('demoOverride', 'true');
     navigate('/dashboard');
   };
@@ -83,10 +85,11 @@ const UnauthorizedPage = () => {
               <p>You are logged in as: <strong>{user.email}</strong></p>
               <p>Your current role: <strong>{stateUserRoles.join(', ')}</strong></p>
               <p>Saved role in localStorage: <strong>{savedRole}</strong></p>
+              {isGoogleAuth && <p className="text-blue-600">Google Authentication Detected</p>}
             </div>
           )}
           
-          {isDemoAccount && (
+          {(isDemoAccount || isGoogleAuth) && (
             <div className="bg-green-50 border border-green-200 p-4 rounded-md mb-6">
               <h3 className="flex items-center text-green-700 font-semibold text-lg mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -95,13 +98,16 @@ const UnauthorizedPage = () => {
                 Demo Access Override
               </h3>
               <p className="text-sm text-green-700 mb-4">
-                You're using a demo account! Click the button below to override access restrictions and view the dashboard.
+                {isDemoAccount ? 
+                  "You're using a demo account!" : 
+                  "You're using Google Authentication!"}
+                Click the button below to override access restrictions and view the dashboard.
               </p>
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700 text-lg py-3 font-medium" 
                 onClick={handleDemoAccess}
               >
-                Access Dashboard (Demo Override)
+                Access Dashboard (Override)
               </Button>
               <p className="text-xs text-green-600 mt-2 text-center">
                 This button enables demo mode and grants you full access to all features
@@ -127,6 +133,7 @@ const UnauthorizedPage = () => {
                 <p>User ID: {user?.id || 'Not available'}</p>
                 <p>User email: {user?.email || 'Not available'}</p>
                 <p>Local storage role: {savedRole}</p>
+                <p>Google Auth: {isGoogleAuth ? 'Yes' : 'No'}</p>
                 <p>User metadata: {JSON.stringify(user?.user_metadata || {})}</p>
               </div>
             </div>

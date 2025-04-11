@@ -162,7 +162,6 @@ export function useAuthOperations() {
       
       console.log('Initiating Google sign-in with redirect URL:', redirectUrl);
       
-      // Remove the flowType property that's causing the error
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

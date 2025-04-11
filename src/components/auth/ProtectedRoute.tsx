@@ -32,12 +32,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // For demo accounts, check if override is active
+  // For demo accounts or Google auth users, check if override is active
   const isDemoAccount = user.email?.endsWith('@demo.com') || false;
+  const isGoogleAuth = user.app_metadata.provider === 'google';
   const isDemoOverrideActive = localStorage.getItem('demoOverride') === 'true';
   
   // If demo override is active, allow access regardless of roles
-  if (isDemoAccount && isDemoOverrideActive) {
+  if ((isDemoAccount || isGoogleAuth) && isDemoOverrideActive) {
     console.log("Demo override is active, allowing access to:", location.pathname);
     return <>{children}</>;
   }
@@ -54,6 +55,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         userRoles,
         location: location.pathname,
         isDemoAccount,
+        isGoogleAuth,
         isDemoOverrideActive
       };
       console.log("Access denied debugging info:", debugInfo);

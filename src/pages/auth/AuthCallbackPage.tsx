@@ -96,6 +96,12 @@ const AuthCallbackPage = () => {
             
             localStorage.setItem('userRole', JSON.stringify(roles));
             
+            // For Google auth users, set demo override to true to avoid permission issues
+            if (data.session.user.app_metadata.provider === 'google') {
+              console.log('Google auth detected, enabling demo override');
+              localStorage.setItem('demoOverride', 'true');
+            }
+            
             const redirectPath = getRedirectPathByRole(role);
             console.log(`Redirecting to ${redirectPath} based on role ${role}`);
             navigate(redirectPath);
