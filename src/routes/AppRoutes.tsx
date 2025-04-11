@@ -7,7 +7,7 @@ import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
 import { useAuth } from '@/contexts/AuthContext';
-import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
+import { getRedirectPathByRole, hasRoutePermission } from '@/hooks/auth/use-redirect-paths';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -53,7 +53,7 @@ const AppRoutes: React.FC = () => {
       // This delay ensures landing page is visible before any redirects
       const timer = setTimeout(() => {
         setInitialLoad(false);
-      }, 5000); // 5 second delay before allowing redirects
+      }, 3000); // 3 second delay before allowing redirects
       
       return () => clearTimeout(timer);
     }
@@ -81,7 +81,12 @@ const AppRoutes: React.FC = () => {
     return <PublicRoutes />;
   }
   
-  // Only redirect authenticated users from other pages after login AND explicit navigation
+  // Auth pages should always be accessible regardless of login status
+  if (path.startsWith('/auth/')) {
+    return <PublicRoutes />;
+  }
+  
+  // Only redirect authenticated users from index page after login AND explicit navigation
   if (path === '/index' && user && !loading && !initialLoad) {
     return <Navigate to={redirectPath} replace />;
   }
@@ -102,6 +107,17 @@ const AppRoutes: React.FC = () => {
   // Handle the public customer-menu route separately
   if (path === '/customer-menu') {
     return <PublicRoutes />;
+  }
+
+  // Check if the user has permission for the requested path
+  if (user && !loading && !initialLoad && userRoles.length > 0) {
+    const hasPermission = hasRoutePermission(path, userRoles);
+    
+    // If user doesn't have permission for the requested path and isn't already being redirected
+    if (!hasPermission && path !== '/unauthorized' && !path.startsWith('/auth/')) {
+      console.log(`User lacks permission for ${path}, redirecting to unauthorized`);
+      return <Navigate to="/unauthorized" state={{ from: location, requiredRoles: [], userRoles }} replace />;
+    }
   }
 
   // Conditionally render route groups based on the current path

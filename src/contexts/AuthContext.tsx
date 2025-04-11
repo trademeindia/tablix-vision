@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useSession } from '@/hooks/use-session';
 import { useUserRole, UserRole } from '@/hooks/use-user-role';
 import { useToast } from '@/hooks/use-toast';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 interface AuthContextType {
   user: User | null;
@@ -90,6 +91,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             // Reset intentional login flag
             setIsIntentionalLogin(false);
+            
+            // If we're on the login or callback page, redirect to the appropriate dashboard
+            if (currentPath.startsWith('/auth/')) {
+              // Get the redirect path based on the primary role
+              const redirectPath = getRedirectPathByRole(userRoles[0]);
+              console.log(`Redirecting from auth to ${redirectPath} based on role ${userRoles[0]}`);
+              
+              // Use window.location for a hard redirect to avoid potential React Router issues
+              window.location.href = redirectPath;
+            }
           }
         } catch (error) {
           console.error("Error fetching user roles:", error);

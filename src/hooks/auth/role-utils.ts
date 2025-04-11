@@ -42,3 +42,9 @@ export function loadPersistedRoles(): UserRole[] | null {
   
   return null;
 }
+
+// Validate a role string against allowed roles
+export function validateRole(role: string): UserRole | null {
+  const validRoles: UserRole[] = ['owner', 'manager', 'chef', 'waiter', 'staff', 'customer'];
+  return validRoles.includes(role as UserRole) ? (role as UserRole) : null;
+}

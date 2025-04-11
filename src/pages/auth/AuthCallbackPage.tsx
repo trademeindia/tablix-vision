@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 import { useToast } from '@/hooks/use-toast';
+import { validateRole, expandRoles, persistRoles } from '@/hooks/auth/role-utils';
 
 const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
@@ -50,125 +51,134 @@ const AuthCallbackPage = () => {
           
           // Check if there was a selected role from the login page
           const selectedRole = localStorage.getItem('selectedRole');
+          
           if (selectedRole) {
             console.log('Found selected role in localStorage:', selectedRole);
             
-            // Validate the role to ensure it's a valid UserRole
-            const validRoles = ['owner', 'manager', 'chef', 'waiter', 'staff', 'customer'];
-            const validatedRole = validRoles.includes(selectedRole) ? selectedRole : 'customer';
+            // Validate the role
+            const validatedRole = validateRole(selectedRole);
             
-            // Set the user role in localStorage for immediate use
-            let roles: UserRole[] = [validatedRole as UserRole];
-            // Add implied roles
-            if (validatedRole === 'owner') roles.push('manager');
-            if (validatedRole === 'chef' || validatedRole === 'waiter') roles.push('staff');
-            
-            localStorage.setItem('userRole', JSON.stringify(roles));
-            localStorage.removeItem('selectedRole'); // Clean up
-            
-            // For Google auth users, set demo override to true to avoid permission issues
-            if (data.session.user.app_metadata.provider === 'google') {
-              console.log('Google auth detected, enabling demo override');
-              localStorage.setItem('demoOverride', 'true');
-            }
-            
-            // Show toast notification for successful login
-            toast({
-              title: 'Login Successful',
-              description: `Welcome to your ${validatedRole} dashboard!`,
-            });
-            
-            const redirectPath = getRedirectPathByRole(validatedRole);
-            console.log(`Redirecting to ${redirectPath} based on selected role ${validatedRole}`);
-            navigate(redirectPath);
-            return;
-          }
-          
-          // Get user profile with role
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', userId)
-            .maybeSingle();
-            
-          if (profileError) {
-            console.error('Error fetching profile:', profileError);
-            
-            // If user doesn't have a profile yet, create one
-            if (profileError.code === 'PGRST116') { // record not found
-              setStatus('Creating new user profile...');
-              console.log('Creating new profile for user');
+            if (validatedRole) {
+              // Expand roles based on hierarchy and persist them
+              const roles = expandRoles(validatedRole);
+              persistRoles(roles);
               
-              // Create a new profile with default customer role
-              const { error: insertError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: userId,
-                  role: 'customer',
-                  full_name: data.session.user.user_metadata.full_name || '',
-                  avatar_url: data.session.user.user_metadata.avatar_url || '',
-                });
-              
-              if (insertError) {
-                console.error('Error creating profile:', insertError);
-                throw new Error('Failed to create user profile');
+              // For Google auth users, set demo override to true to avoid permission issues
+              if (data.session.user.app_metadata.provider === 'google') {
+                console.log('Google auth detected, enabling demo override');
+                localStorage.setItem('demoOverride', 'true');
               }
               
-              console.log('Created new profile. Redirecting to customer menu.');
-              setStatus('Profile created. Redirecting...');
+              // Show toast notification for successful login
+              toast({
+                title: 'Login Successful',
+                description: `Welcome to your ${validatedRole} dashboard!`,
+              });
               
-              // Update localStorage with role for immediate use
-              localStorage.setItem('userRole', JSON.stringify(['customer']));
+              // Get the redirect path based on role and navigate
+              const redirectPath = getRedirectPathByRole(validatedRole);
+              console.log(`Redirecting to ${redirectPath} based on selected role ${validatedRole}`);
+              
+              // Clear the selected role after using it
+              localStorage.removeItem('selectedRole');
+              
+              navigate(redirectPath);
+              return;
+            } else {
+              console.warn('Invalid role found in localStorage:', selectedRole);
+              // Clear invalid role
+              localStorage.removeItem('selectedRole');
+            }
+          }
+          
+          // If no valid selected role, try to get from user profile
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', userId)
+              .maybeSingle();
+              
+            if (profileError) {
+              console.error('Error fetching profile:', profileError);
+              
+              // If user doesn't have a profile yet, create one
+              if (profileError.code === 'PGRST116') { // record not found
+                setStatus('Creating new user profile...');
+                console.log('Creating new profile for user');
+                
+                // Create a new profile with default customer role
+                const { error: insertError } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: userId,
+                    role: 'customer',
+                    full_name: data.session.user.user_metadata.full_name || '',
+                    avatar_url: data.session.user.user_metadata.avatar_url || '',
+                  });
+                
+                if (insertError) {
+                  console.error('Error creating profile:', insertError);
+                  throw new Error('Failed to create user profile');
+                }
+                
+                console.log('Created new profile. Redirecting to customer menu.');
+                setStatus('Profile created. Redirecting...');
+                
+                // Update localStorage with role for immediate use
+                persistRoles(['customer']);
+                
+                // Show welcome toast
+                toast({
+                  title: 'Welcome to Menu 360!',
+                  description: 'Your account has been created successfully.',
+                });
+                
+                // Redirect to customer page
+                navigate('/customer/menu');
+                return;
+              } else {
+                throw profileError;
+              }
+            }
+              
+            if (profileData) {
+              console.log('User profile found:', profileData);
+              setStatus('User profile found. Redirecting...');
+              
+              // Redirect based on role
+              const role = profileData.role as UserRole;
+              
+              // Set the user role in localStorage for immediate use
+              const roles = expandRoles(role);
+              persistRoles(roles);
+              
+              // For Google auth users, set demo override to true to avoid permission issues
+              if (data.session.user.app_metadata.provider === 'google') {
+                console.log('Google auth detected, enabling demo override');
+                localStorage.setItem('demoOverride', 'true');
+              }
               
               // Show welcome toast
               toast({
-                title: 'Welcome to Menu 360!',
-                description: 'Your account has been created successfully.',
+                title: 'Login Successful',
+                description: `Welcome to your ${role} dashboard!`,
               });
               
-              // Redirect to customer page
-              navigate('/customer/menu');
+              const redirectPath = getRedirectPathByRole(role);
+              console.log(`Redirecting to ${redirectPath} based on role ${role}`);
+              navigate(redirectPath);
               return;
             } else {
-              throw profileError;
+              console.log('No profile data found, redirecting to default path');
+              // No profile data found, redirect to default
+              navigate('/customer/menu');
+              return;
             }
-          }
-            
-          if (profileData) {
-            console.log('User profile found:', profileData);
-            setStatus('User profile found. Redirecting...');
-            
-            // Redirect based on role
-            const role = profileData.role as UserRole;
-            
-            // Set the user role in localStorage for immediate use
-            let roles: UserRole[] = [role];
-            // Add implied roles
-            if (role === 'owner') roles.push('manager');
-            if (role === 'chef' || role === 'waiter') roles.push('staff');
-            
-            localStorage.setItem('userRole', JSON.stringify(roles));
-            
-            // For Google auth users, set demo override to true to avoid permission issues
-            if (data.session.user.app_metadata.provider === 'google') {
-              console.log('Google auth detected, enabling demo override');
-              localStorage.setItem('demoOverride', 'true');
-            }
-            
-            // Show welcome toast
-            toast({
-              title: 'Login Successful',
-              description: `Welcome to your ${role} dashboard!`,
-            });
-            
-            const redirectPath = getRedirectPathByRole(role);
-            console.log(`Redirecting to ${redirectPath} based on role ${role}`);
-            navigate(redirectPath);
-            return;
-          } else {
-            console.log('No profile data found, redirecting to default path');
-            // No profile data found, redirect to default
-            navigate('/customer/menu');
+          } catch (profileError) {
+            console.error('Profile error:', profileError);
+            setError('Error retrieving user profile. Please try again.');
+            setTimeout(() => navigate('/auth/login'), 3000);
             return;
           }
         } else {

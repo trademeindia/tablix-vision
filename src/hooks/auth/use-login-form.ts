@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getRedirectPathByRole } from './use-redirect-paths';
+import { validateRole } from './role-utils';
 
 interface UseLoginFormProps {
   redirectTo?: string;
@@ -32,12 +33,21 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     
     try {
       console.log('Attempting to sign in with email:', email);
+      
+      // Store selected role for proper redirection after authentication
+      if (role) {
+        localStorage.setItem('selectedRole', role);
+        console.log('Saved selected role for redirection:', role);
+      }
+      
       const { error } = await signIn(email, password);
       
       if (error) {
         console.error('Login error:', error);
         setError(error.message || 'Failed to sign in. Please check your credentials.');
         setIsSubmitting(false);
+        // Clear selected role on error
+        localStorage.removeItem('selectedRole');
         return;
       }
       
@@ -47,11 +57,19 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       console.error('Login error:', error);
       setError('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
+      // Clear selected role on error
+      localStorage.removeItem('selectedRole');
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
+      // Store selected role for proper redirection after authentication
+      if (role) {
+        localStorage.setItem('selectedRole', role);
+        console.log('Saved selected role for Google auth redirection:', role);
+      }
+      
       await signInWithGoogle();
       // Redirect will be handled by the OAuth callback
     } catch (error) {
@@ -61,6 +79,8 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         description: "There was a problem signing in with Google. Please try again.",
         variant: "destructive",
       });
+      // Clear selected role on error
+      localStorage.removeItem('selectedRole');
     }
   };
   
@@ -71,8 +91,17 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     try {
       console.log('Attempting demo login for role:', demoCredentials.role);
       
+      // Validate the role
+      const validatedRole = validateRole(demoCredentials.role);
+      
+      if (!validatedRole) {
+        setError(`Invalid role: ${demoCredentials.role}`);
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Store the role for proper redirection
-      localStorage.setItem('selectedRole', demoCredentials.role);
+      localStorage.setItem('selectedRole', validatedRole);
       
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -87,7 +116,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         // Show toast notification for successful demo login
         toast({
           title: 'Demo Mode Activated',
-          description: `You're now viewing the application as a ${demoCredentials.role}.`,
+          description: `You're now viewing the application as a ${validatedRole}.`,
         });
 
         // Redirect will happen automatically through the auth context
@@ -104,8 +133,8 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           password: demoCredentials.password,
           options: {
             data: {
-              full_name: `Demo ${demoCredentials.role.charAt(0).toUpperCase() + demoCredentials.role.slice(1)}`,
-              role: demoCredentials.role, // Store role in user metadata
+              full_name: `Demo ${validatedRole.charAt(0).toUpperCase() + validatedRole.slice(1)}`,
+              role: validatedRole, // Store role in user metadata
             },
           }
         });
@@ -116,11 +145,15 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           if (signUpError.message.includes('User already registered')) {
             setError('This demo account already exists but could not be accessed. Please try a different demo account or contact support.');
             setIsSubmitting(false);
+            // Clear selected role on error
+            localStorage.removeItem('selectedRole');
             return;
           }
           
           setError(signUpError.message || 'Failed to create demo account');
           setIsSubmitting(false);
+          // Clear selected role on error
+          localStorage.removeItem('selectedRole');
           return;
         }
         
@@ -149,11 +182,15 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
                 variant: 'destructive',
               });
               setIsSubmitting(false);
+              // Clear selected role on error
+              localStorage.removeItem('selectedRole');
               return;
             }
             
             setError(secondSignInError.message || 'Failed to sign in with demo account');
             setIsSubmitting(false);
+            // Clear selected role on error
+            localStorage.removeItem('selectedRole');
             return;
           }
           
@@ -164,7 +201,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
             // Show success toast
             toast({
               title: 'Demo Mode Activated',
-              description: `You're now viewing the application as a ${demoCredentials.role}.`,
+              description: `You're now viewing the application as a ${validatedRole}.`,
             });
             
             // Redirect will happen automatically through the auth context
@@ -176,6 +213,8 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     } catch (error) {
       console.error('Demo login error:', error);
       setError('An unexpected error occurred. Please try again.');
+      // Clear selected role on error
+      localStorage.removeItem('selectedRole');
     } finally {
       setIsSubmitting(false);
     }
