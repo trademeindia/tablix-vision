@@ -73,15 +73,20 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
     onClose: () => onOpenChange(false)
   });
 
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    form.handleSubmit(handleSubmit)(e);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Edit Staff Member</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={onFormSubmit} className="space-y-4">
             <StaffForm form={form} existingStaff={staff} />
             
             <DialogFooter className="mt-6">

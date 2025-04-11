@@ -97,10 +97,26 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
               <TableCell>{item.supplier}</TableCell>
               <TableCell>
                 <div className="flex space-x-1">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log("Edit button clicked");
+                    }}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 text-red-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log("Delete button clicked");
+                    }}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

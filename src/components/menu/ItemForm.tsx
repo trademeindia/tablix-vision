@@ -63,12 +63,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
   const handleSubmit = useCallback((event: React.FormEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     form.handleSubmit(handleFormSubmit)(event);
   }, [form, handleFormSubmit]);
   
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-8" onClick={(e) => e.stopPropagation()}>
         <BasicInfoFields 
           form={form} 
           categories={categories} 

@@ -22,7 +22,10 @@ const StaffActions: React.FC<StaffActionsProps> = ({
       <Button 
         variant="ghost"
         size="sm"
-        onClick={() => onView(staff)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onView(staff);
+        }}
         title="View Details"
       >
         View
@@ -30,7 +33,10 @@ const StaffActions: React.FC<StaffActionsProps> = ({
       <Button 
         variant="ghost"
         size="sm"
-        onClick={() => onEdit(staff)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit(staff);
+        }}
         title="Edit Staff"
       >
         <Pencil className="h-4 w-4" />
@@ -38,7 +44,10 @@ const StaffActions: React.FC<StaffActionsProps> = ({
       <Button 
         variant="ghost"
         size="sm"
-        onClick={() => onDelete(staff)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(staff);
+        }}
         title="Delete Staff"
       >
         <Trash2 className="h-4 w-4" />

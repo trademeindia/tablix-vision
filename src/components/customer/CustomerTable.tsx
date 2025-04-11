@@ -112,27 +112,36 @@ const CustomerTable: React.FC<CustomerTableProps> = ({
                     <span>{customer.loyaltyPoints || 0}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                <TableCell className="text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewDetails(customer)}>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        onViewDetails(customer);
+                      }}>
                         <Eye className="mr-2 h-4 w-4" />
                         <span>View details</span>
                       </DropdownMenuItem>
                       {onEdit && (
-                        <DropdownMenuItem onClick={() => onEdit(customer)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(customer);
+                        }}>
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit</span>
                         </DropdownMenuItem>
                       )}
                       {onDelete && (
-                        <DropdownMenuItem onClick={() => onDelete(customer)}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(customer);
+                        }}>
                           <Trash2 className="mr-2 h-4 w-4" />
                           <span>Delete</span>
                         </DropdownMenuItem>
