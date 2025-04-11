@@ -21,10 +21,6 @@ const AuthCallbackPage = () => {
         setStatus('Checking authentication session...');
         console.log('Auth callback started - checking for session');
 
-        // Get the access token from the URL
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        
         // Handle Google OAuth flow
         const { data, error } = await supabase.auth.getSession();
         

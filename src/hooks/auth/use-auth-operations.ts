@@ -163,6 +163,7 @@ export function useAuthOperations() {
       
       console.log('Initiating Google sign-in with redirect URL:', redirectUrl);
       
+      // Modified to use pkce flow and specific redirectTo option
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -170,7 +171,8 @@ export function useAuthOperations() {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          flowType: 'pkce'  // Use PKCE flow for better security
         }
       });
       
