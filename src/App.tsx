@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// Handler for route monitoring
+// Simple route handler for logging
 const RouteHandler = () => {
   const location = useLocation();
   

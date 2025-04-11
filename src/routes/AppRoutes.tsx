@@ -47,10 +47,11 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Don't redirect from root path if the user is not logged in
-  if (path === '/' && !user && !loading) {
+  // Important: If we're at the root path and not authenticated, just show the landing page
+  // This is the key fix to ensure landing page is shown when accessing the app URL
+  if (path === '/' && !user) {
     console.log('Anonymous user at root path, showing landing page');
-    // Just render the normal route
+    return <PublicRoutes />;
   }
   
   // Only redirect authenticated users from the root path after login
@@ -117,7 +118,7 @@ const AppRoutes: React.FC = () => {
     return <AdminRoutes />;
   }
   
-  // Default to public routes
+  // Default to public routes for all other paths
   return <PublicRoutes />;
 };
 
