@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const { userRoles, fetchUserRoles, loading: rolesLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const { toast } = useToast();
 
   // Fetch user roles whenever the user changes
@@ -64,8 +65,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Then fetch latest from backend as well
           await fetchUserRoles(user.id);
           
-          // Show toast notification for successful login with role
-          if (!loading && userRoles.length > 0) {
+          // Show toast notification for successful login with role, but only for non-initial loads
+          if (!loading && userRoles.length > 0 && initialLoadComplete) {
             // Make sure we have a valid role before using it
             const primaryRole = userRoles[0] ? 
               userRoles[0].charAt(0).toUpperCase() + userRoles[0].slice(1) : 
@@ -78,11 +79,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         } catch (error) {
           console.error("Error fetching user roles:", error);
-          // If roles fetch fails, show a generic welcome message
-          toast({
-            title: `Welcome back`,
-            description: `You've successfully logged in to your dashboard.`,
-          });
+          // If roles fetch fails, show a generic welcome message for non-initial loads
+          if (initialLoadComplete) {
+            toast({
+              title: `Welcome back`,
+              description: `You've successfully logged in to your dashboard.`,
+            });
+          }
         }
       } else {
         console.log("Auth context: No user detected");
@@ -90,13 +93,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // We always set loading to false, regardless of whether we have a user or not
       setLoading(false);
+      // Set initial load complete after the first auth check
+      if (!initialLoadComplete) {
+        setInitialLoadComplete(true);
+      }
     };
 
     // Only wait for roles if we have a user
     if (!sessionLoading) {
       loadUserRoles();
     }
-  }, [user, sessionLoading, fetchUserRoles, loading, userRoles, toast]);
+  }, [user, sessionLoading, fetchUserRoles, loading, userRoles, toast, initialLoadComplete]);
 
   // Listen for demo override
   useEffect(() => {

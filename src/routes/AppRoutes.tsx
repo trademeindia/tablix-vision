@@ -14,6 +14,7 @@ const AppRoutes: React.FC = () => {
   const { user, userRoles, loading } = useAuth();
   const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
+  const [initialLoad, setInitialLoad] = useState<boolean>(true);
 
   // Check for demo override
   const isDemoOverrideActive = localStorage.getItem('demoOverride') === 'true';
@@ -45,6 +46,14 @@ const AppRoutes: React.FC = () => {
     }
   }, [location]);
 
+  // Handle initial page load - prevent automatic redirects except explicit ones
+  useEffect(() => {
+    if (!loading) {
+      // Mark that initial load is complete
+      setInitialLoad(false);
+    }
+  }, [loading]);
+
   // Show error message if route loading failed
   if (loadingError) {
     return (
@@ -61,13 +70,14 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Important: If we're at the root path and not authenticated, just show the landing page
-  if (path === '/' && !user) {
+  // Critical: If we're at the root path (/) AND it's the initial load, show the landing page
+  // regardless of authentication status. This prevents the "bounce" effect.
+  if (path === '/' && initialLoad) {
     return <PublicRoutes />;
   }
   
-  // Only redirect authenticated users from the root path after login
-  if (path === '/' && user && !loading) {
+  // Only redirect authenticated users from the root path after login AND explicit navigation
+  if (path === '/' && user && !loading && !initialLoad) {
     return <Navigate to={redirectPath} replace />;
   }
 
