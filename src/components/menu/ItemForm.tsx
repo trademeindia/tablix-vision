@@ -69,7 +69,11 @@ const ItemForm: React.FC<ItemFormProps> = ({
   
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-8" onClick={(e) => e.stopPropagation()}>
+      <form 
+        onSubmit={handleSubmit} 
+        className="space-y-8" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <BasicInfoFields 
           form={form} 
           categories={categories} 
@@ -89,7 +93,12 @@ const ItemForm: React.FC<ItemFormProps> = ({
         
         <AvailabilityFields form={form} />
         
-        <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
+        <Button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="w-full md:w-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           {isSubmitting ? "Saving..." : initialData ? "Update Item" : "Create Item"}
         </Button>
       </form>

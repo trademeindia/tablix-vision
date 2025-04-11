@@ -55,50 +55,70 @@ const EditStaffDialog: React.FC<EditStaffDialogProps> = ({
 
   // Reset form when staff changes
   useEffect(() => {
-    form.reset({
-      name: staff.name,
-      email: staff.email,
-      phone: staff.phone,
-      role: staff.role as any,
-      status: staff.status,
-      salary: staff.salary,
-      emergency_contact: staff.emergency_contact || '',
-      profile_image: null
-    });
-  }, [staff, form]);
+    if (open) {
+      form.reset({
+        name: staff.name,
+        email: staff.email,
+        phone: staff.phone,
+        role: staff.role as any,
+        status: staff.status,
+        salary: staff.salary,
+        emergency_contact: staff.emergency_contact || '',
+        profile_image: null
+      });
+    }
+  }, [staff, form, open]);
 
   const { handleSubmit, isSubmitting } = useStaffEdit({
     staff,
-    onSuccess: onStaffUpdated,
+    onSuccess: () => {
+      onStaffUpdated();
+      onOpenChange(false);
+    },
     onClose: () => onOpenChange(false)
   });
 
   const onFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     form.handleSubmit(handleSubmit)(e);
+  };
+
+  const handleDialogClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <DialogContent 
+        className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto" 
+        onClick={handleDialogClick}
+      >
         <DialogHeader>
           <DialogTitle>Edit Staff Member</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={onFormSubmit} className="space-y-4">
+          <form onSubmit={onFormSubmit} className="space-y-4" onClick={(e) => e.stopPropagation()}>
             <StaffForm form={form} existingStaff={staff} />
             
             <DialogFooter className="mt-6">
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => onOpenChange(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenChange(false);
+                }}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                onClick={(e) => e.stopPropagation()}
+              >
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>

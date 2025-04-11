@@ -85,7 +85,10 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background border shadow-lg" onClick={(e) => e.stopPropagation()}>
+      <DialogContent 
+        className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background border shadow-lg" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <DialogHeader>
           <DialogTitle className="text-foreground">Edit Menu Item</DialogTitle>
           <DialogDescription className="text-muted-foreground">

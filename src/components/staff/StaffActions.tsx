@@ -18,7 +18,7 @@ const StaffActions: React.FC<StaffActionsProps> = ({
   onDelete 
 }) => {
   return (
-    <div className="flex items-center justify-end space-x-2">
+    <div className="flex items-center justify-end space-x-2" onClick={(e) => e.stopPropagation()}>
       <Button 
         variant="ghost"
         size="sm"
