@@ -66,6 +66,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log("Auth context: Found saved role in localStorage");
           }
           
+          // For demo users, always enable the demo override
+          if (user.email?.endsWith('@demo.com')) {
+            localStorage.setItem('demoOverride', 'true');
+            console.log("Demo user detected, enabling demo override");
+          }
+          
           // Then fetch latest from backend as well
           await fetchUserRoles(user.id);
           

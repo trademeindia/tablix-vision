@@ -40,6 +40,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // If demo override is active, allow access regardless of roles
   if ((isDemoAccount || isGoogleAuth) && isDemoOverrideActive) {
     console.log("Demo override is active, allowing access to:", location.pathname);
+    localStorage.setItem('demoOverride', 'true'); // Ensure it's set
     return <>{children}</>;
   }
   
@@ -47,6 +48,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (requiredRoles && requiredRoles.length > 0) {
     // Check if user has at least one of the required roles
     const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
+    
+    // If user is a demo account but doesn't have required role, set demo override
+    if (isDemoAccount && !hasRequiredRole) {
+      console.log("Demo account without required role, enabling demo override");
+      localStorage.setItem('demoOverride', 'true');
+      return <>{children}</>;
+    }
     
     if (!hasRequiredRole) {
       // Save debugging information to help troubleshoot

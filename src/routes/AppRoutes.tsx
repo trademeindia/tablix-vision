@@ -37,6 +37,8 @@ const AppRoutes: React.FC = () => {
       // Only log in development mode
       if (process.env.NODE_ENV === 'development') {
         console.log('Current path:', location.pathname);
+        console.log('User roles:', userRoles);
+        console.log('Redirect path:', redirectPath);
       }
       setPath(location.pathname);
       setLoadingError(false);
@@ -44,7 +46,7 @@ const AppRoutes: React.FC = () => {
       console.error('Error updating route:', error);
       setLoadingError(true);
     }
-  }, [location]);
+  }, [location, redirectPath, userRoles]);
 
   // Handle initial page load - prevent automatic redirects except explicit ones
   useEffect(() => {
@@ -53,7 +55,7 @@ const AppRoutes: React.FC = () => {
       // This delay ensures landing page is visible before any redirects
       const timer = setTimeout(() => {
         setInitialLoad(false);
-      }, 3000); // 3 second delay before allowing redirects
+      }, 1000); // 1 second delay before allowing redirects
       
       return () => clearTimeout(timer);
     }
@@ -88,11 +90,13 @@ const AppRoutes: React.FC = () => {
   
   // Only redirect authenticated users from index page after login AND explicit navigation
   if (path === '/index' && user && !loading && !initialLoad) {
+    console.log('Redirecting from index to', redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
 
   // For demo users with override active, redirect to appropriate dashboard
   if (isDemoUser && isDemoOverrideActive && path === '/unauthorized') {
+    console.log('Demo user with override active, redirecting to', redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -100,6 +104,7 @@ const AppRoutes: React.FC = () => {
   if (path === '/unauthorized' && isDemoUser && location.state?.from?.pathname) {
     // If demo override is active, redirect to the original destination
     if (isDemoOverrideActive) {
+      console.log('Redirecting from unauthorized to', location.state.from.pathname);
       return <Navigate to={location.state.from.pathname} replace />;
     }
   }
@@ -107,6 +112,12 @@ const AppRoutes: React.FC = () => {
   // Handle the public customer-menu route separately
   if (path === '/customer-menu') {
     return <PublicRoutes />;
+  }
+
+  // When authenticated and initial load is complete, check for redirections to dashboard
+  if (user && !loading && !initialLoad && path === '/auth/login') {
+    console.log('User logged in at login page, redirecting to', redirectPath);
+    return <Navigate to={redirectPath} replace />;
   }
 
   // Check if the user has permission for the requested path
@@ -117,6 +128,12 @@ const AppRoutes: React.FC = () => {
     if (!hasPermission && path !== '/unauthorized' && !path.startsWith('/auth/')) {
       console.log(`User lacks permission for ${path}, redirecting to unauthorized`);
       return <Navigate to="/unauthorized" state={{ from: location, requiredRoles: [], userRoles }} replace />;
+    }
+    
+    // For demo users, set demo override to true automatically
+    if (isDemoUser && !isDemoOverrideActive) {
+      console.log('Demo user detected, setting demo override');
+      localStorage.setItem('demoOverride', 'true');
     }
   }
 

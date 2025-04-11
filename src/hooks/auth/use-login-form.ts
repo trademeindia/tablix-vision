@@ -51,6 +51,11 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
         return;
       }
       
+      // For demo accounts, always enable demo override
+      if (email.endsWith('@demo.com')) {
+        localStorage.setItem('demoOverride', 'true');
+      }
+      
       // Role-based redirect will happen in the auth context after user roles are loaded
       console.log('Sign-in successful, redirection will happen based on user role');
     } catch (error) {
@@ -103,6 +108,9 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
       // Store the role for proper redirection
       localStorage.setItem('selectedRole', validatedRole);
       
+      // Always enable demo override for demo accounts
+      localStorage.setItem('demoOverride', 'true');
+      
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: demoCredentials.email,
@@ -119,7 +127,16 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           description: `You're now viewing the application as a ${validatedRole}.`,
         });
 
-        // Redirect will happen automatically through the auth context
+        // Calculate the redirect path
+        const redirectPath = getRedirectPathByRole(validatedRole);
+        console.log('Redirecting to:', redirectPath);
+        
+        // Use a short delay to allow auth state to update
+        setTimeout(() => {
+          // Use window.location for a hard redirect to avoid router issues
+          window.location.href = redirectPath;
+        }, 500);
+        
         return;
       }
       
@@ -204,7 +221,16 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
               description: `You're now viewing the application as a ${validatedRole}.`,
             });
             
-            // Redirect will happen automatically through the auth context
+            // Calculate the redirect path
+            const redirectPath = getRedirectPathByRole(validatedRole);
+            console.log('Redirecting to:', redirectPath);
+            
+            // Use a short delay to allow auth state to update
+            setTimeout(() => {
+              // Use window.location for a hard redirect to avoid router issues
+              window.location.href = redirectPath;
+            }, 500);
+            
             return;
           }
         }
