@@ -1,54 +1,32 @@
 
 import React from 'react';
 import { Routes } from 'react-router-dom';
-import {
-  DashboardRoutes,
-  MenuRoutes,
-  OrderRoutes,
-  QRCodeRoutes,
-  TableRoutes,
-  StaffRoutes,
-  CustomerRoutes,
-  InvoiceRoutes,
-  InventoryRoutes,
-  MarketingRoutes,
-  SettingsRoutes
-} from './admin';
+import DashboardRoutes from './admin/DashboardRoutes';
+import MenuRoutes from './admin/MenuRoutes';
+import OrderRoutes from './admin/OrderRoutes';
+import QRCodeRoutes from './admin/QRCodeRoutes';
+import TableRoutes from './admin/TableRoutes';
+import StaffRoutes from './admin/StaffRoutes';
+import CustomerRoutes from './admin/CustomerRoutes';
+import InvoiceRoutes from './admin/InvoiceRoutes';
+import InventoryRoutes from './admin/InventoryRoutes';
+import MarketingRoutes from './admin/MarketingRoutes';
+import SettingsRoutes from './admin/SettingsRoutes';
 
 const AdminRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Dashboard & Analytics */}
+      {/* Render the routes by spreading them inside the Routes component */}
       <DashboardRoutes />
-      
-      {/* Menu Management */}
       <MenuRoutes />
-      
-      {/* Order Management */}
       <OrderRoutes />
-      
-      {/* QR Code Management */}
       <QRCodeRoutes />
-      
-      {/* Table Management */}
       <TableRoutes />
-      
-      {/* Staff Management */}
       <StaffRoutes />
-      
-      {/* Customer Management */}
       <CustomerRoutes />
-      
-      {/* Invoice Management */}
-      <InvoiceRoutes />
-      
-      {/* Inventory Management */}
       <InventoryRoutes />
-      
-      {/* Marketing & Integrations */}
+      <InvoiceRoutes />
       <MarketingRoutes />
-      
-      {/* Settings */}
       <SettingsRoutes />
     </Routes>
   );
