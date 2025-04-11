@@ -17,15 +17,21 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       description: 'Access the complete restaurant management dashboard',
       icon: <Utensils className="h-8 w-8 text-green-600" />,
       email: 'owner@demo.com',
-      password: 'demo123'
+      password: 'demo123',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-300',
+      buttonColor: 'bg-green-600 hover:bg-green-700'
     },
     {
       role: 'chef',
       title: 'Kitchen Chef',
       description: 'Access the kitchen dashboard with order management',
-      icon: <ChefHat className="h-8 w-8 text-red-600" />,
+      icon: <ChefHat className="h-8 w-8 text-orange-600" />,
       email: 'chef@demo.com',
-      password: 'demo123'
+      password: 'demo123',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-300',
+      buttonColor: ''
     },
     {
       role: 'waiter',
@@ -33,7 +39,10 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       description: 'Access the waiter interface for orders and tables',
       icon: <Users className="h-8 w-8 text-blue-600" />,
       email: 'waiter@demo.com',
-      password: 'demo123'
+      password: 'demo123',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      buttonColor: ''
     },
     {
       role: 'customer',
@@ -41,7 +50,10 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       description: 'Browse menu and place orders as a customer',
       icon: <ShoppingBag className="h-8 w-8 text-amber-600" />,
       email: 'customer@demo.com',
-      password: 'demo123'
+      password: 'demo123',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+      buttonColor: ''
     }
   ];
 
@@ -50,10 +62,13 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
       <h3 className="text-lg font-semibold text-center mb-4">Demo Accounts</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {demoAccounts.map((account) => (
-          <Card key={account.role} className={`hover:shadow-md transition-shadow ${account.role === 'owner' ? 'border-green-300 bg-green-50' : ''}`}>
+          <Card 
+            key={account.role} 
+            className={`hover:shadow-md transition-shadow ${account.bgColor} ${account.borderColor} border`}
+          >
             <CardContent className="p-4">
               <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mr-3 flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mr-3 flex-shrink-0">
                   {account.icon}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -63,7 +78,7 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
                 <Button 
                   size="sm" 
                   variant={account.role === 'owner' ? "default" : "outline"}
-                  className={`ml-2 flex-shrink-0 ${account.role === 'owner' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                  className={`ml-2 flex-shrink-0 ${account.buttonColor}`}
                   onClick={() => onSelectDemo({
                     email: account.email,
                     password: account.password,
@@ -74,7 +89,7 @@ const DemoAccountSelector: React.FC<DemoAccountSelectorProps> = ({ onSelectDemo,
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    account.role === 'owner' ? "Access" : "Try"
+                    "Access"
                   )}
                 </Button>
               </div>

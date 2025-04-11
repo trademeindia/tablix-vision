@@ -7,6 +7,7 @@ import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
 import { useAuth } from '@/contexts/AuthContext';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -51,24 +52,25 @@ const AppRoutes: React.FC = () => {
   if (path === '/' && user && !loading) {
     console.log('Authenticated user at root path. Redirecting based on role:', userRoles);
     
-    if (userRoles.includes('owner') || userRoles.includes('manager')) {
-      return <Navigate to="/dashboard" replace />;
-    } else if (userRoles.includes('chef')) {
-      return <Navigate to="/staff-dashboard/kitchen" replace />;
-    } else if (userRoles.includes('waiter')) {
-      return <Navigate to="/staff-dashboard/orders" replace />;
-    } else if (userRoles.includes('staff')) {
-      return <Navigate to="/staff-dashboard" replace />;
-    } else if (userRoles.includes('customer')) {
-      // IMPORTANT: Don't automatically redirect customers to menu page
-      // Let them manually navigate to avoid redirection loop
-      return <PublicRoutes />;
+    if (userRoles.length > 0) {
+      const primaryRole = userRoles[0];
+      const redirectPath = getRedirectPathByRole(primaryRole);
+      console.log(`Redirecting to ${redirectPath} based on primary role ${primaryRole}`);
+      return <Navigate to={redirectPath} replace />;
+    } else {
+      console.log('No roles found, defaulting to customer menu');
+      return <Navigate to="/customer/menu" replace />;
     }
   }
 
-  // For demo users with override active, redirect to dashboard
+  // For demo users with override active, redirect to appropriate dashboard based on role
   if (isDemoUser && isDemoOverrideActive && path === '/unauthorized') {
-    return <Navigate to="/dashboard" replace />;
+    if (userRoles.length > 0) {
+      const primaryRole = userRoles[0];
+      const redirectPath = getRedirectPathByRole(primaryRole);
+      console.log(`Demo user with override, redirecting to ${redirectPath}`);
+      return <Navigate to={redirectPath} replace />;
+    }
   }
 
   // Special case for the unauthorized page when using demo override

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Utensils, ShoppingBag, Users } from 'lucide-react';
+import { Utensils, ShoppingBag, Users, ChefHat } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
@@ -16,15 +16,12 @@ const Index = () => {
   useEffect(() => {
     if (!loading && user) {
       // Check user roles and redirect accordingly
-      if (userRoles.includes('owner') || userRoles.includes('manager')) {
-        navigate('/dashboard');
-      } else if (userRoles.includes('chef')) {
-        navigate('/staff-dashboard/kitchen');
-      } else if (userRoles.includes('waiter')) {
-        navigate('/staff-dashboard/orders');
-      } else if (userRoles.includes('staff')) {
-        navigate('/staff-dashboard');
-      } else if (userRoles.includes('customer')) {
+      if (userRoles.length > 0) {
+        const primaryRole = userRoles[0];
+        const redirectPath = getRedirectPathByRole(primaryRole);
+        navigate(redirectPath);
+      } else {
+        // Default to customer menu if no roles are found
         navigate('/customer/menu');
       }
     }
@@ -77,74 +74,83 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="hover:shadow-lg transition-shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="hover:shadow-lg transition-shadow border-green-300 bg-green-50">
                 <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
                     <Utensils className="h-8 w-8 text-green-600" />
                   </div>
                   <CardTitle>Restaurant Owner</CardTitle>
                   <CardDescription>Complete management dashboard</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="mb-6 text-slate-500">
-                    Access all restaurant management features, including staff management, menu control, and analytics.
+                  <p className="mb-6 text-slate-600">
+                    Access all restaurant management features.
                   </p>
-                  <Button className="w-full" asChild>
+                  <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
                     <Link to="/auth/login?role=owner">Access as Owner</Link>
                   </Button>
-                  <div className="mt-3">
-                    <span className="text-xs text-slate-500">Demo account available</span>
-                  </div>
                 </CardContent>
               </Card>
               
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="hover:shadow-lg transition-shadow border-orange-300 bg-orange-50">
                 <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
+                    <ChefHat className="h-8 w-8 text-orange-600" />
+                  </div>
+                  <CardTitle>Kitchen Chef</CardTitle>
+                  <CardDescription>Kitchen order management</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="mb-6 text-slate-600">
+                    Manage kitchen operations and orders.
+                  </p>
+                  <Button className="w-full" variant="outline" asChild>
+                    <Link to="/auth/login?role=chef">Access as Chef</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-lg transition-shadow border-blue-300 bg-blue-50">
+                <CardHeader className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
                   <CardTitle>Restaurant Staff</CardTitle>
-                  <CardDescription>Order & kitchen management</CardDescription>
+                  <CardDescription>Order & service management</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="mb-6 text-slate-500">
-                    For waiters, chefs, and other staff members to manage orders, kitchen operations, and service.
+                  <p className="mb-6 text-slate-600">
+                    Manage orders and customer service.
                   </p>
-                  <Button className="w-full" asChild>
-                    <Link to="/auth/login?role=staff">Access as Staff</Link>
+                  <Button className="w-full" variant="outline" asChild>
+                    <Link to="/auth/login?role=waiter">Access as Waiter</Link>
                   </Button>
-                  <div className="mt-3">
-                    <span className="text-xs text-slate-500">Demo account available</span>
-                  </div>
                 </CardContent>
               </Card>
               
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="hover:shadow-lg transition-shadow border-amber-300 bg-amber-50">
                 <CardHeader className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-amber-100 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
                     <ShoppingBag className="h-8 w-8 text-amber-600" />
                   </div>
                   <CardTitle>Customer</CardTitle>
                   <CardDescription>Menu browsing & ordering</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="mb-6 text-slate-500">
-                    Browse restaurant menu, place orders, and manage your customer profile and preferences.
+                  <p className="mb-6 text-slate-600">
+                    Browse menu and place orders.
                   </p>
-                  <Button className="w-full" asChild>
+                  <Button className="w-full" variant="outline" asChild>
                     <Link to="/auth/login?role=customer">Access as Customer</Link>
                   </Button>
-                  <div className="mt-3">
-                    <span className="text-xs text-slate-500">Demo account available</span>
-                  </div>
                 </CardContent>
               </Card>
             </div>
             
             <div className="mt-12 text-center">
               <p className="text-slate-600 mb-6">
-                <span className="font-semibold">Quick Demo:</span> Choose one of the roles above to explore the dashboard with a demo account.
+                Choose one of the roles above to explore the dashboard with a demo account.
                 <br />No sign-up required!
               </p>
               <Button variant="outline" asChild>

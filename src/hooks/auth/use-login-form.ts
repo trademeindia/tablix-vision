@@ -22,6 +22,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
 
   const handleRoleChange = (newRole: string) => {
     setRole(newRole);
+    console.log('Role changed to:', newRole);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,29 +31,37 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     setIsSubmitting(true);
     
     try {
+      console.log('Attempting to sign in with email:', email);
       const { error } = await signIn(email, password);
       
       if (error) {
         console.error('Login error:', error);
         setError(error.message || 'Failed to sign in. Please check your credentials.');
+        setIsSubmitting(false);
         return;
       }
       
-      // Redirect based on role parameter or to home page
-      const redirectPath = getRedirectPathByRole(role);
-      
-      navigate(redirectPath);
+      // Role-based redirect will happen in the auth context after user roles are loaded
+      console.log('Sign-in successful, redirection will happen based on user role');
     } catch (error) {
       console.error('Login error:', error);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
-    // Redirect will be handled by the OAuth callback
+    try {
+      await signInWithGoogle();
+      // Redirect will be handled by the OAuth callback
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      toast({
+        title: "Google Sign-In Failed",
+        description: "There was a problem signing in with Google. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleDemoLogin = async (demoCredentials: { email: string; password: string; role: string }) => {
@@ -61,6 +70,9 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
     
     try {
       console.log('Attempting demo login for role:', demoCredentials.role);
+      
+      // Store the role for proper redirection
+      localStorage.setItem('selectedRole', demoCredentials.role);
       
       // First try to sign in with demo account credentials
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -78,9 +90,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
           description: `You're now viewing the application as a ${demoCredentials.role}.`,
         });
 
-        // Redirect based on demo account role
-        const redirectPath = getRedirectPathByRole(demoCredentials.role);
-        navigate(redirectPath);
+        // Redirect will happen automatically through the auth context
         return;
       }
       
@@ -157,9 +167,7 @@ export const useLoginForm = ({ redirectTo = '/' }: UseLoginFormProps = {}) => {
               description: `You're now viewing the application as a ${demoCredentials.role}.`,
             });
             
-            // Redirect based on demo account role
-            const redirectPath = getRedirectPathByRole(demoCredentials.role);
-            navigate(redirectPath);
+            // Redirect will happen automatically through the auth context
             return;
           }
         }

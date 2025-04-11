@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode, useEffect, useState } from
 import { User, Session } from '@supabase/supabase-js';
 import { useSession } from '@/hooks/use-session';
 import { useUserRole, UserRole } from '@/hooks/use-user-role';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const { userRoles, fetchUserRoles, loading: rolesLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   // Fetch user roles whenever the user changes
   useEffect(() => {
@@ -61,6 +63,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Then fetch latest from backend as well
           await fetchUserRoles(user.id);
+          
+          // Show toast notification for successful login with role
+          if (!loading && userRoles.length > 0) {
+            const primaryRole = userRoles[0].charAt(0).toUpperCase() + userRoles[0].slice(1);
+            toast({
+              title: `Welcome, ${primaryRole}`,
+              description: `You've successfully logged in to the ${primaryRole} dashboard.`,
+            });
+          }
         } catch (error) {
           console.error("Error fetching user roles:", error);
         }
@@ -76,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!sessionLoading) {
       loadUserRoles();
     }
-  }, [user, sessionLoading, fetchUserRoles]);
+  }, [user, sessionLoading, fetchUserRoles, loading, userRoles, toast]);
 
   // Listen for demo override
   useEffect(() => {
@@ -91,6 +102,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Clear any saved role data
     localStorage.removeItem('userRole');
     localStorage.removeItem('demoOverride');
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
     // Perform supabase signout
     return signOut();
   };

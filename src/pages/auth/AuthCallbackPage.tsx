@@ -8,12 +8,14 @@ import { UserRole } from '@/hooks/use-user-role';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
+import { useToast } from '@/hooks/use-toast';
 
 const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('Processing authentication...');
   const [isProcessing, setIsProcessing] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -36,6 +38,38 @@ const AuthCallbackPage = () => {
         if (data.session?.user) {
           const userId = data.session.user.id;
           console.log('User authenticated:', userId);
+          
+          // Check if there was a selected role from the login page
+          const selectedRole = localStorage.getItem('selectedRole');
+          if (selectedRole) {
+            console.log('Found selected role in localStorage:', selectedRole);
+            
+            // Set the user role in localStorage for immediate use
+            let roles: UserRole[] = [selectedRole as UserRole];
+            // Add implied roles
+            if (selectedRole === 'owner') roles.push('manager');
+            if (selectedRole === 'chef' || selectedRole === 'waiter') roles.push('staff');
+            
+            localStorage.setItem('userRole', JSON.stringify(roles));
+            localStorage.removeItem('selectedRole'); // Clean up
+            
+            // For Google auth users, set demo override to true to avoid permission issues
+            if (data.session.user.app_metadata.provider === 'google') {
+              console.log('Google auth detected, enabling demo override');
+              localStorage.setItem('demoOverride', 'true');
+            }
+            
+            // Show toast notification for successful login
+            toast({
+              title: 'Login Successful',
+              description: `Welcome to your ${selectedRole} dashboard!`,
+            });
+            
+            const redirectPath = getRedirectPathByRole(selectedRole);
+            console.log(`Redirecting to ${redirectPath} based on selected role ${selectedRole}`);
+            navigate(redirectPath);
+            return;
+          }
           
           // Get user profile with role
           const { data: profileData, error: profileError } = await supabase
@@ -73,6 +107,12 @@ const AuthCallbackPage = () => {
               // Update localStorage with role for immediate use
               localStorage.setItem('userRole', JSON.stringify(['customer']));
               
+              // Show welcome toast
+              toast({
+                title: 'Welcome to Menu 360!',
+                description: 'Your account has been created successfully.',
+              });
+              
               // Redirect to customer page
               navigate('/customer/menu');
               return;
@@ -101,6 +141,12 @@ const AuthCallbackPage = () => {
               console.log('Google auth detected, enabling demo override');
               localStorage.setItem('demoOverride', 'true');
             }
+            
+            // Show welcome toast
+            toast({
+              title: 'Login Successful',
+              description: `Welcome to your ${role} dashboard!`,
+            });
             
             const redirectPath = getRedirectPathByRole(role);
             console.log(`Redirecting to ${redirectPath} based on role ${role}`);
@@ -133,7 +179,7 @@ const AuthCallbackPage = () => {
     };
     
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <>
