@@ -2,6 +2,7 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { UserRole } from '@/hooks/auth/types/user-role.types';
 
 // Customer pages
 import CustomerMenuPage from '@/pages/customer/MenuPage';
@@ -13,35 +14,33 @@ import UserProfilePage from '@/pages/customer/UserProfilePage';
 const CustomerRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Customer routes - protected */}
+      {/* Customer Menu - accessible to all roles */}
       <Route 
-        path="/customer/menu" 
-        element={
-          <ProtectedRoute requiredRoles={['customer']}>
-            <CustomerMenuPage />
-          </ProtectedRoute>
-        } 
+        path="/menu" 
+        element={<CustomerMenuPage />}
       />
+      
+      {/* Customer protected routes */}
       <Route 
-        path="/customer/profile" 
+        path="/profile" 
         element={
-          <ProtectedRoute requiredRoles={['customer']}>
+          <ProtectedRoute requiredRoles={['customer'] as UserRole[]}>
             <CustomerProfilePage />
           </ProtectedRoute>
         } 
       />
       <Route 
-        path="/customer/checkout" 
+        path="/checkout" 
         element={
-          <ProtectedRoute requiredRoles={['customer']}>
+          <ProtectedRoute requiredRoles={['customer'] as UserRole[]}>
             <CustomerCheckoutPage />
           </ProtectedRoute>
         } 
       />
       <Route 
-        path="/customer/call-waiter" 
+        path="/call-waiter" 
         element={
-          <ProtectedRoute requiredRoles={['customer']}>
+          <ProtectedRoute requiredRoles={['customer'] as UserRole[]}>
             <CustomerCallWaiterPage />
           </ProtectedRoute>
         } 
@@ -49,9 +48,9 @@ const CustomerRoutes: React.FC = () => {
       
       {/* Customer user profile route */}
       <Route 
-        path="/customer/user-profile" 
+        path="/user-profile" 
         element={
-          <ProtectedRoute requiredRoles={['customer']}>
+          <ProtectedRoute requiredRoles={['customer'] as UserRole[]}>
             <UserProfilePage />
           </ProtectedRoute>
         } 

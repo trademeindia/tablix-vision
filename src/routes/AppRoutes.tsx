@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, Navigate, Routes, Route } from 'react-router-dom';
 import AdminRoutes from './AdminRoutes';
@@ -8,8 +7,14 @@ import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import { useAuth } from '@/contexts/AuthContext';
-import { getRedirectPathByRole, hasRoutePermission } from '@/hooks/auth/use-redirect-paths';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 import NotFound from '@/pages/NotFound';
+import Menu360LandingPage from '@/pages/landing/Menu360LandingPage';
+import LoginPage from '@/pages/auth/LoginPage';
+import SignupPage from '@/pages/auth/SignupPage';
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
+import UpdatePasswordPage from '@/pages/auth/UpdatePasswordPage';
+import AuthCallbackPage from '@/pages/auth/AuthCallbackPage';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -79,28 +84,30 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Check if current path is an auth route
-  const isAuthRoute = path.startsWith('/auth/') || 
-                      ['login', 'signup', 'reset-password', 'update-password', 'callback'].some(
-                        route => path === `/${route}` || path === `/auth/${route}`
-                      );
-
   return (
     <Routes>
-      {/* First check for auth-related routes */}
-      <Route path="/auth/*" element={<PublicRoutes />} />
+      {/* Landing Page - Root Path */}
+      <Route path="/" element={<Menu360LandingPage />} />
+      <Route path="/menu360" element={<Menu360LandingPage />} />
+      <Route path="/index" element={<Navigate to="/" replace />} />
+      
+      {/* Auth Routes */}
+      <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/signup" element={<SignupPage />} />
+      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      
+      {/* Legacy auth route redirects */}
       <Route path="/login" element={<Navigate to="/auth/login" replace />} />
       <Route path="/signup" element={<Navigate to="/auth/signup" replace />} />
       <Route path="/reset-password" element={<Navigate to="/auth/reset-password" replace />} />
       <Route path="/update-password" element={<Navigate to="/auth/update-password" replace />} />
       <Route path="/callback" element={<Navigate to="/auth/callback" replace />} />
       
-      {/* Public and landing routes */}
-      <Route path="/" element={<PublicRoutes />} />
-      <Route path="/menu360" element={<PublicRoutes />} />
-      <Route path="/index" element={<PublicRoutes />} />
+      {/* Other Public Routes */}
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      <Route path="/customer-menu" element={<PublicRoutes />} />
+      <Route path="/customer-menu" element={<Navigate to="/customer/menu" replace />} />
       
       {/* Protected routes */}
       <Route path="/customer/*" element={<CustomerRoutes />} />

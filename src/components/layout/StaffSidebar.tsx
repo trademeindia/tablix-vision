@@ -74,7 +74,10 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   }
   
   // Get the user's primary role
-  const currentRole = userRoles[0] || 'staff';
+  const primaryRole = userRoles[0] || 'staff';
+  
+  // Format the role name for display (capitalize first letter)
+  const formattedRole = primaryRole.charAt(0).toUpperCase() + primaryRole.slice(1);
   
   // Get staff name from user if available
   const staffName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Staff Member';
@@ -169,7 +172,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
           {!collapsed && (
             <div className="ml-3">
               <p className="text-sm font-medium text-white">{staffName}</p>
-              <p className="text-xs text-slate-400">{currentRole}</p>
+              <p className="text-xs text-slate-400">{formattedRole}</p>
             </div>
           )}
         </div>

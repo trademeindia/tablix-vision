@@ -47,7 +47,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check if user has required roles (if specified)
   if (requiredRoles && requiredRoles.length > 0) {
     // Check if user has at least one of the required roles
-    const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role));
+    const hasRequiredRole = userRoles.some(role => requiredRoles.includes(role as UserRole));
     
     // If user is a demo account but doesn't have required role, set demo override
     if (isDemoAccount && !hasRequiredRole) {

@@ -59,6 +59,21 @@ const PublicRoutes: React.FC = () => {
       <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route path="/callback" element={<AuthCallbackPage />} />
       
+      {/* Extended auth routes for /auth prefix */}
+      <Route path="/auth/login" element={
+        <ConditionalAuthRoute>
+          <LoginPage />
+        </ConditionalAuthRoute>
+      } />
+      <Route path="/auth/signup" element={
+        <ConditionalAuthRoute>
+          <SignupPage />
+        </ConditionalAuthRoute>
+      } />
+      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>

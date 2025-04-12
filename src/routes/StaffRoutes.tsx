@@ -14,7 +14,7 @@ import StaffReportsPage from '@/pages/staff/ReportsPage';
 const StaffRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Staff Dashboard */}
+      {/* Staff Dashboard - Main route */}
       <Route 
         path="/" 
         element={
