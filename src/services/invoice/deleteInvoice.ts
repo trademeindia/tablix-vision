@@ -8,36 +8,26 @@ import { TABLES } from './types';
  */
 export const deleteInvoice = async (id: string): Promise<boolean> => {
   try {
-    // Start a transaction by creating a new PostgreSQL connection
-    const { data, error } = await supabase.rpc('delete_invoice_with_items', { invoice_id: id });
+    // First delete all associated invoice items
+    const { error: itemsError } = await supabase
+      .from(TABLES.INVOICE_ITEMS)
+      .delete()
+      .eq('invoice_id', id);
     
-    if (error) {
-      console.error('Error deleting invoice with RPC:', error);
-      
-      // Fall back to manual deletion if RPC fails
-      // First delete all associated invoice items
-      const { error: itemsError } = await supabase
-        .from(TABLES.INVOICE_ITEMS)
-        .delete()
-        .eq('invoice_id', id);
-      
-      if (itemsError) {
-        console.error('Error deleting invoice items:', itemsError);
-        return false;
-      }
-      
-      // Then delete the invoice
-      const { error: invoiceError } = await supabase
-        .from(TABLES.INVOICES)
-        .delete()
-        .eq('id', id);
-      
-      if (invoiceError) {
-        console.error('Error deleting invoice:', invoiceError);
-        return false;
-      }
-      
-      return true;
+    if (itemsError) {
+      console.error('Error deleting invoice items:', itemsError);
+      return false;
+    }
+    
+    // Then delete the invoice
+    const { error: invoiceError } = await supabase
+      .from(TABLES.INVOICES)
+      .delete()
+      .eq('id', id);
+    
+    if (invoiceError) {
+      console.error('Error deleting invoice:', invoiceError);
+      return false;
     }
     
     return true;
