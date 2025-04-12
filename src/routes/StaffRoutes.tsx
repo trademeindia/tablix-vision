@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/hooks/auth/types/user-role.types';
 
@@ -69,14 +69,7 @@ const StaffRoutes: React.FC = () => {
       />
 
       {/* Catch-all route to handle any undefined paths */}
-      <Route 
-        path="*" 
-        element={
-          <ProtectedRoute requiredRoles={['waiter', 'chef', 'manager', 'staff'] as UserRole[]}>
-            <StaffDashboardPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

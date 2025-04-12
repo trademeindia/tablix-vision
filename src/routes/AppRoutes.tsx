@@ -19,7 +19,6 @@ import AuthCallbackPage from '@/pages/auth/AuthCallbackPage';
 const AppRoutes: React.FC = () => {
   const location = useLocation();
   const { user, userRoles, loading } = useAuth();
-  const [path, setPath] = useState<string>(location.pathname);
   const [loadingError, setLoadingError] = useState<boolean>(false);
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
 
@@ -47,7 +46,6 @@ const AppRoutes: React.FC = () => {
         console.log('User roles:', userRoles);
         console.log('Redirect path:', redirectPath);
       }
-      setPath(location.pathname);
       setLoadingError(false);
     } catch (error) {
       console.error('Error updating route:', error);
@@ -120,18 +118,8 @@ const AppRoutes: React.FC = () => {
       {/* Profile routes */}
       <Route path="/profile/*" element={<ProfileRoutes />} />
       
-      {/* Admin dashboard routes */}
-      <Route path="/dashboard" element={<AdminRoutes />} />
-      <Route path="/menu" element={<AdminRoutes />} />
-      <Route path="/orders" element={<AdminRoutes />} />
-      <Route path="/tables" element={<AdminRoutes />} />
-      <Route path="/inventory" element={<AdminRoutes />} />
-      <Route path="/staff" element={<AdminRoutes />} />
-      <Route path="/customers" element={<AdminRoutes />} />
-      <Route path="/qr-codes" element={<AdminRoutes />} />
-      <Route path="/invoices" element={<AdminRoutes />} />
-      <Route path="/analytics" element={<AdminRoutes />} />
-      <Route path="/settings" element={<AdminRoutes />} />
+      {/* Admin dashboard routes - configure with wildcard to properly handle nested routes */}
+      <Route path="/*" element={<AdminRoutes />} />
       
       {/* Fallback for all other paths */}
       <Route path="*" element={<NotFound />} />

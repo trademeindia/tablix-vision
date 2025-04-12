@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   MenuIcon, 
-  FileText, 
   ShoppingCart, 
   Users, 
   Settings,
@@ -14,7 +13,8 @@ import {
   CalendarClock,
   BarChart3,
   CircleDollarSign,
-  Home
+  Home,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
