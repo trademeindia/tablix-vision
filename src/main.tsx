@@ -58,10 +58,45 @@ const SimpleFallbackUI = () => (
   </div>
 );
 
-createRoot(document.getElementById("root")!).render(
-  <ErrorBoundary fallback={<SimpleFallbackUI />}>
-    <HelmetProvider>
-      <App />
-    </HelmetProvider>
-  </ErrorBoundary>
-);
+// Find the root element and render the app
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+  try {
+    createRoot(rootElement).render(
+      <HelmetProvider>
+        <ErrorBoundary fallback={<SimpleFallbackUI />}>
+          <App />
+        </ErrorBoundary>
+      </HelmetProvider>
+    );
+    console.log('Application rendered successfully');
+  } catch (error) {
+    console.error('Error rendering the application:', error);
+    
+    // Fallback to basic HTML rendering if React fails completely
+    rootElement.innerHTML = `
+      <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;font-family:system-ui,sans-serif;text-align:center">
+        <h1 style="font-size:1.5rem;font-weight:bold;margin-bottom:1rem">
+          Critical rendering error
+        </h1>
+        <p style="max-width:600px;margin-bottom:2rem">
+          The application failed to initialize properly. This could be due to a JavaScript error.
+          Please check the console for more details.
+        </p>
+        <div>
+          <button onclick="window.location.reload()" 
+            style="background-color:#0f766e;color:white;border:none;padding:0.75rem 1.5rem;border-radius:0.25rem;font-weight:bold;cursor:pointer;margin-right:1rem">
+            Refresh Page
+          </button>
+          <a href="/debug.html"
+            style="background-color:#e5e7eb;color:#1f2937;border:none;padding:0.75rem 1.5rem;border-radius:0.25rem;font-weight:bold;text-decoration:none;display:inline-block">
+            Debug Mode
+          </a>
+        </div>
+      </div>
+    `;
+  }
+} else {
+  console.error('Root element not found. Check if the HTML has a div with id="root"');
+}
