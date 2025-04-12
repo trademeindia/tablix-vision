@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { useTheme } from '@/hooks/use-theme';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ThemeApplierProps {
   children: React.ReactNode;
-  restaurantId: string;
 }
 
 const ThemeApplier: React.FC<ThemeApplierProps> = ({ children }) => {

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -30,7 +29,9 @@ const RouteHandler = () => {
   useEffect(() => {
     initializeSupabase().then(success => {
       if (success) {
-        console.log('Supabase initialization complete');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Supabase initialization complete');
+        }
       } else {
         console.warn('Supabase initialization had issues');
       }
@@ -48,13 +49,10 @@ const RouteHandler = () => {
 };
 
 function App() {
-  // Using a demo restaurant ID - for reliable testing
-  const restaurantId = '123e4567-e89b-12d3-a456-426614174000';
-  
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider restaurantId={restaurantId}>
-        <ThemeApplier restaurantId={restaurantId}>
+      <ThemeProvider>
+        <ThemeApplier>
           <TooltipProvider>
             <AuthProvider>
               <Router>

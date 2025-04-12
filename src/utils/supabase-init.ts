@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -8,7 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
  * - Configures storage buckets if needed
  */
 export async function initializeSupabase() {
-  console.log('Initializing Supabase...');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Initializing Supabase...');
+  }
   
   try {
     // Verify the connection
@@ -19,14 +20,20 @@ export async function initializeSupabase() {
       return false;
     }
     
-    console.log('Successfully connected to Supabase');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Successfully connected to Supabase');
+    }
     
     // Check auth status
     const { data: authData } = await supabase.auth.getSession();
     if (authData?.session) {
-      console.log('User is authenticated');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('User is authenticated');
+      }
     } else {
-      console.log('No authenticated user');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('No authenticated user');
+      }
     }
     
     // Enable realtime for critical tables
@@ -51,11 +58,15 @@ function enableRealtimeTables() {
         schema: 'public',
         table: 'tables'
       }, (payload) => {
-        console.log('Table status changed:', payload);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Table status changed:', payload);
+        }
       })
       .subscribe();
     
-    console.log('Realtime enabled for tables');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Realtime enabled for tables');
+    }
   } catch (err) {
     console.error('Failed to enable realtime:', err);
   }
