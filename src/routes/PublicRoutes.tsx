@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Menu360LandingPage from '@/pages/landing/Menu360LandingPage';
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/auth/LoginPage';
@@ -15,20 +15,19 @@ import CustomerMenuPage from '@/pages/customer/MenuPage';
 const PublicRoutes: React.FC = () => {
   return (
     <Routes>
+      {/* Landing and public routes */}
       <Route path="/" element={<Menu360LandingPage />} />
       <Route path="/index" element={<Index />} />
       <Route path="/menu360" element={<Menu360LandingPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      
-      {/* Customer menu as public route for QR scanning */}
       <Route path="/customer-menu" element={<CustomerMenuPage />} />
       
-      {/* Auth routes - fixed paths */}
-      <Route path="auth/login" element={<LoginPage />} />
-      <Route path="auth/signup" element={<SignupPage />} />
-      <Route path="auth/reset-password" element={<ResetPasswordPage />} />
-      <Route path="auth/update-password" element={<UpdatePasswordPage />} />
-      <Route path="auth/callback" element={<AuthCallbackPage />} />
+      {/* Auth routes - Explicitly handle both approaches: with and without /auth prefix */}
+      <Route path="login" element={<LoginPage />} />
+      <Route path="signup" element={<SignupPage />} />
+      <Route path="reset-password" element={<ResetPasswordPage />} />
+      <Route path="update-password" element={<UpdatePasswordPage />} />
+      <Route path="callback" element={<AuthCallbackPage />} />
       
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />

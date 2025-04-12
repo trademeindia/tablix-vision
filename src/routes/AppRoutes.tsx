@@ -5,10 +5,18 @@ import AdminRoutes from './AdminRoutes';
 import CustomerRoutes from './CustomerRoutes';
 import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
-import PublicRoutes from './PublicRoutes';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRedirectPathByRole, hasRoutePermission } from '@/hooks/auth/use-redirect-paths';
+import LoginPage from '@/pages/auth/LoginPage';
+import SignupPage from '@/pages/auth/SignupPage';
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
+import UpdatePasswordPage from '@/pages/auth/UpdatePasswordPage';
+import AuthCallbackPage from '@/pages/auth/AuthCallbackPage';
+import Menu360LandingPage from '@/pages/landing/Menu360LandingPage';
+import Index from '@/pages/Index';
+import NotFound from '@/pages/NotFound';
+import CustomerMenuPage from '@/pages/customer/MenuPage';
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -78,21 +86,38 @@ const AppRoutes: React.FC = () => {
     );
   }
 
+  // Check if current path is an auth route
+  const isAuthRoute = path.startsWith('/auth/') || 
+                      ['login', 'signup', 'reset-password', 'update-password', 'callback'].some(
+                        route => path === `/${route}` || path === `/auth/${route}`
+                      );
+
   return (
     <Routes>
-      {/* Auth routes - moved to top for priority */}
-      <Route path="/auth/*" element={<PublicRoutes />} />
+      {/* Auth Routes */}
+      <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/signup" element={<SignupPage />} />
+      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
       
-      {/* Public routes */}
-      <Route path="/" element={<PublicRoutes />} />
-      <Route path="/menu360" element={<PublicRoutes />} />
+      {/* Alternative Auth Routes (without /auth prefix) */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/callback" element={<AuthCallbackPage />} />
+      
+      {/* Public Routes */}
+      <Route path="/" element={<Menu360LandingPage />} />
+      <Route path="/menu360" element={<Menu360LandingPage />} />
       <Route path="/index" element={
         user && !loading && !initialLoad 
           ? <Navigate to={redirectPath} replace />
-          : <PublicRoutes />
+          : <Index />
       } />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
-      <Route path="/customer-menu" element={<PublicRoutes />} />
+      <Route path="/customer-menu" element={<CustomerMenuPage />} />
       
       {/* Protected route groups */}
       <Route path="/customer/*" element={<CustomerRoutes />} />
@@ -115,7 +140,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/settings/*" element={<AdminRoutes />} />
       
       {/* Fallback for all other paths */}
-      <Route path="*" element={<PublicRoutes />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
