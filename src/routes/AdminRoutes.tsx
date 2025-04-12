@@ -23,205 +23,72 @@ import IntegrationsPage from '@/pages/settings/IntegrationsPage';
 import IntegrationDetailPage from '@/pages/settings/integration/IntegrationDetailPage';
 
 const AdminRoutes: React.FC = () => {
+  // Common wrapper for protected routes
+  const ProtectedDashboard = ({ 
+    component: Component, 
+    roles = ['owner', 'manager']
+  }: { 
+    component: React.ComponentType, 
+    roles?: string[] 
+  }) => (
+    <ProtectedRoute requiredRoles={roles}>
+      <Component />
+    </ProtectedRoute>
+  );
+  
   return (
     <Routes>
       {/* Dashboard & Analytics Routes */}
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <DashboardPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/analytics" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <AnalyticsPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/" element={<ProtectedDashboard component={DashboardPage} />} />
+      <Route path="/analytics" element={<ProtectedDashboard component={AnalyticsPage} />} />
 
       {/* Menu Routes */}
-      <Route 
-        path="/menu" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <MenuPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/menu" element={<ProtectedDashboard component={MenuPage} />} />
 
       {/* Order Routes */}
-      <Route 
-        path="/orders" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <OrdersPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/orders" element={<ProtectedDashboard component={OrdersPage} />} />
       <Route 
         path="/orders/new" 
         element={
-          <ProtectedRoute requiredRoles={['owner', 'manager', 'waiter']}>
-            <OrderFormPage />
-          </ProtectedRoute>
+          <ProtectedDashboard 
+            component={OrderFormPage} 
+            roles={['owner', 'manager', 'waiter']} 
+          />
         } 
       />
 
       {/* QR Code Routes */}
-      <Route 
-        path="/qr-codes" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <QRCodePage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/qr-codes" element={<ProtectedDashboard component={QRCodePage} />} />
 
       {/* Table Routes */}
-      <Route 
-        path="/tables" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <TablesPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/tables" element={<ProtectedDashboard component={TablesPage} />} />
 
       {/* Staff Routes */}
-      <Route 
-        path="/staff" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <StaffPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/staff" element={<ProtectedDashboard component={StaffPage} />} />
 
       {/* Customer Routes */}
-      <Route 
-        path="/customers" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <CustomersPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/customers" element={<ProtectedDashboard component={CustomersPage} />} />
 
       {/* Invoice Routes */}
-      <Route 
-        path="/invoices" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <InvoicesPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/invoices/:invoiceId" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <InvoicesPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/invoices/create" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <CreateInvoicePage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/create-invoice" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <CreateInvoicePage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/invoices" element={<ProtectedDashboard component={InvoicesPage} />} />
+      <Route path="/invoices/:invoiceId" element={<ProtectedDashboard component={InvoicesPage} />} />
+      <Route path="/invoices/create" element={<ProtectedDashboard component={CreateInvoicePage} />} />
+      <Route path="/create-invoice" element={<ProtectedDashboard component={CreateInvoicePage} />} />
 
       {/* Inventory Routes */}
-      <Route 
-        path="/inventory" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <InventoryPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/inventory" element={<ProtectedDashboard component={InventoryPage} />} />
 
       {/* Marketing Routes */}
-      <Route 
-        path="/marketing" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <MarketingPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/google-drive-test" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <GoogleDriveTestPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/marketing" element={<ProtectedDashboard component={MarketingPage} />} />
+      <Route path="/google-drive-test" element={<ProtectedDashboard component={GoogleDriveTestPage} />} />
 
       {/* Settings Routes */}
-      <Route 
-        path="/settings" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <SettingsPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings/appearance" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <AppearancePage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings/notifications" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <NotificationsPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings/integrations" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <IntegrationsPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings/integrations/:id" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <IntegrationDetailPage />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings/integrations/:id/setup" 
-        element={
-          <ProtectedRoute requiredRoles={['owner', 'manager']}>
-            <IntegrationDetailPage />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/settings" element={<ProtectedDashboard component={SettingsPage} />} />
+      <Route path="/settings/appearance" element={<ProtectedDashboard component={AppearancePage} />} />
+      <Route path="/settings/notifications" element={<ProtectedDashboard component={NotificationsPage} />} />
+      <Route path="/settings/integrations" element={<ProtectedDashboard component={IntegrationsPage} />} />
+      <Route path="/settings/integrations/:id" element={<ProtectedDashboard component={IntegrationDetailPage} />} />
+      <Route path="/settings/integrations/:id/setup" element={<ProtectedDashboard component={IntegrationDetailPage} />} />
     </Routes>
   );
 };

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -8,6 +8,7 @@ import { ThemeProvider } from './hooks/use-theme';
 import ThemeApplier from './components/layout/ThemeProvider';
 import { Toaster } from './components/ui/toaster';
 import AppRoutes from './routes/AppRoutes';
+import { initializeSupabase } from './utils/supabase-init';
 
 // Optimize query client with better caching and reduced network requests
 const queryClient = new QueryClient({
@@ -24,6 +25,17 @@ const queryClient = new QueryClient({
 // Simple route handler for logging
 const RouteHandler = () => {
   const location = useLocation();
+  
+  // Initialize Supabase on first render
+  useEffect(() => {
+    initializeSupabase().then(success => {
+      if (success) {
+        console.log('Supabase initialization complete');
+      } else {
+        console.warn('Supabase initialization had issues');
+      }
+    });
+  }, []);
   
   React.useEffect(() => {
     // Log route changes for debugging - only in development

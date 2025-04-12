@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
+import { useLocation, Navigate, Routes, Route } from 'react-router-dom';
 import AdminRoutes from './AdminRoutes';
 import CustomerRoutes from './CustomerRoutes';
 import StaffRoutes from './StaffRoutes';
 import ProfileRoutes from './ProfileRoutes';
 import PublicRoutes from './PublicRoutes';
+import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRedirectPathByRole, hasRoutePermission } from '@/hooks/auth/use-redirect-paths';
 
@@ -77,93 +78,44 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // Critical: If we're at the root path (/) OR menu360 path, always show the landing page
-  // This prevents the "bounce" effect completely for these key landing pages
-  if (path === '/' || path === '/menu360') {
-    return <PublicRoutes />;
-  }
-  
-  // Auth pages should always be accessible regardless of login status
-  if (path.startsWith('/auth/')) {
-    return <PublicRoutes />;
-  }
-  
-  // Only redirect authenticated users from index page after login AND explicit navigation
-  if (path === '/index' && user && !loading && !initialLoad) {
-    console.log('Redirecting from index to', redirectPath);
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  // For demo users with override active, redirect to appropriate dashboard
-  if (isDemoUser && isDemoOverrideActive && path === '/unauthorized') {
-    console.log('Demo user with override active, redirecting to', redirectPath);
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  // Special case for the unauthorized page when using demo override
-  if (path === '/unauthorized' && isDemoUser && location.state?.from?.pathname) {
-    // If demo override is active, redirect to the original destination
-    if (isDemoOverrideActive) {
-      console.log('Redirecting from unauthorized to', location.state.from.pathname);
-      return <Navigate to={location.state.from.pathname} replace />;
-    }
-  }
-
-  // Handle the public customer-menu route separately
-  if (path === '/customer-menu') {
-    return <PublicRoutes />;
-  }
-
-  // When authenticated and initial load is complete, check for redirections to dashboard
-  if (user && !loading && !initialLoad && path === '/auth/login') {
-    console.log('User logged in at login page, redirecting to', redirectPath);
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  // Check if the user has permission for the requested path
-  if (user && !loading && !initialLoad && userRoles.length > 0) {
-    const hasPermission = hasRoutePermission(path, userRoles);
-    
-    // If user doesn't have permission for the requested path and isn't already being redirected
-    if (!hasPermission && path !== '/unauthorized' && !path.startsWith('/auth/')) {
-      console.log(`User lacks permission for ${path}, redirecting to unauthorized`);
-      return <Navigate to="/unauthorized" state={{ from: location, requiredRoles: [], userRoles }} replace />;
-    }
-    
-    // For demo users, set demo override to true automatically
-    if (isDemoUser && !isDemoOverrideActive) {
-      console.log('Demo user detected, setting demo override');
-      localStorage.setItem('demoOverride', 'true');
-    }
-  }
-
-  // Conditionally render route groups based on the current path
-  if (path.startsWith('/customer')) {
-    return <CustomerRoutes />;
-  } else if (path.startsWith('/staff-dashboard')) {
-    return <StaffRoutes />;
-  } else if (path.startsWith('/profile')) {
-    return <ProfileRoutes />;
-  } else if (
-    path.startsWith('/dashboard') || 
-    path.startsWith('/menu') ||
-    path.startsWith('/orders') ||
-    path.startsWith('/qr-codes') ||
-    path.startsWith('/analytics') ||
-    path.startsWith('/tables') ||
-    path.startsWith('/staff') ||
-    path.startsWith('/customers') ||
-    path.startsWith('/invoices') ||
-    path.startsWith('/inventory') ||
-    path.startsWith('/google-drive-test') ||
-    path.startsWith('/marketing') ||
-    path.startsWith('/settings')
-  ) {
-    return <AdminRoutes />;
-  }
-  
-  // Default to public routes for all other paths
-  return <PublicRoutes />;
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<PublicRoutes />} />
+      <Route path="/menu360" element={<PublicRoutes />} />
+      <Route path="/auth/*" element={<PublicRoutes />} />
+      <Route path="/index" element={
+        user && !loading && !initialLoad 
+          ? <Navigate to={redirectPath} replace />
+          : <PublicRoutes />
+      } />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      <Route path="/customer-menu" element={<PublicRoutes />} />
+      
+      {/* Protected route groups */}
+      <Route path="/customer/*" element={<CustomerRoutes />} />
+      <Route path="/staff-dashboard/*" element={<StaffRoutes />} />
+      <Route path="/profile/*" element={<ProfileRoutes />} />
+      
+      {/* Admin routes */}
+      <Route path="/dashboard/*" element={<AdminRoutes />} />
+      <Route path="/menu/*" element={<AdminRoutes />} />
+      <Route path="/analytics/*" element={<AdminRoutes />} />
+      <Route path="/orders/*" element={<AdminRoutes />} />
+      <Route path="/qr-codes/*" element={<AdminRoutes />} />
+      <Route path="/tables/*" element={<AdminRoutes />} />
+      <Route path="/staff/*" element={<AdminRoutes />} />
+      <Route path="/customers/*" element={<AdminRoutes />} />
+      <Route path="/invoices/*" element={<AdminRoutes />} />
+      <Route path="/inventory/*" element={<AdminRoutes />} />
+      <Route path="/marketing/*" element={<AdminRoutes />} />
+      <Route path="/google-drive-test/*" element={<AdminRoutes />} />
+      <Route path="/settings/*" element={<AdminRoutes />} />
+      
+      {/* Fallback for all other paths */}
+      <Route path="*" element={<PublicRoutes />} />
+    </Routes>
+  );
 };
 
 export default AppRoutes;

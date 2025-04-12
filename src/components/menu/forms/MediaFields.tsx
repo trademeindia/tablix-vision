@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Upload, Box } from 'lucide-react';
 import { UseFormReturn } from "react-hook-form";
-import ModelUploader from '../ModelUploader';
+import SupabaseModelUploader from '../uploader/SupabaseModelUploader';
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { lazy, Suspense } from 'react';
@@ -64,7 +64,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
                 {mediaReference && (
                   <Badge variant="outline" className="bg-green-50">
                     <Upload className="h-3 w-3 mr-1" />
-                    Uploaded to Drive
+                    Media Uploaded
                   </Badge>
                 )}
               </div>
@@ -96,9 +96,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
                 )}
               </div>
               <FormDescription>
-                {mediaReference 
-                  ? "A 3D model has been uploaded to Google Drive" 
-                  : "Enter a URL or upload a 3D model below"}
+                URL to a 3D model (.glb or .gltf file)
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -106,55 +104,28 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         />
       </div>
       
-      <FormField
-        control={form.control}
-        name="media_type"
-        render={({ field }) => (
-          <input 
-            type="hidden" 
-            {...field} 
-            value={field.value || undefined}
-          />
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="media_reference"
-        render={({ field }) => (
-          <input type="hidden" {...field} />
-        )}
-      />
-      
-      <div className="border rounded-lg p-4 bg-slate-50">
-        <h3 className="text-sm font-medium mb-3">3D Model Upload</h3>
-        <ModelUploader
-          menuItemId={menuItemId || 'new-item'}
-          restaurantId={restaurantId || form.getValues('restaurant_id')}
+      <div className="border rounded-lg p-4">
+        <h3 className="text-md font-medium mb-4">Upload 3D Model</h3>
+        <SupabaseModelUploader
+          menuItemId={menuItemId}
+          restaurantId={restaurantId}
           onUploadComplete={onUploadComplete}
         />
-        <p className="text-xs text-muted-foreground mt-3">
-          Models will be securely stored in your restaurant's Google Drive folder
-        </p>
       </div>
-
+      
+      {/* 3D Model Preview Dialog */}
       <Dialog open={showModelPreview} onOpenChange={setShowModelPreview}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-w-4xl h-[80vh]">
           <DialogHeader>
             <DialogTitle>3D Model Preview</DialogTitle>
           </DialogHeader>
-          <div className="w-full aspect-square bg-slate-100 rounded-md overflow-hidden">
-            {showModelPreview && modelUrl && (
-              <Suspense fallback={
-                <div className="h-full w-full flex items-center justify-center">
-                  <Spinner size="lg" />
-                  <span className="ml-2">Loading 3D model...</span>
-                </div>
-              }>
+          {showModelPreview && modelUrl && (
+            <div className="h-full">
+              <Suspense fallback={<div className="flex items-center justify-center h-full"><Spinner size="lg" /></div>}>
                 <ModelViewer modelUrl={modelUrl} />
               </Suspense>
-            )}
-          </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
