@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu360 Debug Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.5;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      color: #0f766e;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      color: #0d9488;
+      margin-top: 2rem;
+      font-size: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      background-color: #0f766e;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 1rem;
+      font-weight: 500;
+    }
+    button:hover {
+      background-color: #0d9488;
+    }
+    code {
+      background-color: #f0f0f0;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .status-ok {
+      color: #22c55e;
+      font-weight: 500;
+    }
+    .status-error {
+      color: #ef4444;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <h1>Menu360 - System Diagnostic</h1>
+  
+  <div class="card">
+    <h2>Application Status</h2>
+    <p>This page is a standalone HTML file that helps diagnose issues with your application.</p>
+    <p>If you can see this page but not your app, the problem is likely with React rendering.</p>
+    
+    <div id="status-checks"></div>
+    
+    <div style="margin-top: 2rem;">
+      <button onclick="window.location.href='/'">Go to Main Application</button>
+      <button onclick="window.location.reload()">Refresh This Page</button>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Common Issues</h2>
+    <ul>
+      <li><strong>Blank screen</strong>: Likely a React rendering error. Check console for error messages.</li>
+      <li><strong>Environment Variables</strong>: Make sure your .env file is set up with proper Supabase credentials.</li>
+      <li><strong>Dependency Issues</strong>: Try running <code>npm install</code> to ensure all dependencies are properly installed.</li>
+      <li><strong>Browser Cache</strong>: Try clearing your browser cache or opening in an incognito window.</li>
+    </ul>
+  </div>
+  
+  <script>
+    // Simple status checks
+    const statusChecksDiv = document.getElementById('status-checks');
+    
+    function addStatusCheck(name, isOk, details) {
+      const statusDiv = document.createElement('div');
+      statusDiv.style.margin = '0.5rem 0';
+      
+      const statusClass = isOk ? 'status-ok' : 'status-error';
+      const statusText = isOk ? '✓ OK' : '✗ Error';
+      
+      statusDiv.innerHTML = `
+        <strong>${name}:</strong> <span class="${statusClass}">${statusText}</span>
+        ${details ? `<div style="margin-left: 1.5rem; margin-top: 0.25rem; font-size: 0.9rem;">${details}</div>` : ''}
+      `;
+      
+      statusChecksDiv.appendChild(statusDiv);
+    }
+    
+    // Check if the main application is loaded
+    function checkMainApp() {
+      fetch('/')
+        .then(response => {
+          addStatusCheck('Server Status', true, 'Server is responding to requests');
+        })
+        .catch(error => {
+          addStatusCheck('Server Status', false, `Error: ${error.message}`);
+        });
+    }
+    
+    // Check if .env file seems to be loaded
+    function checkEnvVars() {
+      // We can't directly check for env vars, but we can check for Supabase in the main app
+      fetch('/src/integrations/supabase/client.ts')
+        .then(response => {
+          if (response.ok) {
+            addStatusCheck('Supabase Client', true, 'Supabase client file is accessible');
+          } else {
+            addStatusCheck('Supabase Client', false, 'Supabase client file not found or inaccessible');
+          }
+        })
+        .catch(() => {
+          addStatusCheck('Supabase Client', false, 'Error accessing Supabase client file');
+        });
+    }
+    
+    // Run checks
+    checkMainApp();
+    checkEnvVars();
+    
+    // Check browser compatibility
+    const isModernBrowser = 'fetch' in window && 'Promise' in window;
+    addStatusCheck('Browser Compatibility', isModernBrowser, 
+      isModernBrowser ? 'Your browser supports modern JavaScript features' : 'Your browser may be outdated');
+  </script>
+</body>
+</html> 
