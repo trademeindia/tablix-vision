@@ -84,6 +84,8 @@ const AppRoutes: React.FC = () => {
     );
   }
 
+  console.log('AppRoutes rendering with path:', location.pathname);
+
   return (
     <Routes>
       {/* Landing Page - Root Path */}
@@ -109,25 +111,27 @@ const AppRoutes: React.FC = () => {
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/customer-menu" element={<Navigate to="/customer/menu" replace />} />
       
-      {/* Protected routes */}
+      {/* Customer routes */}
       <Route path="/customer/*" element={<CustomerRoutes />} />
+      
+      {/* Staff routes */}
       <Route path="/staff-dashboard/*" element={<StaffRoutes />} />
+      
+      {/* Profile routes */}
       <Route path="/profile/*" element={<ProfileRoutes />} />
       
-      {/* Admin routes */}
-      <Route path="/dashboard/*" element={<AdminRoutes />} />
-      <Route path="/menu/*" element={<AdminRoutes />} />
-      <Route path="/analytics/*" element={<AdminRoutes />} />
-      <Route path="/orders/*" element={<AdminRoutes />} />
-      <Route path="/qr-codes/*" element={<AdminRoutes />} />
-      <Route path="/tables/*" element={<AdminRoutes />} />
-      <Route path="/staff/*" element={<AdminRoutes />} />
-      <Route path="/customers/*" element={<AdminRoutes />} />
-      <Route path="/invoices/*" element={<AdminRoutes />} />
-      <Route path="/inventory/*" element={<AdminRoutes />} />
-      <Route path="/marketing/*" element={<AdminRoutes />} />
-      <Route path="/google-drive-test/*" element={<AdminRoutes />} />
-      <Route path="/settings/*" element={<AdminRoutes />} />
+      {/* Admin dashboard routes */}
+      <Route path="/dashboard" element={<AdminRoutes />} />
+      <Route path="/menu" element={<AdminRoutes />} />
+      <Route path="/orders" element={<AdminRoutes />} />
+      <Route path="/tables" element={<AdminRoutes />} />
+      <Route path="/inventory" element={<AdminRoutes />} />
+      <Route path="/staff" element={<AdminRoutes />} />
+      <Route path="/customers" element={<AdminRoutes />} />
+      <Route path="/qr-codes" element={<AdminRoutes />} />
+      <Route path="/invoices" element={<AdminRoutes />} />
+      <Route path="/analytics" element={<AdminRoutes />} />
+      <Route path="/settings" element={<AdminRoutes />} />
       
       {/* Fallback for all other paths */}
       <Route path="*" element={<NotFound />} />

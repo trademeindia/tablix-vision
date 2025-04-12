@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/hooks/auth/types/user-role.types';
 
@@ -13,6 +13,8 @@ import StaffReportsPage from '@/pages/staff/ReportsPage';
 
 const StaffRoutes: React.FC = () => {
   console.log('Staff routes component rendered');
+  const location = useLocation();
+  console.log('Staff routes current path:', location.pathname);
   
   return (
     <Routes>
@@ -62,6 +64,16 @@ const StaffRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredRoles={['manager', 'staff'] as UserRole[]}>
             <StaffReportsPage />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Catch-all route to handle any undefined paths */}
+      <Route 
+        path="*" 
+        element={
+          <ProtectedRoute requiredRoles={['waiter', 'chef', 'manager', 'staff'] as UserRole[]}>
+            <StaffDashboardPage />
           </ProtectedRoute>
         } 
       />

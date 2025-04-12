@@ -154,7 +154,10 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
                     : "text-slate-300 hover:bg-slate-700 hover:text-white",
                   collapsed ? "justify-center" : "justify-start"
                 )}
-                onClick={onCloseSidebar}
+                onClick={() => {
+                  console.log(`Navigating to ${item.href}`);
+                  if (onCloseSidebar) onCloseSidebar();
+                }}
               >
                 {item.icon}
                 {!collapsed && <span className="ml-3">{item.title}</span>}
