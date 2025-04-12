@@ -12,6 +12,8 @@ import StaffInventoryPage from '@/pages/staff/InventoryPage';
 import StaffReportsPage from '@/pages/staff/ReportsPage';
 
 const StaffRoutes: React.FC = () => {
+  console.log('Staff routes component rendered');
+  
   return (
     <Routes>
       {/* Staff Dashboard - Main route */}

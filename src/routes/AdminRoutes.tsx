@@ -24,6 +24,8 @@ import IntegrationDetailPage from '@/pages/settings/integration/IntegrationDetai
 import { UserRole } from '@/hooks/auth/types/user-role.types';
 
 const AdminRoutes: React.FC = () => {
+  console.log('Admin routes component rendered');
+  
   // Common wrapper for protected routes
   const ProtectedDashboard = ({ 
     component: Component, 

@@ -45,6 +45,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
+  console.log('Current path:', location.pathname);
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl">
       <div className="flex items-center justify-between px-5 py-6 border-b border-slate-700/50">
@@ -68,7 +70,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
       <div className="flex-1 flex flex-col overflow-y-auto pt-5 pb-4 px-3">
         <nav className="mt-2 flex-1 space-y-1">
           {navigation.map((item) => {
-            const isActive = location.pathname.startsWith(item.href);
+            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+            
             return (
               <Link
                 key={item.name}

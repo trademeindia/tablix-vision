@@ -99,6 +99,8 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
     return <div className="h-full bg-slate-800 w-64"></div>;
   }
 
+  console.log('Staff sidebar - current path:', pathname);
+
   return (
     <div className={cn(
       "h-full bg-gradient-to-b from-slate-800 to-slate-900 text-white flex flex-col transition-all duration-300 ease-in-out border-r border-slate-700",
@@ -138,26 +140,30 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
       
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">
-          {filteredNavItems.map((item) => (
-            <Link 
-              key={item.href}
-              to={item.href}
-              className={cn(
-                "flex items-center px-3 py-3 text-sm rounded-md transition-colors",
-                pathname === item.href
-                  ? "bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white"
-                  : "text-slate-300 hover:bg-slate-700 hover:text-white",
-                collapsed ? "justify-center" : "justify-start"
-              )}
-              onClick={onCloseSidebar}
-            >
-              {item.icon}
-              {!collapsed && <span className="ml-3">{item.title}</span>}
-              {pathname === item.href && !collapsed && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-300"></span>
-              )}
-            </Link>
-          ))}
+          {filteredNavItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            
+            return (
+              <Link 
+                key={item.href}
+                to={item.href}
+                className={cn(
+                  "flex items-center px-3 py-3 text-sm rounded-md transition-colors",
+                  isActive
+                    ? "bg-gradient-to-r from-blue-600/80 to-indigo-600/80 text-white"
+                    : "text-slate-300 hover:bg-slate-700 hover:text-white",
+                  collapsed ? "justify-center" : "justify-start"
+                )}
+                onClick={onCloseSidebar}
+              >
+                {item.icon}
+                {!collapsed && <span className="ml-3">{item.title}</span>}
+                {isActive && !collapsed && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-300"></span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
       </div>
       

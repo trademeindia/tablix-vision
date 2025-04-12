@@ -12,6 +12,8 @@ import CustomerCallWaiterPage from '@/pages/customer/CallWaiterPage';
 import UserProfilePage from '@/pages/customer/UserProfilePage';
 
 const CustomerRoutes: React.FC = () => {
+  console.log('Customer routes component rendered');
+  
   return (
     <Routes>
       {/* Customer Menu - accessible to all roles */}
