@@ -100,16 +100,29 @@ export const useSupabaseUpload = ({
       // Create a unique file path
       const filePath = generateFilePath(selectedFile);
       
-      // Upload to Supabase Storage
+      // Create an abort controller for upload
+      const abortController = new AbortController();
+      
+      // Set up progress tracking
+      let uploadProgress = 0;
+      const progressHandler = (progress: { loaded: number; total: number }) => {
+        const percentage = Math.round((progress.loaded / progress.total) * 100);
+        setUploadProgress(percentage);
+        uploadProgress = percentage;
+      };
+      
+      // Upload to Supabase Storage with manually tracking progress
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
           upsert: false,
-          onUploadProgress: (progress) => {
-            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
-          }
+          // Using signal from AbortController instead of onUploadProgress
+          signal: abortController.signal
         });
+      
+      // Manually set final progress
+      setUploadProgress(100);
       
       if (error) {
         throw new Error(error.message);

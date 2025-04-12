@@ -21,15 +21,16 @@ import AppearancePage from '@/pages/settings/AppearancePage';
 import NotificationsPage from '@/pages/settings/NotificationsPage';
 import IntegrationsPage from '@/pages/settings/IntegrationsPage';
 import IntegrationDetailPage from '@/pages/settings/integration/IntegrationDetailPage';
+import { UserRole } from '@/hooks/auth/types/user-role.types';
 
 const AdminRoutes: React.FC = () => {
   // Common wrapper for protected routes
   const ProtectedDashboard = ({ 
     component: Component, 
-    roles = ['owner', 'manager']
+    roles = ['owner', 'manager'] as UserRole[]
   }: { 
     component: React.ComponentType, 
-    roles?: string[] 
+    roles?: UserRole[] 
   }) => (
     <ProtectedRoute requiredRoles={roles}>
       <Component />
@@ -52,7 +53,7 @@ const AdminRoutes: React.FC = () => {
         element={
           <ProtectedDashboard 
             component={OrderFormPage} 
-            roles={['owner', 'manager', 'waiter']} 
+            roles={['owner', 'manager', 'waiter'] as UserRole[]} 
           />
         } 
       />
