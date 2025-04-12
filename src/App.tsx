@@ -49,9 +49,12 @@ const RouteHandler = () => {
 };
 
 function App() {
+  // Using a fallback ID for development. In production, this would come from auth or context
+  const fallbackRestaurantId = "123e4567-e89b-12d3-a456-426614174000"; // Demo restaurant ID
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <ThemeProvider restaurantId={fallbackRestaurantId}>
         <ThemeApplier>
           <TooltipProvider>
             <AuthProvider>
