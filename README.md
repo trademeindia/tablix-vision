@@ -36,24 +36,6 @@ npm i
 npm run dev
 ```
 
-### Package Manager Selection
-
-This project uses npm as its primary package manager. If you prefer to use another package manager like Yarn or Bun, make sure to:
-
-1. Delete the existing lock file (`package-lock.json`)
-2. Configure VS Code to use your preferred package manager:
-   - Open VS Code Settings
-   - Search for "npm.packageManager"
-   - Set it to "npm", "yarn", or "pnpm" as appropriate
-
-### Environment Setup
-
-This project uses environment variables for configuration:
-
-1. Copy the `.env.example` file to create a new `.env` file
-2. Fill in your Supabase credentials in the `.env` file
-3. Restart your development server after changing environment variables
-
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
@@ -77,7 +59,6 @@ This project is built with .
 - React
 - shadcn-ui
 - Tailwind CSS
-- Supabase (authentication and database)
 
 ## How can I deploy this project?
 

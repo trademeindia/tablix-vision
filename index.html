@@ -15,86 +15,12 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    
-    <!-- Base styles to prevent FOUC -->
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      }
-      #root {
-        min-height: 100vh;
-      }
-      .loading-screen {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background-color: #f5f5f5;
-        color: #333;
-        text-align: center;
-        padding: 1rem;
-      }
-      .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border-left-color: #0f766e;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-      }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
   </head>
 
   <body>
-    <div id="root">
-      <!-- Initial loading state -->
-      <div class="loading-screen">
-        <div class="spinner"></div>
-        <h2>Loading Menu360...</h2>
-        <p>Please wait while we set up your experience.</p>
-      </div>
-    </div>
-    
-    <!-- Primary application script -->
+    <div id="root"></div>
+    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Fallback script if TSX fails -->
-    <script>
-      // Set a timeout to check if the application has loaded
-      setTimeout(() => {
-        // Find a marker that would indicate the app successfully rendered
-        const appContent = document.querySelector('main, #hero, .app-loaded');
-        const loadingScreen = document.querySelector('.loading-screen');
-        
-        // If we still see the loading screen and no app content after 5 seconds
-        if (loadingScreen && !appContent) {
-          console.warn('Application may have failed to load, trying fallback...');
-          
-          // Create a fallback script element
-          const fallbackScript = document.createElement('script');
-          fallbackScript.type = 'module';
-          fallbackScript.src = '/src/index.js';
-          document.body.appendChild(fallbackScript);
-          
-          // Update loading message
-          loadingScreen.innerHTML = `
-            <div class="spinner"></div>
-            <h2>Loading Fallback Mode...</h2>
-            <p>We're experiencing some technical difficulties.</p>
-            <p style="font-size: 0.9rem; color: #555; max-width: 400px; margin: 1rem auto;">
-              If this persists, try refreshing the page or check the console for errors.
-            </p>
-          `;
-        }
-      }, 5000);
-    </script>
   </body>
 </html>
