@@ -13,17 +13,14 @@ import {
   User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-type StaffRole = 'Waiter' | 'Chef' | 'Manager';
-
-// In a real app, you would get the staff role from authentication
-const currentRole: StaffRole = 'Manager'; // Changed to Manager to show all menu items
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/hooks/auth/types/user-role.types';
 
 type NavItem = {
   title: string;
   href: string;
   icon: React.ReactNode;
-  roles: StaffRole[];
+  roles: UserRole[];
 };
 
 const navItems: NavItem[] = [
@@ -31,31 +28,31 @@ const navItems: NavItem[] = [
     title: "Dashboard",
     href: "/staff-dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
-    roles: ['Waiter', 'Chef', 'Manager'],
+    roles: ['waiter', 'chef', 'manager', 'staff'],
   },
   {
     title: "Orders",
     href: "/staff-dashboard/orders",
     icon: <ShoppingCart className="h-5 w-5" />,
-    roles: ['Waiter', 'Manager'],
+    roles: ['waiter', 'manager', 'staff'],
   },
   {
     title: "Kitchen View",
     href: "/staff-dashboard/kitchen",
     icon: <ChefHat className="h-5 w-5" />,
-    roles: ['Chef', 'Manager'],
+    roles: ['chef', 'manager', 'staff'],
   },
   {
     title: "Inventory",
     href: "/staff-dashboard/inventory",
     icon: <ClipboardList className="h-5 w-5" />,
-    roles: ['Manager'],
+    roles: ['manager', 'chef', 'staff'],
   },
   {
     title: "Reports",
     href: "/staff-dashboard/reports",
     icon: <BarChart className="h-5 w-5" />,
-    roles: ['Manager'],
+    roles: ['manager', 'staff'],
   },
 ];
 
@@ -66,6 +63,7 @@ interface StaffSidebarProps {
 const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { user, userRoles } = useAuth();
   
   // Handle location errors gracefully
   let pathname = '/';
@@ -74,6 +72,12 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   } catch (error) {
     console.error("Router error:", error);
   }
+  
+  // Get the user's primary role
+  const currentRole = userRoles[0] || 'staff';
+  
+  // Get staff name from user if available
+  const staffName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Staff Member';
   
   useEffect(() => {
     setMounted(true);
@@ -84,7 +88,9 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
   };
 
   // Filter nav items based on current role
-  const filteredNavItems = navItems.filter(item => item.roles.includes(currentRole));
+  const filteredNavItems = navItems.filter(item => 
+    item.roles.some(role => userRoles.includes(role))
+  );
 
   if (!mounted) {
     return <div className="h-full bg-slate-800 w-64"></div>;
@@ -162,7 +168,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
           </div>
           {!collapsed && (
             <div className="ml-3">
-              <p className="text-sm font-medium text-white">Jane Smith</p>
+              <p className="text-sm font-medium text-white">{staffName}</p>
               <p className="text-xs text-slate-400">{currentRole}</p>
             </div>
           )}

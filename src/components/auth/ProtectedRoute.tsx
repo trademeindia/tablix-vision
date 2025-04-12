@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // For demo accounts or Google auth users, check if override is active
   const isDemoAccount = user.email?.endsWith('@demo.com') || false;
-  const isGoogleAuth = user.app_metadata.provider === 'google';
+  const isGoogleAuth = user.app_metadata?.provider === 'google';
   const isDemoOverrideActive = localStorage.getItem('demoOverride') === 'true';
   
   // If demo override is active, allow access regardless of roles

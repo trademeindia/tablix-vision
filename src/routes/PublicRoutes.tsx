@@ -11,8 +11,30 @@ import AuthCallbackPage from '@/pages/auth/AuthCallbackPage';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import NotFound from '@/pages/NotFound';
 import CustomerMenuPage from '@/pages/customer/MenuPage';
+import { useAuth } from '@/contexts/AuthContext';
+import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 
 const PublicRoutes: React.FC = () => {
+  const { user, userRoles, loading } = useAuth();
+  
+  // Get the appropriate redirect path based on user role
+  const getRedirect = () => {
+    if (!user || loading) return null;
+    
+    // If user is logged in and has roles, redirect to their dashboard
+    if (userRoles && userRoles.length > 0) {
+      return getRedirectPathByRole(userRoles[0]);
+    }
+    
+    return null; // No redirect needed
+  };
+
+  // Component to handle conditional redirects for authenticated users
+  const ConditionalAuthRoute = ({ children }: { children: React.ReactNode }) => {
+    const redirectPath = getRedirect();
+    return redirectPath ? <Navigate to={redirectPath} replace /> : <>{children}</>;
+  };
+  
   return (
     <Routes>
       {/* Landing and public routes */}
@@ -22,12 +44,20 @@ const PublicRoutes: React.FC = () => {
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/customer-menu" element={<CustomerMenuPage />} />
       
-      {/* Auth routes - Explicitly handle both approaches: with and without /auth prefix */}
-      <Route path="login" element={<LoginPage />} />
-      <Route path="signup" element={<SignupPage />} />
-      <Route path="reset-password" element={<ResetPasswordPage />} />
-      <Route path="update-password" element={<UpdatePasswordPage />} />
-      <Route path="callback" element={<AuthCallbackPage />} />
+      {/* Auth routes */}
+      <Route path="/login" element={
+        <ConditionalAuthRoute>
+          <LoginPage />
+        </ConditionalAuthRoute>
+      } />
+      <Route path="/signup" element={
+        <ConditionalAuthRoute>
+          <SignupPage />
+        </ConditionalAuthRoute>
+      } />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/update-password" element={<UpdatePasswordPage />} />
+      <Route path="/callback" element={<AuthCallbackPage />} />
       
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />

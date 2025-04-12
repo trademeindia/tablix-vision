@@ -2,6 +2,7 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { UserRole } from '@/hooks/auth/types/user-role.types';
 
 // Staff pages
 import StaffDashboardPage from '@/pages/StaffDashboardPage';
@@ -13,43 +14,51 @@ import StaffReportsPage from '@/pages/staff/ReportsPage';
 const StaffRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Staff routes - protected */}
+      {/* Staff Dashboard */}
       <Route 
-        path="/staff-dashboard" 
+        path="/" 
         element={
-          <ProtectedRoute requiredRoles={['waiter', 'chef', 'manager', 'staff']}>
+          <ProtectedRoute requiredRoles={['waiter', 'chef', 'manager', 'staff'] as UserRole[]}>
             <StaffDashboardPage />
           </ProtectedRoute>
         } 
       />
+      
+      {/* Staff Orders View */}
       <Route 
-        path="/staff-dashboard/orders" 
+        path="/orders" 
         element={
-          <ProtectedRoute requiredRoles={['waiter', 'manager', 'staff']}>
+          <ProtectedRoute requiredRoles={['waiter', 'manager', 'staff'] as UserRole[]}>
             <StaffOrdersPage />
           </ProtectedRoute>
         } 
       />
+      
+      {/* Kitchen View */}
       <Route 
-        path="/staff-dashboard/kitchen" 
+        path="/kitchen" 
         element={
-          <ProtectedRoute requiredRoles={['chef', 'manager', 'staff']}>
+          <ProtectedRoute requiredRoles={['chef', 'manager', 'staff'] as UserRole[]}>
             <StaffKitchenPage />
           </ProtectedRoute>
         } 
       />
+      
+      {/* Inventory View */}
       <Route 
-        path="/staff-dashboard/inventory" 
+        path="/inventory" 
         element={
-          <ProtectedRoute requiredRoles={['chef', 'manager', 'staff']}>
+          <ProtectedRoute requiredRoles={['chef', 'manager', 'staff'] as UserRole[]}>
             <StaffInventoryPage />
           </ProtectedRoute>
         } 
       />
+      
+      {/* Reports View */}
       <Route 
-        path="/staff-dashboard/reports" 
+        path="/reports" 
         element={
-          <ProtectedRoute requiredRoles={['manager', 'staff']}>
+          <ProtectedRoute requiredRoles={['manager', 'staff'] as UserRole[]}>
             <StaffReportsPage />
           </ProtectedRoute>
         } 
