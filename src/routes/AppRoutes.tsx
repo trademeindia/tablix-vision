@@ -80,10 +80,12 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
+      {/* Auth routes - moved to top for priority */}
+      <Route path="/auth/*" element={<PublicRoutes />} />
+      
       {/* Public routes */}
       <Route path="/" element={<PublicRoutes />} />
       <Route path="/menu360" element={<PublicRoutes />} />
-      <Route path="/auth/*" element={<PublicRoutes />} />
       <Route path="/index" element={
         user && !loading && !initialLoad 
           ? <Navigate to={redirectPath} replace />
