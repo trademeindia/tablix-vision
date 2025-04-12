@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,11 +31,9 @@ export const useSupabaseUpload = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   
-  // Generate a unique file path for the upload
   const generateFilePath = (file: File): string => {
     const fileExt = file.name.split('.').pop();
     const uniqueId = uuidv4();
-    // Build path structure: restaurant/item/uniqueid.ext
     let path = '';
     
     if (folderPath) {
@@ -61,13 +58,11 @@ export const useSupabaseUpload = ({
       setError(null);
       setUploadSuccess(false);
       
-      // Check file size
       if (file.size > maxSizeMB * 1024 * 1024) {
         setError(`File size exceeds ${maxSizeMB}MB limit`);
         return;
       }
       
-      // Check file type
       const fileExt = `.${file.name.split('.').pop()?.toLowerCase()}`;
       if (!allowedFileTypes.includes(fileExt)) {
         setError(`Only ${allowedFileTypes.join(', ')} files are supported`);
@@ -97,38 +92,39 @@ export const useSupabaseUpload = ({
       setUploadProgress(0);
       setError(null);
       
-      // Create a unique file path
       const filePath = generateFilePath(selectedFile);
       
-      // Create an abort controller for upload
-      const abortController = new AbortController();
-      
-      // Set up progress tracking
-      let uploadProgress = 0;
-      const progressHandler = (progress: { loaded: number; total: number }) => {
-        const percentage = Math.round((progress.loaded / progress.total) * 100);
-        setUploadProgress(percentage);
-        uploadProgress = percentage;
+      const simulateProgress = () => {
+        const interval = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(interval);
+              return prev;
+            }
+            return prev + 5;
+          });
+        }, 300);
+        
+        return interval;
       };
       
-      // Upload to Supabase Storage with manually tracking progress
+      const progressInterval = simulateProgress();
+      
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: false,
-          // Using signal from AbortController instead of onUploadProgress
-          signal: abortController.signal
+          upsert: false
         });
       
-      // Manually set final progress
+      clearInterval(progressInterval);
+      
       setUploadProgress(100);
       
       if (error) {
         throw new Error(error.message);
       }
       
-      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
