@@ -1,9 +1,9 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MenuItem, MenuCategory } from '@/types/menu';
 import { itemFormSchema, ItemFormValues } from '@/components/menu/forms/ItemFormSchema';
+import { toast } from '@/hooks/use-toast';
 
 export const useItemForm = (
   initialData?: MenuItem,
@@ -62,11 +62,38 @@ export const useItemForm = (
   }, [categories, form]);
 
   const handleModelUploadComplete = useCallback((fileId: string, fileUrl: string) => {
-    setMediaReference(fileId);
-    setMediaUrl(fileUrl);
-    form.setValue('model_url', fileUrl);
-    form.setValue('media_type', '3d');
-    form.setValue('media_reference', fileId);
+    const extension = fileUrl?.split('.').pop()?.toLowerCase();
+    const imageTypes = ['jpg', 'jpeg', 'png', 'gif'];
+    const modelTypes = ['glb', 'gltf'];
+
+    if (extension && imageTypes.includes(extension)) {
+      // It's an image/gif
+      setMediaReference(''); // Clear 3D model reference if any
+      setMediaUrl(fileUrl);
+      form.setValue('image_url', fileUrl);
+      form.setValue('media_type', 'image');
+      form.setValue('model_url', ''); // Clear model URL
+      form.setValue('media_reference', ''); // Clear model reference
+      console.log('Image upload handled:', fileUrl);
+    } else if (extension && modelTypes.includes(extension)) {
+      // It's a 3D model
+      setMediaReference(fileId);
+      setMediaUrl(fileUrl);
+      form.setValue('model_url', fileUrl);
+      form.setValue('media_type', '3d');
+      form.setValue('media_reference', fileId);
+      form.setValue('image_url', ''); // Clear image URL if any
+      console.log('3D Model upload handled:', fileUrl, fileId);
+    } else {
+      // Unknown type or error
+      console.warn('Unknown file type uploaded:', fileUrl);
+      // Optionally show an error toast
+      toast({
+        title: "Unsupported File Type",
+        description: "The uploaded file type is not supported. Please use JPG, PNG, GIF, GLB, or GLTF.",
+        variant: "destructive",
+      });
+    }
   }, [form]);
 
   const handleFormSubmit = useCallback(async (values: ItemFormValues) => {

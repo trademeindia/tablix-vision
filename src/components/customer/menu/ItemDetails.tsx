@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,8 @@ const ItemDetails: React.FC<ItemDetailsProps> = ({ item, onAddToOrder }) => {
   const [quantity, setQuantity] = useState(1);
   const [modelViewerOpen, setModelViewerOpen] = useState(false);
   
-  const has3dModel = item.media_type === '3d' && item.model_url;
+  const hasImage = !!item.image_url;
+  const has3dModel = item.media_type === '3d' && !!item.model_url;
   
   const handleAddToOrder = () => {
     if (onAddToOrder) {
@@ -39,7 +39,7 @@ const ItemDetails: React.FC<ItemDetailsProps> = ({ item, onAddToOrder }) => {
   return (
     <div className="flex flex-col h-full">
       <div className="relative h-64 bg-slate-100">
-        {item.image_url ? (
+        {hasImage ? (
           <img 
             src={item.image_url} 
             alt={item.name} 
@@ -47,7 +47,7 @@ const ItemDetails: React.FC<ItemDetailsProps> = ({ item, onAddToOrder }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-400">
-            No image available
+            {has3dModel ? <Box className="h-12 w-12" /> : <span>No image available</span>}
           </div>
         )}
         
