@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
 
@@ -8,7 +8,17 @@ interface TestDataAlertProps {
 }
 
 const TestDataAlert: React.FC<TestDataAlertProps> = ({ isVisible }) => {
-  if (!isVisible) return null;
+  const [shownOnce, setShownOnce] = useState(false);
+  
+  useEffect(() => {
+    // This prevents the component from reappearing on re-renders
+    if (isVisible && !shownOnce) {
+      setShownOnce(true);
+    }
+  }, [isVisible]);
+  
+  // Only show the alert the first time isVisible becomes true
+  if (!isVisible || shownOnce === false) return null;
   
   return (
     <Alert className="my-4 border-blue-200 bg-blue-50">

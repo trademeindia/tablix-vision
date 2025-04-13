@@ -22,7 +22,7 @@ export function useCustomerMenu() {
   // Debug information hook
   const { debugInfo, updateScannedQrData, showDebugInfo } = useDebugInfo(tableId, restaurantId);
   
-  // Test data hook
+  // Test data hook - this already handles the toast notification
   const { usingTestData, setUsingTestData, testData } = useTestData(restaurantId);
   
   // Parse URL parameters on load
