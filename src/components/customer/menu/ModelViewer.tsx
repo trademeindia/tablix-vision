@@ -2,7 +2,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useThree } from './three/useThree';
 import ModelLoader from './three/ModelLoader';
-import ModelControls from './three/ModelControls';
 import Spinner from '@/components/ui/spinner';
 
 interface ModelViewerProps {
@@ -14,7 +13,7 @@ interface ModelViewerProps {
 const ModelViewer: React.FC<ModelViewerProps> = ({ 
   modelUrl, 
   autoRotate = true,
-  className 
+  className = 'w-full h-full'
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
@@ -22,51 +21,22 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   const [error, setError] = useState<Error | null>(null);
   
   // Set up the Three.js scene
-  const { scene, camera, renderer, domElement } = useThree();
+  const { initializeScene, setAutoRotate } = useThree();
   
-  // Add DOM element when scene is ready
+  // Initialize the scene when component mounts
   useEffect(() => {
-    if (!containerRef.current || !domElement) return;
+    if (!containerRef.current) return;
     
-    // Clear any existing children first
-    while (containerRef.current.firstChild) {
-      containerRef.current.removeChild(containerRef.current.firstChild);
-    }
+    const cleanup = initializeScene(containerRef.current);
+    setAutoRotate(autoRotate);
     
-    containerRef.current.appendChild(domElement);
-    
-    // Handle resize
-    const handleResize = () => {
-      if (!containerRef.current || !camera || !renderer) return;
-      
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      
-      renderer.setSize(width, height);
-    };
-    
-    // Initial sizing
-    handleResize();
-    
-    // Set up resize listener
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (containerRef.current && domElement && containerRef.current.contains(domElement)) {
-        containerRef.current.removeChild(domElement);
-      }
-    };
-  }, [domElement, camera, renderer]);
+    return cleanup;
+  }, [initializeScene, setAutoRotate, autoRotate]);
   
-  // Handle loading states
+  // Load the model
   const handleLoadStart = () => {
     setLoading(true);
     setLoadProgress(0);
-    setError(null);
   };
   
   const handleLoadProgress = (progress: number) => {
@@ -84,44 +54,39 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   };
   
   return (
-    <div className={`relative w-full h-full ${className || ''}`}>
-      {/* Container for the Three.js canvas */}
+    <div className={`relative ${className}`}>
+      {/* 3D model container */}
       <div 
         ref={containerRef} 
-        className="w-full h-full bg-slate-100 overflow-hidden rounded-md"
+        className="w-full h-full rounded-md"
       />
       
-      {/* Model Loader component */}
-      {modelUrl && (
-        <ModelLoader 
-          modelUrl={modelUrl}
-          onLoadStart={handleLoadStart}
-          onLoadProgress={handleLoadProgress}
-          onLoadComplete={handleLoadComplete}
-          onLoadError={handleLoadError}
-          center={true}
-          scale={1.0}
-        />
-      )}
-      
-      {/* Controls for the model (orbit, zoom, etc.) */}
-      <ModelControls autoRotate={autoRotate} />
+      {/* Model loader that actually loads the 3D model into the scene */}
+      <ModelLoader 
+        modelUrl={modelUrl}
+        onLoadStart={handleLoadStart}
+        onLoadProgress={handleLoadProgress}
+        onLoadComplete={handleLoadComplete}
+        onLoadError={handleLoadError}
+        scale={1.5}
+        center={true}
+      />
       
       {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/80 z-10">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 rounded-md">
           <Spinner size="lg" />
-          <div className="mt-2 text-sm text-slate-600">
-            Loading 3D Model... {loadProgress > 0 ? `${Math.round(loadProgress)}%` : ''}
+          <div className="mt-2 text-sm text-muted-foreground">
+            Loading model... {Math.round(loadProgress)}%
           </div>
         </div>
       )}
       
       {/* Error overlay */}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/90 z-10 p-4">
-          <div className="text-red-500 mb-2">Failed to load 3D model</div>
-          <div className="text-xs text-slate-600 text-center max-w-xs overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 rounded-md">
+          <div className="text-destructive">Failed to load 3D model</div>
+          <div className="text-xs text-muted-foreground mt-1">
             {error.message}
           </div>
         </div>
