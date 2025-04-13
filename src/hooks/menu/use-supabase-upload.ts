@@ -143,7 +143,7 @@ export const useSupabaseUpload = ({
       }
 
       // Upload file to Supabase Storage WITH explicit contentType
-      let uploadResponse = await supabase.storage
+      let uploadResult = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
@@ -154,36 +154,38 @@ export const useSupabaseUpload = ({
       clearInterval(progressInterval);
       
       // Handle errors from the upload
-      if (uploadResponse.error) {
-        console.error('Upload error:', uploadResponse.error);
+      if (uploadResult.error) {
+        console.error('Upload error:', uploadResult.error);
         
         // Try an alternative approach without contentType if that was the issue
-        if (uploadResponse.error.message?.includes('mime type') && uploadResponse.error.message?.includes('not supported')) {
+        if (uploadResult.error.message?.includes('mime type') && uploadResult.error.message?.includes('not supported')) {
           console.log('Trying alternative upload without explicit content type...');
           
-          const altUploadResponse = await supabase.storage
+          const altUploadResult = await supabase.storage
             .from(bucketName)
             .upload(filePath, selectedFile, {
               cacheControl: '3600',
               upsert: true
             });
             
-          if (altUploadResponse.error) {
-            throw new Error(`Alternative upload failed: ${altUploadResponse.error.message}`);
+          if (altUploadResult.error) {
+            throw new Error(`Alternative upload failed: ${altUploadResult.error.message}`);
           }
           
           // If we got here, the alternative upload worked
           console.log('Alternative upload succeeded');
-          uploadResponse = altUploadResponse;
+          uploadResult = altUploadResult;
         } else {
-          throw new Error(uploadResponse.error.message);
+          throw new Error(uploadResult.error.message);
         }
       }
       
       // Get the public URL for the uploaded file
-      const { data: { publicUrl } } = supabase.storage
+      const publicUrlData = supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
+      
+      const publicUrl = publicUrlData.data.publicUrl;
       
       setUploadProgress(100);
       setUploadSuccess(true);

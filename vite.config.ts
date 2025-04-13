@@ -23,7 +23,11 @@ export default defineConfig(({ mode }) => ({
       '@rollup/rollup-darwin-arm64',
       '@rollup/rollup-linux-arm64-gnu',
       '@rollup/rollup-win32-x64-msvc',
-      '@rollup/rollup-win32-ia32-msvc'
+      '@rollup/rollup-win32-ia32-msvc',
+      '@rollup/rollup-linux-arm-gnueabihf',
+      '@rollup/rollup-android-arm64',
+      '@rollup/rollup-freebsd-x64',
+      '@rollup/rollup-linux-arm64-musl'
     ],
   },
   build: {
@@ -35,7 +39,11 @@ export default defineConfig(({ mode }) => ({
         '@rollup/rollup-darwin-arm64',
         '@rollup/rollup-linux-arm64-gnu',
         '@rollup/rollup-win32-x64-msvc',
-        '@rollup/rollup-win32-ia32-msvc'
+        '@rollup/rollup-win32-ia32-msvc',
+        '@rollup/rollup-linux-arm-gnueabihf',
+        '@rollup/rollup-android-arm64',
+        '@rollup/rollup-freebsd-x64',
+        '@rollup/rollup-linux-arm64-musl'
       ],
     },
   },

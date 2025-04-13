@@ -182,20 +182,20 @@ async function ensureStorageBucket() {
  */
 async function createBasicRLSPolicies() {
   try {
-    // Direct SQL operation to create policies
-    const { error } = await supabase.rpc('create_storage_policies', {
+    // Using a custom query for storage policies instead of rpc
+    const { error } = await supabase.from('storage_policies_helper').insert({
       bucket_name: 'menu-media'
     });
     
     if (error) {
-      console.error('Error creating storage policies via RPC:', error);
+      console.error('Error creating storage policies via custom query:', error);
       return false;
     }
     
-    console.log('Successfully created storage policies via RPC');
+    console.log('Successfully created storage policies via custom query');
     return true;
   } catch (err) {
-    console.error('Failed to create storage policies via RPC:', err);
+    console.error('Failed to create storage policies:', err);
     return false;
   }
 }
