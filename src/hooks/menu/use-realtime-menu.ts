@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { MenuItem } from '@/types/menu';
+import { MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 
 /**
@@ -38,8 +38,14 @@ export const useRealtimeMenu = (
 
         if (error) throw error;
 
-        setMenuItems(data || []);
-        if (onItemsChange) onItemsChange(data || []);
+        // Transform data to match MenuItem type
+        const transformedItems: MenuItem[] = data?.map(item => ({
+          ...item,
+          allergens: parseAllergens(item.allergens)
+        })) || [];
+
+        setMenuItems(transformedItems);
+        if (onItemsChange) onItemsChange(transformedItems);
       } catch (err) {
         console.error('Error fetching menu items:', err);
         setError(err instanceof Error ? err : new Error('Failed to fetch menu items'));
@@ -81,8 +87,14 @@ export const useRealtimeMenu = (
 
             if (error) throw error;
 
-            setMenuItems(data || []);
-            if (onItemsChange) onItemsChange(data || []);
+            // Transform data to match MenuItem type
+            const transformedItems: MenuItem[] = data?.map(item => ({
+              ...item,
+              allergens: parseAllergens(item.allergens)
+            })) || [];
+
+            setMenuItems(transformedItems);
+            if (onItemsChange) onItemsChange(transformedItems);
             
             // Show a toast notification about the update
             if (payload.eventType === 'INSERT') {
@@ -129,8 +141,14 @@ export const useRealtimeMenu = (
 
         if (error) throw error;
 
-        setMenuItems(data || []);
-        if (onItemsChange) onItemsChange(data || []);
+        // Transform data to match MenuItem type
+        const transformedItems: MenuItem[] = data?.map(item => ({
+          ...item,
+          allergens: parseAllergens(item.allergens)
+        })) || [];
+
+        setMenuItems(transformedItems);
+        if (onItemsChange) onItemsChange(transformedItems);
       } catch (err) {
         console.error('Error refetching menu items:', err);
         setError(err instanceof Error ? err : new Error('Failed to refetch menu items'));
