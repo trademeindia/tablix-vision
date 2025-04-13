@@ -1,17 +1,17 @@
 
-import React, { useEffect, useState } from 'react';
-import { useThree } from './useThree';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { useEffect } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { useThree } from './useThree';
 
 interface ModelLoaderProps {
   modelUrl: string;
   onLoadStart?: () => void;
   onLoadProgress?: (progress: number) => void;
-  onLoadComplete?: (model: any) => void;
+  onLoadComplete?: () => void;
   onLoadError?: (error: Error) => void;
-  center?: boolean;
   scale?: number;
+  center?: boolean;
 }
 
 const ModelLoader: React.FC<ModelLoaderProps> = ({
@@ -20,90 +20,67 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
   onLoadProgress,
   onLoadComplete,
   onLoadError,
-  center = true,
-  scale = 1.0
+  scale = 1.0,
+  center = true
 }) => {
-  const { scene, camera } = useThree();
-  const [model, setModel] = useState<THREE.Group | null>(null);
+  const { scene } = useThree();
   
   useEffect(() => {
-    if (!scene || !camera || !modelUrl) return;
+    if (!modelUrl || !scene) return;
     
-    console.log(`Loading 3D model from URL: ${modelUrl}`);
-    onLoadStart?.();
+    // Clear any existing models
+    scene.children
+      .filter(child => child instanceof THREE.Group || child instanceof THREE.Mesh)
+      .forEach(child => scene.remove(child));
     
-    // Clean up previous model
-    if (model) {
-      console.log('Removing previous model from scene');
-      scene.remove(model);
-      setModel(null);
-    }
+    // Notify load start
+    if (onLoadStart) onLoadStart();
     
+    // Create loader
     const loader = new GLTFLoader();
     
     // Load the model
     loader.load(
       modelUrl,
       (gltf) => {
-        try {
-          console.log('3D model loaded successfully', gltf);
+        // Scale the model
+        gltf.scene.scale.set(scale, scale, scale);
+        
+        // Center the model if requested
+        if (center) {
+          const box = new THREE.Box3().setFromObject(gltf.scene);
+          const center = box.getCenter(new THREE.Vector3());
           
-          const loadedModel = gltf.scene;
-          
-          // Center the model if requested
-          if (center) {
-            const box = new THREE.Box3().setFromObject(loadedModel);
-            const center = box.getCenter(new THREE.Vector3());
-            loadedModel.position.x -= center.x;
-            loadedModel.position.y -= center.y;
-            loadedModel.position.z -= center.z;
-            
-            // Auto-scale to fit view
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const targetSize = 2; // Desired size in the scene
-            const scaleFactor = targetSize / maxDim * scale;
-            loadedModel.scale.multiplyScalar(scaleFactor);
-          }
-          
-          // Add the model to the scene
-          scene.add(loadedModel);
-          setModel(loadedModel);
-          
-          // Position camera to see the model
-          camera.position.set(0, 0, 5);
-          camera.lookAt(0, 0, 0);
-          
-          onLoadComplete?.(loadedModel);
-        } catch (err) {
-          console.error('Error processing loaded model:', err);
-          const error = err instanceof Error ? err : new Error(String(err));
-          onLoadError?.(error);
+          gltf.scene.position.x = -center.x;
+          gltf.scene.position.y = -center.y;
+          gltf.scene.position.z = -center.z;
         }
+        
+        // Add to scene
+        scene.add(gltf.scene);
+        
+        // Notify load complete
+        if (onLoadComplete) onLoadComplete();
       },
-      (progressEvent) => {
-        // Calculate loading progress percentage
-        if (progressEvent.lengthComputable) {
-          const progress = (progressEvent.loaded / progressEvent.total) * 100;
-          onLoadProgress?.(progress);
-        }
+      (progress) => {
+        // Calculate progress percentage
+        const percentage = (progress.loaded / progress.total) * 100;
+        if (onLoadProgress) onLoadProgress(percentage);
       },
       (error) => {
         console.error('Error loading 3D model:', error);
-        // Ensure error is properly converted to Error type
-        const errorObj = error instanceof Error ? error : new Error(String(error));
-        onLoadError?.(errorObj);
+        // Convert ErrorEvent to an Error object with required properties
+        if (onLoadError) {
+          const errorObj = new Error(error instanceof ErrorEvent ? error.message : String(error));
+          onLoadError(errorObj);
+        }
       }
     );
     
-    // Cleanup function
     return () => {
-      if (model && scene) {
-        console.log('Cleaning up 3D model');
-        scene.remove(model);
-      }
+      // Cleanup when component unmounts or modelUrl changes
     };
-  }, [scene, camera, modelUrl, model, onLoadStart, onLoadComplete, onLoadError, onLoadProgress, center, scale]);
+  }, [modelUrl, scene, scale, center, onLoadStart, onLoadProgress, onLoadComplete, onLoadError]);
   
   return null; // This component doesn't render anything
 };

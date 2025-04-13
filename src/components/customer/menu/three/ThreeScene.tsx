@@ -20,12 +20,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const { 
-    initializeScene, 
     scene, 
     camera, 
     renderer, 
     controls,
-    animationFrameId,
+    initializeScene,
     setAutoRotate,
     setRotationSpeed
   } = useThree();
@@ -38,7 +37,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     setDimensions({ width: offsetWidth, height: offsetHeight });
     
     console.log('Initializing Three.js scene with dimensions:', offsetWidth, offsetHeight);
-    initializeScene(containerRef.current, backgroundColor);
+    const cleanup = initializeScene(containerRef.current, backgroundColor);
     
     const handleResize = () => {
       if (containerRef.current && renderer) {
@@ -57,6 +56,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (cleanup) cleanup();
     };
   }, [containerRef, initializeScene, backgroundColor, renderer, camera]);
 
