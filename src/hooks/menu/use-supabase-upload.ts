@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -143,7 +144,7 @@ export const useSupabaseUpload = ({
       }
 
       // Upload file to Supabase Storage WITH explicit contentType
-      const { data, error } = await supabase.storage
+      let uploadResponse = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
@@ -153,29 +154,30 @@ export const useSupabaseUpload = ({
       
       clearInterval(progressInterval);
       
-      if (error) {
-        console.error('Upload error:', error);
+      // Handle errors from the upload
+      if (uploadResponse.error) {
+        console.error('Upload error:', uploadResponse.error);
         
         // Try an alternative approach without contentType if that was the issue
-        if (error.message?.includes('mime type') && error.message?.includes('not supported')) {
+        if (uploadResponse.error.message?.includes('mime type') && uploadResponse.error.message?.includes('not supported')) {
           console.log('Trying alternative upload without explicit content type...');
           
-          const { data: altData, error: altError } = await supabase.storage
+          const altUploadResponse = await supabase.storage
             .from(bucketName)
             .upload(filePath, selectedFile, {
               cacheControl: '3600',
               upsert: true
             });
             
-          if (altError) {
-            throw new Error(`Alternative upload failed: ${altError.message}`);
+          if (altUploadResponse.error) {
+            throw new Error(`Alternative upload failed: ${altUploadResponse.error.message}`);
           }
           
           // If we got here, the alternative upload worked
           console.log('Alternative upload succeeded');
-          data = altData;
+          uploadResponse = altUploadResponse;
         } else {
-          throw new Error(error.message);
+          throw new Error(uploadResponse.error.message);
         }
       }
       

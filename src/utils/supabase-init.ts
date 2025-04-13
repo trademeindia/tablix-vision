@@ -120,8 +120,8 @@ async function ensureStorageBucket() {
   try {
     // First attempt to create policies through our edge function
     try {
-      await supabase.functions.invoke('create-storage-policy', {});
-      console.log('Storage policies initialized through edge function');
+      const response = await supabase.functions.invoke('create-storage-policy', {});
+      console.log('Storage policies initialized through edge function:', response);
       return;
     } catch (e) {
       console.log('Edge function call failed, trying client-side approach:', e);
