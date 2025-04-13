@@ -33,7 +33,7 @@ export async function initializeSupabase() {
     // Enable realtime for critical tables
     await enableRealtimeTables();
     
-    // Ensure storage bucket exists
+    // Ensure storage bucket exists with proper policies
     await ensureStorageBucket();
     
     return true;
@@ -114,10 +114,19 @@ async function enableRealtimeTables() {
 }
 
 /**
- * Ensure the storage bucket exists with proper configuration
+ * Ensure the storage bucket exists with proper configuration and policies
  */
 async function ensureStorageBucket() {
   try {
+    // First attempt to create policies through our edge function
+    try {
+      await supabase.functions.invoke('create-storage-policy', {});
+      console.log('Storage policies initialized through edge function');
+      return;
+    } catch (e) {
+      console.log('Edge function call failed, trying client-side approach:', e);
+    }
+    
     // Check if our bucket exists
     const { data: buckets, error } = await supabase.storage.listBuckets();
     

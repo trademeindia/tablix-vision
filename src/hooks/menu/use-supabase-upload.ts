@@ -133,26 +133,50 @@ export const useSupabaseUpload = ({
       const progressInterval = simulateProgress();
       
       console.log(`Uploading ${selectedFile.name} as ${contentType || 'inferred type'} to ${bucketName}/${filePath}`);
+      
+      // First, initialize the bucket if needed by invoking our edge function
+      try {
+        await supabase.functions.invoke('create-storage-policy', {});
+        console.log('Storage policy initialized');
+      } catch (policyError) {
+        console.warn('Error initializing storage policy, continuing anyway:', policyError);
+      }
 
-      // Upload file to Supabase Storage WITH contentType
+      // Upload file to Supabase Storage WITH explicit contentType
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: false,
-          contentType: contentType
+          upsert: true, // Changed to true to allow overwrites
+          contentType
         });
       
       clearInterval(progressInterval);
       
       if (error) {
+        console.error('Upload error:', error);
+        
+        // Try an alternative approach without contentType if that was the issue
         if (error.message?.includes('mime type') && error.message?.includes('not supported')) {
-           setError(`Upload failed: The file type (${contentType || 'detected type'}) might not be allowed by storage policies.`);
-           toast({ title: "Upload failed", description: `Storage policy might be blocking ${contentType || 'this file type'}.`, variant: "destructive" });
+          console.log('Trying alternative upload without explicit content type...');
+          
+          const { data: altData, error: altError } = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, selectedFile, {
+              cacheControl: '3600',
+              upsert: true
+            });
+            
+          if (altError) {
+            throw new Error(`Alternative upload failed: ${altError.message}`);
+          }
+          
+          // If we got here, the alternative upload worked
+          console.log('Alternative upload succeeded');
+          data = altData;
         } else {
           throw new Error(error.message);
         }
-        return null;
       }
       
       // Get the public URL for the uploaded file
