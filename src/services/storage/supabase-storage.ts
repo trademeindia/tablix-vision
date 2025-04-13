@@ -4,6 +4,26 @@ import { v4 as uuidv4 } from 'uuid';
 
 const MENU_MEDIA_BUCKET = 'menu-media';
 
+// Helper function to map extensions to MIME types
+const getMimeType = (fileName: string): string | undefined => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'gif':
+      return 'image/gif';
+    case 'glb':
+      return 'model/gltf-binary';
+    case 'gltf':
+      return 'model/gltf+json';
+    default:
+      return undefined; // Let Supabase infer if unknown
+  }
+};
+
 /**
  * Uploads a 3D model file to Supabase Storage
  * @param file The file to upload
@@ -39,30 +59,75 @@ export const upload3DModel = async (
   
   filePath += `${uniqueId}.${fileExt}`;
   
-  // Upload the file to Supabase Storage
-  const { data, error } = await supabase
-    .storage
-    .from(MENU_MEDIA_BUCKET)
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false
-    });
-    
-  if (error) {
-    console.error('Error uploading file:', error);
-    throw new Error(`Upload failed: ${error.message}`);
+  // Determine content type
+  const contentType = getMimeType(file.name);
+  
+  // Attempt upload with retry logic
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+  let lastError: Error | null = null;
+  
+  while (attempt < MAX_RETRIES) {
+    try {
+      console.log(`Upload attempt ${attempt + 1} for ${file.name}`);
+      
+      // Upload the file to Supabase Storage
+      const { data, error } = await supabase
+        .storage
+        .from(MENU_MEDIA_BUCKET)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType
+        });
+        
+      if (error) {
+        // If content type is the issue, try without it
+        if (error.message?.includes('mime type') || error.message?.includes('not supported')) {
+          console.log('Content type issue detected, trying without explicit content type');
+          
+          const { data: altData, error: altError } = await supabase
+            .storage
+            .from(MENU_MEDIA_BUCKET)
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: true
+            });
+            
+          if (altError) {
+            throw altError;
+          }
+        } else {
+          throw error;
+        }
+      }
+      
+      // Success - get the public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from(MENU_MEDIA_BUCKET)
+        .getPublicUrl(filePath);
+        
+      return {
+        path: filePath,
+        url: publicUrl
+      };
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      attempt++;
+      
+      if (attempt < MAX_RETRIES) {
+        // Exponential backoff retry
+        const delayMs = Math.pow(2, attempt) * 1000;
+        console.log(`Upload failed, retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
   }
   
-  // Get the public URL of the uploaded file
-  const { data: { publicUrl } } = supabase
-    .storage
-    .from(MENU_MEDIA_BUCKET)
-    .getPublicUrl(filePath);
-    
-  return {
-    path: filePath,
-    url: publicUrl
-  };
+  // If we get here, all attempts failed
+  console.error('All upload attempts failed');
+  throw lastError || new Error('Upload failed after multiple attempts');
 };
 
 /**
@@ -85,15 +150,22 @@ export const getPublicUrl = (path: string): string => {
  * @returns True if deletion was successful
  */
 export const deleteFile = async (path: string): Promise<boolean> => {
-  const { error } = await supabase
-    .storage
-    .from(MENU_MEDIA_BUCKET)
-    .remove([path]);
-    
-  if (error) {
-    console.error('Error deleting file:', error);
-    throw new Error(`Deletion failed: ${error.message}`);
-  }
+  if (!path) return false;
   
-  return true;
+  try {
+    const { error } = await supabase
+      .storage
+      .from(MENU_MEDIA_BUCKET)
+      .remove([path]);
+      
+    if (error) {
+      console.error('Error deleting file:', error);
+      throw error;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Failed to delete file:', err);
+    return false;
+  }
 };

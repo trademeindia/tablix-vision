@@ -30,19 +30,25 @@ serve(async (req) => {
       }
     });
 
-    // Try to create menu-media bucket if it doesn't exist
+    // Parse request body
+    const { bucketName } = await req.json();
+    if (!bucketName) {
+      throw new Error('Missing bucketName parameter');
+    }
+
+    // Try to create bucket if it doesn't exist
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
     if (listError) {
       throw new Error(`Error listing buckets: ${listError.message}`);
     }
     
-    // Check if menu-media bucket exists
-    const menuMediaBucket = buckets.find(bucket => bucket.name === 'menu-media');
+    // Check if bucket exists
+    const bucketExists = buckets.some(bucket => bucket.name === bucketName);
     
-    if (!menuMediaBucket) {
-      console.log('Creating menu-media bucket');
-      const { error: createError } = await supabase.storage.createBucket('menu-media', {
+    if (!bucketExists) {
+      console.log(`Creating bucket ${bucketName}`);
+      const { error: createError } = await supabase.storage.createBucket(bucketName, {
         public: true,
         fileSizeLimit: 52428800, // 50MB
         allowedMimeTypes: [
@@ -59,65 +65,50 @@ serve(async (req) => {
       }
     }
 
-    // Create storage policies to allow uploading models
-    console.log('Setting up storage policies for 3D models');
-
-    // Allow public read access to the files
-    const { error: readPolicyError } = await supabase.rpc('create_storage_policy', {
-      bucket_name: 'menu-media',
-      policy_name: 'Public Read Access',
-      definition: 'TRUE',
-      action: 'SELECT'
+    // Set up storage policies directly with SQL
+    const { error: policyError } = await supabase.rpc('execute_sql', {
+      sql_query: `
+        -- Allow public read access to files
+        BEGIN;
+          DROP POLICY IF EXISTS "Public Read Access for ${bucketName}" ON storage.objects;
+          CREATE POLICY "Public Read Access for ${bucketName}"
+          ON storage.objects FOR SELECT
+          USING (bucket_id = '${bucketName}');
+            
+          -- Allow authenticated users to upload files
+          DROP POLICY IF EXISTS "Auth Users can upload to ${bucketName}" ON storage.objects;
+          CREATE POLICY "Auth Users can upload to ${bucketName}"
+          ON storage.objects FOR INSERT
+          WITH CHECK (bucket_id = '${bucketName}' AND auth.role() = 'authenticated');
+            
+          -- Allow users to update their own objects
+          DROP POLICY IF EXISTS "Users can update own objects in ${bucketName}" ON storage.objects;
+          CREATE POLICY "Users can update own objects in ${bucketName}"
+          ON storage.objects FOR UPDATE
+          USING (bucket_id = '${bucketName}' AND auth.uid() = owner)
+          WITH CHECK (bucket_id = '${bucketName}' AND auth.uid() = owner);
+            
+          -- Allow users to delete their own objects
+          DROP POLICY IF EXISTS "Users can delete own objects in ${bucketName}" ON storage.objects;
+          CREATE POLICY "Users can delete own objects in ${bucketName}"
+          ON storage.objects FOR DELETE
+          USING (bucket_id = '${bucketName}' AND auth.uid() = owner);
+        COMMIT;
+      `
     });
 
-    if (readPolicyError) {
-      console.error(`Error creating read policy: ${readPolicyError.message}`);
-    }
-
-    // Allow authenticated users to upload files
-    const { error: insertPolicyError } = await supabase.rpc('create_storage_policy', {
-      bucket_name: 'menu-media',
-      policy_name: 'Authenticated Insert Access',
-      definition: 'auth.role() = \'authenticated\'',
-      action: 'INSERT'
-    });
-
-    if (insertPolicyError) {
-      console.error(`Error creating insert policy: ${insertPolicyError.message}`);
-    }
-
-    // Allow users to update their own objects
-    const { error: updatePolicyError } = await supabase.rpc('create_storage_policy', {
-      bucket_name: 'menu-media',
-      policy_name: 'Authenticated Update Access',
-      definition: 'auth.role() = \'authenticated\'',
-      action: 'UPDATE'
-    });
-
-    if (updatePolicyError) {
-      console.error(`Error creating update policy: ${updatePolicyError.message}`);
-    }
-
-    // Allow users to delete their own objects
-    const { error: deletePolicyError } = await supabase.rpc('create_storage_policy', {
-      bucket_name: 'menu-media',
-      policy_name: 'Authenticated Delete Access',
-      definition: 'auth.role() = \'authenticated\'',
-      action: 'DELETE'
-    });
-
-    if (deletePolicyError) {
-      console.error(`Error creating delete policy: ${deletePolicyError.message}`);
+    if (policyError) {
+      throw new Error(`Error setting up storage policies: ${policyError.message}`);
     }
 
     return new Response(JSON.stringify({ 
       success: true, 
-      message: 'Storage bucket and policies created successfully'
+      message: `Storage bucket '${bucketName}' and policies created successfully`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error creating storage policy:', error);
+    console.error('Error in create-storage-policy:', error);
     return new Response(JSON.stringify({ 
       success: false, 
       error: error.message 

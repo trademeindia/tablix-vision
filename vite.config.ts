@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     exclude: [
-      // Exclude all platform-specific rollup binaries to prevent build issues
+      // Exclude ALL platform-specific rollup binaries to prevent build issues
       '@rollup/rollup-linux-x64-gnu',
       '@rollup/rollup-darwin-x64',
       '@rollup/rollup-darwin-arm64',
@@ -27,7 +27,8 @@ export default defineConfig(({ mode }) => ({
       '@rollup/rollup-linux-arm-gnueabihf',
       '@rollup/rollup-android-arm64',
       '@rollup/rollup-freebsd-x64',
-      '@rollup/rollup-linux-arm64-musl'
+      '@rollup/rollup-linux-arm64-musl',
+      '@rollup/rollup-linux-x64-musl'
     ],
   },
   build: {
@@ -43,7 +44,8 @@ export default defineConfig(({ mode }) => ({
         '@rollup/rollup-linux-arm-gnueabihf',
         '@rollup/rollup-android-arm64',
         '@rollup/rollup-freebsd-x64',
-        '@rollup/rollup-linux-arm64-musl'
+        '@rollup/rollup-linux-arm64-musl',
+        '@rollup/rollup-linux-x64-musl'
       ],
     },
   },
