@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuCategory, MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
-import { useRealTimeMenu } from './use-real-time-menu';
+import { useRealtimeMenu } from './use-realtime-menu';
 
 interface UseMenuDataResult {
   categories: MenuCategory[];
@@ -14,8 +14,10 @@ interface UseMenuDataResult {
 }
 
 export function useMenuDataWithRealtime(restaurantId: string | null): UseMenuDataResult {
-  // Set up real-time subscriptions
-  useRealTimeMenu(restaurantId, !!restaurantId);
+  // Use the reusable realtime menu hook
+  const { menuItems: realtimeItems, isLoading: realtimeLoading } = useRealtimeMenu(
+    restaurantId || undefined
+  );
   
   // Use optimized query key structures for better cache management
   const categoriesQuery = useQuery({
@@ -92,8 +94,9 @@ export function useMenuDataWithRealtime(restaurantId: string | null): UseMenuDat
 
   return {
     categories: categoriesQuery.data || [],
-    items: itemsQuery.data || [],  // Return empty array instead of null
-    isLoading: categoriesQuery.isLoading || itemsQuery.isLoading,
+    // Use realtime items if available, otherwise use query data
+    items: realtimeItems.length > 0 ? realtimeItems : (itemsQuery.data || []),
+    isLoading: categoriesQuery.isLoading || itemsQuery.isLoading || realtimeLoading,
     error: categoriesQuery.error || itemsQuery.error,
     refetchCategories
   };

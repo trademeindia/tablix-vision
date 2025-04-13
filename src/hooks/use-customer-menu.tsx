@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useMenuData } from '@/hooks/use-menu-data';
 import { useQRCode } from '@/hooks/use-qr-code';
@@ -15,6 +16,7 @@ export function useCustomerMenu() {
   // State for tracking if we're using test data
   const [usingTestData, setUsingTestData] = useState(true);
   const [testData, setTestData] = useState<{ categories: any[], items: any[] } | null>(null);
+  const [toastShown, setToastShown] = useState(false);
   
   // Debug state
   const [debugInfo, setDebugInfo] = useState<{
@@ -98,6 +100,11 @@ export function useCustomerMenu() {
   // Fetch menu data using the hook
   const { categories, items, isLoading, error, refetchCategories } = useMenuData(restaurantId);
   
+  // Check if toast has been shown before in this session
+  const hasToastBeenShown = () => {
+    return localStorage.getItem('customerMenuToastShown') === 'true';
+  };
+  
   // Generate and use test data
   useEffect(() => {
     // Always generate test data for demonstration
@@ -110,12 +117,17 @@ export function useCustomerMenu() {
       queryClient.setQueryData(['menuCategories', restaurantId], data.categories);
       queryClient.setQueryData(['menuItems', restaurantId], data.items);
       
-      toast({
-        title: "Demo Mode",
-        description: "You're viewing a demonstration with sample menu items.",
-      });
+      // Only show toast if it hasn't been shown yet
+      if (!toastShown && !hasToastBeenShown()) {
+        toast({
+          title: "Demo Mode",
+          description: "You're viewing a demonstration with sample menu items.",
+        });
+        setToastShown(true);
+        localStorage.setItem('customerMenuToastShown', 'true');
+      }
     }
-  }, [restaurantId, testData, queryClient]);
+  }, [restaurantId, testData, queryClient, toastShown]);
   
   // Attempt to refetch data automatically if there's an error
   useEffect(() => {
