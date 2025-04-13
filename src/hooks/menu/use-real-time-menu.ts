@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,10 +30,11 @@ export function useRealTimeMenu(restaurantId: string | null, enabled: boolean = 
           
           if (payload.eventType === 'INSERT') {
             // Add the new item to the cache
+            // Make sure we're correctly handling the payload
             const newItem = {
               ...payload.new,
               allergens: parseAllergens(payload.new.allergens)
-            };
+            } as MenuItem; // Explicitly cast to MenuItem
             
             console.log('Adding new menu item to cache:', newItem);
             queryClient.setQueryData(['menuItems', restaurantId], [...currentItems, newItem]);
@@ -42,7 +44,7 @@ export function useRealTimeMenu(restaurantId: string | null, enabled: boolean = 
             const updatedItem = {
               ...payload.new,
               allergens: parseAllergens(payload.new.allergens)
-            };
+            } as MenuItem; // Explicitly cast to MenuItem
             
             console.log('Updating menu item in cache:', updatedItem);
             const updatedItems = currentItems.map(item => 
