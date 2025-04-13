@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export function useThree() {
   const [scene] = useState(() => new THREE.Scene());
@@ -24,7 +24,9 @@ export function useThree() {
     newRenderer.setClearColor(new THREE.Color(backgroundColor), 1);
     newRenderer.shadowMap.enabled = true;
     newRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    newRenderer.outputColorSpace = THREE.SRGBColorSpace;
+    
+    // For Three.js version 0.150.1, use colorSpace instead of outputColorSpace
+    newRenderer.colorSpace = THREE.SRGBColorSpace;
     
     // Set renderer size to match container
     newRenderer.setSize(container.clientWidth, container.clientHeight);

@@ -69,7 +69,11 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
       },
       (error) => {
         console.error('Error loading 3D model:', error);
-        if (onLoadError) onLoadError(error);
+        // Convert ErrorEvent to an Error object with required properties
+        if (onLoadError) {
+          const errorObj = new Error(error instanceof ErrorEvent ? error.message : String(error));
+          onLoadError(errorObj);
+        }
       }
     );
     
