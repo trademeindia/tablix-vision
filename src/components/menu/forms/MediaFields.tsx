@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -18,6 +17,8 @@ interface MediaFieldsProps {
   form: UseFormReturn<any>;
   menuItemId?: string;
   restaurantId?: string;
+  mediaReference?: string;
+  mediaUrl?: string;
   onUploadComplete: (fileId: string, fileUrl: string) => void;
 }
 
@@ -25,6 +26,8 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
   form, 
   menuItemId, 
   restaurantId, 
+  mediaReference,
+  mediaUrl,
   onUploadComplete 
 }) => {
   const [showModelPreview, setShowModelPreview] = useState(false);
@@ -33,11 +36,11 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
   const imageUrl = form.watch('image_url');
   const modelUrl = form.watch('model_url');
   const mediaType = form.watch('media_type');
-  const mediaReference = form.watch('media_reference'); // Get media reference from form
+  const formMediaReference = form.watch('media_reference'); // Get media reference from form
   
   // Derive hasUploaded based on relevant fields
   const hasUploadedImage = mediaType === 'image' && !!imageUrl;
-  const hasUploadedModel = mediaType === '3d' && !!modelUrl && !!mediaReference;
+  const hasUploadedModel = mediaType === '3d' && !!modelUrl && !!(formMediaReference || mediaReference);
   const hasUploaded = hasUploadedImage || hasUploadedModel;
 
   return (

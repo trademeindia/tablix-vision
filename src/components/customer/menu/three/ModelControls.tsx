@@ -1,6 +1,7 @@
 
 import { useEffect, useRef } from 'react';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useThree } from './useThree';
 
 interface ModelControlsProps {
