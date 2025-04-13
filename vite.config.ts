@@ -16,7 +16,28 @@ export default defineConfig(({ mode }) => ({
     ],
   },
   optimizeDeps: {
-    exclude: ['@rollup/rollup-linux-x64-gnu'], // Exclude problematic optional dependency
+    exclude: [
+      // Exclude all platform-specific rollup binaries to prevent build issues
+      '@rollup/rollup-linux-x64-gnu',
+      '@rollup/rollup-darwin-x64',
+      '@rollup/rollup-darwin-arm64',
+      '@rollup/rollup-linux-arm64-gnu',
+      '@rollup/rollup-win32-x64-msvc',
+      '@rollup/rollup-win32-ia32-msvc'
+    ],
+  },
+  build: {
+    commonjsOptions: {
+      // Also exclude platform-specific rollup binaries during build
+      exclude: [
+        '@rollup/rollup-linux-x64-gnu',
+        '@rollup/rollup-darwin-x64',
+        '@rollup/rollup-darwin-arm64',
+        '@rollup/rollup-linux-arm64-gnu',
+        '@rollup/rollup-win32-x64-msvc',
+        '@rollup/rollup-win32-ia32-msvc'
+      ],
+    },
   },
   plugins: [
     react(),

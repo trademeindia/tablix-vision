@@ -135,12 +135,11 @@ export const useSupabaseUpload = ({
       
       console.log(`Uploading ${selectedFile.name} as ${contentType || 'inferred type'} to ${bucketName}/${filePath}`);
       
-      // First, initialize the bucket if needed by invoking our edge function
+      // First, ensure bucket exists by calling our utility function
       try {
-        await supabase.functions.invoke('create-storage-policy', {});
-        console.log('Storage policy initialized');
-      } catch (policyError) {
-        console.warn('Error initializing storage policy, continuing anyway:', policyError);
+        await ensureBucketExists(bucketName);
+      } catch (bucketError) {
+        console.warn('Error ensuring bucket exists, attempting upload anyway:', bucketError);
       }
 
       // Upload file to Supabase Storage WITH explicit contentType
@@ -220,6 +219,46 @@ export const useSupabaseUpload = ({
     setUploadSuccess(false);
     setIsUploading(false);
   }, []);
+  
+  // Utility function to ensure the bucket exists before uploading
+  const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
+    try {
+      // Check if bucket exists
+      const { data: buckets, error } = await supabase.storage.listBuckets();
+      
+      if (error) {
+        throw new Error(`Error checking buckets: ${error.message}`);
+      }
+      
+      const bucketExists = buckets.some(bucket => bucket.name === bucketName);
+      
+      if (!bucketExists) {
+        console.log(`Bucket ${bucketName} not found, creating it...`);
+        
+        // Create the bucket if it doesn't exist
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 52428800 // 50MB
+        });
+        
+        if (createError) {
+          if (createError.message?.includes('already exists')) {
+            console.log('Bucket already exists but was not found in listBuckets. This is likely a permissions issue.');
+            return true;
+          }
+          throw new Error(`Error creating bucket: ${createError.message}`);
+        }
+        
+        console.log(`Successfully created ${bucketName} bucket`);
+      }
+      
+      return true;
+    } catch (err: any) {
+      console.error('Error ensuring bucket exists:', err);
+      // Don't throw here, just return false and let the upload attempt proceed
+      return false;
+    }
+  };
   
   return {
     isUploading,

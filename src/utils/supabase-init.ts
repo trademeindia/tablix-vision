@@ -120,7 +120,9 @@ async function ensureStorageBucket() {
   try {
     // First attempt to create policies through our edge function
     try {
-      const response = await supabase.functions.invoke('create-storage-policy', {});
+      const response = await supabase.functions.invoke('create-storage-policy', {
+        body: { bucketName: 'menu-media' }
+      });
       console.log('Storage policies initialized through edge function:', response);
       return;
     } catch (e) {
@@ -155,6 +157,13 @@ async function ensureStorageBucket() {
           }
         } else {
           console.log('Successfully created menu-media bucket');
+          
+          // Now let's try to set up some basic RLS policies for the bucket
+          try {
+            await createBasicRLSPolicies();
+          } catch (rlsError) {
+            console.error('Error setting up RLS policies:', rlsError);
+          }
         }
       } catch (createErr) {
         console.error('Failed to create bucket:', createErr);
@@ -164,5 +173,29 @@ async function ensureStorageBucket() {
     }
   } catch (err) {
     console.error('Error ensuring storage bucket:', err);
+  }
+}
+
+/**
+ * Creates basic RLS policies for the menu-media bucket via SQL.
+ * This is a fallback if the edge function fails.
+ */
+async function createBasicRLSPolicies() {
+  try {
+    // Direct SQL operation to create policies
+    const { error } = await supabase.rpc('create_storage_policies', {
+      bucket_name: 'menu-media'
+    });
+    
+    if (error) {
+      console.error('Error creating storage policies via RPC:', error);
+      return false;
+    }
+    
+    console.log('Successfully created storage policies via RPC');
+    return true;
+  } catch (err) {
+    console.error('Failed to create storage policies via RPC:', err);
+    return false;
   }
 }
