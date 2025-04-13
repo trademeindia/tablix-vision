@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import FileSelector from './FileSelector';
 import UploadProgress from './UploadProgress';
@@ -12,13 +11,15 @@ interface SupabaseModelUploaderProps {
   restaurantId?: string;
   onUploadComplete: (path: string, url: string) => void;
   className?: string;
+  allowedFileTypes?: string[];
 }
 
 const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({ 
   menuItemId, 
   restaurantId,
   onUploadComplete,
-  className 
+  className,
+  allowedFileTypes
 }) => {
   const {
     isUploading,
@@ -33,7 +34,7 @@ const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({
     restaurantId,
     itemId: menuItemId,
     bucketName: 'menu-media',
-    allowedFileTypes: ['.glb', '.gltf']
+    allowedFileTypes: allowedFileTypes || ['.glb', '.gltf']
   });
   
   const handleUpload = useCallback(async () => {
