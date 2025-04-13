@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,26 @@ interface UploadResult {
   path: string;
   url: string;
 }
+
+// Helper function to map extensions to MIME types
+const getMimeType = (fileName: string): string | undefined => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'gif':
+      return 'image/gif';
+    case 'glb':
+      return 'model/gltf-binary';
+    case 'gltf':
+      return 'model/gltf+json';
+    default:
+      return undefined; // Let Supabase infer if unknown
+  }
+};
 
 export const useSupabaseUpload = ({
   restaurantId = '',
@@ -94,6 +113,7 @@ export const useSupabaseUpload = ({
       setError(null);
       
       const filePath = generateFilePath(selectedFile);
+      const contentType = getMimeType(selectedFile.name);
       
       // Create progress simulation
       const simulateProgress = () => {
@@ -112,18 +132,27 @@ export const useSupabaseUpload = ({
       
       const progressInterval = simulateProgress();
       
-      // Upload file to Supabase Storage
+      console.log(`Uploading ${selectedFile.name} as ${contentType || 'inferred type'} to ${bucketName}/${filePath}`);
+
+      // Upload file to Supabase Storage WITH contentType
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: contentType
         });
       
       clearInterval(progressInterval);
       
       if (error) {
-        throw new Error(error.message);
+        if (error.message?.includes('mime type') && error.message?.includes('not supported')) {
+           setError(`Upload failed: The file type (${contentType || 'detected type'}) might not be allowed by storage policies.`);
+           toast({ title: "Upload failed", description: `Storage policy might be blocking ${contentType || 'this file type'}.`, variant: "destructive" });
+        } else {
+          throw new Error(error.message);
+        }
+        return null;
       }
       
       // Get the public URL for the uploaded file
@@ -156,7 +185,7 @@ export const useSupabaseUpload = ({
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, bucketName, generateFilePath]);
+  }, [selectedFile, bucketName, generateFilePath, restaurantId, itemId, folderPath]);
   
   const cancelUpload = useCallback(() => {
     setSelectedFile(null);
