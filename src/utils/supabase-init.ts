@@ -32,6 +32,9 @@ export async function initializeSupabase() {
     // Enable realtime for critical tables
     enableRealtimeTables();
     
+    // Ensure storage bucket exists
+    await ensureStorageBucket();
+    
     return true;
   } catch (err) {
     console.error('Failed to initialize Supabase:', err);
@@ -58,5 +61,30 @@ function enableRealtimeTables() {
     console.log('Realtime enabled for tables');
   } catch (err) {
     console.error('Failed to enable realtime:', err);
+  }
+}
+
+/**
+ * Ensure the storage bucket exists
+ */
+async function ensureStorageBucket() {
+  try {
+    // Check if our bucket exists
+    const { data: buckets, error } = await supabase.storage.listBuckets();
+    
+    if (error) {
+      console.error('Error checking storage buckets:', error);
+      return;
+    }
+    
+    const menuMediaBucket = buckets.find(bucket => bucket.name === 'menu-media');
+    
+    if (!menuMediaBucket) {
+      console.log('The menu-media bucket was not found. It should be created via SQL migrations.');
+    } else {
+      console.log('menu-media bucket exists');
+    }
+  } catch (err) {
+    console.error('Error ensuring storage bucket:', err);
   }
 }
