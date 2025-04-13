@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
  * - Checks auth status
  * - Sets up listeners
  * - Configures storage buckets if needed
+ * - Enables realtime functionality for critical tables
  */
 export async function initializeSupabase() {
   console.log('Initializing Supabase...');
@@ -30,7 +31,7 @@ export async function initializeSupabase() {
     }
     
     // Enable realtime for critical tables
-    enableRealtimeTables();
+    await enableRealtimeTables();
     
     // Ensure storage bucket exists
     await ensureStorageBucket();
@@ -45,27 +46,75 @@ export async function initializeSupabase() {
 /**
  * Enable realtime for critical tables
  */
-function enableRealtimeTables() {
+async function enableRealtimeTables() {
   try {
-    // Create a channel for restaurant tables
-    supabase.channel('db-tables-status')
+    // Create dedicated channels for different table groups
+    
+    // 1. Channel for tables status updates
+    const tablesChannel = supabase.channel('tables-status-updates')
       .on('postgres_changes', {
-        event: 'UPDATE',
+        event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
         schema: 'public',
         table: 'tables'
       }, (payload) => {
         console.log('Table status changed:', payload);
+        // Event will be handled by components that subscribe to this channel
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Tables channel status:', status);
+      });
     
-    console.log('Realtime enabled for tables');
+    // 2. Channel for orders updates
+    const ordersChannel = supabase.channel('orders-updates')
+      .on('postgres_changes', {
+        event: '*', // Listen for all events
+        schema: 'public',
+        table: 'orders'
+      }, (payload) => {
+        console.log('Order changed:', payload);
+        // Event will be handled by components that subscribe to this channel
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'order_items'
+      }, (payload) => {
+        console.log('Order item changed:', payload);
+        // Event will be handled by components that subscribe to this channel
+      })
+      .subscribe((status) => {
+        console.log('Orders channel status:', status);
+      });
+      
+    // 3. Channel for menu updates (optional, only if menu changes should be real-time)
+    const menuChannel = supabase.channel('menu-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'menu_items',
+        filter: 'is_available=eq.true' // Only listen for available items
+      }, (payload) => {
+        console.log('Menu item changed:', payload);
+        // Event will be handled by components that subscribe to this channel
+      })
+      .subscribe((status) => {
+        console.log('Menu channel status:', status);
+      });
+    
+    console.log('Realtime enabled for critical tables');
+    
+    // We don't unsubscribe as these are application-level subscriptions
+    // that should remain active throughout the application lifecycle
+    
+    return { tablesChannel, ordersChannel, menuChannel };
   } catch (err) {
     console.error('Failed to enable realtime:', err);
+    return null;
   }
 }
 
 /**
- * Ensure the storage bucket exists
+ * Ensure the storage bucket exists with proper configuration
  */
 async function ensureStorageBucket() {
   try {
@@ -80,7 +129,7 @@ async function ensureStorageBucket() {
     const menuMediaBucket = buckets.find(bucket => bucket.name === 'menu-media');
     
     if (!menuMediaBucket) {
-      console.log('The menu-media bucket was not found. It should be created via SQL migrations.');
+      console.log('The menu-media bucket was not found. Attempting to create it.');
       
       // Attempt to create the bucket if it doesn't exist
       try {
@@ -90,7 +139,11 @@ async function ensureStorageBucket() {
         });
         
         if (createError) {
-          console.error('Error creating menu-media bucket:', createError);
+          if (createError.message?.includes('already exists')) {
+            console.log('Bucket already exists but was not found in listBuckets. This is likely a permissions issue.');
+          } else {
+            console.error('Error creating menu-media bucket:', createError);
+          }
         } else {
           console.log('Successfully created menu-media bucket');
         }
