@@ -4,10 +4,14 @@ import { MenuItem } from '@/types/menu';
 import { useCategoryQueries } from './use-category-queries';
 import { useItemQueries } from './use-item-queries';
 import { useDialogStates } from './use-dialog-states';
+import { useRealTimeMenu } from './use-real-time-menu';
 
 export const useMenuPageData = (restaurantId: string) => {
   const [activeTab, setActiveTab] = useState('items');
   const [usingTestData, setUsingTestData] = useState(false);
+  
+  // Set up real-time subscriptions if not using test data
+  useRealTimeMenu(restaurantId, !usingTestData);
   
   // Use the category queries hook
   const {

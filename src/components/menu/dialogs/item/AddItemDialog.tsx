@@ -27,11 +27,45 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   
   const handleAddItem = async (data: Partial<MenuItem>) => {
     try {
+      // Prevent further processing if a mutation is already in progress
+      if (createItemMutation.isPending) {
+        console.log("Already submitting, preventing duplicate submission");
+        return;
+      }
+      
       // Ensure restaurant_id is included in the data
       const itemData = {
         ...data,
         restaurant_id: restaurantId
       };
+      
+      // Validate required fields
+      if (!itemData.name?.trim()) {
+        toast({
+          title: "Validation error",
+          description: "Item name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!itemData.price || isNaN(Number(itemData.price)) || Number(itemData.price) <= 0) {
+        toast({
+          title: "Validation error",
+          description: "Valid price is required",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!itemData.category_id) {
+        toast({
+          title: "Validation error", 
+          description: "Please select a category",
+          variant: "destructive",
+        });
+        return;
+      }
       
       console.log("Creating menu item with data:", itemData);
       

@@ -37,6 +37,9 @@ export const useItemMutations = (usingTestData: boolean = false) => {
       if (data.restaurant_id) {
         // Invalidate specific restaurant menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems', data.restaurant_id] });
+        
+        // Also invalidate categories as they might be affected
+        queryClient.invalidateQueries({ queryKey: ['menuCategories', data.restaurant_id] });
       } else {
         // Fallback to invalidate all menu items
         queryClient.invalidateQueries({ queryKey: ['menuItems'] });
@@ -47,6 +50,11 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         const currentItems = queryClient.getQueryData<MenuItem[]>(['menuItems', data.restaurant_id]) || [];
         queryClient.setQueryData(['menuItems', data.restaurant_id], [...currentItems, data]);
       }
+      
+      toast({
+        title: "Menu item created",
+        description: `${data.name} has been added to your menu`,
+      });
     },
     onError: (error: any) => {
       console.error("Error creating menu item:", error);
@@ -96,6 +104,11 @@ export const useItemMutations = (usingTestData: boolean = false) => {
         );
         queryClient.setQueryData(['menuItems', data.restaurant_id], updatedItems);
       }
+      
+      toast({
+        title: "Menu item updated",
+        description: `${data.name} has been updated`,
+      });
     },
     onError: (error: any) => {
       console.error("Error updating menu item:", error);
@@ -141,6 +154,11 @@ export const useItemMutations = (usingTestData: boolean = false) => {
           }
         });
       }
+      
+      toast({
+        title: "Menu item deleted",
+        description: "The menu item has been removed",
+      });
     },
     onError: (error: any) => {
       console.error("Error deleting menu item:", error);

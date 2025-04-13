@@ -62,6 +62,10 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
     throw new Error("Item price is required");
   }
   
+  if (!item.category_id) {
+    throw new Error("Category is required");
+  }
+  
   try {
     console.log("Creating menu item:", item);
     
@@ -82,19 +86,19 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
     // Prepare the item for insertion
     const dbItem = {
       name: item.name,
-      description: item.description,
-      price: item.price,
+      description: item.description || null,
+      price: parseFloat(item.price.toString()), // Ensure price is a number
       category_id: item.category_id,
-      image_url: item.image_url,
-      model_url: item.model_url,
-      media_type: item.media_type,
-      media_reference: item.media_reference,
+      image_url: item.image_url || null,
+      model_url: item.model_url || null,
+      media_type: item.media_type || null,
+      media_reference: item.media_reference || null,
       is_available: item.is_available !== undefined ? item.is_available : true,
       is_featured: item.is_featured !== undefined ? item.is_featured : false,
-      ingredients: item.ingredients,
+      ingredients: item.ingredients || null,
       allergens: stringifyAllergens(item.allergens),
-      nutritional_info: item.nutritional_info,
-      preparation_time: item.preparation_time,
+      nutritional_info: item.nutritional_info || null,
+      preparation_time: item.preparation_time || null,
       restaurant_id: item.restaurant_id,
       user_id: userId // Set user_id for RLS
     };
@@ -142,10 +146,17 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => 
       userId = "00000000-0000-0000-0000-000000000000"; // Default for demo
     }
     
+    // Parse price to ensure it's a number if present
+    const parsedUpdates = { ...updates };
+    if (parsedUpdates.price !== undefined) {
+      parsedUpdates.price = parseFloat(parsedUpdates.price.toString());
+    }
+    
     const dbUpdates = {
-      ...updates,
+      ...parsedUpdates,
       allergens: updates.allergens ? stringifyAllergens(updates.allergens) : undefined,
-      user_id: userId // Ensure user_id is set for RLS policies
+      user_id: userId, // Ensure user_id is set for RLS policies
+      updated_at: new Date().toISOString() // Force update timestamp
     };
     
     console.log("Sending update to Supabase:", dbUpdates);
@@ -159,6 +170,10 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => 
     if (error) {
       console.error('Error updating menu item:', error);
       throw error;
+    }
+    
+    if (!data || data.length === 0) {
+      throw new Error('No item found to update with ID: ' + id);
     }
     
     console.log("Menu item updated successfully:", data[0]);
@@ -177,6 +192,29 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => 
 export const deleteMenuItem = async (id: string) => {
   try {
     console.log("Deleting menu item:", id);
+    
+    // First get the item to check if it has media that needs to be deleted
+    const { data: item, error: getError } = await supabase
+      .from('menu_items')
+      .select('media_reference, image_url, model_url')
+      .eq('id', id)
+      .single();
+    
+    if (getError) {
+      console.warn('Error fetching menu item for deletion:', getError);
+      // Continue with deletion even if we can't fetch the item
+    } else if (item) {
+      // Handle potential deletion of stored files
+      try {
+        if (item.media_reference) {
+          console.log("Attempting to delete stored media:", item.media_reference);
+          // Logic for deleting stored files could go here
+        }
+      } catch (mediaError) {
+        console.warn('Error cleaning up media files:', mediaError);
+        // Continue with deletion even if media cleanup fails
+      }
+    }
     
     const { error } = await supabase
       .from('menu_items')
