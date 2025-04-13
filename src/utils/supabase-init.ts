@@ -81,6 +81,22 @@ async function ensureStorageBucket() {
     
     if (!menuMediaBucket) {
       console.log('The menu-media bucket was not found. It should be created via SQL migrations.');
+      
+      // Attempt to create the bucket if it doesn't exist
+      try {
+        const { error: createError } = await supabase.storage.createBucket('menu-media', {
+          public: true,
+          fileSizeLimit: 52428800 // 50MB
+        });
+        
+        if (createError) {
+          console.error('Error creating menu-media bucket:', createError);
+        } else {
+          console.log('Successfully created menu-media bucket');
+        }
+      } catch (createErr) {
+        console.error('Failed to create bucket:', createErr);
+      }
     } else {
       console.log('menu-media bucket exists');
     }
