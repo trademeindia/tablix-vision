@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -39,20 +40,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
   const hasUploadedModel = mediaType === '3d' && !!modelUrl && !!mediaReference;
   const hasUploaded = hasUploadedImage || hasUploadedModel;
 
-  // Effect to clear the other URL field when one is set by upload
-  useEffect(() => {
-    if (mediaType === 'image' && imageUrl) {
-      // Keep image_url, clear model_url and reference if they were manually entered
-      // form.setValue('model_url', '', { shouldValidate: true });
-      // form.setValue('media_reference', '', { shouldValidate: true });
-    } else if (mediaType === '3d' && modelUrl) {
-      // Keep model_url, clear image_url if it was manually entered
-      // form.setValue('image_url', '', { shouldValidate: true });
-    }
-    // We don't clear automatically here anymore, the upload callback handles it.
-    // This prevents clearing manually entered URLs if the user changes their mind.
-  }, [mediaType, imageUrl, modelUrl, form]);
-  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

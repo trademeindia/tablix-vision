@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,6 +95,7 @@ export const useSupabaseUpload = ({
       
       const filePath = generateFilePath(selectedFile);
       
+      // Create progress simulation
       const simulateProgress = () => {
         const interval = setInterval(() => {
           setUploadProgress(prev => {
@@ -110,6 +112,7 @@ export const useSupabaseUpload = ({
       
       const progressInterval = simulateProgress();
       
+      // Upload file to Supabase Storage
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
@@ -119,18 +122,17 @@ export const useSupabaseUpload = ({
       
       clearInterval(progressInterval);
       
-      setUploadProgress(100);
-      
       if (error) {
         throw new Error(error.message);
       }
       
+      // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
         .getPublicUrl(filePath);
       
-      setUploadSuccess(true);
       setUploadProgress(100);
+      setUploadSuccess(true);
       
       toast({
         title: "Upload successful",
@@ -154,7 +156,7 @@ export const useSupabaseUpload = ({
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, bucketName]);
+  }, [selectedFile, bucketName, generateFilePath]);
   
   const cancelUpload = useCallback(() => {
     setSelectedFile(null);
