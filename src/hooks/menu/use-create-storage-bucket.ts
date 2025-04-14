@@ -60,11 +60,10 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
         console.log(`Successfully created bucket: ${bucketName}`);
       }
       
-      // Try to set up storage policies using edge function - avoiding the RPC call
+      // Call edge function to set up policies
       try {
         console.log(`Setting up storage policies for bucket: ${bucketName}`);
         
-        // Call edge function to set up policies instead of using RPC
         const { error: functionError } = await supabase.functions.invoke('create-storage-policy', {
           body: { bucketName },
         });

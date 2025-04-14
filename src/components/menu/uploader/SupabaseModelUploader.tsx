@@ -41,9 +41,15 @@ const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({
   
   // Initialize storage bucket on component mount
   useEffect(() => {
-    createStorageBucket('menu-media').catch(err => {
-      console.error('Failed to initialize storage bucket:', err);
-    });
+    const initBucket = async () => {
+      try {
+        await createStorageBucket('menu-media');
+      } catch (err) {
+        console.error('Failed to initialize storage bucket:', err);
+      }
+    };
+    
+    initBucket();
   }, []);
   
   const handleUpload = useCallback(async () => {

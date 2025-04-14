@@ -30,7 +30,7 @@ serve(async (req) => {
       throw new Error('Missing Supabase credentials');
     }
     
-    // Create the Supabase client with service role key
+    // Call the SQL function to create storage policies
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/create_storage_policies`, {
       method: 'POST',
       headers: {

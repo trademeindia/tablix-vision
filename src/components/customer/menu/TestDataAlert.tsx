@@ -8,24 +8,29 @@ interface TestDataAlertProps {
 }
 
 const TestDataAlert: React.FC<TestDataAlertProps> = ({ isVisible }) => {
-  const [shownOnce, setShownOnce] = useState(false);
+  const [shown, setShown] = useState(false);
   
   useEffect(() => {
-    // This prevents the component from reappearing on re-renders
-    if (isVisible && !shownOnce) {
-      setShownOnce(true);
+    // Check if we've already shown this alert in this session
+    const hasShownAlert = sessionStorage.getItem('demoAlertShown') === 'true';
+    
+    // Only show the alert if it's visible and hasn't been shown yet
+    if (isVisible && !hasShownAlert) {
+      setShown(true);
+      // Mark as shown for this session
+      sessionStorage.setItem('demoAlertShown', 'true');
     }
   }, [isVisible]);
   
-  // Only show the alert the first time isVisible becomes true
-  if (!isVisible || shownOnce === false) return null;
+  // Don't render anything if we shouldn't show the alert
+  if (!shown) return null;
   
   return (
     <Alert className="my-4 border-blue-200 bg-blue-50">
       <InfoIcon className="h-4 w-4 text-blue-500" />
-      <AlertTitle className="text-blue-700">Demo Mode</AlertTitle>
+      <AlertTitle className="text-blue-700">Demo Mode Active</AlertTitle>
       <AlertDescription>
-        You're viewing a demonstration with a demo restaurant ID. Add and edit menu items to see how the app works! All functions (adding to cart, ordering, etc.) are fully operational.
+        You're viewing a demonstration with demo data. All features (adding to cart, ordering, etc.) are fully operational.
       </AlertDescription>
     </Alert>
   );
