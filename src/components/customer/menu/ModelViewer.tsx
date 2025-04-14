@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useThree } from './three/useThree';
 import ModelLoader from './three/ModelLoader';
-import Spinner from '@/components/ui/spinner';
+import ModelLoadingIndicator from './three/ModelLoadingIndicator';
 
 interface ModelViewerProps {
   modelUrl: string;
@@ -16,27 +16,27 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
   className = 'w-full h-full'
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   
-  // Set up the Three.js scene
   const { initializeScene, setAutoRotate } = useThree();
   
-  // Initialize the scene when component mounts
   useEffect(() => {
     if (!containerRef.current) return;
     
     const cleanup = initializeScene(containerRef.current);
     setAutoRotate(autoRotate);
+    setIsInitializing(false);
     
     return cleanup;
   }, [initializeScene, setAutoRotate, autoRotate]);
   
-  // Load the model
   const handleLoadStart = () => {
     setLoading(true);
     setLoadProgress(0);
+    setError(null);
   };
   
   const handleLoadProgress = (progress: number) => {
@@ -58,10 +58,10 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
       {/* 3D model container */}
       <div 
         ref={containerRef} 
-        className="w-full h-full rounded-md"
+        className="w-full h-full rounded-lg bg-slate-50"
       />
       
-      {/* Model loader that actually loads the 3D model into the scene */}
+      {/* Model loader */}
       <ModelLoader 
         modelUrl={modelUrl}
         onLoadStart={handleLoadStart}
@@ -72,22 +72,20 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
         center={true}
       />
       
-      {/* Loading overlay */}
-      {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 rounded-md">
-          <Spinner size="lg" />
-          <div className="mt-2 text-sm text-muted-foreground">
-            Loading model... {Math.round(loadProgress)}%
-          </div>
-        </div>
+      {/* Loading states */}
+      {(isInitializing || loading) && !error && (
+        <ModelLoadingIndicator 
+          progress={loadProgress} 
+          isInitializing={isInitializing} 
+        />
       )}
       
-      {/* Error overlay */}
+      {/* Error state */}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 rounded-md">
-          <div className="text-destructive">Failed to load 3D model</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {error.message}
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 rounded-lg p-4">
+          <div className="text-center space-y-2">
+            <p className="text-destructive font-medium">Failed to load 3D model</p>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
           </div>
         </div>
       )}
