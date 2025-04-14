@@ -60,37 +60,22 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
         console.log(`Successfully created bucket: ${bucketName}`);
       }
       
-      // Try to set up storage policies using edge function
+      // Try to set up storage policies using edge function - avoiding the RPC call
       try {
         console.log(`Setting up storage policies for bucket: ${bucketName}`);
         
-        // Call edge function to set up policies
+        // Call edge function to set up policies instead of using RPC
         const { error: functionError } = await supabase.functions.invoke('create-storage-policy', {
           body: { bucketName },
         });
         
         if (functionError) {
           console.error('Error invoking edge function for storage policies:', functionError);
-          
-          // Try to set up policies via direct RPC as fallback
-          try {
-            const { error: rpcError } = await supabase.rpc('create_storage_policies', { 
-              bucket_name: bucketName 
-            });
-            
-            if (rpcError) {
-              console.error('Error calling RPC function:', rpcError);
-              toast({
-                title: "Storage policy setup warning",
-                description: "Bucket created but policies may not be fully configured",
-                variant: "default",
-              });
-            } else {
-              console.log('Storage policies created successfully via RPC');
-            }
-          } catch (rpcErr) {
-            console.error('Exception in RPC call:', rpcErr);
-          }
+          toast({
+            title: "Storage policy setup warning",
+            description: "Bucket created but policies may not be fully configured",
+            variant: "default",
+          });
         } else {
           console.log('Storage policies created successfully via edge function');
         }
