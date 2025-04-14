@@ -21,8 +21,50 @@ const getMimeType = (fileName: string): string => {
     case 'gltf':
       return 'model/gltf+json';
     default:
-      return 'application/octet-stream'; // Use generic binary MIME type for unknown types
+      return 'application/octet-stream'; // Generic binary MIME type for unknown types
   }
+};
+
+/**
+ * Uploads a file (image or 3D model) to Supabase Storage
+ * @param file The file to upload
+ * @param restaurantId Restaurant ID to organize files
+ * @param menuItemId Optional menu item ID to associate with the file
+ * @returns An object containing the path and public URL of the uploaded file
+ */
+export const uploadFile = async (
+  file: File, 
+  restaurantId: string, 
+  menuItemId?: string
+): Promise<{ path: string; url: string }> => {
+  if (!file) {
+    throw new Error('No file provided');
+  }
+  
+  // Validate file size
+  if (file.size > 50 * 1024 * 1024) {
+    throw new Error('File size exceeds 50MB limit');
+  }
+  
+  // Determine file type
+  const fileExt = file.name.split('.').pop()?.toLowerCase();
+  
+  // Validate 3D model file types
+  if (fileExt === 'glb' || fileExt === 'gltf') {
+    console.log('Uploading 3D model file');
+    return upload3DModel(file, restaurantId, menuItemId);
+  }
+  
+  // Validate image file types
+  const validImageTypes = ['jpg', 'jpeg', 'png', 'gif'];
+  const isValidImageType = fileExt && validImageTypes.includes(fileExt);
+  
+  if (!isValidImageType) {
+    throw new Error('Invalid file type. Only JPG, PNG, GIF, GLB, and GLTF files are allowed.');
+  }
+  
+  // Handle as image upload
+  return uploadImage(file, restaurantId, menuItemId);
 };
 
 /**
@@ -37,19 +79,6 @@ export const upload3DModel = async (
   restaurantId: string, 
   menuItemId?: string
 ): Promise<{ path: string; url: string }> => {
-  if (!file) {
-    throw new Error('No file provided');
-  }
-  
-  // Validate file type
-  const validFileTypes = ['.glb', '.gltf'];
-  const fileExt = file.name.split('.').pop()?.toLowerCase();
-  const isValidFileType = fileExt && validFileTypes.includes(`.${fileExt}`);
-  
-  if (!isValidFileType) {
-    throw new Error('Invalid file type. Only .glb and .gltf files are allowed.');
-  }
-  
   // Ensure bucket exists before attempting upload
   await createStorageBucket(MENU_MEDIA_BUCKET);
   
@@ -61,10 +90,12 @@ export const upload3DModel = async (
     filePath += `${menuItemId}/`;
   }
   
+  const fileExt = file.name.split('.').pop()?.toLowerCase();
   filePath += `${uniqueId}.${fileExt}`;
   
   // Determine content type
   const contentType = getMimeType(file.name);
+  console.log(`Uploading ${file.name} as ${contentType} to ${MENU_MEDIA_BUCKET}/${filePath}`);
   
   // Attempt upload with retry logic
   const MAX_RETRIES = 3;
@@ -75,7 +106,7 @@ export const upload3DModel = async (
     try {
       console.log(`Upload attempt ${attempt + 1} for ${file.name}`);
       
-      // Upload the file to Supabase Storage
+      // First attempt: Try with explicit content type
       const { data, error } = await supabase
         .storage
         .from(MENU_MEDIA_BUCKET)
@@ -86,32 +117,43 @@ export const upload3DModel = async (
         });
         
       if (error) {
-        // If content type is the issue, try without it
-        if (error.message?.includes('mime type') || error.message?.includes('not supported')) {
-          console.log('Content type issue detected, trying without explicit content type');
+        console.error('Initial upload attempt failed:', error.message);
+        
+        // Second attempt: Try without content type
+        console.log('Trying alternative upload without explicit content type...');
+        const { data: altData, error: altError } = await supabase
+          .storage
+          .from(MENU_MEDIA_BUCKET)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
           
-          const { data: altData, error: altError } = await supabase
+        if (altError) {
+          // Try one more time with application/octet-stream
+          console.log('Trying final upload attempt with generic content type...');
+          const { data: finalData, error: finalError } = await supabase
             .storage
             .from(MENU_MEDIA_BUCKET)
             .upload(filePath, file, {
               cacheControl: '3600',
-              upsert: true
+              upsert: true,
+              contentType: 'application/octet-stream'
             });
             
-          if (altError) {
-            throw altError;
+          if (finalError) {
+            throw new Error(`All upload methods failed: ${finalError.message}`);
           }
-        } else {
-          throw error;
         }
       }
       
-      // Success - get the public URL
+      // Get the public URL
       const { data: { publicUrl } } = supabase
         .storage
         .from(MENU_MEDIA_BUCKET)
         .getPublicUrl(filePath);
         
+      console.log('Successfully uploaded to Supabase:', publicUrl);
       return {
         path: filePath,
         url: publicUrl
@@ -132,6 +174,67 @@ export const upload3DModel = async (
   // If we get here, all attempts failed
   console.error('All upload attempts failed');
   throw lastError || new Error('Upload failed after multiple attempts');
+};
+
+/**
+ * Uploads an image file to Supabase Storage
+ * @param file The file to upload
+ * @param restaurantId Restaurant ID to organize files
+ * @param menuItemId Optional menu item ID to associate with the image
+ * @returns An object containing the path and public URL of the uploaded file
+ */
+export const uploadImage = async (
+  file: File, 
+  restaurantId: string, 
+  menuItemId?: string
+): Promise<{ path: string; url: string }> => {
+  // Similar implementation as upload3DModel but optimized for images
+  // Ensure bucket exists before attempting upload
+  await createStorageBucket(MENU_MEDIA_BUCKET);
+  
+  // Generate a unique file path
+  const uniqueId = uuidv4();
+  let filePath = `${restaurantId}/`;
+  
+  if (menuItemId) {
+    filePath += `${menuItemId}/`;
+  }
+  
+  const fileExt = file.name.split('.').pop()?.toLowerCase();
+  filePath += `${uniqueId}.${fileExt}`;
+  
+  // Determine content type
+  const contentType = getMimeType(file.name);
+  
+  try {
+    // Upload the file
+    const { data, error } = await supabase
+      .storage
+      .from(MENU_MEDIA_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType
+      });
+      
+    if (error) {
+      throw error;
+    }
+    
+    // Get the public URL
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from(MENU_MEDIA_BUCKET)
+      .getPublicUrl(filePath);
+      
+    return {
+      path: filePath,
+      url: publicUrl
+    };
+  } catch (err) {
+    console.error('Error uploading image:', err);
+    throw err;
+  }
 };
 
 /**

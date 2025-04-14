@@ -22,13 +22,22 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
     const bucketExists = buckets.some(bucket => bucket.name === bucketName);
     
     if (!bucketExists) {
-      console.log(`Creating storage bucket: ${bucketName}`);
+      console.log(`Bucket ${bucketName} not found, creating it...`);
       
       // Create the bucket if it doesn't exist
       const { error: createError } = await supabase.storage
         .createBucket(bucketName, {
           public: true,
           fileSizeLimit: 52428800, // 50MB limit for 3D models
+          allowedMimeTypes: [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'model/gltf-binary',
+            'model/gltf+json',
+            'application/octet-stream',
+            'application/gltf-binary'
+          ]
         });
       
       if (createError) {
@@ -37,19 +46,19 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
         // Special case: If the bucket already exists (potential race condition)
         if (createError.message?.includes('already exists')) {
           console.log('Bucket already exists. Continuing with setup...');
-          return true;
+          // Continue to policy setup since bucket exists
+        } else {
+          toast({
+            title: "Storage setup error",
+            description: `Could not create storage bucket: ${createError.message}`,
+            variant: "destructive",
+          });
+          
+          return false;
         }
-        
-        toast({
-          title: "Storage setup error",
-          description: `Could not create storage bucket: ${createError.message}`,
-          variant: "destructive",
-        });
-        
-        return false;
+      } else {
+        console.log(`Successfully created bucket: ${bucketName}`);
       }
-      
-      console.log(`Successfully created bucket: ${bucketName}`);
       
       // Try to set up storage policies using edge function
       try {
@@ -62,11 +71,26 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
         
         if (functionError) {
           console.error('Error invoking edge function for storage policies:', functionError);
-          toast({
-            title: "Storage policy setup warning",
-            description: "Bucket created but policies may not be fully configured",
-            variant: "default",
-          });
+          
+          // Try to set up policies via direct RPC as fallback
+          try {
+            const { error: rpcError } = await supabase.rpc('create_storage_policies', { 
+              bucket_name: bucketName 
+            });
+            
+            if (rpcError) {
+              console.error('Error calling RPC function:', rpcError);
+              toast({
+                title: "Storage policy setup warning",
+                description: "Bucket created but policies may not be fully configured",
+                variant: "default",
+              });
+            } else {
+              console.log('Storage policies created successfully via RPC');
+            }
+          } catch (rpcErr) {
+            console.error('Exception in RPC call:', rpcErr);
+          }
         } else {
           console.log('Storage policies created successfully via edge function');
         }
@@ -76,6 +100,31 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
       }
     } else {
       console.log(`Bucket ${bucketName} already exists`);
+      
+      // Update existing bucket to ensure it has correct settings
+      try {
+        const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 52428800,
+          allowedMimeTypes: [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'model/gltf-binary',
+            'model/gltf+json',
+            'application/octet-stream',
+            'application/gltf-binary'
+          ]
+        });
+        
+        if (updateError) {
+          console.error('Error updating bucket settings:', updateError);
+        } else {
+          console.log(`Successfully updated bucket settings for: ${bucketName}`);
+        }
+      } catch (updateErr) {
+        console.error('Exception updating bucket:', updateErr);
+      }
     }
     
     return true;

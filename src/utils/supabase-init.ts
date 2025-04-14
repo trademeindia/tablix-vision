@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { createStorageBucket } from '@/hooks/menu/use-create-storage-bucket';
 
@@ -34,7 +35,7 @@ export async function initializeSupabase() {
     await enableRealtimeTables();
     
     // Ensure storage bucket exists with proper policies
-    await ensureStorageBucket();
+    await ensureStorageBuckets();
     
     return true;
   } catch (err) {
@@ -114,22 +115,22 @@ async function enableRealtimeTables() {
 }
 
 /**
- * Ensure the storage bucket exists with proper configuration
+ * Ensure the storage buckets exist with proper configuration
  */
-async function ensureStorageBucket() {
+async function ensureStorageBuckets() {
   try {
-    // Create the menu-media bucket using our helper
-    const result = await createStorageBucket('menu-media');
+    // Create the menu-media bucket for all media files
+    const menuMediaResult = await createStorageBucket('menu-media');
     
-    if (result) {
-      console.log('Storage bucket initialized successfully');
+    if (menuMediaResult) {
+      console.log('Menu media bucket initialized successfully');
     } else {
-      console.warn('Storage bucket initialization may have encountered issues');
+      console.warn('Menu media bucket initialization may have encountered issues');
     }
     
-    return result;
+    return menuMediaResult;
   } catch (err) {
-    console.error('Error ensuring storage bucket:', err);
+    console.error('Error ensuring storage buckets:', err);
     return false;
   }
 }
