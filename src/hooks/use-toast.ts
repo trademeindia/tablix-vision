@@ -1,12 +1,22 @@
+
 import * as React from "react"
 
 import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-export interface ToastOptions extends Omit<ToastProps, 'id'> {
+// Add the missing ToastActionElement type
+type ToastActionElement = React.ReactElement
+
+// Define ToastOptions with proper types
+export interface ToastOptions {
   title?: React.ReactNode
   description?: React.ReactNode
+  variant?: "default" | "destructive"
+  action?: ToastActionElement
+  duration?: number
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const TOAST_LIMIT = 1
@@ -141,9 +151,8 @@ function dispatch(action: Action) {
   })
 }
 
-type Toast = Omit<ToasterToast, "id">
-
-function toast({ ...props }: Toast) {
+// Use the proper type for toast function
+function toast(options: ToastOptions) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -156,13 +165,13 @@ function toast({ ...props }: Toast) {
   dispatch({
     type: "ADD_TOAST",
     toast: {
-      ...props,
+      ...options,
       id,
       open: true,
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
-    },
+    } as ToasterToast,
   })
 
   return {
