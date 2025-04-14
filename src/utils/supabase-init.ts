@@ -31,11 +31,12 @@ export async function initializeSupabase() {
       console.log('No authenticated user');
     }
     
+    // Ensure storage bucket exists with proper policies - do this first
+    // to ensure storage is ready before users interact with the app
+    await ensureStorageBuckets();
+    
     // Enable realtime for critical tables
     await enableRealtimeTables();
-    
-    // Ensure storage bucket exists with proper policies
-    await ensureStorageBuckets();
     
     return true;
   } catch (err) {
@@ -125,7 +126,7 @@ async function ensureStorageBuckets() {
     if (menuMediaResult) {
       console.log('Menu media bucket initialized successfully');
     } else {
-      console.warn('Menu media bucket initialization may have encountered issues');
+      console.warn('Menu media bucket initialization may have encountered issues - will try to continue anyway');
     }
     
     return menuMediaResult;

@@ -54,34 +54,16 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
             variant: "destructive",
           });
           
+          // Try to create policies anyway
+          await callPolicyFunction(bucketName);
           return false;
         }
       } else {
         console.log(`Successfully created bucket: ${bucketName}`);
       }
       
-      // Call edge function to set up policies
-      try {
-        console.log(`Setting up storage policies for bucket: ${bucketName}`);
-        
-        const { error: functionError } = await supabase.functions.invoke('create-storage-policy', {
-          body: { bucketName },
-        });
-        
-        if (functionError) {
-          console.error('Error invoking edge function for storage policies:', functionError);
-          toast({
-            title: "Storage policy setup warning",
-            description: "Bucket created but policies may not be fully configured",
-            variant: "default",
-          });
-        } else {
-          console.log('Storage policies created successfully via edge function');
-        }
-      } catch (policyErr) {
-        console.error('Exception creating policies:', policyErr);
-        // Continue despite policy error - bucket was created
-      }
+      // Always call the policy function, even if bucket creation succeeded
+      await callPolicyFunction(bucketName);
     } else {
       console.log(`Bucket ${bucketName} already exists`);
       
@@ -115,12 +97,37 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
   } catch (err) {
     console.error('Failed to create storage bucket:', err);
     
+    // Attempt to create policies even if bucket creation failed
+    await callPolicyFunction(bucketName);
+    
     toast({
-      title: "Storage setup error",
-      description: "Could not set up storage for file uploads",
-      variant: "destructive",
+      title: "Storage setup warning",
+      description: "Storage setup encountered issues but will try to continue",
+      variant: "default",
     });
     
     return false;
+  }
+}
+
+/**
+ * Helper function to call the edge function for creating storage policies
+ */
+async function callPolicyFunction(bucketName: string): Promise<void> {
+  try {
+    console.log(`Setting up storage policies for bucket: ${bucketName}`);
+    
+    const { error: functionError } = await supabase.functions.invoke('create-storage-policy', {
+      body: { bucketName },
+    });
+    
+    if (functionError) {
+      console.error('Error invoking edge function for storage policies:', functionError);
+    } else {
+      console.log('Storage policies created successfully via edge function');
+    }
+  } catch (policyErr) {
+    console.error('Exception creating policies:', policyErr);
+    // Continue despite policy error - bucket might still be usable
   }
 }

@@ -114,6 +114,9 @@ export const useSupabaseUpload = ({
       setUploadProgress(0);
       setError(null);
       
+      // Always ensure bucket exists first
+      await createStorageBucket(bucketName);
+      
       const filePath = generateFilePath(selectedFile);
       const contentType = getMimeType(selectedFile.name);
       
@@ -136,46 +139,70 @@ export const useSupabaseUpload = ({
       
       console.log(`Uploading ${selectedFile.name} as ${contentType} to ${bucketName}/${filePath}`);
       
-      // First, ensure bucket exists using our helper function
-      await createStorageBucket(bucketName);
+      // Try multiple upload approaches in sequence if needed
+      let uploadResult;
+      let uploadError;
       
-      // Try upload with content type first
-      let uploadResult = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: true, 
-          contentType
-        });
-      
-      clearInterval(progressInterval);
-      
-      // Handle errors from the upload
-      if (uploadResult.error) {
-        console.error('Upload error:', uploadResult.error);
+      // Approach 1: Try with content type explicitly set
+      try {
+        uploadResult = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, selectedFile, {
+            cacheControl: '3600',
+            upsert: true, 
+            contentType
+          });
         
-        // Try an alternative approach without contentType if that was the issue
-        if (uploadResult.error.message?.includes('mime type') || 
-            uploadResult.error.message?.includes('not supported')) {
-          console.log('Trying alternative upload without explicit content type...');
-          
-          const altUploadResult = await supabase.storage
+        uploadError = uploadResult.error;
+      } catch (err) {
+        console.error('First upload attempt failed:', err);
+        uploadError = err;
+      }
+      
+      // Approach 2: If first attempt failed, try without contentType
+      if (uploadError) {
+        console.log('Trying alternative upload without explicit content type...');
+        
+        try {
+          uploadResult = await supabase.storage
             .from(bucketName)
             .upload(filePath, selectedFile, {
               cacheControl: '3600',
               upsert: true
             });
-            
-          if (altUploadResult.error) {
-            throw new Error(`Alternative upload failed: ${altUploadResult.error.message}`);
-          }
           
-          // If we got here, the alternative upload worked
-          console.log('Alternative upload succeeded');
-          uploadResult = altUploadResult;
-        } else {
-          throw new Error(uploadResult.error.message);
+          uploadError = uploadResult.error;
+        } catch (err) {
+          console.error('Second upload attempt failed:', err);
+          uploadError = err;
         }
+      }
+      
+      // Approach 3: If both attempts failed, try with explicit octet-stream
+      if (uploadError) {
+        console.log('Trying final upload attempt with generic content type...');
+        
+        try {
+          uploadResult = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, selectedFile, {
+              cacheControl: '3600',
+              upsert: true,
+              contentType: 'application/octet-stream'
+            });
+          
+          uploadError = uploadResult.error;
+        } catch (err) {
+          console.error('Final upload attempt failed:', err);
+          uploadError = err;
+        }
+      }
+      
+      clearInterval(progressInterval);
+      
+      // If all attempts failed, throw error
+      if (uploadError) {
+        throw new Error(uploadError.message || 'All upload attempts failed');
       }
       
       // Get the public URL for the uploaded file
@@ -190,7 +217,7 @@ export const useSupabaseUpload = ({
       
       toast({
         title: "Upload successful",
-        description: "File uploaded to Supabase Storage",
+        description: "File uploaded successfully",
       });
       
       return {
@@ -203,7 +230,7 @@ export const useSupabaseUpload = ({
       setError(err.message || 'Failed to upload file');
       toast({
         title: "Upload failed",
-        description: err.message || 'Failed to upload file',
+        description: err.message || 'Failed to upload file. Please try again.',
         variant: "destructive",
       });
       return null;

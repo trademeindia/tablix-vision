@@ -52,7 +52,7 @@ BEGIN
     RAISE NOTICE 'Error creating SELECT policy: %', SQLERRM;
   END;
   
-  -- Create INSERT policy (authenticated users)
+  -- Create INSERT policy (authenticated users and anon)
   BEGIN
     DROP POLICY IF EXISTS "Auth Users can INSERT to bucket" ON storage.objects;
     CREATE POLICY "Auth Users can INSERT to bucket"
@@ -65,7 +65,7 @@ BEGIN
     RAISE NOTICE 'Error creating INSERT policy: %', SQLERRM;
   END;
   
-  -- Create UPDATE policy (owner only)
+  -- Create UPDATE policy (owner or anon)
   BEGIN
     DROP POLICY IF EXISTS "Auth Users can UPDATE own objects in bucket" ON storage.objects;
     CREATE POLICY "Auth Users can UPDATE own objects in bucket"
@@ -82,7 +82,7 @@ BEGIN
     RAISE NOTICE 'Error creating UPDATE policy: %', SQLERRM;
   END;
   
-  -- Create DELETE policy (owner only)
+  -- Create DELETE policy (owner or anon)
   BEGIN
     DROP POLICY IF EXISTS "Auth Users can DELETE own objects in bucket" ON storage.objects;
     CREATE POLICY "Auth Users can DELETE own objects in bucket"
