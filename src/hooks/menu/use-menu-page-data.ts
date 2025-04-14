@@ -4,14 +4,16 @@ import { MenuItem } from '@/types/menu';
 import { useCategoryQueries } from './use-category-queries';
 import { useItemQueries } from './use-item-queries';
 import { useDialogStates } from './use-dialog-states';
-import { useRealTimeMenu } from './use-real-time-menu';
+import { useRealtimeMenu } from './use-realtime-menu';
 
 export const useMenuPageData = (restaurantId: string) => {
   const [activeTab, setActiveTab] = useState('items');
   const [usingTestData, setUsingTestData] = useState(false);
   
   // Set up real-time subscriptions if not using test data
-  useRealTimeMenu(restaurantId, !usingTestData);
+  const { menuItems: realtimeItems } = useRealtimeMenu(
+    !usingTestData ? restaurantId : undefined
+  );
   
   // Use the category queries hook
   const {
@@ -27,6 +29,11 @@ export const useMenuPageData = (restaurantId: string) => {
     isItemsLoading,
     itemsError,
   } = useItemQueries(restaurantId, usingTestData, setUsingTestData);
+  
+  // Merge realtime items with query items if available
+  const finalMenuItems = !usingTestData && realtimeItems.length > 0 
+    ? realtimeItems 
+    : menuItems;
   
   // Use the dialog states hook
   const {
@@ -56,7 +63,7 @@ export const useMenuPageData = (restaurantId: string) => {
   } = useDialogStates();
   
   // Create a wrapped handler for viewing items that doesn't need menuItems as a param
-  const handleViewItem = (id: string) => baseHandleViewItem(id, menuItems);
+  const handleViewItem = (id: string) => baseHandleViewItem(id, finalMenuItems);
 
   return {
     // Tab state
@@ -65,7 +72,7 @@ export const useMenuPageData = (restaurantId: string) => {
     
     // Data and loading states
     categories,
-    menuItems,
+    menuItems: finalMenuItems,
     isCategoriesLoading,
     isItemsLoading,
     categoriesError,

@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { useMenuData } from '@/hooks/use-menu-data';
+import { useMenuDataWithRealtime } from '@/hooks/menu/use-menu-data-with-realtime';
 import { useQRCode } from '@/hooks/use-qr-code';
 import { useQRDataParser } from '@/hooks/use-qr-data-parser';
 import { useQueryClient } from '@tanstack/react-query';
@@ -97,8 +97,8 @@ export function useCustomerMenu() {
     }
   }, [parseQRData, handleScan, queryClient]);
   
-  // Fetch menu data using the hook
-  const { categories, items, isLoading, error, refetchCategories } = useMenuData(restaurantId);
+  // Use the realtime menu data hook for better performance
+  const { categories, items, isLoading, error, refetchCategories } = useMenuDataWithRealtime(restaurantId);
   
   // Check if toast has been shown before in this session
   const hasToastBeenShown = () => {
