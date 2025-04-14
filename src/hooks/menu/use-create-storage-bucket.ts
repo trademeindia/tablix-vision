@@ -51,30 +51,28 @@ export async function createStorageBucket(bucketName: string = 'menu-media'): Pr
       
       console.log(`Successfully created bucket: ${bucketName}`);
       
-      // Next create policies by inserting a record into our helper table
-      // that triggers policy creation via database functions
+      // Try to set up storage policies using edge function
       try {
-        console.log(`Creating storage policies for bucket: ${bucketName}`);
+        console.log(`Setting up storage policies for bucket: ${bucketName}`);
         
-        const { error: policyError } = await supabase
-          .from('storage_policies_helper')
-          .insert([{ bucket_name: bucketName }]);
+        // Call edge function to set up policies
+        const { error: functionError } = await supabase.functions.invoke('create-storage-policy', {
+          body: { bucketName },
+        });
         
-        if (policyError) {
-          console.error('Error creating storage policies:', policyError);
+        if (functionError) {
+          console.error('Error invoking edge function for storage policies:', functionError);
           toast({
-            title: "Storage policy setup error",
-            description: `Could not create storage policies: ${policyError.message}`,
+            title: "Storage policy setup warning",
+            description: "Bucket created but policies may not be fully configured",
             variant: "default",
           });
-          
-          // Continue despite policy error - bucket was created
-          console.log('Continuing despite policy error...');
         } else {
-          console.log('Storage policies created successfully');
+          console.log('Storage policies created successfully via edge function');
         }
       } catch (policyErr) {
         console.error('Exception creating policies:', policyErr);
+        // Continue despite policy error - bucket was created
       }
     } else {
       console.log(`Bucket ${bucketName} already exists`);
