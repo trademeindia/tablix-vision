@@ -1,5 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { createStorageBucket } from '@/hooks/menu/use-create-storage-bucket';
 
 /**
  * Initialize Supabase when the app starts
@@ -118,62 +118,16 @@ async function enableRealtimeTables() {
  */
 async function ensureStorageBucket() {
   try {
-    // First try to directly call the edge function
-    try {
-      const response = await supabase.functions.invoke('create-storage-policy', {
-        body: { bucketName: 'menu-media' }
-      });
-      console.log('Storage policies initialized through edge function:', response);
-      return true;
-    } catch (e) {
-      console.log('Edge function call failed, trying direct storage API:', e);
-    }
+    // Create the menu-media bucket using our helper
+    const result = await createStorageBucket('menu-media');
     
-    // Check if our bucket exists
-    const { data: buckets, error } = await supabase.storage.listBuckets();
-    
-    if (error) {
-      console.error('Error checking storage buckets:', error);
-      return false;
-    }
-    
-    const menuMediaBucket = buckets.find(bucket => bucket.name === 'menu-media');
-    
-    if (!menuMediaBucket) {
-      console.log('The menu-media bucket was not found. Creating it...');
-      
-      // Create the bucket if it doesn't exist
-      const { error: createError } = await supabase.storage.createBucket('menu-media', {
-        public: true,
-        fileSizeLimit: 52428800 // 50MB
-      });
-      
-      if (createError) {
-        if (createError.message?.includes('already exists')) {
-          console.log('Bucket already exists but was not found in listBuckets. This is likely a permissions issue.');
-          return true;
-        } else {
-          console.error('Error creating menu-media bucket:', createError);
-          return false;
-        }
-      }
-      
-      console.log('Successfully created menu-media bucket');
-      
-      // Try to call the edge function again now that the bucket exists
-      try {
-        const response = await supabase.functions.invoke('create-storage-policy', {
-          body: { bucketName: 'menu-media' }
-        });
-        console.log('Storage policies initialized through edge function after bucket creation:', response);
-      } catch (rlsError) {
-        console.error('Error setting up policies via edge function:', rlsError);
-      }
+    if (result) {
+      console.log('Storage bucket initialized successfully');
     } else {
-      console.log('menu-media bucket exists');
+      console.warn('Storage bucket initialization may have encountered issues');
     }
     
-    return true;
+    return result;
   } catch (err) {
     console.error('Error ensuring storage bucket:', err);
     return false;

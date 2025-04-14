@@ -1,8 +1,8 @@
-
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { createStorageBucket } from './use-create-storage-bucket';
 
 interface UseSupabaseUploadProps {
   restaurantId?: string;
@@ -19,7 +19,7 @@ interface UploadResult {
 }
 
 // Helper function to map extensions to MIME types
-const getMimeType = (fileName: string): string | undefined => {
+const getMimeType = (fileName: string): string => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   switch (extension) {
     case 'jpg':
@@ -34,7 +34,7 @@ const getMimeType = (fileName: string): string | undefined => {
     case 'gltf':
       return 'model/gltf+json';
     default:
-      return undefined; // Let Supabase infer if unknown
+      return 'application/octet-stream'; // Default MIME type for binary files
   }
 };
 
@@ -133,21 +133,17 @@ export const useSupabaseUpload = ({
       
       const progressInterval = simulateProgress();
       
-      console.log(`Uploading ${selectedFile.name} as ${contentType || 'inferred type'} to ${bucketName}/${filePath}`);
+      console.log(`Uploading ${selectedFile.name} as ${contentType} to ${bucketName}/${filePath}`);
       
-      // First, ensure bucket exists by calling our utility function
-      try {
-        await ensureBucketExists(bucketName);
-      } catch (bucketError) {
-        console.warn('Error ensuring bucket exists, attempting upload anyway:', bucketError);
-      }
-
-      // Upload file to Supabase Storage WITH explicit contentType
+      // First, ensure bucket exists using our helper function
+      await createStorageBucket(bucketName);
+      
+      // Try upload with content type first
       let uploadResult = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
-          upsert: true, // Changed to true to allow overwrites
+          upsert: true, 
           contentType
         });
       
@@ -158,7 +154,8 @@ export const useSupabaseUpload = ({
         console.error('Upload error:', uploadResult.error);
         
         // Try an alternative approach without contentType if that was the issue
-        if (uploadResult.error.message?.includes('mime type') && uploadResult.error.message?.includes('not supported')) {
+        if (uploadResult.error.message?.includes('mime type') || 
+            uploadResult.error.message?.includes('not supported')) {
           console.log('Trying alternative upload without explicit content type...');
           
           const altUploadResult = await supabase.storage
@@ -221,46 +218,6 @@ export const useSupabaseUpload = ({
     setUploadSuccess(false);
     setIsUploading(false);
   }, []);
-  
-  // Utility function to ensure the bucket exists before uploading
-  const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
-    try {
-      // Check if bucket exists
-      const { data: buckets, error } = await supabase.storage.listBuckets();
-      
-      if (error) {
-        throw new Error(`Error checking buckets: ${error.message}`);
-      }
-      
-      const bucketExists = buckets.some(bucket => bucket.name === bucketName);
-      
-      if (!bucketExists) {
-        console.log(`Bucket ${bucketName} not found, creating it...`);
-        
-        // Create the bucket if it doesn't exist
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 52428800 // 50MB
-        });
-        
-        if (createError) {
-          if (createError.message?.includes('already exists')) {
-            console.log('Bucket already exists but was not found in listBuckets. This is likely a permissions issue.');
-            return true;
-          }
-          throw new Error(`Error creating bucket: ${createError.message}`);
-        }
-        
-        console.log(`Successfully created ${bucketName} bucket`);
-      }
-      
-      return true;
-    } catch (err: any) {
-      console.error('Error ensuring bucket exists:', err);
-      // Don't throw here, just return false and let the upload attempt proceed
-      return false;
-    }
-  };
   
   return {
     isUploading,

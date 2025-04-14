@@ -1,10 +1,11 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import FileSelector from './FileSelector';
 import UploadProgress from './UploadProgress';
 import UploadButton from './UploadButton';
 import { useSupabaseUpload } from '@/hooks/menu/use-supabase-upload';
 import { Card, CardContent } from '@/components/ui/card';
+import { createStorageBucket } from '@/hooks/menu/use-create-storage-bucket';
 import { Info } from 'lucide-react';
 
 interface SupabaseModelUploaderProps {
@@ -37,6 +38,13 @@ const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({
     bucketName: 'menu-media',
     allowedFileTypes: allowedFileTypes || ['.glb', '.gltf']
   });
+  
+  // Initialize storage bucket on component mount
+  useEffect(() => {
+    createStorageBucket('menu-media').catch(err => {
+      console.error('Failed to initialize storage bucket:', err);
+    });
+  }, []);
   
   const handleUpload = useCallback(async () => {
     const result = await uploadFile();

@@ -1,11 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { createStorageBucket } from '@/hooks/menu/use-create-storage-bucket';
 
 const MENU_MEDIA_BUCKET = 'menu-media';
 
 // Helper function to map extensions to MIME types
-const getMimeType = (fileName: string): string | undefined => {
+const getMimeType = (fileName: string): string => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   switch (extension) {
     case 'jpg':
@@ -20,7 +21,7 @@ const getMimeType = (fileName: string): string | undefined => {
     case 'gltf':
       return 'model/gltf+json';
     default:
-      return undefined; // Let Supabase infer if unknown
+      return 'application/octet-stream'; // Use generic binary MIME type for unknown types
   }
 };
 
@@ -48,6 +49,9 @@ export const upload3DModel = async (
   if (!isValidFileType) {
     throw new Error('Invalid file type. Only .glb and .gltf files are allowed.');
   }
+  
+  // Ensure bucket exists before attempting upload
+  await createStorageBucket(MENU_MEDIA_BUCKET);
   
   // Generate a unique file path
   const uniqueId = uuidv4();
