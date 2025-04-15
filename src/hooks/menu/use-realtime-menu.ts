@@ -40,10 +40,6 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
         
         console.log('Fetched initial menu items:', data?.length || 0);
         
-        if (!data || data.length === 0) {
-          console.log('No menu items found for this restaurant');
-        }
-        
         // Transform the items data
         const transformedItems = (data || []).map(item => ({
           ...item,
@@ -60,9 +56,9 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
     
     fetchInitialItems();
     
-    // Set up realtime subscription with proper error handling
+    // Set up realtime subscription
     const channel = supabase
-      .channel('menu-changes')
+      .channel('menu-items-channel')
       .on(
         'postgres_changes',
         {
@@ -72,7 +68,7 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
           filter: `restaurant_id=eq.${restaurantId}`
         },
         (payload) => {
-          console.log('Realtime menu update received:', payload.eventType);
+          console.log('Realtime menu update received:', payload.eventType, payload);
           
           try {
             if (payload.eventType === 'INSERT') {
@@ -82,7 +78,7 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
                 allergens: parseAllergens(payload.new.allergens)
               } as MenuItem;
               
-              console.log('Adding new menu item to state:', newItem.name);
+              console.log('Adding new menu item to state:', newItem);
               setMenuItems(currentItems => {
                 // Check if item already exists to prevent duplicates
                 const exists = currentItems.some(item => item.id === newItem.id);
@@ -104,7 +100,7 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
                 allergens: parseAllergens(payload.new.allergens)
               } as MenuItem;
               
-              console.log('Updating menu item in state:', updatedItem.name);
+              console.log('Updating menu item in state:', updatedItem);
               setMenuItems(currentItems => 
                 currentItems.map(item => 
                   item.id === updatedItem.id ? updatedItem : item

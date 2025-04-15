@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import ItemForm from '@/components/menu/ItemForm';
 import { MenuCategory, MenuItem } from '@/types/menu';
@@ -24,14 +24,17 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   usingTestData = false
 }) => {
   const { createItemMutation } = useItemMutations(usingTestData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleAddItem = async (data: Partial<MenuItem>) => {
     try {
-      // Prevent further processing if a mutation is already in progress
-      if (createItemMutation.isPending) {
+      // Prevent further processing if already submitting
+      if (isSubmitting) {
         console.log("Already submitting, preventing duplicate submission");
         return;
       }
+      
+      setIsSubmitting(true);
       
       // Ensure restaurant_id is included in the data
       const itemData = {
@@ -46,6 +49,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           description: "Item name is required",
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
       
@@ -55,6 +59,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           description: "Valid price is required",
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
       
@@ -64,6 +69,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           description: "Please select a category",
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
       
@@ -71,14 +77,19 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       
       await createItemMutation.mutateAsync(itemData);
       
-      // Close dialog after successful creation
+      // After successful creation, close the dialog
       setIsOpen(false);
       
       // Refresh categories and items after creating a new item
       if (onRefreshCategories) {
-        console.log("Refreshing categories after item creation");
+        console.log("Refreshing menu data after item creation");
         onRefreshCategories();
       }
+      
+      toast({
+        title: "Menu item created",
+        description: `${itemData.name} has been added to your menu`,
+      });
     } catch (error) {
       console.error("Error in handleAddItem:", error);
       toast({
@@ -86,6 +97,8 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
         description: "Please try again or check the console for more details.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -102,7 +115,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
           <ItemForm 
             categories={categories}
             onSubmit={handleAddItem}
-            isSubmitting={createItemMutation.isPending}
+            isSubmitting={isSubmitting || createItemMutation.isPending}
             onRefreshCategories={onRefreshCategories}
           />
         </div>

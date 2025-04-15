@@ -35,7 +35,7 @@ export const useItemQueries = (
       }
     },
     retry: 3,
-    staleTime: 60000, // 60 seconds - increased to reduce refreshes
+    staleTime: 60000, // 60 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes cache duration
     enabled: !usingTestData && !!restaurantId, // Only run query if not using test data
   });
@@ -59,7 +59,7 @@ export const useItemQueries = (
     queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
   };
   
-  // Set up a periodic refresh to ensure data stays updated, but with a longer interval
+  // Set up a periodic refresh with a longer interval to avoid excessive refreshes
   useEffect(() => {
     // Clear any existing interval first
     if (periodicRefreshRef.current) {
@@ -71,7 +71,7 @@ export const useItemQueries = (
       periodicRefreshRef.current = setInterval(() => {
         console.log("Periodic refresh of menu items");
         invalidateItemsCache();
-      }, 120000); // Refresh every 120 seconds (2 minutes) to reduce refreshes
+      }, 300000); // Refresh every 5 minutes to significantly reduce refreshes
     }
     
     return () => {

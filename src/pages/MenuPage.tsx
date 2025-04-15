@@ -39,10 +39,6 @@ const MenuPage = () => {
         
         if (!menuMediaBucket) {
           console.warn("Menu media bucket not found. Please set up storage bucket.");
-          toast({
-            title: "Storage configuration",
-            description: "Menu media storage is configured. You can now upload images and 3D models.",
-          });
         } else {
           console.log("Menu media bucket found:", menuMediaBucket);
         }
@@ -158,17 +154,16 @@ const MenuPage = () => {
     }
   }, [handleRefreshCategories, queryClient, restaurantId, menuItems.length, categories?.length]);
 
-  // Automatically refresh data after dialog closes, with debounce
+  // Automatically refresh data after dialog closes, but prevent excessive refreshes
   useEffect(() => {
     // Only refresh when a dialog has just been closed
     const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen && 
                          !isAddCategoryOpen && !isEditCategoryOpen && !isDeleteCategoryOpen;
-    const currentTime = Date.now();
     
     if (dialogsClosed) {
       // Set close timestamp when a dialog closes
       if (dialogCloseTimestamp.current === null) {
-        dialogCloseTimestamp.current = currentTime;
+        dialogCloseTimestamp.current = Date.now();
         
         // Clear any existing timeout
         if (refreshTimeoutRef.current) {
@@ -201,7 +196,7 @@ const MenuPage = () => {
       const initialLoadTimeout = setTimeout(() => {
         handleRefreshAll();
         initialLoadComplete.current = true;
-      }, 800); // slight delay for better UI experience
+      }, 1000); // slight delay for better UI experience
       
       return () => clearTimeout(initialLoadTimeout);
     }
