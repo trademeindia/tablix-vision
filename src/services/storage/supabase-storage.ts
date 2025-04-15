@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { createStorageBucket } from '@/hooks/menu/use-create-storage-bucket';
 
 const MENU_MEDIA_BUCKET = 'menu-media';
 
@@ -79,9 +78,6 @@ export const upload3DModel = async (
   restaurantId: string, 
   menuItemId?: string
 ): Promise<{ path: string; url: string }> => {
-  // Ensure bucket exists before attempting upload
-  await createStorageBucket(MENU_MEDIA_BUCKET);
-  
   // Generate a unique file path
   const uniqueId = uuidv4();
   let filePath = `${restaurantId}/`;
@@ -188,10 +184,6 @@ export const uploadImage = async (
   restaurantId: string, 
   menuItemId?: string
 ): Promise<{ path: string; url: string }> => {
-  // Similar implementation as upload3DModel but optimized for images
-  // Ensure bucket exists before attempting upload
-  await createStorageBucket(MENU_MEDIA_BUCKET);
-  
   // Generate a unique file path
   const uniqueId = uuidv4();
   let filePath = `${restaurantId}/`;

@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Loader2 } from 'lucide-react';
+import Spinner from '@/components/ui/spinner';
 
 interface ModelLoadingIndicatorProps {
   progress: number;
@@ -9,25 +8,26 @@ interface ModelLoadingIndicatorProps {
 }
 
 const ModelLoadingIndicator: React.FC<ModelLoadingIndicatorProps> = ({ 
-  progress,
-  isInitializing = false
+  progress, 
+  isInitializing = false 
 }) => {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 rounded-lg">
-      <div className="text-center space-y-4 p-4">
-        {isInitializing ? (
-          <>
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="text-sm text-muted-foreground">Initializing 3D viewer...</p>
-          </>
-        ) : (
-          <>
-            <Progress value={progress} className="w-48" />
-            <p className="text-sm text-muted-foreground">
-              Loading 3D model... {Math.round(progress)}%
-            </p>
-          </>
-        )}
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 rounded-lg p-4">
+      <div className="text-center space-y-3">
+        <Spinner size="lg" />
+        <div>
+          <p className="text-primary font-medium">
+            {isInitializing ? 'Initializing 3D viewer...' : 'Loading 3D model...'}
+          </p>
+          {!isInitializing && progress > 0 && (
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+              <div 
+                className="bg-primary h-2.5 rounded-full transition-all duration-150" 
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

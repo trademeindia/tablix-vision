@@ -1,12 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createStorageBucket } from '@/hooks/menu/use-create-storage-bucket';
 
 /**
  * Initialize Supabase when the app starts
  * - Checks auth status
  * - Sets up listeners
- * - Configures storage buckets if needed
  * - Enables realtime functionality for critical tables
  */
 export async function initializeSupabase() {
@@ -30,10 +28,6 @@ export async function initializeSupabase() {
     } else {
       console.log('No authenticated user');
     }
-    
-    // Ensure storage bucket exists with proper policies - do this first
-    // to ensure storage is ready before users interact with the app
-    await ensureStorageBuckets();
     
     // Enable realtime for critical tables
     await enableRealtimeTables();
@@ -112,26 +106,5 @@ async function enableRealtimeTables() {
   } catch (err) {
     console.error('Failed to enable realtime:', err);
     return null;
-  }
-}
-
-/**
- * Ensure the storage buckets exist with proper configuration
- */
-async function ensureStorageBuckets() {
-  try {
-    // Create the menu-media bucket for all media files
-    const menuMediaResult = await createStorageBucket('menu-media');
-    
-    if (menuMediaResult) {
-      console.log('Menu media bucket initialized successfully');
-    } else {
-      console.warn('Menu media bucket initialization may have encountered issues - will try to continue anyway');
-    }
-    
-    return menuMediaResult;
-  } catch (err) {
-    console.error('Error ensuring storage buckets:', err);
-    return false;
   }
 }

@@ -3,7 +3,6 @@ import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { createStorageBucket } from './use-create-storage-bucket';
 
 interface UseSupabaseUploadProps {
   restaurantId?: string;
@@ -113,9 +112,6 @@ export const useSupabaseUpload = ({
       setIsUploading(true);
       setUploadProgress(0);
       setError(null);
-      
-      // Always ensure bucket exists first
-      await createStorageBucket(bucketName);
       
       const filePath = generateFilePath(selectedFile);
       const contentType = getMimeType(selectedFile.name);
