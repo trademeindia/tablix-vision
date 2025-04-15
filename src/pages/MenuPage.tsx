@@ -21,6 +21,7 @@ const MenuPage = () => {
   const [isErrorVisible, setIsErrorVisible] = useState(false);
   const isRefreshing = useRef(false);
   const dialogCloseTimestamp = useRef<number | null>(null);
+  const initialLoadComplete = useRef(false);
   
   useEffect(() => {
     // Initialize storage bucket check
@@ -168,7 +169,7 @@ const MenuPage = () => {
         const refreshTimeout = setTimeout(() => {
           handleRefreshAll();
           dialogCloseTimestamp.current = null;
-        }, 200);
+        }, 500); // Increased from 200ms to 500ms
         
         return () => clearTimeout(refreshTimeout);
       }
@@ -178,14 +179,17 @@ const MenuPage = () => {
     }
   }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, handleRefreshAll]);
 
-  // Also refresh when component mounts
+  // Only refresh once when component mounts
   useEffect(() => {
-    console.log("Menu page mounted, doing initial data fetch");
-    const initialLoadTimeout = setTimeout(() => {
-      handleRefreshAll();
-    }, 300); // slight delay for better UI experience
-    
-    return () => clearTimeout(initialLoadTimeout);
+    if (!initialLoadComplete.current) {
+      console.log("Menu page mounted, doing initial data fetch");
+      const initialLoadTimeout = setTimeout(() => {
+        handleRefreshAll();
+        initialLoadComplete.current = true;
+      }, 500); // slight delay for better UI experience
+      
+      return () => clearTimeout(initialLoadTimeout);
+    }
   }, [handleRefreshAll]);
 
   // Defensive rendering to ensure the page loads even if some data is missing

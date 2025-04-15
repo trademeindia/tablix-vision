@@ -34,10 +34,11 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
             description: error.message,
             variant: "destructive"
           });
+          setIsLoading(false);
           return;
         }
         
-        console.log('Fetched initial menu items:', data?.length || 0);
+        console.log('Fetched initial menu items:', data?.length || 0, data);
         
         // Transform the items data
         const transformedItems = (data || []).map(item => ({
@@ -46,9 +47,9 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
         }));
         
         setMenuItems(transformedItems as MenuItem[]);
+        setIsLoading(false);
       } catch (err) {
         console.error('Exception fetching initial menu items:', err);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -97,6 +98,11 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
                 item.id === updatedItem.id ? updatedItem : item
               )
             );
+            
+            toast({
+              title: "Menu item updated",
+              description: `"${updatedItem.name}" has been updated`,
+            });
           } 
           else if (payload.eventType === 'DELETE') {
             // Remove the deleted item from the state
@@ -104,6 +110,11 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
             setMenuItems(currentItems => 
               currentItems.filter(item => item.id !== payload.old.id)
             );
+            
+            toast({
+              title: "Menu item removed",
+              description: "A menu item has been removed from the menu",
+            });
           }
         }
       )

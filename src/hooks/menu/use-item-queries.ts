@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchMenuItems } from '@/services/menu';
 import { MenuItem } from '@/types/menu';
@@ -12,6 +12,7 @@ export const useItemQueries = (
   setUsingTestData: (value: boolean) => void
 ) => {
   const queryClient = useQueryClient();
+  const periodicRefreshRef = useRef<NodeJS.Timeout | null>(null);
   
   // Fetch menu items with proper type definitions
   const { 
@@ -33,8 +34,8 @@ export const useItemQueries = (
       }
     },
     retry: 3,
-    staleTime: 1000, // 1 second - shorter stale time to refresh more frequently
-    gcTime: 5 * 60 * 1000, // 5 minutes cache duration (replaces deprecated cacheTime)
+    staleTime: 30000, // 30 seconds - increased to reduce refreshes
+    gcTime: 5 * 60 * 1000, // 5 minutes cache duration
     enabled: !usingTestData && !!restaurantId, // Only run query if not using test data
   });
   
@@ -54,16 +55,25 @@ export const useItemQueries = (
     queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
   };
   
-  // Set up a periodic refresh to ensure data stays updated
+  // Set up a periodic refresh to ensure data stays updated, but with a longer interval
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!usingTestData) {
+    // Clear any existing interval first
+    if (periodicRefreshRef.current) {
+      clearInterval(periodicRefreshRef.current);
+    }
+    
+    if (!usingTestData) {
+      periodicRefreshRef.current = setInterval(() => {
         console.log("Periodic refresh of menu items");
         invalidateItemsCache();
-      }
-    }, 15000); // Refresh every 15 seconds
+      }, 60000); // Refresh every 60 seconds instead of 15 seconds
+    }
     
-    return () => clearInterval(interval);
+    return () => {
+      if (periodicRefreshRef.current) {
+        clearInterval(periodicRefreshRef.current);
+      }
+    };
   }, [usingTestData, restaurantId, queryClient]);
 
   return {
