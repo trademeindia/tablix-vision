@@ -4,157 +4,149 @@ import { supabase } from '@/integrations/supabase/client';
 import { MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 
-/**
- * Hook to subscribe to real-time updates for menu items
- * @param restaurantId The restaurant ID to filter menu items by
- * @param onItemsChange Optional callback when items are updated
- */
-export const useRealtimeMenu = (
-  restaurantId?: string,
-  onItemsChange?: (items: MenuItem[]) => void
-) => {
+interface UseRealtimeMenuResult {
+  menuItems: MenuItem[];
+  isLoading: boolean;
+}
+
+export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMenuResult {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Initial data fetch and realtime subscription
   useEffect(() => {
-    if (!restaurantId) {
-      setIsLoading(false);
-      return;
-    }
-
+    if (!restaurantId) return;
+    
     setIsLoading(true);
-    setError(null);
-
-    // Initial fetch of menu items
-    const fetchMenuItems = async () => {
+    console.log(`Setting up real-time menu subscription for restaurant: ${restaurantId}`);
+    
+    // First fetch current items
+    const fetchInitialItems = async () => {
       try {
         const { data, error } = await supabase
           .from('menu_items')
           .select('*')
-          .eq('restaurant_id', restaurantId)
-          .order('name');
-
-        if (error) throw error;
-
-        // Transform data to match MenuItem type
-        const transformedItems: MenuItem[] = data?.map(item => ({
+          .eq('restaurant_id', restaurantId);
+        
+        if (error) {
+          console.error('Error fetching initial menu items:', error);
+          toast({
+            title: "Failed to load menu items",
+            description: error.message,
+            variant: "destructive"
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('Fetched initial menu items:', data?.length || 0);
+        
+        // Transform the items data
+        const transformedItems = (data || []).map(item => ({
           ...item,
           allergens: parseAllergens(item.allergens)
-        })) || [];
-
-        setMenuItems(transformedItems);
-        if (onItemsChange) onItemsChange(transformedItems);
-      } catch (err) {
-        console.error('Error fetching menu items:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch menu items'));
+        }));
         
-        toast({
-          title: 'Error loading menu',
-          description: 'Could not load menu items. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
+        setMenuItems(transformedItems as MenuItem[]);
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Exception fetching initial menu items:', err);
         setIsLoading(false);
       }
     };
-
-    fetchMenuItems();
-
-    // Set up realtime subscription for menu items
+    
+    fetchInitialItems();
+    
+    // Set up realtime subscription
     const channel = supabase
-      .channel('menu-items-realtime')
+      .channel('menu-items-channel')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen for all events
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'menu_items',
           filter: `restaurant_id=eq.${restaurantId}`
         },
-        async (payload) => {
-          console.log('Realtime menu update:', payload);
-
+        (payload) => {
+          console.log('Realtime menu update received:', payload.eventType, payload);
+          
           try {
-            // Re-fetch the complete list to ensure we have the most up-to-date data
-            // This is more reliable than trying to update the list based on the payload
-            const { data, error } = await supabase
-              .from('menu_items')
-              .select('*')
-              .eq('restaurant_id', restaurantId)
-              .order('name');
-
-            if (error) throw error;
-
-            // Transform data to match MenuItem type
-            const transformedItems: MenuItem[] = data?.map(item => ({
-              ...item,
-              allergens: parseAllergens(item.allergens)
-            })) || [];
-
-            setMenuItems(transformedItems);
-            if (onItemsChange) onItemsChange(transformedItems);
-            
-            // Show a toast notification about the update
             if (payload.eventType === 'INSERT') {
-              toast({
-                title: 'Menu Updated',
-                description: 'A new menu item has been added.',
+              // Add the new item to the state
+              const newItem = {
+                ...payload.new,
+                allergens: parseAllergens(payload.new.allergens)
+              } as MenuItem;
+              
+              console.log('Adding new menu item to state:', newItem);
+              setMenuItems(currentItems => {
+                // Check if item already exists to prevent duplicates
+                const exists = currentItems.some(item => item.id === newItem.id);
+                if (exists) {
+                  return currentItems;
+                }
+                return [...currentItems, newItem];
               });
-            } else if (payload.eventType === 'UPDATE') {
+              
               toast({
-                title: 'Menu Updated',
-                description: 'A menu item has been updated.',
+                title: "New item added",
+                description: `"${newItem.name}" has been added to the menu`,
               });
-            } else if (payload.eventType === 'DELETE') {
+            } 
+            else if (payload.eventType === 'UPDATE') {
+              // Update the existing item in the state
+              const updatedItem = {
+                ...payload.new,
+                allergens: parseAllergens(payload.new.allergens)
+              } as MenuItem;
+              
+              console.log('Updating menu item in state:', updatedItem);
+              setMenuItems(currentItems => 
+                currentItems.map(item => 
+                  item.id === updatedItem.id ? updatedItem : item
+                )
+              );
+              
               toast({
-                title: 'Menu Updated',
-                description: 'A menu item has been removed.',
+                title: "Menu item updated",
+                description: `"${updatedItem.name}" has been updated`,
+              });
+            } 
+            else if (payload.eventType === 'DELETE') {
+              // Remove the deleted item from the state
+              console.log('Removing menu item from state:', payload.old.id);
+              setMenuItems(currentItems => 
+                currentItems.filter(item => item.id !== payload.old.id)
+              );
+              
+              toast({
+                title: "Menu item removed",
+                description: "A menu item has been removed from the menu",
               });
             }
-          } catch (err) {
-            console.error('Error handling menu item update:', err);
+          } catch (error) {
+            console.error('Error processing realtime update:', error);
           }
         }
       )
-      .subscribe();
-
-    // Cleanup subscription on unmount
+      .subscribe((status) => {
+        console.log('Menu realtime subscription status:', status);
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Error connecting to realtime channel');
+          toast({
+            title: "Realtime connection error",
+            description: "Failed to connect to realtime updates. Changes may not appear immediately.",
+            variant: "destructive"
+          });
+        }
+      });
+    
+    // Clean up subscriptions on unmount
     return () => {
+      console.log('Cleaning up real-time menu subscriptions');
       supabase.removeChannel(channel);
     };
-  }, [restaurantId, onItemsChange]);
-
-  return {
-    menuItems,
-    isLoading,
-    error,
-    refetch: async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('menu_items')
-          .select('*')
-          .eq('restaurant_id', restaurantId)
-          .order('name');
-
-        if (error) throw error;
-
-        // Transform data to match MenuItem type
-        const transformedItems: MenuItem[] = data?.map(item => ({
-          ...item,
-          allergens: parseAllergens(item.allergens)
-        })) || [];
-
-        setMenuItems(transformedItems);
-        if (onItemsChange) onItemsChange(transformedItems);
-      } catch (err) {
-        console.error('Error refetching menu items:', err);
-        setError(err instanceof Error ? err : new Error('Failed to refetch menu items'));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-};
+  }, [restaurantId]);
+  
+  return { menuItems, isLoading };
+}

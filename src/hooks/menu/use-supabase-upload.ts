@@ -19,7 +19,7 @@ interface UploadResult {
 }
 
 // Helper function to map extensions to MIME types
-const getMimeType = (fileName: string): string | undefined => {
+const getMimeType = (fileName: string): string => {
   const extension = fileName.split('.').pop()?.toLowerCase();
   switch (extension) {
     case 'jpg':
@@ -34,7 +34,7 @@ const getMimeType = (fileName: string): string | undefined => {
     case 'gltf':
       return 'model/gltf+json';
     default:
-      return undefined; // Let Supabase infer if unknown
+      return 'application/octet-stream'; // Default MIME type for binary files
   }
 };
 
@@ -133,51 +133,72 @@ export const useSupabaseUpload = ({
       
       const progressInterval = simulateProgress();
       
-      console.log(`Uploading ${selectedFile.name} as ${contentType || 'inferred type'} to ${bucketName}/${filePath}`);
+      console.log(`Uploading ${selectedFile.name} as ${contentType} to ${bucketName}/${filePath}`);
       
-      // First, ensure bucket exists by calling our utility function
+      // Try multiple upload approaches in sequence if needed
+      let uploadResult;
+      let uploadError;
+      
+      // Approach 1: Try with content type explicitly set
       try {
-        await ensureBucketExists(bucketName);
-      } catch (bucketError) {
-        console.warn('Error ensuring bucket exists, attempting upload anyway:', bucketError);
-      }
-
-      // Upload file to Supabase Storage WITH explicit contentType
-      let uploadResult = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: true, // Changed to true to allow overwrites
-          contentType
-        });
-      
-      clearInterval(progressInterval);
-      
-      // Handle errors from the upload
-      if (uploadResult.error) {
-        console.error('Upload error:', uploadResult.error);
+        uploadResult = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, selectedFile, {
+            cacheControl: '3600',
+            upsert: true, 
+            contentType
+          });
         
-        // Try an alternative approach without contentType if that was the issue
-        if (uploadResult.error.message?.includes('mime type') && uploadResult.error.message?.includes('not supported')) {
-          console.log('Trying alternative upload without explicit content type...');
-          
-          const altUploadResult = await supabase.storage
+        uploadError = uploadResult.error;
+      } catch (err) {
+        console.error('First upload attempt failed:', err);
+        uploadError = err;
+      }
+      
+      // Approach 2: If first attempt failed, try without contentType
+      if (uploadError) {
+        console.log('Trying alternative upload without explicit content type...');
+        
+        try {
+          uploadResult = await supabase.storage
             .from(bucketName)
             .upload(filePath, selectedFile, {
               cacheControl: '3600',
               upsert: true
             });
-            
-          if (altUploadResult.error) {
-            throw new Error(`Alternative upload failed: ${altUploadResult.error.message}`);
-          }
           
-          // If we got here, the alternative upload worked
-          console.log('Alternative upload succeeded');
-          uploadResult = altUploadResult;
-        } else {
-          throw new Error(uploadResult.error.message);
+          uploadError = uploadResult.error;
+        } catch (err) {
+          console.error('Second upload attempt failed:', err);
+          uploadError = err;
         }
+      }
+      
+      // Approach 3: If both attempts failed, try with explicit octet-stream
+      if (uploadError) {
+        console.log('Trying final upload attempt with generic content type...');
+        
+        try {
+          uploadResult = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, selectedFile, {
+              cacheControl: '3600',
+              upsert: true,
+              contentType: 'application/octet-stream'
+            });
+          
+          uploadError = uploadResult.error;
+        } catch (err) {
+          console.error('Final upload attempt failed:', err);
+          uploadError = err;
+        }
+      }
+      
+      clearInterval(progressInterval);
+      
+      // If all attempts failed, throw error
+      if (uploadError) {
+        throw new Error(uploadError.message || 'All upload attempts failed');
       }
       
       // Get the public URL for the uploaded file
@@ -192,7 +213,7 @@ export const useSupabaseUpload = ({
       
       toast({
         title: "Upload successful",
-        description: "File uploaded to Supabase Storage",
+        description: "File uploaded successfully",
       });
       
       return {
@@ -205,7 +226,7 @@ export const useSupabaseUpload = ({
       setError(err.message || 'Failed to upload file');
       toast({
         title: "Upload failed",
-        description: err.message || 'Failed to upload file',
+        description: err.message || 'Failed to upload file. Please try again.',
         variant: "destructive",
       });
       return null;
@@ -221,46 +242,6 @@ export const useSupabaseUpload = ({
     setUploadSuccess(false);
     setIsUploading(false);
   }, []);
-  
-  // Utility function to ensure the bucket exists before uploading
-  const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
-    try {
-      // Check if bucket exists
-      const { data: buckets, error } = await supabase.storage.listBuckets();
-      
-      if (error) {
-        throw new Error(`Error checking buckets: ${error.message}`);
-      }
-      
-      const bucketExists = buckets.some(bucket => bucket.name === bucketName);
-      
-      if (!bucketExists) {
-        console.log(`Bucket ${bucketName} not found, creating it...`);
-        
-        // Create the bucket if it doesn't exist
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 52428800 // 50MB
-        });
-        
-        if (createError) {
-          if (createError.message?.includes('already exists')) {
-            console.log('Bucket already exists but was not found in listBuckets. This is likely a permissions issue.');
-            return true;
-          }
-          throw new Error(`Error creating bucket: ${createError.message}`);
-        }
-        
-        console.log(`Successfully created ${bucketName} bucket`);
-      }
-      
-      return true;
-    } catch (err: any) {
-      console.error('Error ensuring bucket exists:', err);
-      // Don't throw here, just return false and let the upload attempt proceed
-      return false;
-    }
-  };
   
   return {
     isUploading,

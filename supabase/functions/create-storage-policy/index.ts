@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.23.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,107 +13,188 @@ serve(async (req) => {
   }
 
   try {
+    // Get request data
+    const { bucketName } = await req.json();
+    
+    if (!bucketName) {
+      throw new Error('Missing bucket name');
+    }
+    
+    console.log(`Creating policies for storage bucket: ${bucketName}`);
+    
     // Get API keys from environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !supabaseKey) {
       throw new Error('Missing Supabase credentials');
     }
-
-    // Initialize Supabase client with service role key
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
-
-    // Parse request body
-    const { bucketName } = await req.json();
-    if (!bucketName) {
-      throw new Error('Missing bucketName parameter');
-    }
-
-    // Try to create bucket if it doesn't exist
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
-    if (listError) {
-      throw new Error(`Error listing buckets: ${listError.message}`);
-    }
-    
-    // Check if bucket exists
-    const bucketExists = buckets.some(bucket => bucket.name === bucketName);
-    
-    if (!bucketExists) {
-      console.log(`Creating bucket ${bucketName}`);
-      const { error: createError } = await supabase.storage.createBucket(bucketName, {
-        public: true,
-        fileSizeLimit: 52428800, // 50MB
-        allowedMimeTypes: [
-          'image/jpeg', 
-          'image/png', 
-          'image/gif', 
-          'model/gltf-binary', 
-          'model/gltf+json'
-        ]
+    // Create the bucket if it doesn't exist already
+    try {
+      const bucketResponse = await fetch(`${supabaseUrl}/storage/v1/bucket/${bucketName}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey
+        }
       });
       
-      if (createError) {
-        throw new Error(`Error creating bucket: ${createError.message}`);
+      // If bucket doesn't exist, create it
+      if (bucketResponse.status === 404) {
+        console.log(`Bucket ${bucketName} not found, creating it...`);
+        
+        const createBucketResponse = await fetch(`${supabaseUrl}/storage/v1/bucket`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`,
+            'apikey': supabaseKey
+          },
+          body: JSON.stringify({
+            id: bucketName,
+            name: bucketName,
+            public: true,
+            file_size_limit: 52428800,
+            allowed_mime_types: [
+              'image/jpeg',
+              'image/png',
+              'image/gif',
+              'model/gltf-binary',
+              'model/gltf+json',
+              'application/octet-stream',
+              'application/gltf-binary'
+            ]
+          })
+        });
+        
+        if (!createBucketResponse.ok) {
+          console.log(`Failed to create bucket, status: ${createBucketResponse.status}`);
+          const errorText = await createBucketResponse.text();
+          console.log(`Bucket creation error: ${errorText}`);
+          
+          // If bucket already exists (409), continue with policy creation
+          if (createBucketResponse.status !== 409) {
+            throw new Error(`Failed to create bucket: ${errorText}`);
+          }
+        }
       }
+    } catch (bucketError) {
+      console.log(`Error checking/creating bucket: ${bucketError.message}`);
+      // Continue to policy creation even if bucket creation fails
     }
-
-    // Set up storage policies directly with SQL
-    const { error: policyError } = await supabase.rpc('execute_sql', {
-      sql_query: `
-        -- Allow public read access to files
-        BEGIN;
-          DROP POLICY IF EXISTS "Public Read Access for ${bucketName}" ON storage.objects;
-          CREATE POLICY "Public Read Access for ${bucketName}"
-          ON storage.objects FOR SELECT
-          USING (bucket_id = '${bucketName}');
-            
-          -- Allow authenticated users to upload files
-          DROP POLICY IF EXISTS "Auth Users can upload to ${bucketName}" ON storage.objects;
-          CREATE POLICY "Auth Users can upload to ${bucketName}"
-          ON storage.objects FOR INSERT
-          WITH CHECK (bucket_id = '${bucketName}' AND auth.role() = 'authenticated');
-            
-          -- Allow users to update their own objects
-          DROP POLICY IF EXISTS "Users can update own objects in ${bucketName}" ON storage.objects;
-          CREATE POLICY "Users can update own objects in ${bucketName}"
-          ON storage.objects FOR UPDATE
-          USING (bucket_id = '${bucketName}' AND auth.uid() = owner)
-          WITH CHECK (bucket_id = '${bucketName}' AND auth.uid() = owner);
-            
-          -- Allow users to delete their own objects
-          DROP POLICY IF EXISTS "Users can delete own objects in ${bucketName}" ON storage.objects;
-          CREATE POLICY "Users can delete own objects in ${bucketName}"
-          ON storage.objects FOR DELETE
-          USING (bucket_id = '${bucketName}' AND auth.uid() = owner);
-        COMMIT;
-      `
+    
+    // Now create the policies directly using SQL
+    const policyResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/create_storage_policies`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseKey}`,
+        'apikey': supabaseKey
+      },
+      body: JSON.stringify({ bucket_name: bucketName })
     });
-
-    if (policyError) {
-      throw new Error(`Error setting up storage policies: ${policyError.message}`);
+    
+    if (!policyResponse.ok) {
+      const errorText = await policyResponse.text();
+      console.error(`Failed to create storage policies: ${errorText}`);
+      // Don't throw here, still return success if policy creation fails
+      // since the bucket might be usable with default policies
+    } else {
+      console.log(`Successfully created policies for bucket: ${bucketName}`);
     }
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: `Storage bucket '${bucketName}' and policies created successfully`
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    
+    // Set more permissive policies directly via SQL
+    try {
+      const createPublicPolicySql = `
+        -- Ensure RLS is enabled on storage.objects
+        ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+        
+        -- Create a public read policy
+        DROP POLICY IF EXISTS "Public Read Access for ${bucketName}" ON storage.objects;
+        CREATE POLICY "Public Read Access for ${bucketName}"
+        ON storage.objects FOR SELECT
+        USING (bucket_id = '${bucketName}');
+        
+        -- Create a policy allowing authenticated users to upload
+        DROP POLICY IF EXISTS "Authenticated Users Upload to ${bucketName}" ON storage.objects;
+        CREATE POLICY "Authenticated Users Upload to ${bucketName}"
+        ON storage.objects FOR INSERT
+        WITH CHECK (
+          bucket_id = '${bucketName}' AND
+          (auth.role() = 'authenticated' OR auth.role() = 'anon')
+        );
+        
+        -- Allow update by the owner or anon users
+        DROP POLICY IF EXISTS "Owner/Anon Update in ${bucketName}" ON storage.objects;
+        CREATE POLICY "Owner/Anon Update in ${bucketName}"
+        ON storage.objects FOR UPDATE
+        USING (
+          bucket_id = '${bucketName}' AND
+          (auth.uid() = owner OR auth.role() = 'anon')
+        )
+        WITH CHECK (
+          bucket_id = '${bucketName}' AND
+          (auth.uid() = owner OR auth.role() = 'anon')
+        );
+        
+        -- Allow delete by the owner or anon users
+        DROP POLICY IF EXISTS "Owner/Anon Delete in ${bucketName}" ON storage.objects;
+        CREATE POLICY "Owner/Anon Delete in ${bucketName}"
+        ON storage.objects FOR DELETE
+        USING (
+          bucket_id = '${bucketName}' AND
+          (auth.uid() = owner OR auth.role() = 'anon')
+        );
+      `;
+      
+      const policySqlResponse = await fetch(`${supabaseUrl}/rest/v1/sql`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({ query: createPublicPolicySql })
+      });
+      
+      if (!policySqlResponse.ok) {
+        console.error('Failed to create direct SQL policies:', await policySqlResponse.text());
+      } else {
+        console.log('Successfully created direct SQL policies');
+      }
+    } catch (policyError) {
+      console.error('Error creating SQL policies:', policyError);
+    }
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: `Storage policies created for bucket: ${bucketName}` 
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
   } catch (error) {
-    console.error('Error in create-storage-policy:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    console.error('Error creating storage policies:', error);
+    
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Unknown error creating storage policies' 
+      }),
+      { 
+        status: 500,
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
   }
 });

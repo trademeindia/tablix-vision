@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 import { getErrorMessage } from "@/utils/api-helpers";
@@ -25,8 +24,8 @@ export const fetchMenuItems = async (category_id?: string, restaurant_id?: strin
       query = query.eq('restaurant_id', restaurant_id);
     }
     
-    // Only fetch available items for public viewing
-    query = query.eq('is_available', true);
+    // Don't filter by availability in the admin panel
+    // We want to show all items regardless of availability
     
     const { data, error } = await query;
     

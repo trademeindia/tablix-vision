@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchMenuItems } from '@/services/menu';
 import { MenuItem } from '@/types/menu';
@@ -12,6 +12,8 @@ export const useItemQueries = (
   setUsingTestData: (value: boolean) => void
 ) => {
   const queryClient = useQueryClient();
+  const periodicRefreshRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstRun = useRef(true);
   
   // Fetch menu items with proper type definitions
   const { 
@@ -25,7 +27,7 @@ export const useItemQueries = (
       try {
         console.log("Fetching menu items for restaurant:", restaurantId);
         const items = await fetchMenuItems(undefined, restaurantId);
-        console.log("Fetched items:", items);
+        console.log("Fetched items count:", items.length);
         return items;
       } catch (error) {
         console.error("Error in fetchMenuItems:", error);
@@ -33,9 +35,9 @@ export const useItemQueries = (
       }
     },
     retry: 3,
-    staleTime: 1000, // 1 second - shorter stale time to refresh more frequently
-    gcTime: 5 * 60 * 1000, // 5 minutes cache duration (replaces deprecated cacheTime)
-    enabled: !usingTestData, // Only run query if not using test data
+    staleTime: 60000, // 60 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes cache duration
+    enabled: !usingTestData && !!restaurantId, // Only run query if not using test data
   });
   
   // Use test data as the primary source for demonstration
@@ -45,7 +47,10 @@ export const useItemQueries = (
 
   useEffect(() => {
     // Log the items when they change to help with debugging
-    console.log("Current menu items:", menuItems);
+    if (!isFirstRun.current || menuItems.length > 0) {
+      console.log("Current menu items count:", menuItems.length);
+      isFirstRun.current = false;
+    }
   }, [menuItems]);
 
   // Manually invalidate the query cache when needed
@@ -54,17 +59,28 @@ export const useItemQueries = (
     queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
   };
   
-  // Set up a periodic refresh to ensure data stays updated
+  // Set up a periodic refresh with a longer interval to avoid excessive refreshes
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!usingTestData) {
+    // Clear any existing interval first
+    if (periodicRefreshRef.current) {
+      clearInterval(periodicRefreshRef.current);
+      periodicRefreshRef.current = null;
+    }
+    
+    if (!usingTestData && restaurantId) {
+      periodicRefreshRef.current = setInterval(() => {
         console.log("Periodic refresh of menu items");
         invalidateItemsCache();
-      }
-    }, 15000); // Refresh every 15 seconds
+      }, 300000); // Refresh every 5 minutes to significantly reduce refreshes
+    }
     
-    return () => clearInterval(interval);
-  }, [usingTestData, restaurantId]);
+    return () => {
+      if (periodicRefreshRef.current) {
+        clearInterval(periodicRefreshRef.current);
+        periodicRefreshRef.current = null;
+      }
+    };
+  }, [usingTestData, restaurantId, queryClient]);
 
   return {
     menuItems,

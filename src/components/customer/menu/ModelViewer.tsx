@@ -1,96 +1,129 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import { useThree } from './three/useThree';
-import ModelLoader from './three/ModelLoader';
-import Spinner from '@/components/ui/spinner';
+import React, { useEffect, useState, useRef } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Environment, PresentationControls } from '@react-three/drei';
+import ModelLoadingIndicator from './three/ModelLoadingIndicator';
 
 interface ModelViewerProps {
   modelUrl: string;
-  autoRotate?: boolean;
-  className?: string;
 }
 
-const ModelViewer: React.FC<ModelViewerProps> = ({ 
-  modelUrl, 
-  autoRotate = true,
-  className = 'w-full h-full'
-}) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [error, setError] = useState<Error | null>(null);
+// Define the GLTF result type to avoid TypeScript errors
+interface GLTFResult {
+  scene: THREE.Group;
+  scenes: THREE.Group[];
+  animations: THREE.AnimationClip[];
+  cameras: THREE.Camera[];
+  asset: { [key: string]: any };
+}
+
+function Model({ url }: { url: string }) {
+  // Use proper type assertion for useGLTF
+  const gltfResult = useGLTF(url) as unknown as GLTFResult;
   
-  // Set up the Three.js scene
-  const { initializeScene, setAutoRotate } = useThree();
+  // Make sure scene exists before rendering
+  if (!gltfResult || !gltfResult.scene) {
+    console.error('Failed to load model or scene is missing:', url);
+    return null;
+  }
   
-  // Initialize the scene when component mounts
+  return <primitive object={gltfResult.scene} />;
+}
+
+const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const isMounted = useRef(true);
+  
   useEffect(() => {
-    if (!containerRef.current) return;
+    setIsLoading(true);
+    setProgress(0);
+    setError(null);
     
-    const cleanup = initializeScene(containerRef.current);
-    setAutoRotate(autoRotate);
+    // Simulate progress for better UX
+    const interval = setInterval(() => {
+      if (isMounted.current) {
+        setProgress(prev => {
+          const newProgress = prev + (100 - prev) * 0.1;
+          return newProgress > 95 ? 95 : newProgress;
+        });
+      }
+    }, 200);
     
-    return cleanup;
-  }, [initializeScene, setAutoRotate, autoRotate]);
-  
-  // Load the model
-  const handleLoadStart = () => {
-    setLoading(true);
-    setLoadProgress(0);
-  };
-  
-  const handleLoadProgress = (progress: number) => {
-    setLoadProgress(progress);
-  };
-  
-  const handleLoadComplete = () => {
-    setLoading(false);
-  };
-  
-  const handleLoadError = (err: Error) => {
-    console.error('Error loading 3D model:', err);
-    setError(err);
-    setLoading(false);
-  };
-  
+    // Preload the model to track loading progress
+    const loadModel = async () => {
+      try {
+        if (!modelUrl) {
+          throw new Error('No model URL provided');
+        }
+        
+        console.log('Loading 3D model:', modelUrl);
+        
+        // Properly type the result of preload to match the GLTFResult interface
+        const gltfData = await useGLTF.preload(modelUrl) as unknown as GLTFResult;
+        
+        if (isMounted.current && gltfData && gltfData.scene) {
+          setProgress(100);
+          setTimeout(() => {
+            if (isMounted.current) {
+              setIsLoading(false);
+            }
+          }, 500);
+        } else if (isMounted.current) {
+          throw new Error('Failed to load 3D model data');
+        }
+      } catch (err: any) {
+        console.error('Error loading 3D model:', err);
+        if (isMounted.current) {
+          setError(err.message || 'Failed to load 3D model');
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    loadModel();
+    
+    return () => {
+      isMounted.current = false;
+      clearInterval(interval);
+    };
+  }, [modelUrl]);
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-slate-100 text-red-500 p-4 text-center">
+        <div>
+          <p className="font-bold">Error loading model</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`relative ${className}`}>
-      {/* 3D model container */}
-      <div 
-        ref={containerRef} 
-        className="w-full h-full rounded-md"
-      />
+    <div className="relative w-full h-full">
+      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 4], fov: 50 }}>
+        <ambientLight intensity={0.5} />
+        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+        <pointLight position={[-10, -10, -10]} />
+        
+        <PresentationControls
+          global
+          rotation={[0, 0, 0]}
+          polar={[-Math.PI / 4, Math.PI / 4]}
+          azimuth={[-Math.PI / 4, Math.PI / 4]}
+          config={{ mass: 2, tension: 400 }}
+          snap={{ mass: 4, tension: 300 }}
+        >
+          {!isLoading && modelUrl && <Model url={modelUrl} />}
+        </PresentationControls>
+        
+        <OrbitControls enableZoom={true} enablePan={true} />
+        <Environment preset="sunset" />
+      </Canvas>
       
-      {/* Model loader that actually loads the 3D model into the scene */}
-      <ModelLoader 
-        modelUrl={modelUrl}
-        onLoadStart={handleLoadStart}
-        onLoadProgress={handleLoadProgress}
-        onLoadComplete={handleLoadComplete}
-        onLoadError={handleLoadError}
-        scale={1.5}
-        center={true}
-      />
-      
-      {/* Loading overlay */}
-      {loading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 rounded-md">
-          <Spinner size="lg" />
-          <div className="mt-2 text-sm text-muted-foreground">
-            Loading model... {Math.round(loadProgress)}%
-          </div>
-        </div>
-      )}
-      
-      {/* Error overlay */}
-      {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 rounded-md">
-          <div className="text-destructive">Failed to load 3D model</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {error.message}
-          </div>
-        </div>
-      )}
+      {isLoading && <ModelLoadingIndicator progress={progress} />}
     </div>
   );
 };

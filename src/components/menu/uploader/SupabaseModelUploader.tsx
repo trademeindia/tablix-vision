@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import FileSelector from './FileSelector';
 import UploadProgress from './UploadProgress';
 import UploadButton from './UploadButton';
@@ -54,6 +54,7 @@ const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({
         error={error}
         onFileChange={handleFileChange}
         onCancel={cancelUpload}
+        acceptedFileTypes={allowedFileTypes?.join(',') || ".glb,.gltf"}
       />
       
       <UploadButton

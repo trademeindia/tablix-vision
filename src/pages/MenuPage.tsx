@@ -11,6 +11,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, InfoIcon } from 'lucide-react';
 import MenuInfoCard from '@/components/menu/MenuInfoCard';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
@@ -19,6 +21,34 @@ const MenuPage = () => {
   const [isErrorVisible, setIsErrorVisible] = useState(false);
   const isRefreshing = useRef(false);
   const dialogCloseTimestamp = useRef<number | null>(null);
+  const initialLoadComplete = useRef(false);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    // Initialize storage bucket check
+    const checkStorageBucket = async () => {
+      try {
+        const { data: buckets, error } = await supabase.storage.listBuckets();
+        
+        if (error) {
+          console.error("Error checking storage buckets:", error);
+          return;
+        }
+        
+        const menuMediaBucket = buckets.find(b => b.name === 'menu-media');
+        
+        if (!menuMediaBucket) {
+          console.warn("Menu media bucket not found. Please set up storage bucket.");
+        } else {
+          console.log("Menu media bucket found:", menuMediaBucket);
+        }
+      } catch (err) {
+        console.error("Error in storage bucket check:", err);
+      }
+    };
+    
+    checkStorageBucket();
+  }, []);
   
   useEffect(() => {
     // Check for database errors and show a helpful message after a short delay
@@ -87,6 +117,10 @@ const MenuPage = () => {
     
     console.log("Refreshing all menu data");
     isRefreshing.current = true;
+    toast({
+      title: "Refreshing menu data",
+      description: "Fetching the latest menu items and categories..."
+    });
     
     try {
       // Force refetch of both categories and items
@@ -96,52 +130,86 @@ const MenuPage = () => {
       ]);
       
       // Additional manual refetch after a short delay to ensure data is fresh
-      setTimeout(() => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+      
+      refreshTimeoutRef.current = setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] });
         isRefreshing.current = false;
         console.log("Data refresh complete");
-      }, 500);
+        toast({
+          title: "Menu data refreshed",
+          description: `Found ${menuItems.length} items and ${categories?.length || 0} categories`
+        });
+      }, 800);
     } catch (error) {
       console.error("Error refreshing data:", error);
       isRefreshing.current = false;
+      toast({
+        title: "Error refreshing data",
+        description: "There was a problem refreshing the menu data",
+        variant: "destructive"
+      });
     }
-  }, [handleRefreshCategories, queryClient, restaurantId]);
+  }, [handleRefreshCategories, queryClient, restaurantId, menuItems.length, categories?.length]);
 
-  // Automatically refresh data after dialog closes, with debounce
+  // Automatically refresh data after dialog closes, but prevent excessive refreshes
   useEffect(() => {
     // Only refresh when a dialog has just been closed
-    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen;
-    const currentTime = Date.now();
+    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen && 
+                         !isAddCategoryOpen && !isEditCategoryOpen && !isDeleteCategoryOpen;
     
     if (dialogsClosed) {
       // Set close timestamp when a dialog closes
       if (dialogCloseTimestamp.current === null) {
-        dialogCloseTimestamp.current = currentTime;
+        dialogCloseTimestamp.current = Date.now();
         
-        console.log("Dialog closed, refreshing data");
+        // Clear any existing timeout
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
+        }
+        
+        console.log("Dialog closed, refreshing data in 800ms");
         // Use setTimeout to prevent excessive refreshing
-        const refreshTimeout = setTimeout(() => {
+        refreshTimeoutRef.current = setTimeout(() => {
           handleRefreshAll();
           dialogCloseTimestamp.current = null;
-        }, 200);
-        
-        return () => clearTimeout(refreshTimeout);
+        }, 800);
       }
     } else {
       // Reset timestamp when dialog is open
       dialogCloseTimestamp.current = null;
     }
-  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, handleRefreshAll]);
-
-  // Also refresh when component mounts
-  useEffect(() => {
-    console.log("Menu page mounted, doing initial data fetch");
-    const initialLoadTimeout = setTimeout(() => {
-      handleRefreshAll();
-    }, 300); // slight delay for better UI experience
     
-    return () => clearTimeout(initialLoadTimeout);
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, isAddCategoryOpen, isEditCategoryOpen, isDeleteCategoryOpen, handleRefreshAll]);
+
+  // Only refresh once when component mounts
+  useEffect(() => {
+    if (!initialLoadComplete.current) {
+      console.log("Menu page mounted, doing initial data fetch");
+      const initialLoadTimeout = setTimeout(() => {
+        handleRefreshAll();
+        initialLoadComplete.current = true;
+      }, 1000); // slight delay for better UI experience
+      
+      return () => clearTimeout(initialLoadTimeout);
+    }
   }, [handleRefreshAll]);
+
+  // Cleanup all timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Defensive rendering to ensure the page loads even if some data is missing
   return (

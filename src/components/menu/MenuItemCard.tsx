@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye, Box, ImageOff } from 'lucide-react';
+import { Edit, Trash2, Eye, Box, ImageOff, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MenuItemCardProps {
@@ -64,9 +64,18 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                   <span>3D</span>
                 </div>
               )}
+              
+              {/* 3D rotate hint if it's a 3D model */}
+              {has3DModel && (
+                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                  <RotateCw className="h-3 w-3 mr-1" />
+                  <span>Rotate</span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500 relative">
+              {/* Show Box icon if there's a 3D model but no image, otherwise ImageOff */}
               {has3DModel ? (
                 <>
                   <Box className="h-8 w-8 text-primary/70" />
@@ -81,7 +90,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             </div>
           )}
           
-          <div className="absolute top-2 right-2 flex gap-1">
+          <div className="absolute top-2 right-2 flex flex-wrap gap-1">
             {isVegetarian && (
               <Badge className="bg-green-100 text-green-800 border-green-200">
                 Veg
@@ -115,7 +124,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             className="flex-1 text-slate-600 rounded-none py-2"
             onClick={() => onView(id)}
           >
-            <Eye className="h-4 w-4 mr-2" />
+            {has3DModel ? <Box className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
             View
           </Button>
           <div className="w-px h-6 bg-slate-200"></div>
