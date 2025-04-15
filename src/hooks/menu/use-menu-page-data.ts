@@ -33,10 +33,30 @@ export const useMenuPageData = (restaurantId: string) => {
   } = useItemQueries(restaurantId, usingTestData, setUsingTestData);
   
   // Merge realtime items with query items if available
-  // Prioritize realtime items as they're more up-to-date
-  const menuItems = !usingTestData && realtimeItems.length > 0 
-    ? realtimeItems 
-    : queryMenuItems;
+  const [mergedMenuItems, setMergedMenuItems] = useState<MenuItem[]>(queryMenuItems);
+
+  useEffect(() => {
+    if (!usingTestData) {
+      if (realtimeItems.length > 0) {
+        // Merge realtime updates into queryMenuItems
+        const updatedItems = queryMenuItems.map(item => {
+          const realtimeItem = realtimeItems.find(rItem => rItem.id === item.id);
+          return realtimeItem ? realtimeItem : item;
+        });
+
+        // Add any new items from realtimeItems that are not in queryMenuItems
+        const newItems = realtimeItems.filter(rItem => !queryMenuItems.find(item => item.id === rItem.id));
+
+        setMergedMenuItems([...updatedItems, ...newItems]);
+      } else {
+        setMergedMenuItems(queryMenuItems);
+      }
+    } else {
+      setMergedMenuItems(queryMenuItems);
+    }
+  }, [realtimeItems, queryMenuItems, usingTestData]);
+
+  const menuItems = mergedMenuItems;
   
   // Use the dialog states hook
   const {
