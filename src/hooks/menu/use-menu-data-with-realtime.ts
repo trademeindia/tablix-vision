@@ -1,21 +1,25 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuCategory, MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 import { useRealtimeMenu } from './use-realtime-menu';
+import { useRealtimeMenuCategories } from './use-realtime-menu-categories';
 
 interface UseMenuDataResult {
   categories: MenuCategory[];
   items: MenuItem[];
   isLoading: boolean;
   error: Error | null;
-  refetchCategories: () => Promise<void>;
 }
 
 export function useMenuDataWithRealtime(restaurantId: string | null): UseMenuDataResult {
   // Use the reusable realtime menu hook
   const { menuItems: realtimeItems, isLoading: realtimeLoading } = useRealtimeMenu(
+    restaurantId || undefined
+  );
+
+  // Use the new realtime menu categories hook
+  const { menuCategories: realtimeCategories, isLoading: realtimeCategoriesLoading } = useRealtimeMenuCategories(
     restaurantId || undefined
   );
   
@@ -33,19 +37,31 @@ export function useMenuDataWithRealtime(restaurantId: string | null): UseMenuDat
           .order('display_order', { ascending: true });
         
         if (error) {
+          console.error('Error fetching menu categories:', error);
+          toast({
+            title: "Error fetching menu categories",
+            description: "Please try again or check your connection",
+            variant: "destructive"
+          });
           throw new Error(`Error fetching categories: ${error.message}`);
         }
-        
+
         // Return empty array instead of null to avoid errors in components
         return (data || []) as MenuCategory[];
-      } catch (error) {
+      } catch (error: any) {
+        console.error('Error fetching menu categories:', error);
+        toast({
+          title: "Error fetching menu categories",
+          description: "Please try again or check your connection",
+          variant: "destructive"
+        });
         throw error instanceof Error ? error : new Error(String(error));
       }
     },
     enabled: !!restaurantId,
-    staleTime: 10 * 60 * 1000, // 10 minutes cache
+    staleTime: 300000, // 5 minutes
   });
-  
+
   const itemsQuery = useQuery({
     queryKey: ['menuItems', restaurantId],
     queryFn: async () => {
@@ -59,45 +75,36 @@ export function useMenuDataWithRealtime(restaurantId: string | null): UseMenuDat
           .eq('is_available', true);
         
         if (error) {
+          console.error('Error fetching menu items:', error);
+          toast({
+            title: "Error fetching menu items",
+            description: "Please try again or check your connection",
+            variant: "destructive"
+          });
           throw new Error(`Error fetching items: ${error.message}`);
         }
-        
-        // Transform the items data, with empty array fallback
-        const transformedItems = (data || []).map(item => ({
-          ...item,
-          allergens: parseAllergens(item.allergens)
-        }));
-        
-        return transformedItems as MenuItem[];
-      } catch (error) {
+
+        return (data || []) as MenuItem[];
+      } catch (error: any) {
+        console.error('Error fetching menu items:', error);
+        toast({
+          title: "Error fetching menu items",
+          description: "Please try again or check your connection",
+          variant: "destructive"
+        });
         throw error instanceof Error ? error : new Error(String(error));
       }
     },
     enabled: !!restaurantId,
-    staleTime: 10 * 60 * 1000, // 10 minutes cache
+    staleTime: 300000, // 5 minutes
   });
 
-  const refetchCategories = async () => {
-    try {
-      await Promise.all([
-        categoriesQuery.refetch(),
-        itemsQuery.refetch()
-      ]);
-    } catch (error) {
-      toast({
-        title: "Failed to refresh data",
-        description: "Please try again or check your connection",
-        variant: "destructive"
-      });
-    }
-  };
-
   return {
-    categories: categoriesQuery.data || [],
+    // Use realtime categories if available, otherwise use query data
+    categories: realtimeCategories.length > 0 ? realtimeCategories : (categoriesQuery.data || []),
     // Use realtime items if available, otherwise use query data
     items: realtimeItems.length > 0 ? realtimeItems : (itemsQuery.data || []),
-    isLoading: categoriesQuery.isLoading || itemsQuery.isLoading || realtimeLoading,
+    isLoading: categoriesQuery.isLoading || itemsQuery.isLoading || realtimeLoading || realtimeCategoriesLoading,
     error: categoriesQuery.error || itemsQuery.error,
-    refetchCategories
   };
 }

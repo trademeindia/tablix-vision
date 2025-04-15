@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { initializeSupabase } from './utils/supabase-init';
 import { enableRealtimeForMenuTables } from './utils/supabase-realtime';
-import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeProviderWrapper as ThemeProvider } from '@/components/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import LoadingScreen from '@/components/ui/loading-screen';

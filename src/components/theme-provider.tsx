@@ -1,10 +1,16 @@
+import React from "react";
+import { ThemeProvider } from "next-themes";
 
-"use client"
+interface Props {
+  children: React.ReactNode;
+  defaultTheme?: string;
+  storageKey?: string;
+}
 
-import * as React from "react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
-import { type ThemeProviderProps } from "next-themes/dist/types"
-
-export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+export function ThemeProviderWrapper({ children, defaultTheme, storageKey }: Props) {
+  return (
+    <ThemeProvider attribute="class" defaultTheme={defaultTheme} storageKey={storageKey}>
+      {children}
+    </ThemeProvider>
+  );
 }
