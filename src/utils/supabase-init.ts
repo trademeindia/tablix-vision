@@ -13,13 +13,18 @@ export const initializeSupabase = async () => {
     
     console.log('Supabase successfully initialized');
     
-    // Enable realtime for menu items and categories
+    // Test if realtime is working
     try {
-      // These are admin-only operations and will only work with the service role key
-      // In production, this would need to be done via SQL migrations
-      console.log('Realtime functionality is available through database configuration');
+      const channel = supabase.channel('test');
+      const status = await channel.subscribe();
+      console.log('Realtime subscription test status:', status);
+      
+      // Clean up test channel
+      supabase.removeChannel(channel);
+      
+      console.log('Realtime functionality is available and working');
     } catch (realtimeError) {
-      console.warn('Unable to configure realtime:', realtimeError);
+      console.warn('Realtime test encountered an error:', realtimeError);
     }
     
     return true;

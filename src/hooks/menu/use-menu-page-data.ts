@@ -72,16 +72,16 @@ export const useMenuPageData = (restaurantId: string) => {
   useEffect(() => {
     console.log("Menu items updated in useMenuPageData:", menuItems?.length || 0);
     
-    if (menuItems?.length === 0 && !isItemsLoading && !isCategoriesLoading && !isRealtimeLoading) {
-      // If we have no items and we're not loading, try to refetch
+    if (menuItems?.length === 0 && !isItemsLoading && !isCategoriesLoading && !isRealtimeLoading && !usingTestData) {
+      // If we have no items and we're not loading, try to refetch once
       console.log("No menu items found, triggering refetch");
       const timer = setTimeout(() => {
         refetchItems();
-      }, 1000);
+      }, 2000);
       
       return () => clearTimeout(timer);
     }
-  }, [menuItems, isItemsLoading, isCategoriesLoading, isRealtimeLoading, refetchItems]);
+  }, [menuItems, isItemsLoading, isCategoriesLoading, isRealtimeLoading, refetchItems, usingTestData]);
 
   // Auto-switch to test data if there are API errors
   useEffect(() => {

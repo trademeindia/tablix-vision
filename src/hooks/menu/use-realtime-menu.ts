@@ -38,7 +38,11 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
           return;
         }
         
-        console.log('Fetched initial menu items:', data?.length || 0, data);
+        console.log('Fetched initial menu items:', data?.length || 0);
+        
+        if (!data || data.length === 0) {
+          console.log('No menu items found for this restaurant');
+        }
         
         // Transform the items data
         const transformedItems = (data || []).map(item => ({
@@ -56,7 +60,7 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
     
     fetchInitialItems();
     
-    // Set up realtime subscription
+    // Set up realtime subscription with proper error handling
     const channel = supabase
       .channel('menu-changes')
       .on(
@@ -68,96 +72,83 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
           filter: `restaurant_id=eq.${restaurantId}`
         },
         (payload) => {
-          console.log('Realtime menu update received:', payload);
+          console.log('Realtime menu update received:', payload.eventType);
           
-          if (payload.eventType === 'INSERT') {
-            // Add the new item to the state
-            const newItem = {
-              ...payload.new,
-              allergens: parseAllergens(payload.new.allergens)
-            } as MenuItem;
-            
-            console.log('Adding new menu item to state:', newItem);
-            setMenuItems(currentItems => [...currentItems, newItem]);
-            
-            toast({
-              title: "New item added",
-              description: `"${newItem.name}" has been added to the menu`,
-            });
-          } 
-          else if (payload.eventType === 'UPDATE') {
-            // Update the existing item in the state
-            const updatedItem = {
-              ...payload.new,
-              allergens: parseAllergens(payload.new.allergens)
-            } as MenuItem;
-            
-            console.log('Updating menu item in state:', updatedItem);
-            setMenuItems(currentItems => 
-              currentItems.map(item => 
-                item.id === updatedItem.id ? updatedItem : item
-              )
-            );
-            
-            toast({
-              title: "Menu item updated",
-              description: `"${updatedItem.name}" has been updated`,
-            });
-          } 
-          else if (payload.eventType === 'DELETE') {
-            // Remove the deleted item from the state
-            console.log('Removing menu item from state:', payload.old.id);
-            setMenuItems(currentItems => 
-              currentItems.filter(item => item.id !== payload.old.id)
-            );
-            
-            toast({
-              title: "Menu item removed",
-              description: "A menu item has been removed from the menu",
-            });
+          try {
+            if (payload.eventType === 'INSERT') {
+              // Add the new item to the state
+              const newItem = {
+                ...payload.new,
+                allergens: parseAllergens(payload.new.allergens)
+              } as MenuItem;
+              
+              console.log('Adding new menu item to state:', newItem.name);
+              setMenuItems(currentItems => {
+                // Check if item already exists to prevent duplicates
+                const exists = currentItems.some(item => item.id === newItem.id);
+                if (exists) {
+                  return currentItems;
+                }
+                return [...currentItems, newItem];
+              });
+              
+              toast({
+                title: "New item added",
+                description: `"${newItem.name}" has been added to the menu`,
+              });
+            } 
+            else if (payload.eventType === 'UPDATE') {
+              // Update the existing item in the state
+              const updatedItem = {
+                ...payload.new,
+                allergens: parseAllergens(payload.new.allergens)
+              } as MenuItem;
+              
+              console.log('Updating menu item in state:', updatedItem.name);
+              setMenuItems(currentItems => 
+                currentItems.map(item => 
+                  item.id === updatedItem.id ? updatedItem : item
+                )
+              );
+              
+              toast({
+                title: "Menu item updated",
+                description: `"${updatedItem.name}" has been updated`,
+              });
+            } 
+            else if (payload.eventType === 'DELETE') {
+              // Remove the deleted item from the state
+              console.log('Removing menu item from state:', payload.old.id);
+              setMenuItems(currentItems => 
+                currentItems.filter(item => item.id !== payload.old.id)
+              );
+              
+              toast({
+                title: "Menu item removed",
+                description: "A menu item has been removed from the menu",
+              });
+            }
+          } catch (error) {
+            console.error('Error processing realtime update:', error);
           }
         }
       )
       .subscribe((status) => {
         console.log('Menu realtime subscription status:', status);
-      });
-    
-    // Also subscribe to category changes
-    const categoryChannel = supabase
-      .channel('category-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'menu_categories',
-          filter: `restaurant_id=eq.${restaurantId}`
-        },
-        (payload) => {
-          console.log('Realtime category update received:', payload);
-          
-          // For category deletion, we should update affected menu items
-          if (payload.eventType === 'DELETE') {
-            const deletedCategoryId = payload.old.id;
-            
-            setMenuItems(currentItems => 
-              currentItems.map(item => {
-                if (item.category_id === deletedCategoryId) {
-                  return { ...item, category_id: null };
-                }
-                return item;
-              })
-            );
-          }
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Error connecting to realtime channel');
+          toast({
+            title: "Realtime connection error",
+            description: "Failed to connect to realtime updates. Changes may not appear immediately.",
+            variant: "destructive"
+          });
         }
-      )
-      .subscribe();
+      });
     
     // Clean up subscriptions on unmount
     return () => {
       console.log('Cleaning up real-time menu subscriptions');
       supabase.removeChannel(channel);
-      supabase.removeChannel(categoryChannel);
     };
   }, [restaurantId]);
   

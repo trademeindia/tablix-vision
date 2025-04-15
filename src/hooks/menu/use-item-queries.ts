@@ -13,6 +13,7 @@ export const useItemQueries = (
 ) => {
   const queryClient = useQueryClient();
   const periodicRefreshRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstRun = useRef(true);
   
   // Fetch menu items with proper type definitions
   const { 
@@ -26,7 +27,7 @@ export const useItemQueries = (
       try {
         console.log("Fetching menu items for restaurant:", restaurantId);
         const items = await fetchMenuItems(undefined, restaurantId);
-        console.log("Fetched items:", items);
+        console.log("Fetched items count:", items.length);
         return items;
       } catch (error) {
         console.error("Error in fetchMenuItems:", error);
@@ -34,7 +35,7 @@ export const useItemQueries = (
       }
     },
     retry: 3,
-    staleTime: 30000, // 30 seconds - increased to reduce refreshes
+    staleTime: 60000, // 60 seconds - increased to reduce refreshes
     gcTime: 5 * 60 * 1000, // 5 minutes cache duration
     enabled: !usingTestData && !!restaurantId, // Only run query if not using test data
   });
@@ -46,7 +47,10 @@ export const useItemQueries = (
 
   useEffect(() => {
     // Log the items when they change to help with debugging
-    console.log("Current menu items:", menuItems);
+    if (!isFirstRun.current || menuItems.length > 0) {
+      console.log("Current menu items count:", menuItems.length);
+      isFirstRun.current = false;
+    }
   }, [menuItems]);
 
   // Manually invalidate the query cache when needed
@@ -60,18 +64,20 @@ export const useItemQueries = (
     // Clear any existing interval first
     if (periodicRefreshRef.current) {
       clearInterval(periodicRefreshRef.current);
+      periodicRefreshRef.current = null;
     }
     
-    if (!usingTestData) {
+    if (!usingTestData && restaurantId) {
       periodicRefreshRef.current = setInterval(() => {
         console.log("Periodic refresh of menu items");
         invalidateItemsCache();
-      }, 60000); // Refresh every 60 seconds instead of 15 seconds
+      }, 120000); // Refresh every 120 seconds (2 minutes) to reduce refreshes
     }
     
     return () => {
       if (periodicRefreshRef.current) {
         clearInterval(periodicRefreshRef.current);
+        periodicRefreshRef.current = null;
       }
     };
   }, [usingTestData, restaurantId, queryClient]);

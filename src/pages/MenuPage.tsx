@@ -22,6 +22,7 @@ const MenuPage = () => {
   const isRefreshing = useRef(false);
   const dialogCloseTimestamp = useRef<number | null>(null);
   const initialLoadComplete = useRef(false);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
     // Initialize storage bucket check
@@ -133,7 +134,11 @@ const MenuPage = () => {
       ]);
       
       // Additional manual refetch after a short delay to ensure data is fresh
-      setTimeout(() => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+      
+      refreshTimeoutRef.current = setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] });
         isRefreshing.current = false;
         console.log("Data refresh complete");
@@ -141,7 +146,7 @@ const MenuPage = () => {
           title: "Menu data refreshed",
           description: `Found ${menuItems.length} items and ${categories?.length || 0} categories`
         });
-      }, 500);
+      }, 800);
     } catch (error) {
       console.error("Error refreshing data:", error);
       isRefreshing.current = false;
@@ -156,7 +161,8 @@ const MenuPage = () => {
   // Automatically refresh data after dialog closes, with debounce
   useEffect(() => {
     // Only refresh when a dialog has just been closed
-    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen;
+    const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen && 
+                         !isAddCategoryOpen && !isEditCategoryOpen && !isDeleteCategoryOpen;
     const currentTime = Date.now();
     
     if (dialogsClosed) {
@@ -164,20 +170,29 @@ const MenuPage = () => {
       if (dialogCloseTimestamp.current === null) {
         dialogCloseTimestamp.current = currentTime;
         
-        console.log("Dialog closed, refreshing data");
+        // Clear any existing timeout
+        if (refreshTimeoutRef.current) {
+          clearTimeout(refreshTimeoutRef.current);
+        }
+        
+        console.log("Dialog closed, refreshing data in 800ms");
         // Use setTimeout to prevent excessive refreshing
-        const refreshTimeout = setTimeout(() => {
+        refreshTimeoutRef.current = setTimeout(() => {
           handleRefreshAll();
           dialogCloseTimestamp.current = null;
-        }, 500); // Increased from 200ms to 500ms
-        
-        return () => clearTimeout(refreshTimeout);
+        }, 800);
       }
     } else {
       // Reset timestamp when dialog is open
       dialogCloseTimestamp.current = null;
     }
-  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, handleRefreshAll]);
+    
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, isAddCategoryOpen, isEditCategoryOpen, isDeleteCategoryOpen, handleRefreshAll]);
 
   // Only refresh once when component mounts
   useEffect(() => {
@@ -186,11 +201,20 @@ const MenuPage = () => {
       const initialLoadTimeout = setTimeout(() => {
         handleRefreshAll();
         initialLoadComplete.current = true;
-      }, 500); // slight delay for better UI experience
+      }, 800); // slight delay for better UI experience
       
       return () => clearTimeout(initialLoadTimeout);
     }
   }, [handleRefreshAll]);
+
+  // Cleanup all timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Defensive rendering to ensure the page loads even if some data is missing
   return (

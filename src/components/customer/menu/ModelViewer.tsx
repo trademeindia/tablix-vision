@@ -19,14 +19,15 @@ interface GLTFResult {
 
 function Model({ url }: { url: string }) {
   // Explicitly type the result of useGLTF
-  const { scene } = useGLTF(url) as GLTFResult;
+  const gltfResult = useGLTF(url) as GLTFResult;
   
-  // Still check if scene exists for safety
-  if (!scene) {
+  // Make sure scene exists
+  if (!gltfResult || !gltfResult.scene) {
+    console.error('Failed to load model or scene is missing:', url);
     return null;
   }
   
-  return <primitive object={scene} />;
+  return <primitive object={gltfResult.scene} />;
 }
 
 const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
@@ -56,6 +57,8 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
         if (!modelUrl) {
           throw new Error('No model URL provided');
         }
+        
+        console.log('Loading 3D model:', modelUrl);
         
         // Properly type the result of preload to match the GLTFResult interface
         const gltfData = await useGLTF.preload(modelUrl) as GLTFResult;
