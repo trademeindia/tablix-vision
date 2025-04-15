@@ -77,7 +77,7 @@ export const useCategoryQueries = (
           name: "General",
           description: "Default category for menu items",
           display_order: 0,
-          restaurant_id: restaurantId,
+          restaurant_id: restaurantId
         });
         await refetchCategories();
         toast({

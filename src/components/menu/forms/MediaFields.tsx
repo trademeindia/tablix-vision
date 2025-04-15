@@ -131,12 +131,28 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         <p className="text-sm text-muted-foreground mb-4">
           Upload an image (JPG, PNG, GIF) or a 3D model (GLB, GLTF). Uploading will replace any manually entered URL above.
         </p>
-        <SupabaseModelUploader
+        <input
+          type="file"
+          id="media-upload"
+          accept=".jpg,.jpeg,.png,.gif,.glb,.gltf"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              // You might want to do some client-side validation here
+              console.log('Selected file:', file);
+            }
+          }}
+        />
+        <label htmlFor="media-upload" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+          Upload Media
+        </label>
+        {/* <SupabaseModelUploader
           menuItemId={menuItemId}
           restaurantId={restaurantId}
           onUploadComplete={onUploadComplete}
           allowedFileTypes={['.jpg', '.jpeg', '.png', '.gif', '.glb', '.gltf']}
-        />
+        /> */}
       </div>
       
       {/* 3D Model Preview Dialog */}

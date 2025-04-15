@@ -98,42 +98,56 @@ export const useItemForm = (
 
   const handleFormSubmit = useCallback(async (values: ItemFormValues) => {
     if (!onSubmit) return;
-    
+
     // Prevent duplicate submissions
     if (isSubmitting.current) {
       console.log("Already submitting form, preventing duplicate submission");
       return;
     }
-    
+
     isSubmitting.current = true;
     console.log(`Form ${formId.current} submitting...`);
-    
+
     try {
-      // Process allergens to JSON format
-      const formattedData = {
-        ...values,
-        allergens: {
-          isVegetarian: values.is_vegetarian,
-          isVegan: values.is_vegan,
-          isGlutenFree: values.is_gluten_free,
-          items: values.allergens ? values.allergens.split(',').map(item => item.trim()) : []
+      const formData = new FormData();
+      for (const key in values) {
+        formData.append(key, values[key]);
+      }
+
+      // Get the selected file from the MediaFields component
+      const selectedFile = (document.querySelector('#media-upload') as HTMLInputElement)?.files?.[0];
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      }
+
+      const restaurantId = values.restaurant_id;
+
+      const response = await fetch('/api/menu-items/createWithUpload', {
+        method: 'POST',
+        headers: {
+          'x-restaurant-id': restaurantId,
         },
-        // Handle media data
-        media_type: values.media_type || (mediaReference ? '3d' : values.image_url ? 'image' : undefined),
-        media_reference: values.media_reference || mediaReference
-      };
-      
-      // Remove individual dietary flags as they're now in the allergens object
-      delete formattedData.is_vegetarian;
-      delete formattedData.is_vegan;
-      delete formattedData.is_gluten_free;
-      
-      await onSubmit(formattedData);
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create menu item');
+      }
+
+      const data = await response.json();
+      await onSubmit(data);
+    } catch (error: any) {
+      toast({
+        title: "Failed to create menu item",
+        description: error.message || "Please try again later",
+        variant: "destructive",
+      });
     } finally {
       isSubmitting.current = false;
       console.log(`Form ${formId.current} submission complete`);
     }
-  }, [onSubmit, mediaReference]);
+  }, [onSubmit]);
 
   return {
     form,
