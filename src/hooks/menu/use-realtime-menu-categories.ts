@@ -26,28 +26,7 @@ export function useRealtimeMenuCategories(restaurantId: string | undefined) {
         },
         (payload) => {
           console.log('Menu category change detected:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            const newCategory = payload.new as MenuCategory;
-            setMenuCategories(currentCategories => {
-              const exists = currentCategories.some(category => category.id === newCategory.id);
-              if (exists) {
-                return currentCategories;
-              }
-              return [...currentCategories, newCategory];
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedCategory = payload.new as MenuCategory;
-            setMenuCategories(currentCategories =>
-              currentCategories.map(category =>
-                category.id === updatedCategory.id ? updatedCategory : category
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setMenuCategories(currentCategories =>
-              currentCategories.filter(category => category.id !== payload.old.id)
-            );
-          }
+          fetchMenuCategories();
         }
       )
       .subscribe(status => {
@@ -55,11 +34,7 @@ export function useRealtimeMenuCategories(restaurantId: string | undefined) {
         setIsLoading(false);
       });
 
-:start_line:58
--------
-    // Initial fetch of menu categories
--------
-    // Initial fetch of menu categories
+    // Function to fetch menu categories from Supabase
     const fetchMenuCategories = async () => {
       try {
         const { data, error } = await supabase
