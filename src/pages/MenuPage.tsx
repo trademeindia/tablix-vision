@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 const MenuPage = () => {
   const queryClient = useQueryClient();
   // Use a state for restaurant ID in case we want to make it dynamic in the future
-  const [restaurantId] = useState("00000000-0000-0000-0000-000000000000");
+  const [restaurantId] = useState(process.env.RESTAURANT_ID || "00000000-0000-0000-0000-000000000000");
   const [isErrorVisible, setIsErrorVisible] = useState(false);
   const isRefreshing = useRef(false);
   const dialogCloseTimestamp = useRef<number | null>(null);
