@@ -9,7 +9,14 @@ interface ModelViewerProps {
 }
 
 function Model({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
+  // Add error handling to ensure the GLTF data is not undefined
+  const { scene } = useGLTF(url) || { scene: null };
+  
+  // Render the model only if scene exists
+  if (!scene) {
+    return null;
+  }
+  
   return <primitive object={scene} />;
 }
 
@@ -42,15 +49,18 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
         }
         
         // Handle case where model might already be in GLTF cache
-        const { scene } = await useGLTF.preload(modelUrl);
+        // Add null check to prevent TypeScript error
+        const gltfData = await useGLTF.preload(modelUrl);
         
-        if (isMounted.current) {
+        if (isMounted.current && gltfData && gltfData.scene) {
           setProgress(100);
           setTimeout(() => {
             if (isMounted.current) {
               setIsLoading(false);
             }
           }, 500);
+        } else if (isMounted.current) {
+          throw new Error('Failed to load 3D model data');
         }
       } catch (err: any) {
         console.error('Error loading 3D model:', err);
