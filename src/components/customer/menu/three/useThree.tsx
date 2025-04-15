@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 interface ThreeContextType {
   scene: THREE.Scene | null;
@@ -128,7 +128,9 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       
       if (renderer && renderer.domElement && renderer.domElement.parentNode) {
-        renderer.domElement.parentNode.removeChild(renderer.domElement);
+        if (renderer.domElement.parentNode.contains(renderer.domElement)) {
+          renderer.domElement.parentNode.removeChild(renderer.domElement);
+        }
       }
       
       if (scene) {
