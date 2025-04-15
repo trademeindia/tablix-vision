@@ -84,10 +84,11 @@ export function useCheckoutSubmission({
       const customer = customerInfo || getCustomerInfo();
 
       // Create the order in Supabase
+      const { user } = useAuth();
       const order = await createOrder({
         restaurant_id: restaurantId,
         table_number: tableId,
-        customer_id: undefined, // This would come from auth in a real implementation
+        customer_id: user?.id, // Use the user ID from the auth context
         total_amount: totalAmount,
         items: orderItemsForAPI,
         notes: notes,
