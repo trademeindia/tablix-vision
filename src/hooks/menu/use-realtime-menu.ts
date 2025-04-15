@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MenuItem, parseAllergens } from '@/types/menu';
+import { toast } from '@/hooks/use-toast';
 
 interface UseRealtimeMenuResult {
   menuItems: MenuItem[];
@@ -24,13 +25,19 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
         const { data, error } = await supabase
           .from('menu_items')
           .select('*')
-          .eq('restaurant_id', restaurantId)
-          .eq('is_available', true);
+          .eq('restaurant_id', restaurantId);
         
         if (error) {
           console.error('Error fetching initial menu items:', error);
+          toast({
+            title: "Failed to load menu items",
+            description: error.message,
+            variant: "destructive"
+          });
           return;
         }
+        
+        console.log('Fetched initial menu items:', data?.length || 0);
         
         // Transform the items data
         const transformedItems = (data || []).map(item => ({
@@ -71,6 +78,11 @@ export function useRealtimeMenu(restaurantId: string | undefined): UseRealtimeMe
             
             console.log('Adding new menu item to state:', newItem);
             setMenuItems(currentItems => [...currentItems, newItem]);
+            
+            toast({
+              title: "New item added",
+              description: `"${newItem.name}" has been added to the menu`,
+            });
           } 
           else if (payload.eventType === 'UPDATE') {
             // Update the existing item in the state
