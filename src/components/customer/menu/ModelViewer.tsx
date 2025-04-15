@@ -8,11 +8,20 @@ interface ModelViewerProps {
   modelUrl: string;
 }
 
+// Define the GLTF result type to avoid TypeScript errors
+interface GLTFResult {
+  scene: THREE.Group;
+  scenes: THREE.Group[];
+  animations: THREE.AnimationClip[];
+  cameras: THREE.Camera[];
+  asset: { [key: string]: any };
+}
+
 function Model({ url }: { url: string }) {
-  // Add error handling to ensure the GLTF data is not undefined
-  const { scene } = useGLTF(url) || { scene: null };
+  // Explicitly type the result of useGLTF
+  const { scene } = useGLTF(url) as GLTFResult;
   
-  // Render the model only if scene exists
+  // Still check if scene exists for safety
   if (!scene) {
     return null;
   }
@@ -48,9 +57,8 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
           throw new Error('No model URL provided');
         }
         
-        // Handle case where model might already be in GLTF cache
-        // Add null check to prevent TypeScript error
-        const gltfData = await useGLTF.preload(modelUrl);
+        // Properly type the result of preload to match the GLTFResult interface
+        const gltfData = await useGLTF.preload(modelUrl) as GLTFResult;
         
         if (isMounted.current && gltfData && gltfData.scene) {
           setProgress(100);
