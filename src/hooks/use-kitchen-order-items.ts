@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -30,15 +29,11 @@ export function useKitchenOrderItems() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   
-  // Get current restaurant ID - in a real app, this would come from auth context
-  // For now, we'll use a placeholder or mock ID
   const restaurantId = "mock-restaurant-id";
 
-  // Fetch kitchen orders
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     try {
-      // In production, fetch from Supabase
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -62,11 +57,9 @@ export function useKitchenOrderItems() {
 
       if (ordersError) throw ordersError;
 
-      // If we have real data, we'll transform it
       if (ordersData && ordersData.length > 0) {
         const transformedOrders: KitchenOrder[] = await Promise.all(
           ordersData.map(async (order) => {
-            // Get table number if available
             let tableNumber = "Table unknown";
             if (order.table_id) {
               const { data: tableData } = await supabase
@@ -80,12 +73,10 @@ export function useKitchenOrderItems() {
               }
             }
 
-            // Transform order_items to our format
             const items: OrderItem[] = (order.order_items || []).map((item: any) => ({
               id: item.id,
               menuItem: {
                 name: item.name,
-                // Fetch image if needed - simplified here
                 image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=80&w=200'
               },
               quantity: item.quantity,
@@ -104,17 +95,14 @@ export function useKitchenOrderItems() {
           })
         );
 
-        // Filter orders based on status
         const pendingOrdersData = transformedOrders.filter(order => order.status === 'pending');
         const preparingOrdersData = transformedOrders.filter(order => order.status === 'preparing');
         
         setPendingOrders(pendingOrdersData);
         setPreparingOrders(preparingOrdersData);
       } else {
-        // Fall back to mock data if no real data
         const mockActiveOrders = generateMockActiveOrders();
         
-        // Filter orders based on status
         const pendingOrdersData = mockActiveOrders.filter(order => order.status === 'pending');
         const preparingOrdersData = mockActiveOrders.filter(order => order.status === 'preparing');
         
@@ -129,7 +117,6 @@ export function useKitchenOrderItems() {
         variant: 'destructive',
       });
       
-      // Fall back to mock data
       const mockActiveOrders = generateMockActiveOrders();
       const pendingOrdersData = mockActiveOrders.filter(order => order.status === 'pending');
       const preparingOrdersData = mockActiveOrders.filter(order => order.status === 'preparing');
@@ -141,10 +128,8 @@ export function useKitchenOrderItems() {
     }
   }, [restaurantId]);
 
-  // Toggle item completion status
   const toggleItemCompletion = useCallback(async (orderId: string, itemId: string) => {
     try {
-      // First, get the current item to see if it's completed or not
       const { data: currentItemData, error: fetchError } = await supabase
         .from('order_items')
         .select('*')
@@ -156,15 +141,12 @@ export function useKitchenOrderItems() {
         throw fetchError;
       }
 
-      // TypeScript safe way to access the completed property which might not exist
       const currentCompletedStatus = currentItemData && 'completed' in currentItemData 
         ? Boolean(currentItemData.completed) 
         : false;
       
-      // Toggle the completed status
       const newCompletedStatus = !currentCompletedStatus;
       
-      // Update the item in Supabase
       const { error } = await supabase
         .from('order_items')
         .update({ completed: newCompletedStatus })
@@ -180,7 +162,6 @@ export function useKitchenOrderItems() {
         return;
       }
 
-      // Optimistically update local state
       const updateOrderItems = (orders: KitchenOrder[]) => {
         return orders.map(order => {
           if (order.id === orderId) {
@@ -215,7 +196,6 @@ export function useKitchenOrderItems() {
     }
   }, []);
 
-  // Check if all items in an order are completed
   const areAllItemsCompleted = useCallback((orderId: string) => {
     const order = [...preparingOrders, ...pendingOrders].find(o => o.id === orderId);
     if (!order) return false;
@@ -223,7 +203,6 @@ export function useKitchenOrderItems() {
     return order.items.every(item => item.completed);
   }, [preparingOrders, pendingOrders]);
 
-  // Update order status
   const updateOrderStatus = useCallback(async (orderId: string, newStatus: string) => {
     try {
       const { error } = await supabase
@@ -241,16 +220,13 @@ export function useKitchenOrderItems() {
         return;
       }
 
-      // Optimistically update local state
       if (newStatus === 'preparing') {
-        // Move from pending to preparing
         const orderToMove = pendingOrders.find(order => order.id === orderId);
         if (orderToMove) {
           setPendingOrders(prev => prev.filter(order => order.id !== orderId));
           setPreparingOrders(prev => [...prev, { ...orderToMove, status: newStatus }]);
         }
       } else if (newStatus === 'ready') {
-        // Remove from preparing
         setPreparingOrders(prev => prev.filter(order => order.id !== orderId));
       }
 
@@ -263,11 +239,9 @@ export function useKitchenOrderItems() {
     }
   }, [pendingOrders]);
 
-  // Set up real-time subscription
   useEffect(() => {
     fetchOrders();
     
-    // Set up Supabase real-time subscription for order items
     const orderItemsChannel = supabase
       .channel('kitchen-order-items')
       .on(
@@ -276,16 +250,12 @@ export function useKitchenOrderItems() {
           event: 'UPDATE', 
           schema: 'public', 
           table: 'order_items',
-          // Filter by restaurant ID when available
-          // filter: `restaurant_id=eq.${restaurantId}`
         },
         (payload) => {
           console.log('Order item update received:', payload);
           
-          // Refetch orders to ensure data consistency
           fetchOrders();
           
-          // Optional: Show toast for specific updates
           if (payload.new && 'completed' in payload.new && payload.new.completed) {
             toast({
               title: 'Item Prepared',
@@ -299,7 +269,6 @@ export function useKitchenOrderItems() {
         setIsSubscribed(status === 'SUBSCRIBED');
       });
 
-    // Set up subscription for order status changes
     const ordersChannel = supabase
       .channel('kitchen-orders')
       .on(
@@ -308,15 +277,11 @@ export function useKitchenOrderItems() {
           event: 'UPDATE', 
           schema: 'public', 
           table: 'orders',
-          // Filter for target statuses
           filter: `status=in.(pending,preparing,ready)`
-          // Add restaurant filter when available
-          // filter: `restaurant_id=eq.${restaurantId} AND status=in.(pending,preparing,ready)`
         },
         (payload) => {
           console.log('Order update received:', payload);
           
-          // If status changed, refetch orders
           if (payload.old && payload.new && payload.old.status !== payload.new.status) {
             fetchOrders();
             
@@ -346,7 +311,6 @@ export function useKitchenOrderItems() {
   };
 }
 
-// Mock data generator function
 function generateMockActiveOrders(): KitchenOrder[] {
   return [
     {
@@ -372,7 +336,7 @@ function generateMockActiveOrders(): KitchenOrder[] {
       ],
       total: 24.99,
       status: "preparing",
-      createdAt: new Date(Date.now() - 15 * 60000).toISOString() // 15 minutes ago
+      createdAt: new Date(Date.now() - 15 * 60000).toISOString()
     },
     {
       id: "3i4j5k6l",
@@ -385,7 +349,7 @@ function generateMockActiveOrders(): KitchenOrder[] {
       ],
       total: 36.75,
       status: "preparing",
-      createdAt: new Date(Date.now() - 25 * 60000).toISOString() // 25 minutes ago
+      createdAt: new Date(Date.now() - 25 * 60000).toISOString()
     }
   ];
 }

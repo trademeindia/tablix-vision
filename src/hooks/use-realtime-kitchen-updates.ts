@@ -35,8 +35,8 @@ export function useRealtimeKitchenUpdates(restaurantId: string) {
             ...prev
           ].slice(0, 10));
           
-          // Show toast notification
-          if (payload.new.completed) {
+          // Show toast notification - safely check for completed property
+          if (payload.new && 'completed' in payload.new && payload.new.completed) {
             toast({
               title: 'Item completed',
               description: `${payload.new.name} has been marked as prepared`,
@@ -74,14 +74,11 @@ export function useRealtimeKitchenUpdates(restaurantId: string) {
             ...prev
           ].slice(0, 10));
           
-          // Show toast notification for status changes
-          const oldStatus = payload.old.status;
-          const newStatus = payload.new.status;
-          
-          if (oldStatus !== newStatus) {
+          // Show toast notification for status changes - safely check for status property
+          if (payload.old && payload.new && payload.old.status !== payload.new.status) {
             toast({
               title: 'Order status changed',
-              description: `Order #${payload.new.id.substring(0, 6)} is now ${newStatus}`,
+              description: `Order #${payload.new.id.substring(0, 6)} is now ${payload.new.status}`,
             });
           }
         }
