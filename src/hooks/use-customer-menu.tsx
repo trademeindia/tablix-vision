@@ -100,7 +100,7 @@ export function useCustomerMenu() {
   // Use the realtime menu data hook for better performance
   const { categories, items, isLoading, error } = useMenuDataWithRealtime(restaurantId);
   
-  // Method to manually refresh data - define it since it doesn't exist in the original hook
+  // Method to manually refresh data
   const refetchCategories = useCallback(async () => {
     if (restaurantId) {
       // Invalidate the queries to force a refresh
@@ -170,7 +170,7 @@ export function useCustomerMenu() {
   }, [startScanning]);
   
   // Determine if we should show debug info
-  const showDebugInfo = process.env.NODE_ENV === 'development' || new URLSearchParams(location.search).has('debug');
+  const showDebugInfo = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
   
   // We're now using test data if there was an error or no real data
   const finalCategories = usingTestData && testData ? testData.categories : categories;
