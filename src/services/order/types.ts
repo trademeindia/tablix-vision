@@ -1,4 +1,3 @@
-
 import { Json } from '@/integrations/supabase/types';
 
 export interface OrderItem {
@@ -10,6 +9,8 @@ export interface OrderItem {
   quantity: number;
   special_instructions?: string;
   customizations?: any;
+  completed?: boolean;
+  restaurant_id?: string;
 }
 
 export interface Order {
