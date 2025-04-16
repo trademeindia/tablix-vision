@@ -98,7 +98,21 @@ export function useCustomerMenu() {
   }, [parseQRData, handleScan, queryClient]);
   
   // Use the realtime menu data hook for better performance
-  const { categories, items, isLoading, error, refetchCategories } = useMenuDataWithRealtime(restaurantId);
+  const { categories, items, isLoading, error } = useMenuDataWithRealtime(restaurantId);
+  
+  // Method to manually refresh data - define it since it doesn't exist in the original hook
+  const refetchCategories = useCallback(async () => {
+    if (restaurantId) {
+      // Invalidate the queries to force a refresh
+      queryClient.invalidateQueries({ queryKey: ['menuCategories', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] });
+      
+      toast({
+        title: "Refreshing menu",
+        description: "Getting the latest menu items...",
+      });
+    }
+  }, [restaurantId, queryClient]);
   
   // Check if toast has been shown before in this session
   const hasToastBeenShown = () => {

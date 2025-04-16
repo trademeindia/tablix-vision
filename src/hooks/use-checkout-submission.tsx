@@ -4,6 +4,7 @@ import { createOrder } from '@/services/order';
 import { useCustomerInfoStorage } from './use-checkout-storage';
 import { CartItem } from './use-cart-storage';
 import { toast } from './use-toast';
+import { useAuth } from '@/contexts/AuthContext'; // Add missing import
 
 interface UseCheckoutSubmissionProps {
   restaurantId: string | null;
@@ -35,6 +36,7 @@ export function useCheckoutSubmission({
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const { getCustomerInfo } = useCustomerInfoStorage();
+  const { user } = useAuth(); // Get user from AuthContext
 
   const submitOrder = async (): Promise<boolean> => {
     setIsSubmitting(true);
@@ -84,7 +86,6 @@ export function useCheckoutSubmission({
       const customer = customerInfo || getCustomerInfo();
 
       // Create the order in Supabase
-      const { user } = useAuth();
       const order = await createOrder({
         restaurant_id: restaurantId,
         table_number: tableId,

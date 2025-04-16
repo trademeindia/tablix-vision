@@ -1,68 +1,98 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { createMenuItemWithUpload } from '@/services/menu/createMenuItemWithUpload';
+
+import { supabase } from '@/lib/supabaseClient';
 import { getErrorMessage } from '@/utils/api-helpers';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// We need to convert this from Next.js API route to a Vite React service function
+// Let's transform it into a utility function that could be called from a component
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
+/**
+ * Creates a menu item with file upload functionality
+ * @param formData FormData containing menu item details and file
+ * @param restaurantId The restaurant ID
+ * @returns The created menu item
+ */
+export async function createMenuItemWithUpload(formData: FormData, restaurantId: string) {
   try {
-    const restaurantId = req.headers['x-restaurant-id'] as string;
+    // Extract form data
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const price = parseFloat(formData.get('price') as string);
+    const categoryId = formData.get('category_id') as string;
+    const isAvailable = formData.get('is_available') === 'true';
+    const file = formData.get('file') as File;
 
-    if (!restaurantId) {
-      return res.status(400).json({ error: 'Restaurant ID is required' });
+    // Basic validation
+    if (!name) {
+      throw new Error("Item name is required");
     }
 
+    if (isNaN(price)) {
+      throw new Error("Valid price is required");
+    }
 
-    const formData = await new Promise<FormData>((resolve, reject) => {
-      const form = new FormData();
-      const busboy = require('busboy');
+    if (!categoryId) {
+      throw new Error("Category is required");
+    }
 
-      const bb = busboy({ headers: req.headers });
+    if (!file) {
+      throw new Error("Image file is required");
+    }
 
-      bb.on('file', (fieldname: string, file: NodeJS.ReadableStream, filename: string, encoding: string, mimetype: string) => {
-        // Handle file upload
-        let fileBuffer = Buffer.alloc(0);
+    // Get current authenticated user
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user) {
+      throw new Error("Authentication required");
+    }
 
-        file.on('data', (data: Buffer) => {
-          fileBuffer = Buffer.concat([fileBuffer, data]);
-        });
-
-        file.on('end', () => {
-          const file = new File([fileBuffer], filename, { type: mimetype });
-          form.append('file', file);
-        });
+    // Upload file to Supabase storage
+    const filePath = `${restaurantId}/${categoryId}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('menu-media')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
       });
 
-      bb.on('field', (fieldname: string, val: any) => {
-        form.append(fieldname, val);
-      });
+    if (uploadError) {
+      console.error("Error uploading file:", uploadError);
+      throw new Error(`Failed to upload file: ${uploadError.message}`);
+    }
 
-      bb.on('finish', () => {
-        resolve(form);
-      });
+    // Get the public URL for the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from('menu-media')
+      .getPublicUrl(filePath);
 
-      bb.on('error', (error: any) => {
-        reject(error);
-      });
+    // Create the menu item in the database
+    const { data, error } = await supabase
+      .from('menu_items')
+      .insert({
+        name,
+        description: description || null,
+        price,
+        category_id: categoryId,
+        media_path: filePath,
+        media_type: file.type.startsWith('image/') ? 'image' : (file.type.includes('model') ? '3d' : 'image'),
+        is_available: isAvailable,
+        external_media_url: null, // We're using storage, not external URL
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-      req.pipe(bb);
-    });
+    if (error) {
+      // If menu item creation fails, try to clean up the uploaded file
+      await supabase.storage.from('menu-media').remove([filePath]);
+      throw error;
+    }
 
-    const menuItem = await createMenuItemWithUpload(formData, restaurantId);
-    res.status(200).json(menuItem);
+    return {
+      ...data,
+      publicUrl
+    };
   } catch (error) {
-    console.error('Error in /api/menu-items/createWithUpload:', getErrorMessage(error));
-    res.status(500).json({ error: getErrorMessage(error) });
+    console.error('Error in createMenuItemWithUpload:', getErrorMessage(error));
+    throw error;
   }
 }
