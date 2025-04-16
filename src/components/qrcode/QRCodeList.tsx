@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useQRCodeList } from '@/hooks/use-qr-code-list';
+import { useQRCodeList } from '@/hooks/qr-code/use-qr-code-list';
 import QRCodeCard from './QRCodeCard';
 import EmptyQRCodeList from './EmptyQRCodeList';
 import SkeletonQRCodeList from './SkeletonQRCodeList';
@@ -81,3 +81,4 @@ const QRCodeList: React.FC<QRCodeListProps> = ({ restaurantId, isLoading: initia
 };
 
 export default QRCodeList;
+
