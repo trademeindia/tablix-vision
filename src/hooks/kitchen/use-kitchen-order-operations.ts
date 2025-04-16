@@ -24,12 +24,10 @@ export function useKitchenOrderOperations() {
       
       const newCompletedStatus = !currentCompletedStatus;
       
-      // Using the update method with correct typing
+      // Using the update method with correct typing for order_items table
       const { error } = await supabase
         .from('order_items')
-        .update({ 
-          completed: newCompletedStatus 
-        } as any) // Using 'as any' to bypass TypeScript's strict checking for this field
+        .update({ completed: newCompletedStatus })
         .eq('id', itemId);
 
       if (error) {
