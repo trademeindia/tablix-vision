@@ -1,4 +1,4 @@
-
+import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
@@ -22,18 +22,19 @@ const queryClient = new QueryClient({
 
 function App() {
   const [isInitializing, setIsInitializing] = useState(true);
+  const [tableNames, setTableNames] = useState<string[]>([]);
 
   useEffect(() => {
     const initialize = async () => {
       // Initialize Supabase connection
       const success = await initializeSupabase();
       console.log('Supabase initialization:', success ? 'successful' : 'failed');
-      
+
       // Enable realtime for menu tables
       if (success) {
         await enableRealtimeForMenuTables();
       }
-      
+
       // Finish initialization after a small delay to ensure everything is loaded
       setTimeout(() => {
         setIsInitializing(false);
@@ -43,22 +44,60 @@ function App() {
     initialize();
   }, []);
 
-  if (isInitializing) {
-    return <LoadingScreen />;
-  }
+  useEffect(() => {
+    const fetchTableNames = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('information_schema.tables')
+          .select('table_name')
+          .eq('table_schema', 'public');
+
+        if (error) {
+          console.error('Error fetching table names:', error);
+          return;
+        }
+
+        const names = data.map((row: any) => row.table_name);
+        setTableNames(names);
+      } catch (error) {
+        console.error('Error fetching table names:', error);
+      }
+    };
+
+    fetchTableNames();
+  }, []);
+
+  const supabaseUrl = getSupabaseUrl();
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
         <AuthProvider>
-          <BrowserRouter>
-            <AppRoutes />
-            <Toaster />
-          </BrowserRouter>
+          <div>
+            Supabase URL: {supabaseUrl}
+            <h2>Table Names:</h2>
+            <ul>
+              {tableNames.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+            <BrowserRouter>
+              <AppRoutes />
+              <Toaster />
+            </BrowserRouter>
+          </div>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 }
 
 export default App;
