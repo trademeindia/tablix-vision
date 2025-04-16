@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getRestaurantOrders } from '@/services/order';
 import { Order } from '@/services/order/types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 
 interface OrderFilters {
@@ -88,7 +88,7 @@ export function useOrders(restaurantId: string, filters: OrderFilters = {}) {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [restaurantId, filters, toast]);
+  }, [restaurantId, filters]);
   
   useEffect(() => {
     fetchOrders();
@@ -157,7 +157,7 @@ export function useOrders(restaurantId: string, filters: OrderFilters = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchOrders, restaurantId, toast]);
+  }, [fetchOrders, restaurantId]);
 
   return {
     orders,

@@ -1,3 +1,4 @@
+
 import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -67,37 +68,34 @@ function App() {
     fetchTableNames();
   }, []);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const supabaseUrl = getSupabaseUrl();
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
         <AuthProvider>
-          <div>
-            Supabase URL: {supabaseUrl}
-            <h2>Table Names:</h2>
-            <ul>
-              {tableNames.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
-            <BrowserRouter>
-              <AppRoutes />
-              <Toaster />
-            </BrowserRouter>
-          </div>
+          {isInitializing ? (
+            <LoadingScreen message="Initializing application..." />
+          ) : (
+            <div>
+              <BrowserRouter>
+                <AppRoutes />
+                <Toaster />
+              </BrowserRouter>
+            </div>
+          )}
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
 }
 
 export default App;
