@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -154,9 +155,14 @@ export function useKitchenOrderItems() {
         console.error('Error fetching item status:', fetchError);
         throw fetchError;
       }
+
+      // TypeScript safe way to access the completed property which might not exist
+      const currentCompletedStatus = currentItemData && 'completed' in currentItemData 
+        ? Boolean(currentItemData.completed) 
+        : false;
       
       // Toggle the completed status
-      const newCompletedStatus = !(currentItemData?.completed || false);
+      const newCompletedStatus = !currentCompletedStatus;
       
       // Update the item in Supabase
       const { error } = await supabase
@@ -280,7 +286,7 @@ export function useKitchenOrderItems() {
           fetchOrders();
           
           // Optional: Show toast for specific updates
-          if (payload.new.completed) {
+          if (payload.new && 'completed' in payload.new && payload.new.completed) {
             toast({
               title: 'Item Prepared',
               description: 'An order item has been marked as prepared',
@@ -311,7 +317,7 @@ export function useKitchenOrderItems() {
           console.log('Order update received:', payload);
           
           // If status changed, refetch orders
-          if (payload.old.status !== payload.new.status) {
+          if (payload.old && payload.new && payload.old.status !== payload.new.status) {
             fetchOrders();
             
             toast({
@@ -335,8 +341,8 @@ export function useKitchenOrderItems() {
     isLoading,
     isSubscribed,
     toggleItemCompletion,
-    updateOrderStatus: (orderId: string, newStatus: string) => {},
-    areAllItemsCompleted: (orderId: string) => false
+    updateOrderStatus,
+    areAllItemsCompleted
   };
 }
 
