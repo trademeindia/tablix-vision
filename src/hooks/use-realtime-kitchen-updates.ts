@@ -36,7 +36,7 @@ export function useRealtimeKitchenUpdates(restaurantId: string) {
           ].slice(0, 10));
           
           // Show toast notification - safely check for completed property
-          if (payload.new && 'completed' in payload.new && payload.new.completed) {
+          if (payload.new && payload.new.completed) {
             toast({
               title: 'Item completed',
               description: `${payload.new.name} has been marked as prepared`,
