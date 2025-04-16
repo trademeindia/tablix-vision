@@ -55,41 +55,55 @@ export function useKitchenOrderItems() {
   }, []);
 
   // Toggle item completion status
-  const toggleItemCompletion = useCallback((orderId: string, itemId: string) => {
-    const updateOrderItems = (orders: KitchenOrder[]) => {
-      return orders.map(order => {
-        if (order.id === orderId) {
-          const updatedItems = order.items.map(item => {
-            if (item.id === itemId) {
-              return {
-                ...item,
-                completed: !item.completed
-              };
-            }
-            return item;
-          });
-          
-          return {
-            ...order,
-            items: updatedItems
-          };
-        }
-        return order;
+  const toggleItemCompletion = useCallback(async (orderId: string, itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from('order_items')
+        .update({ completed: true })
+        .eq('id', itemId);
+
+      if (error) {
+        console.error('Error updating item status:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update item status',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Optimistically update local state
+      const updateOrderItems = (orders: KitchenOrder[]) => {
+        return orders.map(order => {
+          if (order.id === orderId) {
+            const updatedItems = order.items.map(item => {
+              if (item.id === itemId) {
+                return {
+                  ...item,
+                  completed: true
+                };
+              }
+              return item;
+            });
+            
+            return {
+              ...order,
+              items: updatedItems
+            };
+          }
+          return order;
+        });
+      };
+
+      setPreparingOrders(prev => updateOrderItems(prev));
+
+      toast({
+        title: 'Item Updated',
+        description: 'Item marked as prepared',
       });
-    };
-
-    setPreparingOrders(prev => updateOrderItems(prev));
-    setPendingOrders(prev => updateOrderItems(prev));
-
-    // In a real implementation, this would update the database
-    // For demo purposes, we just show a success toast
-    toast({
-      title: 'Item updated',
-      description: 'Food preparation status updated successfully',
-    });
-    
-    // Log the update - this would be a database call in production
-    console.log(`Updated item ${itemId} in order ${orderId}`);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
   }, []);
 
   // Check if all items in an order are completed
@@ -103,7 +117,22 @@ export function useKitchenOrderItems() {
   // Update order status
   const updateOrderStatus = useCallback(async (orderId: string, newStatus: string) => {
     try {
-      // Update local state first for immediate UI feedback
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error updating order status:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update order status',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Optimistically update local state
       if (newStatus === 'preparing') {
         // Move from pending to preparing
         const orderToMove = pendingOrders.find(order => order.id === orderId);
@@ -116,21 +145,12 @@ export function useKitchenOrderItems() {
         setPreparingOrders(prev => prev.filter(order => order.id !== orderId));
       }
 
-      // In a real implementation, this would update the database
       toast({
-        title: 'Order updated',
+        title: 'Order Updated',
         description: `Order status changed to ${newStatus}`,
       });
-      
-      // In a production app, we would make a Supabase call here
-      console.log(`Updated order ${orderId} status to ${newStatus}`);
     } catch (error) {
-      console.error('Error updating order status:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update order status',
-        variant: 'destructive',
-      });
+      console.error('Unexpected error:', error);
     }
   }, [pendingOrders]);
 
@@ -138,20 +158,29 @@ export function useKitchenOrderItems() {
   useEffect(() => {
     fetchOrders();
     
-    // Set up Supabase real-time subscription
+    // Set up Supabase real-time subscription for order items
     const channel = supabase
-      .channel('kitchen-orders')
+      .channel('kitchen-order-items')
       .on(
         'postgres_changes',
         { 
-          event: '*', 
+          event: 'UPDATE', 
           schema: 'public', 
-          table: 'orders',
-          filter: "status=in.(pending,preparing)"
+          table: 'order_items',
         },
         (payload) => {
-          console.log('Order update received:', payload);
-          fetchOrders(); // Refresh all orders when we get an update
+          console.log('Order item update received:', payload);
+          
+          // Refetch orders to ensure data consistency
+          fetchOrders();
+          
+          // Optional: Show toast for specific updates
+          if (payload.new.completed) {
+            toast({
+              title: 'Item Prepared',
+              description: 'An order item has been marked as prepared',
+            });
+          }
         }
       )
       .subscribe((status) => {
