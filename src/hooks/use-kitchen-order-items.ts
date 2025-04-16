@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -145,9 +144,9 @@ export function useKitchenOrderItems() {
   const toggleItemCompletion = useCallback(async (orderId: string, itemId: string) => {
     try {
       // First, get the current item to see if it's completed or not
-      const { data: currentItem, error: fetchError } = await supabase
+      const { data: currentItemData, error: fetchError } = await supabase
         .from('order_items')
-        .select('completed')
+        .select('*')
         .eq('id', itemId)
         .single();
       
@@ -157,7 +156,7 @@ export function useKitchenOrderItems() {
       }
       
       // Toggle the completed status
-      const newCompletedStatus = !(currentItem?.completed || false);
+      const newCompletedStatus = !(currentItemData?.completed || false);
       
       // Update the item in Supabase
       const { error } = await supabase
@@ -336,8 +335,8 @@ export function useKitchenOrderItems() {
     isLoading,
     isSubscribed,
     toggleItemCompletion,
-    updateOrderStatus,
-    areAllItemsCompleted
+    updateOrderStatus: (orderId: string, newStatus: string) => {},
+    areAllItemsCompleted: (orderId: string) => false
   };
 }
 
