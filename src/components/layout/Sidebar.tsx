@@ -14,7 +14,8 @@ import {
   BarChart3,
   CircleDollarSign,
   Home,
-  FileText
+  FileText,
+  Megaphone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
     { name: 'Inventory', href: '/inventory', icon: FileText },
     { name: 'Staff', href: '/staff', icon: ChefHat },
     { name: 'Customers', href: '/customers', icon: Users },
+    { name: 'Marketing', href: '/marketing', icon: Megaphone },
     { name: 'QR Codes', href: '/qr-codes', icon: QrCode },
     { name: 'Invoices', href: '/invoices', icon: CircleDollarSign },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
