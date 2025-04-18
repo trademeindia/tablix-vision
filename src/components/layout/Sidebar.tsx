@@ -21,9 +21,10 @@ import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   onCloseSidebar?: () => void;
+  supabaseUrl?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar, supabaseUrl }) => {
   let location;
   try {
     location = useLocation();

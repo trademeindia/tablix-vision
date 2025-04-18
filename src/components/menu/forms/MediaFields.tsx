@@ -112,7 +112,7 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
       toast({
         title: "Upload successful",
         description: `Your ${is3DModel ? '3D model' : 'image'} has been uploaded successfully.`,
-        variant: "success",
+        variant: "default",
       });
     } catch (error: any) {
       console.error('Error in handleUploadComplete:', error);
