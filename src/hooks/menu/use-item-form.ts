@@ -24,6 +24,9 @@ export const useItemForm = (
   // Create unique IDs for this form instance to prevent confusion with other forms
   const formId = useRef(`form-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   
+  // Use default restaurant ID if none is provided
+  const defaultRestaurantId = "00000000-0000-0000-0000-000000000000";
+  
   const form = useForm<ItemFormValues>({
     resolver: zodResolver(itemFormSchema),
     defaultValues: {
@@ -40,7 +43,7 @@ export const useItemForm = (
       preparation_time: initialData?.preparation_time || 0,
       is_available: initialData?.is_available !== false,
       is_featured: initialData?.is_featured || false,
-      restaurant_id: initialData?.restaurant_id || "",
+      restaurant_id: initialData?.restaurant_id || defaultRestaurantId, // Use default if not provided
       media_type: initialMediaType,
       media_reference: initialData?.media_reference || "",
     },
@@ -111,6 +114,11 @@ export const useItemForm = (
     console.log(`Form ${formId.current} submitting...`);
 
     try {
+      // Ensure restaurant_id is set
+      if (!values.restaurant_id) {
+        values.restaurant_id = defaultRestaurantId;
+      }
+      
       // For security reasons, it's better to create a new clean object
       // rather than passing the form values directly
       const menuItemData = {
@@ -125,7 +133,7 @@ export const useItemForm = (
         preparation_time: values.preparation_time,
         is_available: values.is_available,
         is_featured: values.is_featured,
-        restaurant_id: values.restaurant_id,
+        restaurant_id: values.restaurant_id || defaultRestaurantId, // Ensure restaurant_id is set
         allergens: {
           isVegetarian: values.is_vegetarian,
           isVegan: values.is_vegan,

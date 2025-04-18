@@ -82,6 +82,9 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
       userId = "00000000-0000-0000-0000-000000000000"; // Default for demo
     }
     
+    // Default restaurant ID if none provided
+    const defaultRestaurantId = "00000000-0000-0000-0000-000000000000";
+    
     // Prepare the item for insertion
     const dbItem = {
       name: item.name,
@@ -98,7 +101,7 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
       allergens: stringifyAllergens(item.allergens),
       nutritional_info: item.nutritional_info || null,
       preparation_time: item.preparation_time || null,
-      restaurant_id: item.restaurant_id,
+      restaurant_id: item.restaurant_id || defaultRestaurantId, // Use default if not provided
       user_id: userId // Set user_id for RLS
     };
     

@@ -37,10 +37,14 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       setIsSubmitting(true);
       
       // Ensure restaurant_id is included in the data
+      // If restaurantId is empty, use a default ID
+      const defaultRestaurantId = "00000000-0000-0000-0000-000000000000";
       const itemData = {
         ...data,
-        restaurant_id: restaurantId
+        restaurant_id: restaurantId || defaultRestaurantId
       };
+      
+      console.log("Using restaurant ID:", itemData.restaurant_id);
       
       // Validate required fields
       if (!itemData.name?.trim()) {
