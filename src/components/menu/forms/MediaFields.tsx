@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSupabaseUpload } from '@/hooks/menu/use-supabase-upload';
 import { toast } from '@/hooks/use-toast';
 
-// Lazy load the ModelViewer component
 const ModelViewer = lazy(() => import('@/components/customer/menu/ModelViewer'));
 
 interface MediaFieldsProps {
@@ -37,18 +35,15 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
   const [showModelPreview, setShowModelPreview] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('image');
   
-  // Watch form values to react to changes
   const imageUrl = form.watch('image_url');
   const modelUrl = form.watch('model_url');
   const mediaType = form.watch('media_type');
   const formMediaReference = form.watch('media_reference');
   
-  // Derive hasUploaded based on relevant fields
   const hasUploadedImage = mediaType === 'image' && !!imageUrl;
   const hasUploadedModel = mediaType === '3d' && !!modelUrl && !!(formMediaReference || mediaReference);
   const hasUploaded = hasUploadedImage || hasUploadedModel;
 
-  // Integrate with Supabase upload hook
   const {
     isUploading,
     uploadProgress,
@@ -67,7 +62,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
       : ['.glb', '.gltf']
   });
 
-  // Set the active tab based on the current media type when the component loads
   useEffect(() => {
     if (mediaType === '3d') {
       setActiveTab('3d-model');
@@ -76,17 +70,30 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
     }
   }, [mediaType]);
 
-  // Handle the file upload completion and update the form
   const handleUploadComplete = async () => {
     if (!selectedFile) return;
     
     try {
+      toast({
+        title: "Uploading file",
+        description: "Please wait while your file is being uploaded...",
+      });
+      
       const result = await uploadFile();
-      if (!result) return;
+      if (!result) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload file. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       const { path, url } = result;
       const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
       const is3DModel = fileExt === 'glb' || fileExt === 'gltf';
+      
+      console.log(`Upload successful: ${is3DModel ? '3D Model' : 'Image'} at ${url}`);
       
       if (is3DModel) {
         form.setValue('model_url', url);
@@ -101,15 +108,18 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
       }
       
       onUploadComplete(path, url);
+      
       toast({
         title: "Upload successful",
-        description: is3DModel ? "3D model uploaded successfully" : "Image uploaded successfully"
+        description: `Your ${is3DModel ? '3D model' : 'image'} has been uploaded successfully.`,
+        variant: "success",
       });
     } catch (error: any) {
+      console.error('Error in handleUploadComplete:', error);
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload file",
-        variant: "destructive"
+        description: error.message || "Failed to complete upload process",
+        variant: "destructive",
       });
     }
   };
@@ -365,7 +375,6 @@ const MediaFields: React.FC<MediaFieldsProps> = ({
         </TabsContent>
       </Tabs>
       
-      {/* 3D Model Preview Dialog */}
       <Dialog open={showModelPreview} onOpenChange={setShowModelPreview}>
         <DialogContent className="max-w-4xl h-[80vh]">
           <DialogHeader>

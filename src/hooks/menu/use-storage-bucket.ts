@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { initializeStorage } from './use-create-storage-bucket';
 import { toast } from '@/hooks/use-toast';
 
 /**
@@ -12,39 +12,20 @@ export const useStorageBucket = (bucketName: string = 'menu-media') => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const initializeBucket = async () => {
+    const setupBucket = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        // First check if the bucket exists
-        const { data: buckets, error: listError } = await supabase
-          .storage
-          .listBuckets();
+        // Initialize storage using edge function
+        const success = await initializeStorage();
         
-        if (listError) {
-          throw new Error(`Error listing buckets: ${listError.message}`);
+        if (success) {
+          console.log('Storage bucket setup successful');
+          setIsReady(true);
+        } else {
+          throw new Error('Failed to set up storage bucket');
         }
-        
-        const bucketExists = buckets.some(bucket => bucket.name === bucketName);
-        
-        if (!bucketExists) {
-          // Create the bucket if it doesn't exist
-          const { error: createError } = await supabase
-            .storage
-            .createBucket(bucketName, {
-              public: true, // Make bucket public so files can be accessed without auth
-              fileSizeLimit: 52428800, // 50MB max file size
-            });
-          
-          if (createError) {
-            throw new Error(`Error creating bucket: ${createError.message}`);
-          }
-          
-          console.log(`Created storage bucket: ${bucketName}`);
-        }
-        
-        setIsReady(true);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error initializing storage';
         console.error(errorMessage);
@@ -60,7 +41,7 @@ export const useStorageBucket = (bucketName: string = 'menu-media') => {
       }
     };
     
-    initializeBucket();
+    setupBucket();
   }, [bucketName]);
   
   return { isReady, isLoading, error };

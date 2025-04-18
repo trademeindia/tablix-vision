@@ -3,6 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { initializeStorage } from './use-create-storage-bucket';
 
 interface UseSupabaseUploadProps {
   restaurantId?: string;
@@ -76,30 +77,17 @@ export function useSupabaseUpload({
       // Create a new AbortController for this upload
       abortControllerRef.current = new AbortController();
       
-      // Check if bucket exists
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      // Make sure the bucket exists
+      const bucketInitialized = await initializeStorage();
       
-      if (bucketsError) {
-        throw new Error(`Failed to check buckets: ${bucketsError.message}`);
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-      
-      if (!bucketExists) {
-        console.warn(`Bucket "${bucketName}" does not exist. Creating new bucket...`);
-        const { error: createBucketError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-        });
-        
-        if (createBucketError) {
-          throw new Error(`Failed to create bucket: ${createBucketError.message}`);
-        }
+      if (!bucketInitialized) {
+        throw new Error('Could not initialize storage bucket');
       }
       
       // Track upload progress with intervals since Supabase doesn't provide progress events
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          if (prev < 90) return prev + Math.random() * 10;
+          if (prev < 90) return prev + Math.random() * 5;
           return prev;
         });
       }, 300);
@@ -116,7 +104,9 @@ export function useSupabaseUpload({
         ? `${restaurantId}${itemId ? `/items/${itemId}` : ''}/file_${uniqueId}_${safeFileName}`
         : `uploads/${uniqueId}_${safeFileName}`;
       
-      // Upload the file
+      console.log(`Uploading file to ${bucketName}/${filePath}`);
+      
+      // Try the upload
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(filePath, selectedFile, {
@@ -128,7 +118,8 @@ export function useSupabaseUpload({
       clearInterval(progressInterval);
       
       if (uploadError) {
-        throw uploadError;
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
       // Get the public URL
@@ -139,6 +130,8 @@ export function useSupabaseUpload({
       if (!publicUrlData || !publicUrlData.publicUrl) {
         throw new Error('Failed to get public URL for uploaded file');
       }
+      
+      console.log('Upload successful:', publicUrlData.publicUrl);
       
       setUploadProgress(100);
       setUploadSuccess(true);
@@ -158,14 +151,12 @@ export function useSupabaseUpload({
       
       let errorMessage = err.message || 'Failed to upload file';
       
-      if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+      if (errorMessage.includes('row security')) {
+        errorMessage = 'Permission denied. The system will attempt to fix this automatically. Please try again.';
+        // Try to initialize storage again in the background
+        initializeStorage().catch(console.error);
+      } else if (errorMessage.includes('network')) {
         errorMessage = 'Network connection issue. Please check your internet connection and try again.';
-      } else if (errorMessage.includes('timeout')) {
-        errorMessage = 'The upload timed out. The file may be too large or your connection is slow.';
-      } else if (errorMessage.includes('permission') || errorMessage.includes('auth')) {
-        errorMessage = 'Permission denied. You may not have access to upload files.';
-      } else if (errorMessage.includes('format')) {
-        errorMessage = 'The file format is not supported or the file is corrupted.';
       }
       
       setError(errorMessage);

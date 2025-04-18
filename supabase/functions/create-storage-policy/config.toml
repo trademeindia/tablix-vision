@@ -1,6 +1,3 @@
 
-# Whether the function is enabled
-enabled = true
-
-# Make it public
+# Edge function configuration for create-storage-policy
 verify_jwt = false

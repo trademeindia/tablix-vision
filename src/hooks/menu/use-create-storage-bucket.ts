@@ -4,130 +4,65 @@ import { toast } from '@/hooks/use-toast';
 
 /**
  * Creates a storage bucket for menu media with proper permissions
+ * This uses the function we've deployed to Supabase Edge Functions
  * @param bucketName The name of the bucket to create
  * @returns A Promise that resolves to true if successful
  */
 export async function createStorageBucket(bucketName: string = 'menu-media'): Promise<boolean> {
   try {
-    console.log(`Attempting to create storage bucket: ${bucketName}`);
+    console.log(`Setting up storage bucket: ${bucketName}`);
     
-    // First check if the bucket exists
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    // Call the edge function to create the bucket with proper permissions
+    const { data, error } = await supabase.functions.invoke('create-storage-policy', {
+      body: { bucketName }
+    });
     
-    if (listError) {
-      console.error('Error checking storage buckets:', listError);
+    if (error) {
+      console.error('Error creating storage bucket:', error);
+      toast({
+        title: "Storage setup error",
+        description: `Could not set up storage: ${error.message}`,
+        variant: "destructive",
+      });
       return false;
     }
     
-    const bucketExists = buckets.some(bucket => bucket.name === bucketName);
-    
-    if (!bucketExists) {
-      console.log(`Bucket ${bucketName} not found, creating it...`);
-      
-      // Create the bucket if it doesn't exist
-      const { error: createError } = await supabase.storage
-        .createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 52428800, // 50MB limit for 3D models
-          allowedMimeTypes: [
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'model/gltf-binary',
-            'model/gltf+json',
-            'application/octet-stream',
-            'application/gltf-binary'
-          ]
-        });
-      
-      if (createError) {
-        console.error('Error creating storage bucket:', createError);
-        
-        // Special case: If the bucket already exists (potential race condition)
-        if (createError.message?.includes('already exists')) {
-          console.log('Bucket already exists. Continuing with setup...');
-          // Continue to policy setup since bucket exists
-        } else {
-          toast({
-            title: "Storage setup error",
-            description: `Could not create storage bucket: ${createError.message}`,
-            variant: "destructive",
-          });
-          
-          // Try to create policies anyway
-          await callPolicyFunction(bucketName);
-          return false;
-        }
-      } else {
-        console.log(`Successfully created bucket: ${bucketName}`);
-      }
-      
-      // Always call the policy function, even if bucket creation succeeded
-      await callPolicyFunction(bucketName);
-    } else {
-      console.log(`Bucket ${bucketName} already exists`);
-      
-      // Update existing bucket to ensure it has correct settings
-      try {
-        const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 52428800,
-          allowedMimeTypes: [
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'model/gltf-binary',
-            'model/gltf+json',
-            'application/octet-stream',
-            'application/gltf-binary'
-          ]
-        });
-        
-        if (updateError) {
-          console.error('Error updating bucket settings:', updateError);
-        } else {
-          console.log(`Successfully updated bucket settings for: ${bucketName}`);
-        }
-      } catch (updateErr) {
-        console.error('Exception updating bucket:', updateErr);
-      }
-    }
-    
+    console.log('Storage bucket setup successful:', data);
     return true;
   } catch (err) {
     console.error('Failed to create storage bucket:', err);
-    
-    // Attempt to create policies even if bucket creation failed
-    await callPolicyFunction(bucketName);
-    
     toast({
-      title: "Storage setup warning",
-      description: "Storage setup encountered issues but will try to continue",
-      variant: "default",
+      title: "Storage setup error",
+      description: "Could not set up storage bucket. Please try again later.",
+      variant: "destructive",
     });
-    
     return false;
   }
 }
 
-/**
- * Helper function to call the edge function for creating storage policies
- */
-async function callPolicyFunction(bucketName: string): Promise<void> {
+// Function to initialize storage bucket
+export async function initializeStorage(): Promise<boolean> {
   try {
-    console.log(`Setting up storage policies for bucket: ${bucketName}`);
+    // First check if the bucket exists directly using anon key
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
-    const { error: functionError } = await supabase.functions.invoke('create-storage-policy', {
-      body: { bucketName },
-    });
-    
-    if (functionError) {
-      console.error('Error invoking edge function for storage policies:', functionError);
+    if (listError) {
+      console.error('Error listing buckets:', listError);
+      // Continue anyway to try the edge function approach
     } else {
-      console.log('Storage policies created successfully via edge function');
+      const bucketExists = buckets?.some(bucket => bucket.name === 'menu-media');
+      console.log('Bucket exists check:', bucketExists);
+      
+      if (bucketExists) {
+        console.log('menu-media bucket already exists, no need to create');
+        return true;
+      }
     }
-  } catch (policyErr) {
-    console.error('Exception creating policies:', policyErr);
-    // Continue despite policy error - bucket might still be usable
+    
+    // Bucket doesn't exist or we couldn't check, try to create it via edge function
+    return await createStorageBucket('menu-media');
+  } catch (err) {
+    console.error('Error initializing storage:', err);
+    return false;
   }
 }
