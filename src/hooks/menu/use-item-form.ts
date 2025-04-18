@@ -1,9 +1,11 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MenuItem, MenuCategory } from '@/types/menu';
 import { itemFormSchema, ItemFormValues } from '@/components/menu/forms/ItemFormSchema';
 import { toast } from '@/hooks/use-toast';
+import { createMenuItem } from '@/services/menu';
 
 export const useItemForm = (
   initialData?: MenuItem,
@@ -68,12 +70,12 @@ export const useItemForm = (
 
     if (extension && imageTypes.includes(extension)) {
       // It's an image/gif
-      setMediaReference(''); // Clear 3D model reference if any
-      setMediaUrl(fileUrl);
+      setMediaReference(fileId); // Use fileId as reference for images too
+      setMediaUrl(''); // Clear 3D model URL
       form.setValue('image_url', fileUrl);
       form.setValue('media_type', 'image');
       form.setValue('model_url', ''); // Clear model URL
-      form.setValue('media_reference', ''); // Clear model reference
+      form.setValue('media_reference', fileId);
       console.log('Image upload handled:', fileUrl);
     } else if (extension && modelTypes.includes(extension)) {
       // It's a 3D model
@@ -109,35 +111,36 @@ export const useItemForm = (
     console.log(`Form ${formId.current} submitting...`);
 
     try {
-      const formData = new FormData();
-      for (const key in values) {
-        formData.append(key, values[key]);
-      }
+      // For security reasons, it's better to create a new clean object
+      // rather than passing the form values directly
+      const menuItemData = {
+        name: values.name,
+        description: values.description,
+        price: values.price,
+        category_id: values.category_id,
+        image_url: values.image_url,
+        model_url: values.model_url,
+        media_type: values.media_type,
+        media_reference: values.media_reference,
+        preparation_time: values.preparation_time,
+        is_available: values.is_available,
+        is_featured: values.is_featured,
+        restaurant_id: values.restaurant_id,
+        allergens: {
+          isVegetarian: values.is_vegetarian,
+          isVegan: values.is_vegan,
+          isGlutenFree: values.is_gluten_free,
+          items: values.allergens ? values.allergens.split(',').map(item => item.trim()) : []
+        }
+      };
 
-      // Get the selected file from the MediaFields component
-      const selectedFile = (document.querySelector('#media-upload') as HTMLInputElement)?.files?.[0];
-      if (selectedFile) {
-        formData.append('file', selectedFile);
-      }
-
-      const restaurantId = values.restaurant_id;
-
-      const response = await fetch('/api/menu-items/createWithUpload', {
-        method: 'POST',
-        headers: {
-          'x-restaurant-id': restaurantId,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create menu item');
-      }
-
-      const data = await response.json();
-      await onSubmit(data);
+      // Use createMenuItem directly from the service
+      console.log("Submitting menu item data:", menuItemData);
+      const result = await createMenuItem(menuItemData);
+      
+      await onSubmit(result);
     } catch (error: any) {
+      console.error("Form submission error:", error);
       toast({
         title: "Failed to create menu item",
         description: error.message || "Please try again later",

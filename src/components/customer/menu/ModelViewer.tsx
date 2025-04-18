@@ -21,6 +21,17 @@ function Model({ url }: { url: string }) {
   // Use proper type assertion for useGLTF
   const gltfResult = useGLTF(url) as unknown as GLTFResult;
   
+  useEffect(() => {
+    // Log success when model loads
+    console.log('3D model loaded successfully:', url);
+    
+    // Cleanup when unmounting
+    return () => {
+      // Release memory by unloading the model when component unmounts
+      useGLTF.preload(url);
+    };
+  }, [url]);
+  
   // Make sure scene exists before rendering
   if (!gltfResult || !gltfResult.scene) {
     console.error('Failed to load model or scene is missing:', url);

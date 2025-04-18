@@ -1,27 +1,19 @@
-
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 
-interface UseSupabaseUploadProps {
+interface UseModelUploadProps {
+  menuItemId?: string;
   restaurantId?: string;
-  itemId?: string;
-  bucketName: string;
-  allowedFileTypes?: string[];
+  onUploadComplete: (fileId: string, fileUrl: string) => void;
 }
 
-interface UploadResult {
-  path: string;
-  url: string;
-}
-
-export function useSupabaseUpload({
+export const useModelUpload = ({ 
+  menuItemId, 
   restaurantId,
-  itemId,
-  bucketName,
-  allowedFileTypes = ['.glb', '.gltf', '.jpg', '.jpeg', '.png', '.gif']
-}: UseSupabaseUploadProps) {
+  onUploadComplete 
+}: UseModelUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -42,12 +34,10 @@ export function useSupabaseUpload({
       }
       
       const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
-      const isAllowedType = allowedFileTypes.some(type => 
-        type.endsWith(fileExt) || type === '.' + fileExt
-      );
+      const validExtensions = ['glb', 'gltf', 'jpg', 'jpeg', 'png', 'gif'];
       
-      if (!isAllowedType) {
-        setError(`Only ${allowedFileTypes.join(', ')} files are supported`);
+      if (!validExtensions.includes(fileExt)) {
+        setError(`Only ${validExtensions.join(', ')} files are supported`);
         return;
       }
       
@@ -57,15 +47,16 @@ export function useSupabaseUpload({
         toast({
           title: "Large file detected",
           description: `This ${(file.size / (1024 * 1024)).toFixed(1)}MB file may take longer to upload. Please be patient.`,
+          variant: "default",
         });
       }
     }
-  }, [allowedFileTypes]);
+  }, []);
   
-  const uploadFile = useCallback(async (): Promise<UploadResult | null> => {
-    if (!selectedFile || !bucketName) {
+  const uploadFile = useCallback(async () => {
+    if (!selectedFile || !restaurantId) {
       setError('Missing required information');
-      return null;
+      return;
     }
     
     try {
@@ -76,82 +67,79 @@ export function useSupabaseUpload({
       // Create a new AbortController for this upload
       abortControllerRef.current = new AbortController();
       
-      // Check if bucket exists
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      // Generate a unique file name with appropriate extension
+      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
+      const fileName = `${Date.now()}_${uuidv4().substring(0, 8)}.${fileExt}`;
+      const filePath = `menu-items/${restaurantId}/${menuItemId || 'new'}/${fileName}`;
       
-      if (bucketsError) {
-        throw new Error(`Failed to check buckets: ${bucketsError.message}`);
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-      
-      if (!bucketExists) {
-        console.warn(`Bucket "${bucketName}" does not exist. Creating new bucket...`);
-        const { error: createBucketError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-        });
-        
-        if (createBucketError) {
-          throw new Error(`Failed to create bucket: ${createBucketError.message}`);
-        }
-      }
-      
-      // Track upload progress with intervals since Supabase doesn't provide progress events
+      // Track upload progress manually since Supabase doesn't provide progress callbacks
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          if (prev < 90) return prev + Math.random() * 10;
+          // Simulate progress until we reach 90%
+          if (prev < 90) {
+            return prev + (Math.random() * 5);
+          }
           return prev;
         });
       }, 300);
       
-      // Generate a unique file name with appropriate extension
-      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase();
-      const uniqueId = uuidv4().substring(0, 8);
-      const safeFileName = selectedFile.name
-        .replace(/[^a-zA-Z0-9.-]/g, '_')
-        .toLowerCase();
+      // Determine media type
+      const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExt || '');
+      const is3DModel = ['glb', 'gltf'].includes(fileExt || '');
+      const mediaType = isImage ? 'image' : (is3DModel ? '3d' : 'unknown');
       
-      // Create a folder structure: restaurantId/items/itemId-uniqueId.ext
-      const filePath = restaurantId 
-        ? `${restaurantId}${itemId ? `/items/${itemId}` : ''}/file_${uniqueId}_${safeFileName}`
-        : `uploads/${uniqueId}_${safeFileName}`;
-      
-      // Upload the file
+      // Upload file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(bucketName)
+        .from('menu-media')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
           upsert: true
         });
       
-      // Clear the progress interval
       clearInterval(progressInterval);
       
       if (uploadError) {
-        throw uploadError;
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
       
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
-        .from(bucketName)
+        .from('menu-media')
         .getPublicUrl(filePath);
         
-      if (!publicUrlData || !publicUrlData.publicUrl) {
-        throw new Error('Failed to get public URL for uploaded file');
-      }
+      const fileUrl = publicUrlData.publicUrl;
+      console.log('Successfully uploaded file:', fileUrl);
       
       setUploadProgress(100);
       setUploadSuccess(true);
+      onUploadComplete(filePath, fileUrl);
+      
+      // Return early if this is a new item - the form will handle the rest
+      if (!menuItemId || menuItemId === 'new') {
+        return;
+      }
+      
+      // Otherwise, update the existing menu item with the new media information
+      const { error: updateError } = await supabase
+        .from('menu_items')
+        .update({
+          [mediaType === 'image' ? 'image_url' : 'model_url']: fileUrl,
+          media_type: mediaType,
+          media_reference: filePath,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', menuItemId);
+        
+      if (updateError) {
+        console.error('Error updating menu item with new media:', updateError);
+        throw new Error(`Failed to update menu item: ${updateError.message}`);
+      }
       
       toast({
         title: "Upload successful",
-        description: "File uploaded successfully",
+        description: `${mediaType === 'image' ? 'Image' : '3D model'} uploaded successfully`,
       });
-      
-      return {
-        path: filePath,
-        url: publicUrlData.publicUrl
-      };
       
     } catch (err: any) {
       console.error('Upload error:', err);
@@ -174,13 +162,11 @@ export function useSupabaseUpload({
         description: errorMessage,
         variant: "destructive",
       });
-      
-      return null;
     } finally {
       setIsUploading(false);
       abortControllerRef.current = null;
     }
-  }, [selectedFile, bucketName, restaurantId, itemId]);
+  }, [selectedFile, menuItemId, restaurantId, onUploadComplete]);
   
   const cancelUpload = useCallback(() => {
     if (abortControllerRef.current && isUploading) {
@@ -188,6 +174,7 @@ export function useSupabaseUpload({
       toast({
         title: "Upload cancelled",
         description: "The file upload was cancelled",
+        variant: "default",
       });
     }
     
@@ -208,4 +195,4 @@ export function useSupabaseUpload({
     uploadFile,
     cancelUpload
   };
-}
+};
