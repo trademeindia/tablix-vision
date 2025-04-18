@@ -6,24 +6,19 @@ import { Upload } from 'lucide-react';
 interface UploadButtonProps {
   isVisible: boolean;
   onUpload: () => void;
-  label?: string;
 }
 
-const UploadButton: React.FC<UploadButtonProps> = ({ 
-  isVisible, 
-  onUpload,
-  label = "Upload" 
-}) => {
+const UploadButton: React.FC<UploadButtonProps> = ({ isVisible, onUpload }) => {
   if (!isVisible) return null;
-
+  
   return (
     <Button 
-      type="button"
-      onClick={onUpload}
+      type="button" 
+      onClick={onUpload} 
       className="w-full"
     >
       <Upload className="h-4 w-4 mr-2" />
-      {label}
+      Upload
     </Button>
   );
 };

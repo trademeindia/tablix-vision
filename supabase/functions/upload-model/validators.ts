@@ -1,40 +1,43 @@
 
 import { corsHeaders } from "./cors.ts";
 
-export function validateFile(file: File): { valid: boolean; error?: string } {
-  if (!file) {
-    return { valid: false, error: 'No file provided' };
+export function errorResponse(message: string, status = 400, extraData = {}) {
+  return new Response(
+    JSON.stringify({
+      error: message,
+      ...extraData,
+    }),
+    {
+      status,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+export function validateFile(file: any) {
+  if (!file || !(file instanceof File)) {
+    return { valid: false, error: 'Invalid file' };
   }
   
-  const fileSize = file.size;
-  const fileName = file.name.toLowerCase();
-  
   // Check file size (50MB limit)
-  if (fileSize > 50 * 1024 * 1024) {
-    return { valid: false, error: 'File size exceeds 50MB limit' };
+  if (file.size > 50 * 1024 * 1024) {
+    return { valid: false, error: 'File exceeds 50MB size limit' };
   }
   
   // Check file type
-  if (!fileName.endsWith('.glb') && !fileName.endsWith('.gltf')) {
+  const fileName = file.name.toLowerCase();
+  const validExtensions = ['.glb', '.gltf']; 
+  const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+  
+  if (!hasValidExtension) {
     return { 
       valid: false, 
-      error: 'Invalid file type. Only GLB and GLTF formats are supported' 
+      error: 'Only GLB and GLTF files are supported' 
     };
   }
   
   return { valid: true };
-}
-
-export function errorResponse(message: string, status: number, details?: any) {
-  return new Response(
-    JSON.stringify({
-      success: false,
-      error: message,
-      details: details || null,
-    }),
-    {
-      status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    }
-  );
 }

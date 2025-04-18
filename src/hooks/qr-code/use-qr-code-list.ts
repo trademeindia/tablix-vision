@@ -12,31 +12,15 @@ import { useQRTest } from './use-qr-test';
  * @param initialLoading Initial loading state
  */
 export function useQRCodeList(restaurantId: string, initialLoading: boolean) {
-  const [tables, setTables] = useState<TableWithQR[]>([]);
   const [isLoading, setIsLoading] = useState(initialLoading);
-  const { fetchTables, deleteTable } = useQRListDatabase(restaurantId);
+  const { tables, fetchTables, deleteTable, isLoading: dbLoading } = useQRListDatabase(restaurantId);
   const { deleteDialogOpen, tableToDelete, setDeleteDialogOpen, confirmDelete, clearTableToDelete } = useQRDeleteDialog();
   const { handleTest } = useQRTest();
 
-  // Fetch tables when component mounts or restaurantId changes
+  // Set loading state based on database loading
   useEffect(() => {
-    if (restaurantId !== '00000000-0000-0000-0000-000000000000') {
-      loadTables();
-    }
-  }, [restaurantId]);
-
-  /**
-   * Loads table data from the database
-   */
-  const loadTables = async () => {
-    setIsLoading(true);
-    try {
-      const tablesData = await fetchTables();
-      setTables(tablesData);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setIsLoading(dbLoading || initialLoading);
+  }, [dbLoading, initialLoading]);
 
   /**
    * Handles the download of a QR code
@@ -65,8 +49,7 @@ export function useQRCodeList(restaurantId: string, initialLoading: boolean) {
     const success = await deleteTable(tableToDelete);
     
     if (success) {
-      // Update the state to remove the deleted table
-      setTables(tables.filter(table => table.id !== tableToDelete));
+      // The tables state will be automatically updated via the real-time subscription
     }
     
     clearTableToDelete();
@@ -77,7 +60,7 @@ export function useQRCodeList(restaurantId: string, initialLoading: boolean) {
     isLoading,
     deleteDialogOpen,
     tableToDelete,
-    fetchTables: loadTables,
+    fetchTables,
     handleDownload,
     handleShare,
     handleTest,

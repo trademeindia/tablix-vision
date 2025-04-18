@@ -81,4 +81,3 @@ const QRCodeList: React.FC<QRCodeListProps> = ({ restaurantId, isLoading: initia
 };
 
 export default QRCodeList;
-

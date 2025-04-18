@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,6 +18,54 @@ export type TableWithQR = {
  */
 export function useQRListDatabase(restaurantId: string) {
   const [isLoading, setIsLoading] = useState(false);
+  const [tables, setTables] = useState<TableWithQR[]>([]);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!restaurantId || restaurantId === '00000000-0000-0000-0000-000000000000') return;
+    
+    // Initial fetch
+    fetchTables().then(initialTables => {
+      setTables(initialTables);
+    });
+    
+    // Set up real-time subscription
+    const tablesChannel = supabase
+      .channel('tables-changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'tables',
+        filter: `restaurant_id=eq.${restaurantId}`
+      }, (payload) => {
+        console.log('Real-time table update:', payload);
+        
+        // Update tables array based on the change type
+        if (payload.eventType === 'INSERT') {
+          setTables(current => [...current, payload.new as TableWithQR]);
+        } else if (payload.eventType === 'UPDATE') {
+          setTables(current => 
+            current.map(table => 
+              table.id === payload.new.id ? payload.new as TableWithQR : table
+            )
+          );
+        } else if (payload.eventType === 'DELETE') {
+          setTables(current => 
+            current.filter(table => table.id !== payload.old.id)
+          );
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Subscribed to real-time table updates');
+        }
+      });
+    
+    // Clean up subscription
+    return () => {
+      supabase.removeChannel(tablesChannel);
+    };
+  }, [restaurantId]);
 
   /**
    * Fetches all tables with QR codes for a restaurant
@@ -86,6 +134,7 @@ export function useQRListDatabase(restaurantId: string) {
 
   return {
     isLoading,
+    tables,
     fetchTables,
     deleteTable
   };
