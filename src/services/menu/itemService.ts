@@ -1,6 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, parseAllergens, stringifyAllergens } from "@/types/menu";
 import { getErrorMessage } from "@/utils/api-helpers";
+import { ensureDemoRestaurantExists } from "./demoSetup";
 
 // Menu Items
 export const fetchMenuItems = async (category_id?: string, restaurant_id?: string) => {
@@ -85,6 +87,12 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
     // Default restaurant ID if none provided
     const defaultRestaurantId = "00000000-0000-0000-0000-000000000000";
     
+    // Ensure a valid restaurant_id - either the one provided or the default
+    const restaurantId = item.restaurant_id || defaultRestaurantId;
+    
+    // Ensure the restaurant exists in the database before creating the menu item
+    await ensureDemoRestaurantExists();
+    
     // Prepare the item for insertion
     const dbItem = {
       name: item.name,
@@ -101,7 +109,7 @@ export const createMenuItem = async (item: Partial<MenuItem>) => {
       allergens: stringifyAllergens(item.allergens),
       nutritional_info: item.nutritional_info || null,
       preparation_time: item.preparation_time || null,
-      restaurant_id: item.restaurant_id || defaultRestaurantId, // Use default if not provided
+      restaurant_id: restaurantId,
       user_id: userId // Set user_id for RLS
     };
     

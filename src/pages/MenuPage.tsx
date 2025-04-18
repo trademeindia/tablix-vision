@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useMenuPageData } from '@/hooks/menu/use-menu-page-data';
@@ -13,10 +12,10 @@ import MenuInfoCard from '@/components/menu/MenuInfoCard';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ensureDemoRestaurantExists } from "@/services/menu/demoSetup";
 
 const MenuPage = () => {
   const queryClient = useQueryClient();
-  // Use a state for restaurant ID in case we want to make it dynamic in the future
   const [restaurantId] = useState("00000000-0000-0000-0000-000000000000");
   const [isErrorVisible, setIsErrorVisible] = useState(false);
   const isRefreshing = useRef(false);
@@ -25,7 +24,6 @@ const MenuPage = () => {
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
-    // Initialize storage bucket check
     const checkStorageBucket = async () => {
       try {
         const { data: buckets, error } = await supabase.storage.listBuckets();
@@ -51,7 +49,6 @@ const MenuPage = () => {
   }, []);
   
   useEffect(() => {
-    // Check for database errors and show a helpful message after a short delay
     const timer = setTimeout(() => {
       const consoleErrors = document.querySelectorAll('.console-error');
       if (consoleErrors.length > 0) {
@@ -62,12 +59,23 @@ const MenuPage = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  useEffect(() => {
+    const setupDemoEnvironment = async () => {
+      try {
+        await ensureDemoRestaurantExists();
+        console.log("Demo environment setup complete");
+      } catch (error) {
+        console.error("Failed to setup demo environment:", error);
+      }
+    };
+    
+    setupDemoEnvironment();
+  }, []);
+  
   const {
-    // Tab state
     activeTab,
     setActiveTab,
     
-    // Data and loading states
     categories,
     menuItems,
     isCategoriesLoading,
@@ -75,7 +83,6 @@ const MenuPage = () => {
     categoriesError,
     itemsError,
     
-    // Category dialog states
     isAddCategoryOpen,
     setIsAddCategoryOpen,
     isEditCategoryOpen,
@@ -85,7 +92,6 @@ const MenuPage = () => {
     selectedCategory,
     setSelectedCategory,
     
-    // Item dialog states
     isAddItemOpen,
     setIsAddItemOpen,
     isEditItemOpen,
@@ -95,7 +101,6 @@ const MenuPage = () => {
     selectedItem,
     setSelectedItem,
     
-    // Functions
     handleRefreshCategories,
     handleEditCategory,
     handleDeleteCategoryClick,
@@ -103,13 +108,10 @@ const MenuPage = () => {
     handleDeleteItemClick,
     handleViewItem,
     
-    // Test data status
     usingTestData
   } = useMenuPageData(restaurantId);
 
-  // Enhanced refresh function that ensures both categories and items are refreshed
   const handleRefreshAll = useCallback(async () => {
-    // Prevent multiple simultaneous refreshes
     if (isRefreshing.current) {
       console.log("Already refreshing, skip this refresh request");
       return;
@@ -123,13 +125,11 @@ const MenuPage = () => {
     });
     
     try {
-      // Force refetch of both categories and items
       await Promise.all([
         handleRefreshCategories(),
         queryClient.invalidateQueries({ queryKey: ['menuItems', restaurantId] })
       ]);
       
-      // Additional manual refetch after a short delay to ensure data is fresh
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
@@ -154,31 +154,25 @@ const MenuPage = () => {
     }
   }, [handleRefreshCategories, queryClient, restaurantId, menuItems.length, categories?.length]);
 
-  // Automatically refresh data after dialog closes, but prevent excessive refreshes
   useEffect(() => {
-    // Only refresh when a dialog has just been closed
     const dialogsClosed = !isAddItemOpen && !isEditItemOpen && !isDeleteItemOpen && 
                          !isAddCategoryOpen && !isEditCategoryOpen && !isDeleteCategoryOpen;
     
     if (dialogsClosed) {
-      // Set close timestamp when a dialog closes
       if (dialogCloseTimestamp.current === null) {
         dialogCloseTimestamp.current = Date.now();
         
-        // Clear any existing timeout
         if (refreshTimeoutRef.current) {
           clearTimeout(refreshTimeoutRef.current);
         }
         
         console.log("Dialog closed, refreshing data in 800ms");
-        // Use setTimeout to prevent excessive refreshing
         refreshTimeoutRef.current = setTimeout(() => {
           handleRefreshAll();
           dialogCloseTimestamp.current = null;
         }, 800);
       }
     } else {
-      // Reset timestamp when dialog is open
       dialogCloseTimestamp.current = null;
     }
     
@@ -189,20 +183,18 @@ const MenuPage = () => {
     };
   }, [isAddItemOpen, isEditItemOpen, isDeleteItemOpen, isAddCategoryOpen, isEditCategoryOpen, isDeleteCategoryOpen, handleRefreshAll]);
 
-  // Only refresh once when component mounts
   useEffect(() => {
     if (!initialLoadComplete.current) {
       console.log("Menu page mounted, doing initial data fetch");
       const initialLoadTimeout = setTimeout(() => {
         handleRefreshAll();
         initialLoadComplete.current = true;
-      }, 1000); // slight delay for better UI experience
+      }, 1000);
       
       return () => clearTimeout(initialLoadTimeout);
     }
   }, [handleRefreshAll]);
 
-  // Cleanup all timeouts when component unmounts
   useEffect(() => {
     return () => {
       if (refreshTimeoutRef.current) {
@@ -211,7 +203,6 @@ const MenuPage = () => {
     };
   }, []);
 
-  // Defensive rendering to ensure the page loads even if some data is missing
   return (
     <DashboardLayout>
       <div className="container mx-auto py-6">
