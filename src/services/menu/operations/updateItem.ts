@@ -49,9 +49,16 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>): Pr
     
     console.log("Menu item updated successfully:", data[0]);
     
-    return data[0];
+    // Convert the database response back to a MenuItem type
+    const updatedItem: MenuItem = {
+      ...data[0],
+      allergens: updates.allergens || undefined
+    };
+    
+    return updatedItem;
   } catch (error) {
     console.error('Error in updateMenuItem:', getErrorMessage(error));
     throw error;
   }
 };
+

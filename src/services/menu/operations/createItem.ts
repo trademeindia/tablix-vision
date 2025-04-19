@@ -50,7 +50,7 @@ export const createMenuItem = async (item: Partial<MenuItem>): Promise<MenuItem>
       is_available: item.is_available !== undefined ? item.is_available : true,
       is_featured: item.is_featured !== undefined ? item.is_featured : false,
       ingredients: item.ingredients || null,
-      allergens: stringifyAllergens(item.allergens),
+      allergens: item.allergens ? stringifyAllergens(item.allergens) : null,
       nutritional_info: item.nutritional_info || null,
       preparation_time: item.preparation_time || null,
       restaurant_id: restaurantId,
@@ -67,11 +67,22 @@ export const createMenuItem = async (item: Partial<MenuItem>): Promise<MenuItem>
       throw error;
     }
     
+    if (!data || data.length === 0) {
+      throw new Error('Failed to create menu item');
+    }
+    
     console.log("Menu item created successfully:", data[0]);
     
-    return data[0];
+    // Convert the database response back to a MenuItem type
+    const createdItem: MenuItem = {
+      ...data[0],
+      allergens: item.allergens || undefined
+    };
+    
+    return createdItem;
   } catch (error) {
     console.error('Error in createMenuItem:', getErrorMessage(error));
     throw error;
   }
 };
+
