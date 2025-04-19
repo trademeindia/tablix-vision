@@ -14,20 +14,18 @@ const findViteExecutable = () => {
   const potentialPaths = [
     path.resolve(process.cwd(), 'node_modules', '.bin', 'vite'),
     path.resolve(process.cwd(), 'node_modules', '.bin', 'vite.cmd'), // For Windows
-    path.resolve(process.cwd(), 'node_modules', 'vite', 'bin', 'vite.js'),
-    // Global installations
-    'vite'
+    path.resolve(process.cwd(), 'node_modules', 'vite', 'bin', 'vite.js')
   ];
   
   // Check if files exist for local paths
   for (const p of potentialPaths) {
-    if (p === 'vite' || (fs.existsSync(p) && fs.statSync(p).isFile())) {
+    if (fs.existsSync(p) && fs.statSync(p).isFile()) {
       console.log(`Found Vite at: ${p}`);
       return p;
     }
   }
   
-  console.error('Vite executable not found in expected locations. Using fallback "npx vite"');
+  console.log('Vite executable not found in expected locations. Using npx vite as fallback.');
   return 'npx';
 };
 
@@ -36,12 +34,16 @@ try {
   
   console.log('Starting development server...');
   
-  // If we're using npx as fallback, we need different arguments
-  const isNpxFallback = viteCommand === 'npx';
+  // Determine appropriate arguments based on the command
+  const args = viteCommand === 'npx' ? ['vite'] : [];
+  const command = viteCommand === 'npx' ? 'npx' : 'node';
+  const fullArgs = viteCommand === 'npx' ? args : [viteCommand, ...args];
+  
+  console.log(`Running: ${command} ${fullArgs.join(' ')}`);
   
   const devProcess = spawn(
-    viteCommand,
-    isNpxFallback ? ['vite'] : [],
+    command,
+    fullArgs,
     {
       stdio: 'inherit',
       shell: true

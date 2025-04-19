@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { MenuItem, stringifyAllergens } from "@/types/menu";
+import { MenuItem, stringifyAllergens, parseAllergens } from "@/types/menu";
 import { getErrorMessage } from "@/utils/api-helpers";
 
 export const updateMenuItem = async (id: string, updates: Partial<MenuItem>): Promise<MenuItem> => {
@@ -52,7 +52,7 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>): Pr
     // Convert the database response back to a MenuItem type
     const updatedItem: MenuItem = {
       ...data[0],
-      allergens: updates.allergens || undefined
+      allergens: updates.allergens || parseAllergens(data[0].allergens) || undefined
     };
     
     return updatedItem;
@@ -61,4 +61,3 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>): Pr
     throw error;
   }
 };
-

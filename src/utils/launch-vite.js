@@ -11,6 +11,7 @@ const fs = require('fs');
 const findViteExecutable = () => {
   const potentialPaths = [
     path.resolve(process.cwd(), 'node_modules', '.bin', 'vite'),
+    path.resolve(process.cwd(), 'node_modules', '.bin', 'vite.cmd'), // For Windows
     path.resolve(process.cwd(), 'node_modules', 'vite', 'bin', 'vite.js')
   ];
   
@@ -20,7 +21,9 @@ const findViteExecutable = () => {
     }
   }
   
-  throw new Error('Vite executable not found. Please ensure vite is installed.');
+  // Fallback to npx
+  console.warn('Vite executable not found in expected locations. Using npx vite as fallback.');
+  return 'npx';
 };
 
 try {
@@ -28,14 +31,30 @@ try {
   console.log(`Found Vite at: ${viteExe}`);
   
   // Run Vite with any arguments passed to this script
-  const viteProcess = spawn('node', [viteExe, ...process.argv.slice(2)], {
-    stdio: 'inherit',
-    shell: true
-  });
+  const args = viteExe === 'npx' ? ['vite', ...process.argv.slice(2)] : [...process.argv.slice(2)];
+  
+  const viteProcess = spawn(
+    viteExe === 'npx' ? 'npx' : 'node', 
+    viteExe === 'npx' ? args : [viteExe, ...args], 
+    {
+      stdio: 'inherit',
+      shell: true
+    }
+  );
   
   viteProcess.on('error', (err) => {
     console.error('Failed to start Vite:', err);
-    process.exit(1);
+    console.log('Attempting fallback to npx vite...');
+    
+    const npxProcess = spawn('npx', ['vite', ...process.argv.slice(2)], {
+      stdio: 'inherit',
+      shell: true
+    });
+    
+    npxProcess.on('error', (npxErr) => {
+      console.error('Fallback also failed:', npxErr);
+      process.exit(1);
+    });
   });
   
   viteProcess.on('close', (code) => {
