@@ -74,9 +74,11 @@ export const createMenuItem = async (item: Partial<MenuItem>): Promise<MenuItem>
     console.log("Menu item created successfully:", data[0]);
     
     // Convert the database response back to a MenuItem type
+    // Ensure allergens are properly parsed to the correct type
+    const rawItem = data[0];
     const createdItem: MenuItem = {
-      ...data[0],
-      allergens: item.allergens || parseAllergens(data[0].allergens) || undefined
+      ...rawItem,
+      allergens: parseAllergens(rawItem.allergens) || undefined
     };
     
     return createdItem;

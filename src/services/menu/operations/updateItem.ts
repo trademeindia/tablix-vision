@@ -50,9 +50,11 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>): Pr
     console.log("Menu item updated successfully:", data[0]);
     
     // Convert the database response back to a MenuItem type
+    // Ensure allergens are properly parsed to the correct type
+    const rawItem = data[0];
     const updatedItem: MenuItem = {
-      ...data[0],
-      allergens: updates.allergens || parseAllergens(data[0].allergens) || undefined
+      ...rawItem,
+      allergens: parseAllergens(rawItem.allergens) || undefined
     };
     
     return updatedItem;

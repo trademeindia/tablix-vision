@@ -1,12 +1,12 @@
 
 #!/usr/bin/env node
 
-// Script to build the project using Vite
+// Script to build the project using Vite with enhanced error handling
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-// Log current working directory to help with debugging
+// Log current working directory for debugging
 console.log('Current working directory:', process.cwd());
 
 const findViteExecutable = () => {
@@ -14,14 +14,24 @@ const findViteExecutable = () => {
   const potentialPaths = [
     path.resolve(process.cwd(), 'node_modules', '.bin', 'vite'),
     path.resolve(process.cwd(), 'node_modules', '.bin', 'vite.cmd'), // For Windows
-    path.resolve(process.cwd(), 'node_modules', 'vite', 'bin', 'vite.js')
+    path.resolve(process.cwd(), 'node_modules', 'vite', 'bin', 'vite.js'),
+    // Additional potential paths
+    path.resolve(__dirname, 'node_modules', '.bin', 'vite'),
+    path.resolve(__dirname, 'node_modules', '.bin', 'vite.cmd')
   ];
   
-  // Check if files exist for local paths
+  // Check if files exist for local paths and are executable
   for (const p of potentialPaths) {
-    if (fs.existsSync(p) && fs.statSync(p).isFile()) {
-      console.log(`Found Vite at: ${p}`);
-      return p;
+    if (fs.existsSync(p)) {
+      try {
+        const stats = fs.statSync(p);
+        if (stats.isFile()) {
+          console.log(`Found Vite at: ${p}`);
+          return p;
+        }
+      } catch (err) {
+        console.warn(`Error checking path ${p}:`, err.message);
+      }
     }
   }
   
@@ -32,18 +42,26 @@ const findViteExecutable = () => {
 try {
   const viteCommand = findViteExecutable();
   
-  console.log('Building project...');
+  console.log('Building project with:', viteCommand);
   
   // Determine appropriate arguments based on the command
-  const args = viteCommand === 'npx' ? ['vite', 'build'] : ['build'];
-  const command = viteCommand === 'npx' ? 'npx' : 'node';
-  const fullArgs = viteCommand === 'npx' ? args : [viteCommand, ...args];
+  const command = viteCommand === 'npx' ? 'npx' : 
+                 (process.platform === 'win32' && !viteCommand.endsWith('.js')) ? viteCommand : 'node';
   
-  console.log(`Running: ${command} ${fullArgs.join(' ')}`);
+  let args;
+  if (viteCommand === 'npx') {
+    args = ['vite', 'build'];
+  } else if (process.platform === 'win32' && !viteCommand.endsWith('.js')) {
+    args = ['build'];
+  } else {
+    args = [viteCommand, 'build'];
+  }
+  
+  console.log(`Running: ${command} ${args.join(' ')}`);
   
   const buildProcess = spawn(
     command,
-    fullArgs,
+    args,
     {
       stdio: 'inherit',
       shell: true
@@ -63,9 +81,15 @@ try {
       
       npxProcess.on('error', (npxErr) => {
         console.error('Fallback also failed:', npxErr);
+        console.error('Please ensure Vite is installed. Try running: npm install vite@latest');
         process.exit(1);
       });
+      
+      npxProcess.on('close', (code) => {
+        process.exit(code);
+      });
     } else {
+      console.error('Please ensure Vite is installed. Try running: npm install vite@latest');
       process.exit(1);
     }
   });
@@ -78,7 +102,7 @@ try {
   });
 } catch (error) {
   console.error('Error building project:', error.message);
-  console.log('Attempting fallback to npx vite build...');
+  console.log('Attempting final fallback to npx vite build...');
   
   try {
     const npxProcess = spawn('npx', ['vite', 'build'], {
@@ -87,7 +111,8 @@ try {
     });
     
     npxProcess.on('error', (err) => {
-      console.error('Failed to build project with npx:', err);
+      console.error('All attempts to build project failed:', err);
+      console.error('Please ensure Vite is installed. Try running: npm install vite@latest');
       process.exit(1);
     });
     
@@ -99,6 +124,7 @@ try {
     });
   } catch (fallbackError) {
     console.error('All attempts to build the project failed:', fallbackError.message);
+    console.error('Please ensure Vite is installed. Try running: npm install vite@latest');
     process.exit(1);
   }
 }
