@@ -69,13 +69,9 @@ export const createMenuItem = async (item: Partial<MenuItem>): Promise<MenuItem>
     
     console.log("Menu item created successfully:", data[0]);
     
-    return {
-      ...data[0],
-      allergens: parseAllergens(data[0].allergens)
-    };
+    return data[0];
   } catch (error) {
     console.error('Error in createMenuItem:', getErrorMessage(error));
     throw error;
   }
 };
-

@@ -49,13 +49,9 @@ export const updateMenuItem = async (id: string, updates: Partial<MenuItem>): Pr
     
     console.log("Menu item updated successfully:", data[0]);
     
-    return {
-      ...data[0],
-      allergens: parseAllergens(data[0].allergens)
-    };
+    return data[0];
   } catch (error) {
     console.error('Error in updateMenuItem:', getErrorMessage(error));
     throw error;
   }
 };
-
