@@ -31,10 +31,9 @@ export const setupRealtimeListener = (
   // Create a unique channel for each subscription
   const channelName = `table-changes-${tableName}-${Math.random().toString(36).substring(2, 11)}`;
   
-  // Create a channel with the correct Supabase Realtime API
-  const channel = supabase
-    .channel(channelName);
-    
+  // Create a channel and configure it properly
+  const channel = supabase.channel(channelName);
+  
   // Add the postgres_changes listener with the correct configuration
   channel.on(
     'postgres_changes',
