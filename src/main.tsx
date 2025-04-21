@@ -9,8 +9,11 @@ import { initializeSupabase } from '@/utils/supabase-init';
 if (import.meta.env.MODE === 'development') {
   try {
     // This is only for development environments
-    const { execSync } = require('child_process');
-    execSync('node src/utils/ensure-vite.js', { stdio: 'inherit' });
+    // Using require directly instead of execSync
+    console.log('Ensuring Vite is installed...');
+    // Dynamically import the ensure-vite script (it will run automatically)
+    import('../src/utils/ensure-vite.js')
+      .catch(err => console.warn('Could not import ensure-vite script:', err));
   } catch (error) {
     console.warn('Could not run ensure-vite script:', error);
   }

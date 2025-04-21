@@ -31,10 +31,10 @@ export const setupRealtimeListener = (
   // Create a unique channel for each subscription
   const channelName = `table-changes-${tableName}-${Math.random().toString(36).substring(2, 11)}`;
   
-  // Create a channel and configure it properly
+  // Create a channel using the correct method
   const channel = supabase.channel(channelName);
   
-  // Add the postgres_changes listener with the correct configuration
+  // Configure the channel with postgres_changes listener
   channel.on(
     'postgres_changes',
     {

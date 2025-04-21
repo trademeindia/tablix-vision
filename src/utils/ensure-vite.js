@@ -16,8 +16,8 @@ try {
   if (!viteExists) {
     console.log('Vite not found in node_modules, installing...');
     
-    // Install vite and react-swc plugin
-    execSync('npm install vite@latest @vitejs/plugin-react-swc@latest --save-dev', {
+    // Install vite explicitly with a fixed version (avoid latest for stability)
+    execSync('npm install vite@4.5.1 @vitejs/plugin-react-swc@3.3.2 --save-dev', {
       stdio: 'inherit',
       shell: true
     });
