@@ -30,7 +30,7 @@ export const setupRealtimeListener = (
   // Create a unique channel for each subscription
   const channelName = `table-changes-${tableName}-${Math.random().toString(36).substring(2, 11)}`;
   
-  // Create a channel with proper Supabase Realtime v2 API
+  // Create a channel with proper Supabase Realtime v2 API - fixed event type
   const channel = supabase
     .channel(channelName)
     .on(
