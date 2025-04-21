@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Spinner from '@/components/ui/spinner';
 import { Helmet } from 'react-helmet-async';
-import { UserRole } from '@/hooks/use-user-role';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
@@ -15,7 +14,6 @@ const AuthCallbackPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('Processing authentication...');
   const [isProcessing, setIsProcessing] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -25,7 +23,7 @@ const AuthCallbackPage = () => {
         setStatus('Checking authentication session...');
         console.log('Auth callback started - checking for session');
 
-        // Handle Google OAuth flow
+        // Handle OAuth flow
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -33,18 +31,10 @@ const AuthCallbackPage = () => {
           throw error;
         }
         
-        // Save debug info
-        setDebugInfo({
-          hasSession: !!data.session,
-          hasUser: !!data.session?.user,
-          provider: data.session?.user?.app_metadata?.provider || 'none',
-          email: data.session?.user?.email || 'none',
-        });
-        
         console.log('Session retrieved:', data.session ? 'Valid session' : 'No session');
         setStatus('Session retrieved. Checking user profile...');
         
-        // Check user roles to determine redirect
+        // Check for successful authentication
         if (data.session?.user) {
           const userId = data.session.user.id;
           console.log('User authenticated:', userId);
@@ -82,6 +72,17 @@ const AuthCallbackPage = () => {
               // Clear the selected role after using it
               localStorage.removeItem('selectedRole');
               
+              // Add real-time listener for user presence
+              const channel = supabase.channel('online-users');
+              await channel.subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                  await channel.track({
+                    user: userId,
+                    online_at: new Date().toISOString(),
+                  });
+                }
+              });
+              
               navigate(redirectPath);
               return;
             } else {
@@ -91,164 +92,112 @@ const AuthCallbackPage = () => {
             }
           }
           
-          // If no valid selected role, try to get from user profile
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', userId)
-              .maybeSingle();
-              
-            if (profileError) {
-              console.error('Error fetching profile:', profileError);
-              
-              // If user doesn't have a profile yet, create one
-              if (profileError.code === 'PGRST116') { // record not found
-                setStatus('Creating new user profile...');
-                console.log('Creating new profile for user');
-                
-                // Create a new profile with default customer role
-                const { error: insertError } = await supabase
-                  .from('profiles')
-                  .insert({
-                    id: userId,
-                    role: 'customer',
-                    full_name: data.session.user.user_metadata.full_name || '',
-                    avatar_url: data.session.user.user_metadata.avatar_url || '',
-                  });
-                
-                if (insertError) {
-                  console.error('Error creating profile:', insertError);
-                  throw new Error('Failed to create user profile');
-                }
-                
-                console.log('Created new profile. Redirecting to customer menu.');
-                setStatus('Profile created. Redirecting...');
-                
-                // Update localStorage with role for immediate use
-                persistRoles(['customer']);
-                
-                // Show welcome toast
-                toast({
-                  title: 'Welcome to Menu 360!',
-                  description: 'Your account has been created successfully.',
-                });
-                
-                // Redirect to customer page
-                navigate('/customer/menu');
-                return;
-              } else {
-                throw profileError;
-              }
-            }
-              
-            if (profileData) {
-              console.log('User profile found:', profileData);
-              setStatus('User profile found. Redirecting...');
-              
-              // Redirect based on role
-              const role = profileData.role as UserRole;
-              
-              // Set the user role in localStorage for immediate use
-              const roles = expandRoles(role);
-              persistRoles(roles);
-              
-              // For Google auth users, set demo override to true to avoid permission issues
-              if (data.session.user.app_metadata.provider === 'google') {
-                console.log('Google auth detected, enabling demo override');
-                localStorage.setItem('demoOverride', 'true');
-              }
-              
-              // Show welcome toast
-              toast({
-                title: 'Login Successful',
-                description: `Welcome to your ${role} dashboard!`,
-              });
-              
-              const redirectPath = getRedirectPathByRole(role);
-              console.log(`Redirecting to ${redirectPath} based on role ${role}`);
-              navigate(redirectPath);
-              return;
-            } else {
-              console.log('No profile data found, redirecting to default path');
-              // No profile data found, redirect to default
-              navigate('/customer/menu');
-              return;
-            }
-          } catch (profileError) {
-            console.error('Profile error:', profileError);
-            setError('Error retrieving user profile. Please try again.');
-            setTimeout(() => navigate('/auth/login'), 3000);
-            return;
+          // If no valid selected role, try to get from user metadata or profile
+          const userRole = data.session.user.user_metadata?.role || 'customer';
+          console.log('Using role from user metadata:', userRole);
+          
+          // Expand roles based on hierarchy and persist them
+          const roles = expandRoles(userRole);
+          persistRoles(roles);
+          
+          // For Google auth users, set demo override to true to avoid permission issues
+          if (data.session.user.app_metadata.provider === 'google') {
+            console.log('Google auth detected, enabling demo override');
+            localStorage.setItem('demoOverride', 'true');
           }
+          
+          // Show toast notification for successful login
+          toast({
+            title: 'Login Successful',
+            description: `Welcome to your dashboard!`,
+          });
+          
+          // Get the redirect path based on role and navigate
+          const redirectPath = getRedirectPathByRole(userRole);
+          console.log(`Redirecting to ${redirectPath} based on user metadata role ${userRole}`);
+          
+          // Add real-time listener for user presence
+          const channel = supabase.channel('online-users');
+          await channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              await channel.track({
+                user: userId,
+                online_at: new Date().toISOString(),
+              });
+            }
+          });
+          
+          navigate(redirectPath);
+          return;
         } else {
-          console.log('No session, redirecting to login');
-          setStatus('No authenticated session found');
-          setError('No authenticated session found. Please try signing in again.');
-          setTimeout(() => navigate('/auth/login'), 3000);
+          // No session found, redirect to login
+          console.log('No session found, redirecting to login');
+          navigate('/auth/login');
         }
       } catch (error: any) {
-        console.error('Auth callback error:', error);
-        setError(error.message || 'Authentication failed');
-        setStatus('Authentication error occurred');
-        
-        // Update debug info with error details
-        setDebugInfo(prev => ({
-          ...prev,
-          error: error.message,
-          errorCode: error.code || 'unknown',
-        }));
-        
-        // Redirect to login after a delay
-        setTimeout(() => {
-          navigate('/auth/login');
-        }, 3000);
-      } finally {
+        console.error('Error in auth callback:', error);
+        setError(error.message || 'Authentication failed. Please try again.');
         setIsProcessing(false);
       }
     };
-    
+
     handleAuthCallback();
   }, [navigate, toast]);
 
-  return (
-    <>
-      <Helmet>
-        <title>Authenticating... | Menu 360</title>
-      </Helmet>
-      
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-        <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-          {error ? (
-            <div className="text-center">
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-5 w-5" />
-                <AlertTitle className="text-lg">Authentication Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-              <p className="text-slate-600 mt-4">Redirecting to login page...</p>
-            </div>
-          ) : (
-            <div className="text-center">
-              <Spinner size="lg" className="mb-6" />
-              <h1 className="text-xl font-semibold text-slate-800 mb-2">{status}</h1>
-              <p className="text-slate-500 mt-2">
-                Please wait while we complete your authentication...
-              </p>
-              {!isProcessing && (
-                <div className="mt-4 text-left p-3 bg-slate-50 rounded text-sm font-mono overflow-auto max-h-32">
-                  <p className="text-slate-500 mb-2 text-xs">Debug info:</p>
-                  <p className="text-slate-700">Current URL: {window.location.href}</p>
-                  {Object.entries(debugInfo).map(([key, value]) => (
-                    <p key={key} className="text-slate-700">{key}: {typeof value === 'object' ? JSON.stringify(value) : String(value)}</p>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen p-4">
+        <Helmet>
+          <title>Authentication Error | Menu 360</title>
+        </Helmet>
+        
+        <Alert variant="destructive" className="max-w-md mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Authentication Failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        
+        <div className="flex gap-4 mt-4">
+          <button 
+            onClick={() => navigate('/auth/login')} 
+            className="px-4 py-2 bg-primary text-white rounded-md"
+          >
+            Return to Login
+          </button>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md"
+          >
+            Try Again
+          </button>
         </div>
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen p-4">
+      <Helmet>
+        <title>Authentication in Progress | Menu 360</title>
+      </Helmet>
+      
+      <div className="mb-4">
+        <Spinner size="lg" />
+      </div>
+      
+      <h1 className="text-2xl font-bold mb-2">Authentication in Progress</h1>
+      <p className="text-gray-600 mb-6 text-center max-w-md">{status}</p>
+      
+      <p className="text-sm text-gray-500 text-center max-w-md">
+        You will be redirected automatically. If you are not redirected within a few seconds, 
+        <button 
+          onClick={() => navigate('/auth/login')} 
+          className="text-primary underline ml-1"
+        >
+          click here to return to login
+        </button>.
+      </p>
+    </div>
   );
 };
 

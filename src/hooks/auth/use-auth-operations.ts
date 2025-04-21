@@ -1,3 +1,4 @@
+
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,7 +18,10 @@ export function useAuthOperations() {
         console.log('Demo override activated');
       }
       
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
       
       if (error) {
         console.error('Error signing in:', error.message);
@@ -42,9 +46,14 @@ export function useAuthOperations() {
           title: 'Demo Mode Activated',
           description: 'You now have full access to the demo dashboard.',
         });
+      } else {
+        toast({
+          title: 'Sign In Successful',
+          description: 'Welcome back!',
+        });
       }
       
-      return { error };
+      return { data, error };
     } catch (error) {
       console.error('Error signing in:', error);
       toast({
@@ -84,7 +93,7 @@ export function useAuthOperations() {
       }
       
       // If account creation successful, try signing in again
-      const { error: signInError } = await supabase.auth.signInWithPassword({ 
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
@@ -104,7 +113,7 @@ export function useAuthOperations() {
         description: 'Welcome to the demo! You now have access to all features.',
       });
       
-      return { error: null };
+      return { data, error: null };
     } catch (error) {
       console.error('Error in demo account creation:', error);
       toast({
@@ -118,7 +127,7 @@ export function useAuthOperations() {
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -142,7 +151,7 @@ export function useAuthOperations() {
         });
       }
       
-      return { error };
+      return { data, error };
     } catch (error) {
       console.error('Error signing up:', error);
       toast({
@@ -156,13 +165,13 @@ export function useAuthOperations() {
 
   const signInWithGoogle = async () => {
     try {
-      // Use the absolute URL for the redirect to avoid issues on mobile
+      // Use the current host for the redirect URL to handle different environments
       const currentOrigin = window.location.origin;
       const redirectUrl = `${currentOrigin}/auth/callback`;
       
       console.log('Initiating Google sign-in with redirect URL:', redirectUrl);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
@@ -181,6 +190,8 @@ export function useAuthOperations() {
           variant: 'destructive',
         });
       }
+      
+      return { data, error };
     } catch (error) {
       console.error('Error signing in with Google:', error);
       toast({
@@ -188,6 +199,7 @@ export function useAuthOperations() {
         description: 'An unexpected error occurred while trying to sign in with Google.',
         variant: 'destructive',
       });
+      return { error };
     }
   };
 
@@ -204,6 +216,13 @@ export function useAuthOperations() {
           description: error.message || 'An error occurred while trying to sign out.',
           variant: 'destructive',
         });
+        return { error };
+      } else {
+        toast({
+          title: 'Signed Out Successfully',
+          description: 'You have been logged out.',
+        });
+        return { error: null };
       }
     } catch (error) {
       console.error('Error signing out:', error);
@@ -212,6 +231,7 @@ export function useAuthOperations() {
         description: 'An unexpected error occurred while trying to sign out.',
         variant: 'destructive',
       });
+      return { error };
     }
   };
 
