@@ -27,20 +27,17 @@ export const setupRealtimeListener = (
     ? `${filterColumn}=eq.${filterValue}` 
     : undefined;
     
-  // Create a proper channel for Postgres changes
+  // Create a channel for real-time changes - fix the API usage
   const channel = supabase.channel('schema-db-changes')
     .on(
-      'postgres_changes', // This type needs to match exactly what the Supabase SDK expects
+      'postgres_changes', 
       {
-        event,
+        event: event,
         schema: 'public',
         table: tableName,
-        filter
+        filter: filter
       },
-      (payload) => {
-        console.log(`Realtime event received for ${tableName}:`, payload);
-        callback(payload);
-      }
+      callback
     )
     .subscribe((status) => {
       console.log(`Realtime subscription for ${tableName} status:`, status);
