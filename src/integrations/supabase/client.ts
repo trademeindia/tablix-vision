@@ -27,10 +27,14 @@ export const setupRealtimeListener = (
     ? `${filterColumn}=eq.${filterValue}` 
     : undefined;
     
-  // Create a channel for real-time changes - fix the API usage
-  const channel = supabase.channel('schema-db-changes')
+  // Create a unique channel for each subscription
+  const channelName = `table-changes-${tableName}-${Math.random().toString(36).substring(2, 11)}`;
+  
+  // Create a channel with proper Supabase Realtime v2 API
+  const channel = supabase
+    .channel(channelName)
     .on(
-      'postgres_changes', 
+      'postgres_changes',
       {
         event: event,
         schema: 'public',
@@ -39,10 +43,10 @@ export const setupRealtimeListener = (
       },
       callback
     )
-    .subscribe((status) => {
-      console.log(`Realtime subscription for ${tableName} status:`, status);
-    });
+    .subscribe();
     
+  console.log(`Realtime subscription created for ${tableName} with channel: ${channelName}`);
+  
   return channel;
 };
 
