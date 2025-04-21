@@ -14,7 +14,7 @@ export const initializeSupabase = async () => {
     
     if (sessionError) {
       console.error('Error retrieving session:', sessionError);
-      return;
+      return { success: false, error: sessionError };
     }
     
     if (session) {
@@ -46,19 +46,33 @@ export const initializeSupabase = async () => {
 
 /**
  * Enable real-time updates for specific tables
- * This is done by executing SQL to set the replica identity and add tables to the publication
+ * This function now attempts to use the Supabase Edge Function first,
+ * and falls back to direct database calls if needed
  */
 const enableRealtimeForTables = async () => {
   // List of tables that need real-time updates
   const realtimeTables = ['orders', 'order_items', 'tables', 'menu_items', 'waiter_requests'];
   
   try {
-    const { error } = await supabase.rpc('enable_realtime_tables', {
-      tables: realtimeTables
+    console.log('Attempting to enable realtime for tables:', realtimeTables);
+    
+    // Try to use the Edge Function
+    const { data, error } = await supabase.functions.invoke('enable-realtime', {
+      body: { tables: realtimeTables }
     });
     
     if (error) {
-      throw error;
+      console.warn('Edge function error, falling back to RPC:', error);
+      // Fall back to RPC if edge function fails
+      const { error: rpcError } = await supabase.rpc('enable_realtime_tables', {
+        tables: realtimeTables
+      });
+      
+      if (rpcError) {
+        throw rpcError;
+      }
+    } else {
+      console.log('Realtime tables enabled via Edge Function:', data);
     }
     
     return { success: true };
