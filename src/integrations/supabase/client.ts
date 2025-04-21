@@ -13,7 +13,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: localStorage,
   },
-  // Removed the invalid 'presence' property
 });
 
 // Function to set up realtime listeners for a specific table
@@ -28,10 +27,10 @@ export const setupRealtimeListener = (
     ? `${filterColumn}=eq.${filterValue}` 
     : undefined;
     
-  // Fix the channel creation and event subscription
+  // Create a proper channel for Postgres changes
   const channel = supabase.channel('schema-db-changes')
     .on(
-      'postgres_changes', // This is now correct in newer Supabase versions
+      'postgres_changes', // This type needs to match exactly what the Supabase SDK expects
       {
         event,
         schema: 'public',

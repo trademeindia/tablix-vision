@@ -6,7 +6,7 @@ export const useAuthOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   // Sign in with email and password
-  const signIn = async (email: string, password: string): Promise<void> => {
+  const signIn = async (email: string, password: string): Promise<{ error: any | null }> => {
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
@@ -14,17 +14,17 @@ export const useAuthOperations = () => {
         password,
       });
       
-      if (error) throw error;
+      return { error };
     } catch (error: any) {
       console.error('Error signing in:', error.message);
-      throw error;
+      return { error };
     } finally {
       setIsLoading(false);
     }
   };
   
   // Sign up with email and password
-  const signUp = async (email: string, password: string, name: string): Promise<void> => {
+  const signUp = async (email: string, password: string, name: string): Promise<{ error: any | null }> => {
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signUp({
@@ -37,10 +37,10 @@ export const useAuthOperations = () => {
         },
       });
       
-      if (error) throw error;
+      return { error };
     } catch (error: any) {
       console.error('Error signing up:', error.message);
-      throw error;
+      return { error };
     } finally {
       setIsLoading(false);
     }
