@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 // Supabase project URL and anon key
 const supabaseUrl = 'https://qofbpjdbmisyxysfcyeb.supabase.co';
@@ -22,7 +23,7 @@ export const setupRealtimeListener = (
   callback: (payload: any) => void,
   filterColumn?: string,
   filterValue?: string
-) => {
+): RealtimeChannel => {
   const filter = filterColumn && filterValue 
     ? `${filterColumn}=eq.${filterValue}` 
     : undefined;
@@ -30,20 +31,22 @@ export const setupRealtimeListener = (
   // Create a unique channel for each subscription
   const channelName = `table-changes-${tableName}-${Math.random().toString(36).substring(2, 11)}`;
   
-  // Create a channel with proper Supabase Realtime v2 API - fixed event type
+  // Create a channel with the correct Supabase Realtime API
   const channel = supabase
-    .channel(channelName)
-    .on(
-      'postgres_changes',
-      {
-        event: event,
-        schema: 'public',
-        table: tableName,
-        filter: filter
-      },
-      callback
-    )
-    .subscribe();
+    .channel(channelName);
+    
+  // Add the postgres_changes listener with the correct configuration
+  channel.on(
+    'postgres_changes',
+    {
+      event: event,
+      schema: 'public',
+      table: tableName,
+      filter: filter
+    },
+    callback
+  )
+  .subscribe();
     
   console.log(`Realtime subscription created for ${tableName} with channel: ${channelName}`);
   
@@ -51,7 +54,7 @@ export const setupRealtimeListener = (
 };
 
 // Function to remove a realtime listener
-export const removeRealtimeListener = (channel: any) => {
+export const removeRealtimeListener = (channel: RealtimeChannel) => {
   if (channel) {
     supabase.removeChannel(channel);
   }
