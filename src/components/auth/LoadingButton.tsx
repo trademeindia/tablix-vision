@@ -17,8 +17,8 @@ const LoadingButton = ({
 }: LoadingButtonProps) => {
   return (
     <Button
-      disabled={isLoading || props.disabled}
       {...props}
+      disabled={isLoading || props.disabled}
     >
       {isLoading ? (
         <>

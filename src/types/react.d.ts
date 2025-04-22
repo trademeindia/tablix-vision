@@ -13,10 +13,16 @@ declare module 'react' {
   export type FormEvent<T = Element> = React.SyntheticEvent<T, Event>;
   export type ChangeEvent<T = Element> = React.SyntheticEvent<T, Event>;
   export type FormHTMLAttributes<T> = React.DetailedHTMLProps<React.FormHTMLAttributes<T>, T>;
+  export type SyntheticEvent<T = Element, E = Event> = React.SyntheticEvent<T, E>;
+  export type MouseEvent<T = Element> = React.MouseEvent<T>;
+  export type RefObject<T> = React.RefObject<T>;
+  export type Dispatch<A> = React.Dispatch<A>;
+  export type SetStateAction<S> = React.SetStateAction<S>;
   
   // Misc types
   export type ReactNode = React.ReactNode;
   export type FormEventHandler<T = Element> = (event: FormEvent<T>) => void;
+  export const memo: typeof React.memo;
   
   // Hooks
   export const useState: typeof React.useState;

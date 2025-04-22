@@ -30,6 +30,8 @@ declare module 'recharts' {
     cy?: string | number;
     labelLine?: boolean;
     outerRadius?: number;
+    innerRadius?: number;
+    paddingAngle?: number;
     fill?: string;
     dataKey?: string;
     label?: any;
