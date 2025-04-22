@@ -81,18 +81,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-        <AuthProvider>
-          {isInitializing ? (
-            <LoadingScreen message="Initializing application..." />
-          ) : (
-            <div>
-              <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
+            {isInitializing ? (
+              <LoadingScreen message="Initializing application..." />
+            ) : (
+              <div>
                 <AppRoutes />
                 <Toaster />
-              </BrowserRouter>
-            </div>
-          )}
-        </AuthProvider>
+              </div>
+            )}
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
