@@ -9,19 +9,10 @@ const fs = require('fs');
 // Log current working directory for debugging
 console.log('Current working directory:', process.cwd());
 
-// Ensure Vite is installed before attempting to start dev server
-try {
-  const viteModulePath = path.resolve(process.cwd(), 'node_modules', 'vite');
-  const viteExists = fs.existsSync(viteModulePath);
+// Check for npx availability (should be available with npm)
+const startWithNpx = () => {
+  console.log('Starting with npx vite...');
   
-  if (!viteExists) {
-    console.log('Vite not installed, installing now...');
-    require('./src/utils/ensure-vite.js');
-  }
-  
-  console.log('Starting development server with NPX for maximum compatibility');
-  
-  // Use npx for most reliable execution across environments
   const devProcess = spawn(
     'npx',
     ['vite'],
@@ -32,9 +23,8 @@ try {
   );
   
   devProcess.on('error', (err) => {
-    console.error('Failed to start development server:', err);
-    console.error('Please ensure Vite is installed. Try running: npm install vite@4.5.1 @vitejs/plugin-react-swc@3.3.2 --save-dev');
-    process.exit(1);
+    console.error('Failed to start with npx:', err);
+    startWithNodeModules();
   });
   
   devProcess.on('close', (code) => {
@@ -43,8 +33,39 @@ try {
     }
     process.exit(code);
   });
-} catch (error) {
-  console.error('Error starting development server:', error.message);
-  console.error('Please ensure Vite is installed. Try running: npm install vite@4.5.1 @vitejs/plugin-react-swc@3.3.2 --save-dev');
-  process.exit(1);
-}
+};
+
+// Fallback to node_modules/.bin/vite
+const startWithNodeModules = () => {
+  console.log('Trying to start with node_modules/.bin/vite...');
+  
+  const viteBinPath = path.resolve(process.cwd(), 'node_modules', '.bin', 'vite');
+  
+  if (fs.existsSync(viteBinPath)) {
+    const devProcess = spawn(
+      viteBinPath,
+      [],
+      {
+        stdio: 'inherit',
+        shell: true
+      }
+    );
+    
+    devProcess.on('error', (err) => {
+      console.error('Failed to start with node_modules/.bin/vite:', err);
+      console.error('Please ensure Vite is installed. Try running: npm install vite@4.5.1 @vitejs/plugin-react-swc@3.3.2 --save-dev');
+      process.exit(1);
+    });
+    
+    devProcess.on('close', (code) => {
+      process.exit(code);
+    });
+  } else {
+    console.error('Could not find Vite executable in node_modules/.bin');
+    console.error('Please ensure Vite is installed. Try running: npm install vite@4.5.1 @vitejs/plugin-react-swc@3.3.2 --save-dev');
+    process.exit(1);
+  }
+};
+
+// Start with npx first
+startWithNpx();

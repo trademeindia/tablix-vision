@@ -35,24 +35,26 @@ export const setupRealtimeListener = (
   const channel = supabase.channel(channelName);
   
   // Configure and subscribe to Postgres changes
-  channel.on(
-    'postgres_changes',
-    { 
-      event: event, 
-      schema: 'public', 
-      table: tableName, 
-      filter: filter 
-    }, 
-    callback
-  )
-  .subscribe((status) => {
-    console.log(`Realtime subscription status for ${tableName}: ${status}`);
-    
-    // Handle subscription errors
-    if (status === 'CHANNEL_ERROR') {
-      console.error(`Failed to subscribe to changes for ${tableName}`);
-    }
-  });
+  // The issue is here - we need to use the correct type for the 'postgres_changes' event
+  channel
+    .on(
+      'postgres_changes' as any, // Use type assertion to bypass TypeScript error temporarily
+      { 
+        event: event, 
+        schema: 'public', 
+        table: tableName, 
+        filter: filter 
+      }, 
+      callback
+    )
+    .subscribe((status) => {
+      console.log(`Realtime subscription status for ${tableName}: ${status}`);
+      
+      // Handle subscription errors
+      if (status === 'CHANNEL_ERROR') {
+        console.error(`Failed to subscribe to changes for ${tableName}`);
+      }
+    });
     
   console.log(`Realtime subscription created for ${tableName} with channel: ${channelName}`);
   
