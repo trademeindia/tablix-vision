@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -18,8 +18,8 @@ const AIAnalyticsReport = ({
   onGenerateReport,
   isLoading: initialLoading = false
 }: AIAnalyticsReportProps) => {
-  const [report, setReport] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(initialLoading);
+  const [report, setReport] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(initialLoading);
   const { toast } = useToast();
 
   const handleGenerateReport = async () => {
@@ -45,10 +45,10 @@ const AIAnalyticsReport = ({
         <CardTitle className="flex items-center justify-between text-xl mb-4">
           <div className="flex items-center gap-2">
             <span>AI Business Insights</span>
-            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold border-transparent bg-amber-500 hover:bg-amber-600 flex items-center gap-1 px-2 py-0.5">
+            <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 border-transparent flex items-center gap-1 px-2 py-0.5">
               <Sparkles className="h-3 w-3" />
               <span className="text-xs">Powered by AI</span>
-            </div>
+            </Badge>
           </div>
           <Sparkles className="h-5 w-5 text-amber-500" />
         </CardTitle>

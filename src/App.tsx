@@ -1,6 +1,6 @@
 
 import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { initializeSupabase } from './utils/supabase-init';
@@ -22,10 +22,10 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [tableNames, setTableNames] = useState<string[]>([]);
+  const [isInitializing, setIsInitializing] = React.useState(true);
+  const [tableNames, setTableNames] = React.useState<string[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const initialize = async () => {
       // Initialize Supabase connection
       const success = await initializeSupabase();
@@ -45,7 +45,7 @@ function App() {
     initialize();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchTableNames = async () => {
       try {
         const { data, error } = await supabase
@@ -68,7 +68,7 @@ function App() {
     fetchTableNames();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', session);
     });
