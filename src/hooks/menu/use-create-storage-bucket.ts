@@ -59,6 +59,23 @@ export async function initializeStorage(): Promise<boolean> {
       return false;
     }
     
+    // Try to call the edge function to set up storage policies
+    try {
+      const { error: policyError } = await supabase.functions.invoke('create-storage-policy', {
+        body: { bucketName: 'menu-media' }
+      });
+      
+      if (policyError) {
+        console.error('Error setting up storage policies:', policyError);
+        // Continue since bucket is created but policies may need manual setup
+      } else {
+        console.log('Storage policies set up successfully');
+      }
+    } catch (policyErr) {
+      console.error('Failed to invoke policy setup function:', policyErr);
+      // Continue since bucket is created but policies may need manual setup
+    }
+    
     console.log('menu-media bucket created successfully');
     return true;
   } catch (err) {
