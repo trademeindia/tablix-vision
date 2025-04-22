@@ -34,9 +34,9 @@ export const setupRealtimeListener = (
   // Create the channel
   const channel = supabase.channel(channelName);
 
-  // Configure with postgres_changes - use proper format with event and table
+  // Configure with postgres_changes - use type-safe approach with channel.on()
   channel.on(
-    'postgres_changes',
+    'postgres_changes', // This needs to be correctly typed
     {
       event: event,
       schema: 'public',
