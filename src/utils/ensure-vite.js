@@ -18,31 +18,40 @@ function ensureVite() {
         // Vite is not installed, install it
         console.log('Vite not found. Installing vite and @vitejs/plugin-react-swc...');
         
-        // Determine package manager (npm, yarn, pnpm)
-        let packageManager = 'npm';
-        if (fs.existsSync(path.resolve(process.cwd(), 'yarn.lock'))) {
-          packageManager = 'yarn';
-        } else if (fs.existsSync(path.resolve(process.cwd(), 'pnpm-lock.yaml'))) {
-          packageManager = 'pnpm';
+        try {
+          // Install Vite and the React SWC plugin
+          execSync('npm install --save-dev vite@latest @vitejs/plugin-react-swc@latest', { 
+            stdio: 'inherit' 
+          });
+          console.log('Vite has been installed successfully.');
+          
+          // Make the vite executable file executable on Unix-based systems
+          if (process.platform !== 'win32') {
+            const binPath = path.resolve(process.cwd(), 'node_modules', '.bin');
+            const vitePath = path.join(binPath, 'vite');
+            if (fs.existsSync(vitePath)) {
+              fs.chmodSync(vitePath, '755');
+              console.log('Made Vite executable.');
+            }
+          }
+          
+          // Verify installation
+          try {
+            execSync('npx vite --version', { stdio: 'inherit' });
+          } catch (verifyError) {
+            console.error('Could not verify Vite installation:', verifyError.message);
+          }
+        } catch (installError) {
+          console.error('Failed to install Vite:', installError.message);
+          console.log('Trying alternative installation method...');
+          
+          try {
+            execSync('npx -y vite@latest', { stdio: 'inherit' });
+            console.log('Vite has been installed via npx.');
+          } catch (npxError) {
+            console.error('All installation methods failed:', npxError.message);
+          }
         }
-        
-        // Install command based on package manager
-        let installCommand;
-        switch (packageManager) {
-          case 'yarn':
-            installCommand = 'yarn add --dev vite @vitejs/plugin-react-swc';
-            break;
-          case 'pnpm':
-            installCommand = 'pnpm add --save-dev vite @vitejs/plugin-react-swc';
-            break;
-          default:
-            installCommand = 'npm install --save-dev vite @vitejs/plugin-react-swc';
-        }
-        
-        // Execute installation
-        console.log(`Executing: ${installCommand}`);
-        execSync(installCommand, { stdio: 'inherit' });
-        console.log('Vite has been installed successfully.');
       }
     }
   } catch (error) {

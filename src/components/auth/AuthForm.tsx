@@ -1,9 +1,11 @@
 
-import React from 'react';
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 interface AuthFormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
+  className?: string;
+  onSubmit?: React.FormEventHandler<HTMLFormElement>;
 }
 
 export const AuthForm = ({ className, children, ...props }: AuthFormProps) => {

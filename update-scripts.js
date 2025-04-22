@@ -2,25 +2,29 @@
 #!/usr/bin/env node
 
 // Script to update package.json scripts
-const { spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-console.log('Updating package.json scripts...');
-
-// Update the scripts
-spawnSync('npm', ['pkg', 'set', 'scripts.dev=node start-vite.js'], {
-  stdio: 'inherit',
-  shell: true
-});
-
-spawnSync('npm', ['pkg', 'set', 'scripts.build=npx vite build'], {
-  stdio: 'inherit',
-  shell: true
-});
-
-spawnSync('npm', ['pkg', 'set', 'scripts.preview=npx vite preview'], {
-  stdio: 'inherit',
-  shell: true
-});
-
-console.log('Package.json scripts updated successfully.');
-console.log('You can now run "npm run dev" to start the development server.');
+try {
+  console.log('Updating package.json scripts...');
+  
+  // Read package.json
+  const packageJsonPath = path.resolve(process.cwd(), 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  
+  // Update scripts
+  packageJson.scripts = {
+    ...packageJson.scripts,
+    "dev": "node start-dev.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  };
+  
+  // Write updated package.json
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+  
+  console.log('Package.json scripts updated successfully!');
+  console.log('You can now run "npm run dev" to start the development server.');
+} catch (error) {
+  console.error('Error updating package.json:', error.message);
+}

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';

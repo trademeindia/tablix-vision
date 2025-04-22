@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';

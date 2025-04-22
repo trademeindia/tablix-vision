@@ -1,27 +1,30 @@
 
-import React from 'react';
-import { Button, ButtonProps } from '@/components/ui/button';
-import Spinner from '@/components/ui/spinner';
+import * as React from 'react';
+import { Button, ButtonProps } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-interface LoadingButtonProps extends ButtonProps {
+export interface LoadingButtonProps extends ButtonProps {
   isLoading?: boolean;
   loadingText?: string;
   children: React.ReactNode;
 }
 
-const LoadingButton = ({
-  isLoading = false,
-  loadingText = "Loading...",
+const LoadingButton = ({ 
+  isLoading = false, 
+  loadingText = "Loading...", 
   children,
-  ...props
+  ...props 
 }: LoadingButtonProps) => {
   return (
-    <Button disabled={isLoading} {...props}>
+    <Button
+      disabled={isLoading || props.disabled}
+      {...props}
+    >
       {isLoading ? (
-        <span className="flex items-center gap-2">
-          <Spinner size="sm" />
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           {loadingText}
-        </span>
+        </>
       ) : (
         children
       )}
