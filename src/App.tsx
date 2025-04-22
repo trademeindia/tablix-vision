@@ -1,6 +1,6 @@
 
+import React from 'react';
 import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
-import * as React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { initializeSupabase } from './utils/supabase-init';

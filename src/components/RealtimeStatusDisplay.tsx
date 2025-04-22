@@ -1,5 +1,5 @@
 
-import * as React from 'react';
+import React from 'react';
 import { supabase, setupRealtimeListener, removeRealtimeListener } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,11 +97,9 @@ const RealtimeStatusDisplay = () => {
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span>Status:</span>
-            <Badge 
-              variant={realtimeStatus === 'connected' ? "default" : "destructive"}
-            >
+            <div className={realtimeStatus === 'connected' ? "text-green-500" : "text-red-500"}>
               {realtimeStatus === 'checking' ? 'Checking...' : realtimeStatus}
-            </Badge>
+            </div>
           </div>
           
           <div className="mt-4">
@@ -109,9 +107,9 @@ const RealtimeStatusDisplay = () => {
             {listeningTables.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {listeningTables.map((table) => (
-                  <Badge key={table} variant="outline">
+                  <div key={table} className="px-2 py-1 bg-gray-100 rounded text-xs">
                     {table}
-                  </Badge>
+                  </div>
                 ))}
               </div>
             ) : (

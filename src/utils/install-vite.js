@@ -9,13 +9,12 @@ const path = require('path');
 console.log('Checking for Vite installation...');
 
 try {
-  // Try to find Vite in node_modules
-  const viteExists = fs.existsSync(path.resolve(process.cwd(), 'node_modules', 'vite'));
-  const viteExecPath = path.resolve(process.cwd(), 'node_modules', '.bin', 'vite');
-  const viteExecExists = fs.existsSync(viteExecPath);
-
-  if (!viteExists || !viteExecExists) {
-    console.log('Vite not found or executable missing. Installing vite and plugin-react-swc...');
+  // Check if vite is installed
+  try {
+    require.resolve('vite');
+    console.log('Vite is already installed.');
+  } catch (e) {
+    console.log('Vite not found. Installing vite and plugin-react-swc...');
     
     // Install vite and the swc plugin
     execSync('npm install --save-dev vite@latest @vitejs/plugin-react-swc@latest', { 
@@ -23,21 +22,30 @@ try {
     });
     
     console.log('Vite installation complete!');
-  } else {
-    console.log('Vite is already installed.');
   }
 
-  // Make script executable
-  if (process.platform !== 'win32') {
-    try {
-      fs.chmodSync(viteExecPath, '755');
-      console.log('Made Vite executable');
-    } catch (err) {
-      console.warn('Could not change permissions:', err.message);
+  // Check if the binary exists and is executable
+  const binPath = path.resolve(process.cwd(), 'node_modules', '.bin');
+  const vitePath = path.join(binPath, process.platform === 'win32' ? 'vite.cmd' : 'vite');
+  
+  if (fs.existsSync(vitePath)) {
+    console.log(`Vite executable found at: ${vitePath}`);
+    
+    // Make script executable (for non-Windows platforms)
+    if (process.platform !== 'win32') {
+      try {
+        fs.chmodSync(vitePath, '755');
+        console.log('Made Vite executable');
+      } catch (err) {
+        console.warn('Could not change permissions:', err.message);
+      }
     }
+  } else {
+    console.warn(`Vite executable not found at expected path: ${vitePath}`);
+    console.log('You may need to run the installation again or use npx vite to start the server');
   }
 
-  console.log('Vite should now be ready for use.');
+  console.log('Vite setup complete.');
 } catch (error) {
   console.error('Error during Vite installation:', error.message);
   process.exit(1);
