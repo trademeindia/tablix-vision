@@ -10,11 +10,11 @@ interface PeakHoursAnalysisProps {
   currency?: string;
 }
 
-const PeakHoursAnalysis: React.FC<PeakHoursAnalysisProps> = ({ 
+const PeakHoursAnalysis = ({ 
   data, 
   isLoading,
   currency = 'INR' 
-}) => {
+}: PeakHoursAnalysisProps) => {
   // Format currency
   const formatCurrency = (value: number) => {
     return `₹${value.toLocaleString('en-IN')}`;

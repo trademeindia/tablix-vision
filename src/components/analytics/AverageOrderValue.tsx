@@ -10,11 +10,11 @@ interface AverageOrderValueProps {
   currency?: string;
 }
 
-const AverageOrderValue: React.FC<AverageOrderValueProps> = ({ 
+const AverageOrderValue = ({ 
   data, 
   isLoading,
   currency = 'INR'
-}) => {
+}: AverageOrderValueProps) => {
   // Format date labels
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
