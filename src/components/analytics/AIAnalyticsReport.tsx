@@ -45,10 +45,10 @@ const AIAnalyticsReport = ({
         <CardTitle className="flex items-center justify-between text-xl mb-4">
           <div className="flex items-center gap-2">
             <span>AI Business Insights</span>
-            <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 flex items-center gap-1 px-2 py-0.5">
+            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold border-transparent bg-amber-500 hover:bg-amber-600 flex items-center gap-1 px-2 py-0.5">
               <Sparkles className="h-3 w-3" />
               <span className="text-xs">Powered by AI</span>
-            </Badge>
+            </div>
           </div>
           <Sparkles className="h-5 w-5 text-amber-500" />
         </CardTitle>

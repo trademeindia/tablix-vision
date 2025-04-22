@@ -1,6 +1,6 @@
 
 import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { initializeSupabase } from './utils/supabase-init';

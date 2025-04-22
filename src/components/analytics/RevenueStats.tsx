@@ -13,13 +13,13 @@ interface RevenueStatsProps {
   currency?: string;
 }
 
-const RevenueStats: React.FC<RevenueStatsProps> = ({
+const RevenueStats = ({
   weeklyRevenue,
   monthlyRevenue,
   yearlyRevenue,
   isLoading,
   currency = 'INR'
-}) => {
+}: RevenueStatsProps) => {
   return (
     <Card>
       <CardContent className="pt-6">

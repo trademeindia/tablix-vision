@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import { useState, useEffect } from 'react';
 import { supabase, setupRealtimeListener, removeRealtimeListener } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -96,9 +97,13 @@ const RealtimeStatusDisplay = () => {
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <span>Status:</span>
-            <Badge variant={realtimeStatus === 'connected' ? 'default' : 'destructive'} className="gap-1 px-2 py-0.5">
+            <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+              realtimeStatus === 'connected' 
+                ? 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80' 
+                : 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80'
+            } gap-1 px-2 py-0.5`}>
               {realtimeStatus === 'checking' ? 'Checking...' : realtimeStatus === 'connected' ? 'Connected' : 'Disconnected'}
-            </Badge>
+            </div>
           </div>
           
           <div className="mt-4">
@@ -106,9 +111,9 @@ const RealtimeStatusDisplay = () => {
             {listeningTables.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {listeningTables.map((table) => (
-                  <Badge key={table} variant="outline" className="px-2 py-0.5">
+                  <div key={table} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground border-border">
                     {table}
-                  </Badge>
+                  </div>
                 ))}
               </div>
             ) : (

@@ -70,7 +70,7 @@ const PeakHoursAnalysis = ({
                   tick={{ fontSize: 12 }}
                   tickMargin={10}
                   stroke="#94a3b8"
-                  label={{ value: 'Orders', angle: -90, position: 'insideLeft', offset: -15 }}
+                  label={{ value: "Orders", angle: -90, position: "insideLeft", offset: -15 }}
                 />
                 <YAxis 
                   yAxisId="right"
@@ -79,7 +79,7 @@ const PeakHoursAnalysis = ({
                   tick={{ fontSize: 12 }}
                   tickMargin={10}
                   stroke="#94a3b8"
-                  label={{ value: 'Revenue', angle: 90, position: 'insideRight', offset: -15 }}
+                  label={{ value: "Revenue", angle: 90, position: "insideRight", offset: -15 }}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="orders" fill="#3b82f6" name="Orders" yAxisId="left" />

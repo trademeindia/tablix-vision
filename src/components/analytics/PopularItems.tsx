@@ -9,7 +9,7 @@ interface PopularItemsProps {
   isLoading: boolean;
 }
 
-const PopularItems: React.FC<PopularItemsProps> = ({ items, isLoading }) => {
+const PopularItems = ({ items, isLoading }: PopularItemsProps) => {
   return (
     <Card className="h-full">
       <CardContent className="pt-6">
