@@ -1,3 +1,2 @@
 
-# Edge function configuration for create-storage-policy
-verify_jwt = false
+project_id = "qofbpjdbmisyxysfcyeb"

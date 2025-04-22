@@ -18,27 +18,36 @@ interface GLTFResult {
 }
 
 function Model({ url }: { url: string }) {
+  const [error, setError] = useState<string | null>(null);
+  
   // Use proper type assertion for useGLTF
-  const gltfResult = useGLTF(url) as unknown as GLTFResult;
+  const { scene } = useGLTF(url) as any; // Using 'any' as a workaround for typing issues
   
   useEffect(() => {
+    if (!scene) {
+      setError('Failed to load model scene');
+      return;
+    }
+    
     // Log success when model loads
     console.log('3D model loaded successfully:', url);
     
     // Cleanup when unmounting
     return () => {
       // Release memory by unloading the model when component unmounts
-      useGLTF.preload(url);
+      if (url) {
+        useGLTF.preload(url);
+      }
     };
-  }, [url]);
+  }, [url, scene]);
   
   // Make sure scene exists before rendering
-  if (!gltfResult || !gltfResult.scene) {
+  if (error || !scene) {
     console.error('Failed to load model or scene is missing:', url);
     return null;
   }
   
-  return <primitive object={gltfResult.scene} />;
+  return <primitive object={scene} />;
 }
 
 const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
@@ -48,6 +57,12 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   const isMounted = useRef(true);
   
   useEffect(() => {
+    if (!modelUrl) {
+      setError('No model URL provided');
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     setProgress(0);
     setError(null);
@@ -65,24 +80,18 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
     // Preload the model to track loading progress
     const loadModel = async () => {
       try {
-        if (!modelUrl) {
-          throw new Error('No model URL provided');
-        }
-        
         console.log('Loading 3D model:', modelUrl);
         
-        // Properly type the result of preload to match the GLTFResult interface
-        const gltfData = await useGLTF.preload(modelUrl) as unknown as GLTFResult;
+        // Properly type the result of preload
+        useGLTF.preload(modelUrl);
         
-        if (isMounted.current && gltfData && gltfData.scene) {
+        if (isMounted.current) {
           setProgress(100);
           setTimeout(() => {
             if (isMounted.current) {
               setIsLoading(false);
             }
           }, 500);
-        } else if (isMounted.current) {
-          throw new Error('Failed to load 3D model data');
         }
       } catch (err: any) {
         console.error('Error loading 3D model:', err);
@@ -113,7 +122,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full min-h-[300px]">
       <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 4], fov: 50 }}>
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />

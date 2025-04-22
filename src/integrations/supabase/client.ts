@@ -34,14 +34,18 @@ export const setupRealtimeListener = (
   // Create the channel
   const channel = supabase.channel(channelName);
 
-  // Fix: Properly chain the subscription method and ensure correct type usage
-  channel.on('postgres_changes', {
-    event: event,
-    schema: 'public',
-    table: tableName,
-    filter: filter
-  }, callback);
-  
+  // Use the correct typing for the postgres_changes event
+  channel.on(
+    'postgres_changes', 
+    { 
+      event: event, 
+      schema: 'public', 
+      table: tableName, 
+      filter: filter 
+    }, 
+    callback
+  );
+
   // Subscribe to the channel and handle status updates
   channel.subscribe((status) => {
     console.log(`Realtime subscription status for ${tableName}: ${status}`);
