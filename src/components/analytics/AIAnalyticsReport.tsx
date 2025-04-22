@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -45,8 +45,8 @@ const AIAnalyticsReport = ({
         <CardTitle className="flex items-center justify-between text-xl mb-4">
           <div className="flex items-center gap-2">
             <span>AI Business Insights</span>
-            <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 border-transparent flex items-center gap-1 px-2 py-0.5">
-              <Sparkles className="h-3 w-3" />
+            <Badge variant="default">
+              <Sparkles className="h-3 w-3 mr-1" />
               <span className="text-xs">Powered by AI</span>
             </Badge>
           </div>
