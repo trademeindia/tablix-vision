@@ -22,7 +22,18 @@ export function useCustomerMenu() {
   const { handleQRScan } = useMenuQRScanner(parseQRData, handleScan);
   
   // Use the realtime menu data hook
-  const { categories, items, isLoading, error } = useMenuDataWithRealtime(restaurantId);
+  const { 
+    categories, 
+    items, 
+    isCategoriesLoading, 
+    isItemsLoading, 
+    categoriesError, 
+    itemsError 
+  } = useMenuDataWithRealtime(restaurantId);
+  
+  // Combine loading and error states for easier use
+  const isLoading = isCategoriesLoading || isItemsLoading;
+  const error = categoriesError || itemsError;
   
   // Method to manually refresh data
   const refetchCategories = useCallback(async () => {
