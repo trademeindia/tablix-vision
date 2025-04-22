@@ -51,7 +51,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               placeholder="Enter your email"
               className="pl-10 bg-white transition-all border-slate-300 focus-visible:border-primary/70"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
               required
               autoComplete="email"
             />
@@ -69,7 +69,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             id="password"
             placeholder="Enter your password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
             required
           />
         </InputGroup>

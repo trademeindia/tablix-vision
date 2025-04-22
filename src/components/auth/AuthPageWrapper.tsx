@@ -9,6 +9,7 @@ interface AuthPageWrapperProps {
 }
 
 const AuthPageWrapper = ({ title, children }: AuthPageWrapperProps) => {
+  // Use Helmet as <Helmet> but wrap the app in <HelmetProvider> at a higher level (already done in main.tsx)
   return (
     <>
       <Helmet>

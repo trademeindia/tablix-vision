@@ -56,7 +56,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               placeholder="Enter your name"
               className="pl-10"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName((e.target as HTMLInputElement).value)}
               required
             />
           </InputIconWrapper>
@@ -72,7 +72,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
               placeholder="Enter your email"
               className="pl-10"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
               required
             />
           </InputIconWrapper>
@@ -84,7 +84,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
             id="password"
             placeholder="Create a password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
             required
             minLength={6}
           />
@@ -96,7 +96,7 @@ const SignupForm: React.FC<SignupFormProps> = ({
             id="confirmPassword"
             placeholder="Confirm your password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
             required
           />
         </InputGroup>

@@ -15,10 +15,12 @@ const LoadingButton = ({
   children,
   ...props 
 }: LoadingButtonProps) => {
+  // Only pass disabled if it's a valid prop for Button
+  const { disabled, ...restProps } = props;
   return (
     <Button
-      {...props}
-      disabled={isLoading || props.disabled}
+      {...restProps}
+      disabled={isLoading || disabled}
     >
       {isLoading ? (
         <>
