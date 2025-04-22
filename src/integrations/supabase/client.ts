@@ -34,7 +34,7 @@ export const setupRealtimeListener = (
   // Create and configure the channel
   const channel = supabase.channel(channelName);
 
-  // Add the postgres_changes listener
+  // Add the postgres_changes listener using the correct method signature
   channel.on(
     'postgres_changes',
     {
@@ -46,9 +46,14 @@ export const setupRealtimeListener = (
     callback
   );
 
-  // Subscribe to the channel
-  const subscription = channel.subscribe((status) => {
+  // Subscribe to the channel and handle status
+  channel.subscribe((status) => {
     console.log(`Realtime subscription status for ${tableName}: ${status}`);
+    
+    // Error handling for subscription failure
+    if (status === 'CHANNEL_ERROR') {
+      console.error(`Failed to subscribe to changes for ${tableName}`);
+    }
   });
     
   console.log(`Realtime subscription created for ${tableName} with channel: ${channelName}`);
@@ -65,4 +70,3 @@ export const removeRealtimeListener = (channel: RealtimeChannel) => {
 
 // Log initial connection info
 console.log(`Supabase client initialized with project: ${supabaseUrl}`);
-
