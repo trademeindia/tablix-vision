@@ -1,90 +1,71 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 /**
- * Creates a storage bucket for menu media if it doesn't exist
- * @returns A Promise that resolves to true if successful
+ * Initialize storage buckets for the application
+ * This ensures the required storage buckets exist and have proper security policies
  */
-export async function initializeStorage(): Promise<boolean> {
+export const initializeStorage = async (): Promise<boolean> => {
   try {
-    console.log('Checking if menu-media bucket exists...');
-    
-    // First check if the bucket already exists
-    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-    
-    if (listError) {
-      console.error('Error listing buckets:', listError);
-      throw listError;
-    }
-    
-    // Check if menu-media bucket exists
-    const menuMediaBucket = buckets.find(bucket => bucket.name === 'menu-media');
-    
-    if (menuMediaBucket) {
-      console.log('menu-media bucket already exists');
-      return true;
-    }
-    
-    console.log('Creating menu-media bucket...');
-    
-    // Create the bucket if it doesn't exist
-    const { data, error } = await supabase.storage.createBucket('menu-media', {
-      public: true,
-      fileSizeLimit: 52428800, // 50MB limit
-      allowedMimeTypes: [
-        'image/jpeg', 
-        'image/png', 
-        'image/gif', 
-        'model/gltf-binary', 
-        'model/gltf+json',
-        'application/octet-stream' // For GLB files that might not be properly recognized
-      ]
-    });
-    
+    // Check if we already have the required buckets
+    const { data: buckets, error } = await supabase
+      .storage
+      .listBuckets();
+      
     if (error) {
-      console.error('Error creating bucket:', error);
-      
-      if (error.message.includes('already exists')) {
-        console.log('Bucket already exists (race condition)');
-        return true;
-      }
-      
-      toast({
-        title: "Storage setup error",
-        description: `Could not set up storage: ${error.message}`,
-        variant: "destructive",
-      });
-      
+      console.error('Error checking storage buckets:', error);
       return false;
     }
     
-    // Try to call the edge function to set up storage policies
-    try {
-      const { error: policyError } = await supabase.functions.invoke('create-storage-policy', {
-        body: { bucketName: 'menu-media' }
-      });
+    // Log found buckets
+    const bucketNames = buckets.map(b => b.name).join(', ');
+    console.log(`Found existing buckets: ${bucketNames || 'None'}`);
+    
+    // Check if menu-media bucket exists
+    const hasMenuMediaBucket = buckets.some(bucket => bucket.name === 'menu-media');
+    
+    if (!hasMenuMediaBucket) {
+      console.log('Menu-media bucket does not exist. It should be created through migrations.');
+    } else {
+      console.log('Menu-media bucket exists');
       
-      if (policyError) {
-        console.error('Error setting up storage policies:', policyError);
-        // Continue since bucket is created but policies may need manual setup
-      } else {
-        console.log('Storage policies set up successfully');
+      // Test storage permissions
+      try {
+        const testFilePath = `_test_${Date.now()}.txt`;
+        const { error: uploadError } = await supabase.storage
+          .from('menu-media')
+          .upload(testFilePath, new Blob(['test']), {
+            cacheControl: '3600',
+            upsert: true
+          });
+          
+        if (uploadError) {
+          console.error('Storage permission test failed:', uploadError);
+        } else {
+          console.log('Storage permission test successful');
+          
+          // Clean up test file
+          await supabase.storage
+            .from('menu-media')
+            .remove([testFilePath]);
+        }
+      } catch (testError) {
+        console.error('Error testing storage permissions:', testError);
       }
-    } catch (policyErr) {
-      console.error('Failed to invoke policy setup function:', policyErr);
-      // Continue since bucket is created but policies may need manual setup
     }
     
-    console.log('menu-media bucket created successfully');
+    // Check for avatars bucket for profile images
+    const hasAvatarsBucket = buckets.some(bucket => bucket.name === 'avatars');
+    
+    if (!hasAvatarsBucket) {
+      console.log('Avatars bucket does not exist. It should be created through migrations.');
+    } else {
+      console.log('Avatars bucket exists');
+    }
+    
     return true;
   } catch (err) {
     console.error('Failed to initialize storage:', err);
-    toast({
-      title: "Storage setup error",
-      description: "Could not set up storage. Please try again later.",
-      variant: "destructive",
-    });
     return false;
   }
-}
+};

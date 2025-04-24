@@ -1,12 +1,42 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, setupRealtimeListener } from '@/integrations/supabase/client';
-import { MenuCategory, MenuItem } from '@/types/menu';
+import { supabase } from '@/lib/supabaseClient';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
+// Define menu types
+export interface MenuCategory {
+  id: string;
+  name: string;
+  description?: string;
+  restaurant_id?: string;
+  display_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  category_id: string;
+  restaurant_id?: string;
+  media_type?: string;
+  media_reference?: string;
+  is_available: boolean;
+  display_order?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Hook to fetch menu data with real-time updates
+ */
 export const useMenuDataWithRealtime = (restaurantId?: string) => {
   const [categories, setCategories] = useState<MenuCategory[] | null>(null);
   const [items, setItems] = useState<MenuItem[] | null>(null);
+  const [channels, setChannels] = useState<RealtimeChannel[]>([]);
 
   // Fetch menu categories
   const { 
@@ -58,32 +88,50 @@ export const useMenuDataWithRealtime = (restaurantId?: string) => {
   useEffect(() => {
     if (!restaurantId) return;
     
+    // Clean up existing channels
+    channels.forEach(channel => {
+      supabase.removeChannel(channel);
+    });
+    
     // Set up realtime for categories
-    const categoriesChannel = setupRealtimeListener(
-      'menu_categories',
-      '*', 
-      (_payload) => {
-        refetchCategories();
-      },
-      'restaurant_id',
-      restaurantId
-    );
+    const categoriesChannel = supabase.channel('menu_categories_changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'menu_categories',
+          filter: `restaurant_id=eq.${restaurantId}`
+        },
+        (_payload) => {
+          refetchCategories();
+        }
+      )
+      .subscribe();
     
     // Set up realtime for items
-    const itemsChannel = setupRealtimeListener(
-      'menu_items',
-      '*', 
-      (_payload) => {
-        refetchItems();
-      },
-      'restaurant_id',
-      restaurantId
-    );
+    const itemsChannel = supabase.channel('menu_items_changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'menu_items',
+          filter: `restaurant_id=eq.${restaurantId}`
+        },
+        (_payload) => {
+          refetchItems();
+        }
+      )
+      .subscribe();
+    
+    // Store channels for cleanup
+    setChannels([categoriesChannel, itemsChannel]);
     
     // Clean up
     return () => {
-      supabase.removeChannel(categoriesChannel);
-      supabase.removeChannel(itemsChannel);
+      categoriesChannel && supabase.removeChannel(categoriesChannel);
+      itemsChannel && supabase.removeChannel(itemsChannel);
     };
   }, [restaurantId, refetchCategories, refetchItems]);
 
