@@ -6,47 +6,72 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('Starting Menu 360 application...');
+// Define content types
+const contentTypes = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.ttf': 'font/ttf',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2'
+};
 
-// Simple HTTP server to serve the app in development
-const server = http.createServer((req, res) => {
-  let filePath = path.join(process.cwd(), req.url === '/' ? '/index.html' : req.url);
+console.log('Starting Lovable development server...');
+
+// First, try to check if Vite is available
+try {
+  console.log('Checking for Vite installation...');
   
-  // Default to index.html for SPA routing
-  if (!path.extname(filePath) && !filePath.includes('/api/')) {
-    filePath = path.join(process.cwd(), '/index.html');
+  try {
+    execSync('npx vite --version', { stdio: 'inherit' });
+    console.log('Vite found, starting Vite server...');
+    execSync('npx vite', { stdio: 'inherit' });
+    return; // If Vite starts successfully, exit this script
+  } catch (e) {
+    console.log('Failed to start Vite, falling back to simple HTTP server');
+  }
+} catch (error) {
+  console.log('Error checking for Vite:', error.message);
+  console.log('Falling back to simple HTTP server');
+}
+
+// Create a basic HTTP server as fallback
+const PORT = process.env.PORT || 8080;
+console.log(`Starting simple HTTP server on port ${PORT}...`);
+
+const server = http.createServer((req, res) => {
+  // Default to index.html
+  let filePath = '.' + req.url;
+  if (filePath === './') {
+    filePath = './index.html';
   }
 
+  // Resolve the file path from project root
+  filePath = path.resolve(process.cwd(), filePath);
+  
+  // Get file extension
   const extname = path.extname(filePath);
-  let contentType = 'text/html';
+  const contentType = contentTypes[extname] || 'application/octet-stream';
 
-  switch (extname) {
-    case '.js':
-      contentType = 'text/javascript';
-      break;
-    case '.css':
-      contentType = 'text/css';
-      break;
-    case '.json':
-      contentType = 'application/json';
-      break;
-    case '.png':
-      contentType = 'image/png';
-      break;
-    case '.jpg':
-    case '.jpeg':
-      contentType = 'image/jpeg';
-      break;
-    case '.svg':
-      contentType = 'image/svg+xml';
-      break;
-  }
-
+  // Read file
   fs.readFile(filePath, (err, content) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        // Page not found
-        fs.readFile(path.join(process.cwd(), '/index.html'), (err, content) => {
+        // If requesting a specific file that doesn't exist, try serving index.html
+        // This enables client-side routing
+        fs.readFile(path.resolve(process.cwd(), 'index.html'), (err, content) => {
+          if (err) {
+            res.writeHead(404);
+            res.end('File not found');
+            return;
+          }
+          
           res.writeHead(200, { 'Content-Type': 'text/html' });
           res.end(content, 'utf-8');
         });
@@ -55,24 +80,26 @@ const server = http.createServer((req, res) => {
         res.writeHead(500);
         res.end(`Server Error: ${err.code}`);
       }
-    } else {
-      // Success
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content, 'utf-8');
+      return;
     }
+
+    // Success
+    res.writeHead(200, { 'Content-Type': contentType });
+    res.end(content, 'utf-8');
   });
 });
 
-const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}/`);
   console.log('Press Ctrl+C to stop the server');
-  
-  // Attempt to open the browser
-  try {
-    const start = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-    execSync(`${start} http://localhost:${PORT}`);
-  } catch (err) {
-    console.log('Unable to open browser automatically. Please open the URL manually.');
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Try a different port.`);
+  } else {
+    console.error('Server error:', err.message);
   }
+  process.exit(1);
 });
