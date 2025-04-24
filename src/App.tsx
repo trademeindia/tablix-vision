@@ -4,7 +4,7 @@ import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { initializeSupabase } from './utils/supabase-init';
-import { enableRealtimeForMenuTables } from './utils/supabase-realtime';
+import { enableRealtimeForMenuTables, cleanupRealtimeSubscriptions } from './utils/supabase-realtime';
 import { ThemeProviderWrapper as ThemeProvider } from '@/components/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -23,12 +23,15 @@ const queryClient = new QueryClient({
 
 function App() {
   const [isInitializing, setIsInitializing] = React.useState(true);
+  const [isSupabaseReady, setIsSupabaseReady] = React.useState(false);
   const [tableNames, setTableNames] = React.useState<string[]>([]);
 
+  // Initialize Supabase connection and prepare Realtime
   React.useEffect(() => {
     const initialize = async () => {
       // Initialize Supabase connection
       const success = await initializeSupabase();
+      setIsSupabaseReady(success);
       console.log('Supabase initialization:', success ? 'successful' : 'failed');
 
       // Enable realtime for menu tables
@@ -43,8 +46,14 @@ function App() {
     };
 
     initialize();
+    
+    // Cleanup function to remove realtime subscriptions on unmount
+    return () => {
+      cleanupRealtimeSubscriptions();
+    };
   }, []);
 
+  // Fetch table names for debugging
   React.useEffect(() => {
     const fetchTableNames = async () => {
       try {
@@ -65,12 +74,15 @@ function App() {
       }
     };
 
-    fetchTableNames();
-  }, []);
+    if (isSupabaseReady) {
+      fetchTableNames();
+    }
+  }, [isSupabaseReady]);
 
+  // Set up auth state listener
   React.useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', session);
+      console.log('Auth state changed:', session ? 'User authenticated' : 'No active session');
     });
 
     return () => subscription.unsubscribe();
