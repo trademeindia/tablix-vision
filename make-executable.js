@@ -1,21 +1,19 @@
 
 #!/usr/bin/env node
 
-// Make scripts executable
+// Make the utility scripts executable
 const { execSync } = require('child_process');
+const fs = require('fs');
 
-try {
-  if (process.platform !== 'win32') {
+if (process.platform !== 'win32') {
+  try {
     console.log('Making scripts executable...');
-    
-    execSync('chmod +x start-dev.js update-scripts.js make-executable.js src/utils/ensure-vite.js', {
+    execSync('chmod +x src/utils/*.js update-scripts.js start-vite.js', {
       stdio: 'inherit'
     });
-    
-    console.log('Scripts are now executable');
-  } else {
-    console.log('Running on Windows - no need to make scripts executable');
+    console.log('Scripts made executable successfully!');
+  } catch (error) {
+    console.warn('Failed to make scripts executable:', error.message);
+    console.log('You may need to run: chmod +x src/utils/*.js update-scripts.js start-vite.js');
   }
-} catch (error) {
-  console.error('Error making scripts executable:', error.message);
 }

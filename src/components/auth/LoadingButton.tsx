@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Button, ButtonProps } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export interface LoadingButtonProps extends ButtonProps {
+export interface LoadingButtonProps extends Omit<ButtonProps, 'asChild'> {
   isLoading?: boolean;
   loadingText?: string;
   children: React.ReactNode;
@@ -13,13 +13,12 @@ const LoadingButton = ({
   isLoading = false, 
   loadingText = "Loading...", 
   children,
+  disabled,
   ...props 
 }: LoadingButtonProps) => {
-  // Only pass disabled if it's a valid prop for Button
-  const { disabled, ...restProps } = props;
   return (
     <Button
-      {...restProps}
+      {...props}
       disabled={isLoading || disabled}
     >
       {isLoading ? (

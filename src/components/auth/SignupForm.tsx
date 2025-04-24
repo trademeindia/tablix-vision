@@ -102,7 +102,6 @@ const SignupForm: React.FC<SignupFormProps> = ({
         </InputGroup>
         
         <LoadingButton 
-          type="submit" 
           className="w-full" 
           isLoading={isSubmitting}
           loadingText="Creating account..."
