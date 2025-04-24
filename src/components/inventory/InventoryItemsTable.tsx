@@ -103,7 +103,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
                     className="h-8 w-8 p-0"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log("Edit button clicked");
+                      // console.log("Edit button clicked");
                     }}
                   >
                     <Edit className="h-4 w-4" />
@@ -114,7 +114,7 @@ const InventoryItemsTable: React.FC<InventoryItemsTableProps> = ({
                     className="h-8 w-8 p-0 text-red-500"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log("Delete button clicked");
+                      // console.log("Delete button clicked");
                     }}
                   >
                     <Trash2 className="h-4 w-4" />

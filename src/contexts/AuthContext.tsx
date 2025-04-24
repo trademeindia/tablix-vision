@@ -58,18 +58,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadUserRoles = async () => {
       if (user) {
-        console.log("Auth context: User detected, fetching roles");
+        // console.log("Auth context: User detected, fetching roles");
         try {
           // Retrieve from localStorage first for immediate use
           const savedRole = localStorage.getItem('userRole');
           if (savedRole) {
-            console.log("Auth context: Found saved role in localStorage");
+            // console.log("Auth context: Found saved role in localStorage");
           }
           
           // For demo users, always enable the demo override
           if (user.email?.endsWith('@demo.com')) {
             localStorage.setItem('demoOverride', 'true');
-            console.log("Demo user detected, enabling demo override");
+            // console.log("Demo user detected, enabling demo override");
           }
           
           // Then fetch latest from backend as well
@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (currentPath.startsWith('/auth/')) {
               // Get the redirect path based on the primary role
               const redirectPath = getRedirectPathByRole(userRoles[0]);
-              console.log(`Redirecting from auth to ${redirectPath} based on role ${userRoles[0]}`);
+              // console.log(`Redirecting from auth to ${redirectPath} based on role ${userRoles[0]}`);
               
               // Use window.location for a hard redirect to avoid potential React Router issues
               window.location.href = redirectPath;
@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } else {
-        console.log("Auth context: No user detected");
+        // console.log("Auth context: No user detected");
       }
       
       // We always set loading to false, regardless of whether we have a user or not
@@ -158,7 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const demoOverride = localStorage.getItem('demoOverride');
     if (demoOverride === 'true') {
-      console.log("Demo override is active");
+      // console.log("Demo override is active");
     }
   }, []);
 

@@ -21,11 +21,11 @@ export function useQRDataParser(): QRDataParserResult {
     const tableParam = params.get('table');
     const restaurantParam = params.get('restaurant');
     
-    console.log("Checking URL parameters:", { tableParam, restaurantParam });
+    // console.log("Checking URL parameters:", { tableParam, restaurantParam });
     
     // If URL has parameters, use those
     if (tableParam && restaurantParam) {
-      console.log("Using URL parameters for restaurant/table:", { restaurantParam, tableParam });
+      // console.log("Using URL parameters for restaurant/table:", { restaurantParam, tableParam });
       setTableId(tableParam);
       setRestaurantId(restaurantParam);
       localStorage.setItem('tableId', tableParam);
@@ -42,7 +42,7 @@ export function useQRDataParser(): QRDataParserResult {
       const storedRestaurantId = localStorage.getItem('restaurantId');
       
       if (storedTableId && storedRestaurantId) {
-        console.log("Using stored restaurant/table:", { restaurantId: storedRestaurantId, tableId: storedTableId });
+        // console.log("Using stored restaurant/table:", { restaurantId: storedRestaurantId, tableId: storedTableId });
         setTableId(storedTableId);
         setRestaurantId(storedRestaurantId);
         
@@ -56,7 +56,7 @@ export function useQRDataParser(): QRDataParserResult {
     if (!qrData) return;
     
     try {
-      console.log("Parsing QR data:", qrData);
+      // console.log("Parsing QR data:", qrData);
       
       // Try different QR code formats
       
@@ -68,7 +68,7 @@ export function useQRDataParser(): QRDataParserResult {
         const qrRestaurantId = params.get('restaurant');
         
         if (qrRestaurantId && qrTableId) {
-          console.log("Found URL parameters:", { restaurant: qrRestaurantId, table: qrTableId });
+          // console.log("Found URL parameters:", { restaurant: qrRestaurantId, table: qrTableId });
           setRestaurantId(qrRestaurantId);
           setTableId(qrTableId);
           localStorage.setItem('tableId', qrTableId);
@@ -85,7 +85,7 @@ export function useQRDataParser(): QRDataParserResult {
           return;
         }
       } catch (e) {
-        console.log("Not a URL format, trying other formats");
+        // console.log("Not a URL format, trying other formats");
       }
       
       // Format 2: Old URL path format (https://restaurant.app/menu/{restaurantId}?table={tableId})
@@ -96,7 +96,7 @@ export function useQRDataParser(): QRDataParserResult {
         const qrTableId = url.searchParams.get('table');
         
         if (qrRestaurantId && qrTableId) {
-          console.log("Found path format:", { restaurant: qrRestaurantId, table: qrTableId });
+          // console.log("Found path format:", { restaurant: qrRestaurantId, table: qrTableId });
           setRestaurantId(qrRestaurantId);
           setTableId(qrTableId);
           localStorage.setItem('tableId', qrTableId);
@@ -113,14 +113,14 @@ export function useQRDataParser(): QRDataParserResult {
           return;
         }
       } catch (e) {
-        console.log("Not a path format URL, trying other formats");
+        // console.log("Not a path format URL, trying other formats");
       }
       
       // Format 3: JSON string {"restaurantId": "xxx", "tableId": "yyy"}
       try {
         const jsonData = JSON.parse(qrData);
         if (jsonData.restaurantId && jsonData.tableId) {
-          console.log("Found JSON format:", jsonData);
+          // console.log("Found JSON format:", jsonData);
           setRestaurantId(jsonData.restaurantId);
           setTableId(jsonData.tableId);
           localStorage.setItem('tableId', jsonData.tableId);
@@ -137,14 +137,14 @@ export function useQRDataParser(): QRDataParserResult {
           return;
         }
       } catch (e) {
-        console.log("Not JSON format, trying other formats");
+        // console.log("Not JSON format, trying other formats");
       }
       
       // Format 4: Simple text format "restaurantId:tableId"
       const parts = qrData.split(':');
       if (parts.length === 2) {
         const [qrRestaurantId, qrTableId] = parts;
-        console.log("Found simple text format:", { restaurant: qrRestaurantId, table: qrTableId });
+        // console.log("Found simple text format:", { restaurant: qrRestaurantId, table: qrTableId });
         setRestaurantId(qrRestaurantId);
         setTableId(qrTableId);
         localStorage.setItem('tableId', qrTableId);

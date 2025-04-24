@@ -26,7 +26,7 @@ const CategoryTab: React.FC<CategoryTabProps> = ({
   onAddIntegration,
   category
 }) => {
-  console.log('CategoryTab rendering:', { 
+  // console.log('CategoryTab rendering:', { 
     integrations, 
     isLoading, 
     category, 

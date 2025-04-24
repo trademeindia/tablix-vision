@@ -104,10 +104,10 @@ export const ThreeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setRenderer(newRenderer);
     setControls(newControls);
     
-    console.log('Three.js scene initialized');
+    // console.log('Three.js scene initialized');
     
     return () => {
-      console.log('Cleaning up Three.js scene');
+      // console.log('Cleaning up Three.js scene');
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
         animationFrameId.current = null;

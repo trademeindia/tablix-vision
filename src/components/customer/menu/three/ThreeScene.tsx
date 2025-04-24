@@ -36,7 +36,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     const { offsetWidth, offsetHeight } = containerRef.current;
     setDimensions({ width: offsetWidth, height: offsetHeight });
     
-    console.log('Initializing Three.js scene with dimensions:', offsetWidth, offsetHeight);
+    // console.log('Initializing Three.js scene with dimensions:', offsetWidth, offsetHeight);
     const cleanup = initializeScene(containerRef.current, backgroundColor);
     
     const handleResize = () => {
@@ -63,7 +63,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   // Apply auto-rotation settings
   useEffect(() => {
     if (controls) {
-      console.log('Setting auto-rotate:', autoRotate);
+      // console.log('Setting auto-rotate:', autoRotate);
       setAutoRotate(autoRotate);
     }
   }, [controls, autoRotate, setAutoRotate]);
@@ -71,7 +71,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   // Apply rotation speed
   useEffect(() => {
     if (controls) {
-      console.log('Setting rotation speed:', rotationSpeed);
+      // console.log('Setting rotation speed:', rotationSpeed);
       setRotationSpeed(rotationSpeed);
     }
   }, [controls, rotationSpeed, setRotationSpeed]);
@@ -79,7 +79,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   // Call onSceneReady callback when scene is ready
   useEffect(() => {
     if (scene && camera && renderer && controls && onSceneReady) {
-      console.log('Scene is ready, calling onSceneReady callback');
+      // console.log('Scene is ready, calling onSceneReady callback');
       onSceneReady(scene, camera, renderer, controls);
     }
   }, [scene, camera, renderer, controls, onSceneReady]);

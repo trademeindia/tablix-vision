@@ -18,11 +18,11 @@ const StaffPage = () => {
 
   useEffect(() => {
     // Log that the staff page is loaded for debugging
-    console.log('Staff page loaded');
+    // console.log('Staff page loaded');
   }, []);
 
   const handleStaffUpdated = () => {
-    console.log('Staff updated, refreshing data...');
+    // console.log('Staff updated, refreshing data...');
     refetchStaff();
   };
 

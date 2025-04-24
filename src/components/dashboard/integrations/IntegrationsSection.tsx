@@ -37,7 +37,7 @@ const IntegrationsSection = () => {
       });
   };
 
-  console.log('Integrations section rendering:', { integrations, isLoading });
+  // console.log('Integrations section rendering:', { integrations, isLoading });
 
   return (
     <Card className="w-full">

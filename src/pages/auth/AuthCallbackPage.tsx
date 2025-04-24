@@ -21,7 +21,7 @@ const AuthCallbackPage = () => {
     const handleAuthCallback = async () => {
       try {
         setStatus('Checking authentication session...');
-        console.log('Auth callback started - checking for session');
+        // console.log('Auth callback started - checking for session');
 
         // Handle OAuth flow
         const { data, error } = await supabase.auth.getSession();
@@ -31,19 +31,19 @@ const AuthCallbackPage = () => {
           throw error;
         }
         
-        console.log('Session retrieved:', data.session ? 'Valid session' : 'No session');
+        // console.log('Session retrieved:', data.session ? 'Valid session' : 'No session');
         setStatus('Session retrieved. Checking user profile...');
         
         // Check for successful authentication
         if (data.session?.user) {
           const userId = data.session.user.id;
-          console.log('User authenticated:', userId);
+          // console.log('User authenticated:', userId);
           
           // Check if there was a selected role from the login page
           const selectedRole = localStorage.getItem('selectedRole');
           
           if (selectedRole) {
-            console.log('Found selected role in localStorage:', selectedRole);
+            // console.log('Found selected role in localStorage:', selectedRole);
             
             // Validate the role
             const validatedRole = validateRole(selectedRole);
@@ -55,7 +55,7 @@ const AuthCallbackPage = () => {
               
               // For Google auth users, set demo override to true to avoid permission issues
               if (data.session.user.app_metadata.provider === 'google') {
-                console.log('Google auth detected, enabling demo override');
+                // console.log('Google auth detected, enabling demo override');
                 localStorage.setItem('demoOverride', 'true');
               }
               
@@ -67,7 +67,7 @@ const AuthCallbackPage = () => {
               
               // Get the redirect path based on role and navigate
               const redirectPath = getRedirectPathByRole(validatedRole);
-              console.log(`Redirecting to ${redirectPath} based on selected role ${validatedRole}`);
+              // console.log(`Redirecting to ${redirectPath} based on selected role ${validatedRole}`);
               
               // Clear the selected role after using it
               localStorage.removeItem('selectedRole');
@@ -94,7 +94,7 @@ const AuthCallbackPage = () => {
           
           // If no valid selected role, try to get from user metadata or profile
           const userRole = data.session.user.user_metadata?.role || 'customer';
-          console.log('Using role from user metadata:', userRole);
+          // console.log('Using role from user metadata:', userRole);
           
           // Expand roles based on hierarchy and persist them
           const roles = expandRoles(userRole);
@@ -102,7 +102,7 @@ const AuthCallbackPage = () => {
           
           // For Google auth users, set demo override to true to avoid permission issues
           if (data.session.user.app_metadata.provider === 'google') {
-            console.log('Google auth detected, enabling demo override');
+            // console.log('Google auth detected, enabling demo override');
             localStorage.setItem('demoOverride', 'true');
           }
           
@@ -114,7 +114,7 @@ const AuthCallbackPage = () => {
           
           // Get the redirect path based on role and navigate
           const redirectPath = getRedirectPathByRole(userRole);
-          console.log(`Redirecting to ${redirectPath} based on user metadata role ${userRole}`);
+          // console.log(`Redirecting to ${redirectPath} based on user metadata role ${userRole}`);
           
           // Add real-time listener for user presence
           const channel = supabase.channel('online-users');
@@ -131,7 +131,7 @@ const AuthCallbackPage = () => {
           return;
         } else {
           // No session found, redirect to login
-          console.log('No session found, redirecting to login');
+          // console.log('No session found, redirecting to login');
           navigate('/auth/login');
         }
       } catch (error: any) {

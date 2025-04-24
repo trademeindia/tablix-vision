@@ -17,7 +17,7 @@ export function useQRCode() {
 
   const handleScan = useCallback((data: string) => {
     if (data) {
-      console.log('QR data received:', data);
+      // console.log('QR data received:', data);
       setQrData(data);
       setIsScanning(false);
     }

@@ -47,12 +47,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     const fetchTheme = async () => {
       try {
         if (!restaurantId) {
-          console.log("No restaurant ID provided, using default theme");
+          // console.log("No restaurant ID provided, using default theme");
           setLoading(false);
           return;
         }
 
-        console.log("Fetching theme for restaurant:", restaurantId);
+        // console.log("Fetching theme for restaurant:", restaurantId);
         const { data, error } = await supabase
           .from('restaurants')
           .select('theme_color')
@@ -63,20 +63,20 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           console.error("Error fetching theme:", error);
           setError(new Error(error.message));
           // Still use default theme when there's an error
-          console.log("Using default theme due to error");
+          // console.log("Using default theme due to error");
           setLoading(false);
           return;
         }
 
         if (data && data.theme_color) {
-          console.log("Theme fetched successfully:", data.theme_color);
+          // console.log("Theme fetched successfully:", data.theme_color);
           setThemeState({
             ...defaultTheme,
             primaryColor: data.theme_color,
             accentColor: data.theme_color,
           });
         } else {
-          console.log("No theme found or restaurant doesn't exist, using default");
+          // console.log("No theme found or restaurant doesn't exist, using default");
           // Make it clear in the console that we're using the default theme
           console.info("Using default theme because either the restaurant doesn't exist or has no theme set");
         }
@@ -142,7 +142,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         throw new Error(error.message);
       }
 
-      console.log("Theme updated successfully");
+      // console.log("Theme updated successfully");
       toast({
         title: "Theme updated",
         description: "The theme has been updated successfully",

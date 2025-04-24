@@ -33,7 +33,7 @@ const QRCodePage = () => {
         }
         
         if (!userData?.user) {
-          console.log("No authenticated user found, using default restaurant ID");
+          // console.log("No authenticated user found, using default restaurant ID");
           setError("You need to be logged in to manage QR codes. Using demo mode.");
           return;
         }
@@ -52,10 +52,10 @@ const QRCodePage = () => {
         }
         
         if (restaurants && restaurants.length > 0) {
-          console.log("Found user's restaurant:", restaurants[0].id);
+          // console.log("Found user's restaurant:", restaurants[0].id);
           setRestaurantId(restaurants[0].id);
         } else {
-          console.log("No restaurants found for user, using default ID");
+          // console.log("No restaurants found for user, using default ID");
           setError("No restaurant found. Create a restaurant first for real QR codes.");
         }
       } catch (error) {

@@ -53,7 +53,7 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
   useEffect(() => {
     if (!scene || !modelUrl) return;
     
-    console.log('Loading 3D model:', modelUrl);
+    // console.log('Loading 3D model:', modelUrl);
     
     onLoadStart?.();
     cleanupModel();
@@ -90,7 +90,7 @@ const ModelLoader: React.FC<ModelLoaderProps> = ({
           scene.add(newModel);
           setModel(newModel);
           
-          console.log('Model loaded successfully');
+          // console.log('Model loaded successfully');
           onLoadComplete?.();
           
         } catch (err) {

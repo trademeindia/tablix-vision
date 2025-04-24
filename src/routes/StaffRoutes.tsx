@@ -12,9 +12,9 @@ import StaffInventoryPage from '@/pages/staff/InventoryPage';
 import StaffReportsPage from '@/pages/staff/ReportsPage';
 
 const StaffRoutes: React.FC = () => {
-  console.log('Staff routes component rendered');
+  // console.log('Staff routes component rendered');
   const location = useLocation();
-  console.log('Staff routes current path:', location.pathname);
+  // console.log('Staff routes current path:', location.pathname);
   
   return (
     <Routes>

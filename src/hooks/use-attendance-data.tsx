@@ -62,7 +62,7 @@ export const useAttendanceData = (staffId: string) => {
         
         if (data && data.length > 0) {
           // Use actual data from Supabase with type assertion for safety
-          console.log(`Loaded ${data.length} attendance records for staff ${staffId}`);
+          // console.log(`Loaded ${data.length} attendance records for staff ${staffId}`);
           
           // Transform data to match our expected format
           const records: StaffAttendanceRecord[] = data.map((record: any) => ({
@@ -81,7 +81,7 @@ export const useAttendanceData = (staffId: string) => {
           setAttendanceStats(stats);
         } else {
           // Generate demo data if no data found
-          console.log(`No attendance data found for staff ${staffId}, generating demo data`);
+          // console.log(`No attendance data found for staff ${staffId}, generating demo data`);
           const { demoRecords, demoStats } = generateStaffAttendance(staffId);
           
           setAttendanceRecords(demoRecords);

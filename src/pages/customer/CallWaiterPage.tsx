@@ -64,7 +64,7 @@ const CallWaiterPage: React.FC = () => {
         throw error;
       }
       
-      console.log("Waiter call request submitted:", data);
+      // console.log("Waiter call request submitted:", data);
       setIsRequested(true);
       
       toast({

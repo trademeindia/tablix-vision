@@ -28,7 +28,7 @@ export const useShiftData = (staffId: string) => {
         
         if (data && data.length > 0) {
           // Use actual data from Supabase
-          console.log(`Loaded ${data.length} shift records for staff ${staffId}`);
+          // console.log(`Loaded ${data.length} shift records for staff ${staffId}`);
           
           // Transform data to match our expected format with type assertions for safety
           const shifts: StaffShift[] = data.map((shift: any) => ({
@@ -59,7 +59,7 @@ export const useShiftData = (staffId: string) => {
           setPastShifts(past);
         } else {
           // Generate demo data if no data found
-          console.log(`No shift data found for staff ${staffId}, generating demo data`);
+          // console.log(`No shift data found for staff ${staffId}, generating demo data`);
           const demoShifts = generateStaffShifts(staffId);
           
           // Sort demo shifts into upcoming and past

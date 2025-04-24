@@ -32,7 +32,7 @@ export const usePayrollData = (staffId: string) => {
         
         if (data && data.length > 0) {
           // Use actual data from Supabase
-          console.log(`Loaded ${data.length} payroll records for staff ${staffId}`);
+          // console.log(`Loaded ${data.length} payroll records for staff ${staffId}`);
           
           // Transform data safely with type assertions
           const records: StaffPayrollRecord[] = data.map((record: any) => ({
@@ -53,7 +53,7 @@ export const usePayrollData = (staffId: string) => {
           setPayrollSummary(summary);
         } else {
           // Generate demo data if no data found
-          console.log(`No payroll data found for staff ${staffId}, generating demo data`);
+          // console.log(`No payroll data found for staff ${staffId}, generating demo data`);
           const demoSummary = generateStaffPayroll(staffId);
           const demoRecords = generateDemoPayrollRecords(staffId, 6);
           

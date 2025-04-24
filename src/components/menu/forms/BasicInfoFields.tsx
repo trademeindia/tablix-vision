@@ -27,7 +27,7 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   onRefreshCategories 
 }) => {
   // Log categories to help with debugging
-  console.log("Categories in BasicInfoFields:", categories);
+  // console.log("Categories in BasicInfoFields:", categories);
   
   // If there's no category selected and we have categories, select the first one
   useEffect(() => {

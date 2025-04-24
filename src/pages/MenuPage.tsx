@@ -38,7 +38,7 @@ const MenuPage = () => {
         if (!menuMediaBucket) {
           console.warn("Menu media bucket not found. Please set up storage bucket.");
         } else {
-          console.log("Menu media bucket found:", menuMediaBucket);
+          // console.log("Menu media bucket found:", menuMediaBucket);
         }
       } catch (err) {
         console.error("Error in storage bucket check:", err);
@@ -63,7 +63,7 @@ const MenuPage = () => {
     const setupDemoEnvironment = async () => {
       try {
         await ensureDemoRestaurantExists();
-        console.log("Demo environment setup complete");
+        // console.log("Demo environment setup complete");
       } catch (error) {
         console.error("Failed to setup demo environment:", error);
       }
@@ -113,11 +113,11 @@ const MenuPage = () => {
 
   const handleRefreshAll = useCallback(async () => {
     if (isRefreshing.current) {
-      console.log("Already refreshing, skip this refresh request");
+      // console.log("Already refreshing, skip this refresh request");
       return;
     }
     
-    console.log("Refreshing all menu data");
+    // console.log("Refreshing all menu data");
     isRefreshing.current = true;
     toast({
       title: "Refreshing menu data",
@@ -137,7 +137,7 @@ const MenuPage = () => {
       refreshTimeoutRef.current = setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['menuItems', restaurantId] });
         isRefreshing.current = false;
-        console.log("Data refresh complete");
+        // console.log("Data refresh complete");
         toast({
           title: "Menu data refreshed",
           description: `Found ${menuItems.length} items and ${categories?.length || 0} categories`
@@ -166,7 +166,7 @@ const MenuPage = () => {
           clearTimeout(refreshTimeoutRef.current);
         }
         
-        console.log("Dialog closed, refreshing data in 800ms");
+        // console.log("Dialog closed, refreshing data in 800ms");
         refreshTimeoutRef.current = setTimeout(() => {
           handleRefreshAll();
           dialogCloseTimestamp.current = null;
@@ -185,7 +185,7 @@ const MenuPage = () => {
 
   useEffect(() => {
     if (!initialLoadComplete.current) {
-      console.log("Menu page mounted, doing initial data fetch");
+      // console.log("Menu page mounted, doing initial data fetch");
       const initialLoadTimeout = setTimeout(() => {
         handleRefreshAll();
         initialLoadComplete.current = true;

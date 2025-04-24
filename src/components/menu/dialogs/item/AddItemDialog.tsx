@@ -47,7 +47,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
     try {
       // Prevent further processing if already submitting
       if (isSubmitting) {
-        console.log("Already submitting, preventing duplicate submission");
+        // console.log("Already submitting, preventing duplicate submission");
         return;
       }
       
@@ -61,7 +61,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
         restaurant_id: restaurantId || defaultRestaurantId
       };
       
-      console.log("Using restaurant ID:", itemData.restaurant_id);
+      // console.log("Using restaurant ID:", itemData.restaurant_id);
       
       // Validate required fields
       if (!itemData.name?.trim()) {
@@ -94,7 +94,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
         return;
       }
       
-      console.log("Creating menu item with data:", itemData);
+      // console.log("Creating menu item with data:", itemData);
       
       await createItemMutation.mutateAsync(itemData);
       
@@ -103,7 +103,7 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       
       // Refresh categories and items after creating a new item
       if (onRefreshCategories) {
-        console.log("Refreshing menu data after item creation");
+        // console.log("Refreshing menu data after item creation");
         onRefreshCategories();
       }
       

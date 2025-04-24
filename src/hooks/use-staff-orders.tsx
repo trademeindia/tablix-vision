@@ -24,7 +24,7 @@ export function useStaffOrders() {
           table: 'orders'
         },
         (payload) => {
-          console.log('Order change detected:', payload);
+          // console.log('Order change detected:', payload);
           fetchOrders();
           
           // Show notification for new orders

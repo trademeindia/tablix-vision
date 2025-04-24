@@ -43,7 +43,7 @@ export const useScannerInitialization = ({ onScan }: UseScannerInitializationPro
         (decodedText) => {
           // On successful scan
           if (decodedText) {
-            console.log('QR Code scanned successfully:', decodedText);
+            // console.log('QR Code scanned successfully:', decodedText);
             toast({
               title: "QR Code Scanned",
               description: "Loading menu...",
@@ -60,7 +60,7 @@ export const useScannerInitialization = ({ onScan }: UseScannerInitializationPro
         },
         (errorMessage) => {
           // On error - don't show these to the user
-          console.log('QR scan error (normal during scanning):', errorMessage);
+          // console.log('QR scan error (normal during scanning):', errorMessage);
         }
       )
       .then(() => {
@@ -83,7 +83,7 @@ export const useScannerInitialization = ({ onScan }: UseScannerInitializationPro
           // Try the other camera
           setCameraSwitched(true);
           const newMode = mode === 'environment' ? 'user' : 'environment';
-          console.log(`Trying with ${newMode} camera instead`);
+          // console.log(`Trying with ${newMode} camera instead`);
           startScanner(newMode);
         }
       });

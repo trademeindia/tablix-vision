@@ -42,9 +42,9 @@ const AppRoutes: React.FC = () => {
     try {
       // Only log in development mode
       if (process.env.NODE_ENV === 'development') {
-        console.log('Current path:', location.pathname);
-        console.log('User roles:', userRoles);
-        console.log('Redirect path:', redirectPath);
+        // console.log('Current path:', location.pathname);
+        // console.log('User roles:', userRoles);
+        // console.log('Redirect path:', redirectPath);
       }
       setLoadingError(false);
     } catch (error) {
@@ -82,7 +82,7 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  console.log('AppRoutes rendering with path:', location.pathname);
+  // console.log('AppRoutes rendering with path:', location.pathname);
 
   return (
     <Routes>

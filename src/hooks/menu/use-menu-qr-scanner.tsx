@@ -15,7 +15,7 @@ export function useMenuQRScanner(parseQRData: (data: string) => void, handleScan
       const resId = params.get('restaurant');
       
       if (resId) {
-        console.log("Prefetching menu data for restaurant:", resId);
+        // console.log("Prefetching menu data for restaurant:", resId);
         queryClient.prefetchQuery({
           queryKey: ['menuCategories', resId],
           queryFn: () => Promise.resolve([]),

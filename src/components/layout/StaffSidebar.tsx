@@ -99,7 +99,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
     return <div className="h-full bg-slate-800 w-64"></div>;
   }
 
-  console.log('Staff sidebar - current path:', pathname);
+  // console.log('Staff sidebar - current path:', pathname);
 
   return (
     <div className={cn(
@@ -155,7 +155,7 @@ const StaffSidebar = ({ onCloseSidebar }: StaffSidebarProps) => {
                   collapsed ? "justify-center" : "justify-start"
                 )}
                 onClick={() => {
-                  console.log(`Navigating to ${item.href}`);
+                  // console.log(`Navigating to ${item.href}`);
                   if (onCloseSidebar) onCloseSidebar();
                 }}
               >

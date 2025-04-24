@@ -28,7 +28,7 @@ const IntegrationsPage = () => {
 
   // Log the state for debugging
   useEffect(() => {
-    console.log('IntegrationsPage rendered with state:', { 
+    // console.log('IntegrationsPage rendered with state:', { 
       integrations, 
       isLoading, 
       activeTab,

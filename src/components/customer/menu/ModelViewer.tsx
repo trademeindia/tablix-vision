@@ -30,7 +30,7 @@ function Model({ url }: { url: string }) {
     }
     
     // Log success when model loads
-    console.log('3D model loaded successfully:', url);
+    // console.log('3D model loaded successfully:', url);
     
     // Cleanup when unmounting
     return () => {
@@ -80,7 +80,7 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelUrl }) => {
     // Preload the model to track loading progress
     const loadModel = async () => {
       try {
-        console.log('Loading 3D model:', modelUrl);
+        // console.log('Loading 3D model:', modelUrl);
         
         // Properly type the result of preload
         useGLTF.preload(modelUrl);

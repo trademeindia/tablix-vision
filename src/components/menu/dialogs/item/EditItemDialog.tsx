@@ -60,7 +60,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
         restaurant_id: restaurantId || defaultRestaurantId
       };
       
-      console.log("Updating menu item with data:", { id: selectedItem.id, updates: updateData });
+      // console.log("Updating menu item with data:", { id: selectedItem.id, updates: updateData });
       
       await updateItemMutation.mutateAsync({ 
         id: selectedItem.id, 
@@ -73,7 +73,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
       
       // Refresh data after update
       if (onRefreshCategories) {
-        console.log("Refreshing data after item update");
+        // console.log("Refreshing data after item update");
         onRefreshCategories();
       }
     } catch (error) {

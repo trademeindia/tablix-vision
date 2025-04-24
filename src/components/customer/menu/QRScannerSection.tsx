@@ -21,7 +21,7 @@ const QRScannerSection: React.FC<QRScannerSectionProps> = ({
         <QRScanner 
           onScan={(data) => {
             if (data) {
-              console.log('QR Code scanned:', data);
+              // console.log('QR Code scanned:', data);
               handleScan(data);
             }
           }}

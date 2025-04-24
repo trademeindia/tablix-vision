@@ -25,7 +25,7 @@ const UnauthorizedPage = () => {
   
   useEffect(() => {
     // Log debug information to help troubleshoot
-    console.log("UnauthorizedPage mounted with state:", {
+    // console.log("UnauthorizedPage mounted with state:", {
       fromPath,
       stateUserRoles,
       stateRequiredRoles,

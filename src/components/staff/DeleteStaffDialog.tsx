@@ -29,12 +29,12 @@ const DeleteStaffDialog: React.FC<DeleteStaffDialogProps> = ({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      console.log(`Deleting staff member with ID: ${staff.id}`);
+      // console.log(`Deleting staff member with ID: ${staff.id}`);
       
       // First check if this is demo data (starts with 'staff-')
       if (staff.id.startsWith('staff-')) {
         // Simulate deletion for demo data
-        console.log('Demo data detected, simulating deletion');
+        // console.log('Demo data detected, simulating deletion');
         await new Promise(resolve => setTimeout(resolve, 500));
         
         toast({

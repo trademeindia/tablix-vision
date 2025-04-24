@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar, supabaseUrl }) => {
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
-  console.log('Sidebar - Current path:', location.pathname);
+  // console.log('Sidebar - Current path:', location.pathname);
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl">
@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onCloseSidebar, supabaseUrl }) => {
                     : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                 )}
                 onClick={() => {
-                  console.log(`Navigating to ${item.href}`);
+                  // console.log(`Navigating to ${item.href}`);
                   if (onCloseSidebar) onCloseSidebar();
                 }}
               >

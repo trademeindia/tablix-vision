@@ -9,16 +9,16 @@ import { initializeSupabase } from '@/utils/supabase-init';
 (async () => {
   try {
     await initializeSupabase();
-    console.log('Supabase initialized successfully');
+    // console.log('Supabase initialized successfully');
   } catch (err) {
     console.error('Failed to initialize Supabase:', err);
   }
 })();
 
 // Log information about the environment
-console.log('Initializing application...');
-console.log('Environment:', import.meta.env.MODE);
-console.log('Base URL:', import.meta.env.BASE_URL);
+// console.log('Initializing application...');
+// console.log('Environment:', import.meta.env.MODE);
+// console.log('Base URL:', import.meta.env.BASE_URL);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');

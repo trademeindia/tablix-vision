@@ -37,7 +37,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     try {
       // Prevent accidental form resubmission
       if (isSubmitting) {
-        console.log("Already submitting, preventing duplicate submission");
+        // console.log("Already submitting, preventing duplicate submission");
         return;
       }
       

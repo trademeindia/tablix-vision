@@ -11,7 +11,7 @@ export function useMenuUrlParams(parseQRData: (data: string) => void) {
     const restaurantParam = params.get('restaurant');
     
     if (tableParam && restaurantParam) {
-      console.log("Found params in URL:", { table: tableParam, restaurant: restaurantParam });
+      // console.log("Found params in URL:", { table: tableParam, restaurant: restaurantParam });
       parseQRData(window.location.href);
     }
   }, [location.search, parseQRData]);

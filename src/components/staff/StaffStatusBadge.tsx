@@ -19,7 +19,7 @@ const StaffStatusBadge: React.FC<StaffStatusBadgeProps> = ({ staff, onStatusChan
     event.stopPropagation();
     
     const newStatus = staff.status === 'active' ? 'inactive' : 'active';
-    console.log(`Changing status for ${staff.name} from ${staff.status} to ${newStatus}`);
+    // console.log(`Changing status for ${staff.name} from ${staff.status} to ${newStatus}`);
     
     setUpdating(true);
     

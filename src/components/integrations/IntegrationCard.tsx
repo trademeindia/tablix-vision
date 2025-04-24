@@ -21,7 +21,7 @@ const IntegrationCard: React.FC<IntegrationCardProps> = ({
   onDelete,
   isSyncing 
 }) => {
-  console.log('Rendering IntegrationCard for:', integration.name);
+  // console.log('Rendering IntegrationCard for:', integration.name);
   const isConnected = integration.status === 'connected';
   
   // Format last synced date if available

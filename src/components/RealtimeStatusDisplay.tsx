@@ -21,7 +21,7 @@ const RealtimeStatusDisplay = () => {
       'orders',
       '*',
       (payload) => {
-        console.log('Realtime test payload received:', payload);
+        // console.log('Realtime test payload received:', payload);
         toast({
           title: 'Realtime Update Received',
           description: `${payload.eventType} event on table ${payload.table}`,
@@ -42,20 +42,20 @@ const RealtimeStatusDisplay = () => {
       
       channel
         .on('presence', { event: 'sync' }, () => {
-          console.log('Realtime presence sync received');
+          // console.log('Realtime presence sync received');
           setRealtimeStatus('connected');
           setIsChecking(false);
         })
         .on('presence', { event: 'join' }, () => {
-          console.log('Realtime presence join received');
+          // console.log('Realtime presence join received');
         })
         .on('system', { event: 'disconnect' }, () => {
-          console.log('Realtime system disconnect received');
+          // console.log('Realtime system disconnect received');
           setRealtimeStatus('disconnected');
           setIsChecking(false);
         })
         .subscribe((status: string) => {
-          console.log('Realtime subscription status:', status);
+          // console.log('Realtime subscription status:', status);
           if (status === 'SUBSCRIBED') {
             setRealtimeStatus('connected');
           } else {

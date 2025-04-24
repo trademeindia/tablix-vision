@@ -16,7 +16,7 @@ const StaffForm: React.FC<StaffFormProps> = ({ form, existingStaff }) => {
     if (!existingStaff) return undefined;
     
     // Log available image URLs for debugging
-    console.log('Available image URLs for', existingStaff.name, {
+    // console.log('Available image URLs for', existingStaff.name, {
       avatar_url: existingStaff.avatar_url,
       avatar: existingStaff.avatar,
       image: existingStaff.image
