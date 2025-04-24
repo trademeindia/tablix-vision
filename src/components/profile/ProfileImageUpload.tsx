@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
@@ -7,10 +8,11 @@ import { Button } from '@/components/ui/button';
 
 interface ProfileImageUploadProps {
   form: UseFormReturn<any>;
+  currentImageUrl?: string;
 }
 
-const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form }) => {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, currentImageUrl }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,7 +27,9 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form }) => {
       // Generate a preview URL
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
-        setPreviewUrl(e.target?.result as string);
+        if (e.target?.result) {
+          setPreviewUrl(e.target.result as string);
+        }
       };
       fileReader.readAsDataURL(file);
     }
@@ -52,7 +56,9 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form }) => {
       // Generate a preview URL
       const fileReader = new FileReader();
       fileReader.onload = (evt) => {
-        setPreviewUrl(evt.target?.result as string);
+        if (evt.target?.result) {
+          setPreviewUrl(evt.target.result as string);
+        }
       };
       fileReader.readAsDataURL(file);
     }

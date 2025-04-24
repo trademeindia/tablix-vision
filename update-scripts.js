@@ -15,7 +15,7 @@ try {
   // Update scripts
   packageJson.scripts = {
     ...packageJson.scripts,
-    "dev": "node start-dev.js",
+    "dev": "node src/utils/start-app.js",
     "build": "echo 'Build process for Lovable'",
     "preview": "node src/utils/start-app.js"
   };
