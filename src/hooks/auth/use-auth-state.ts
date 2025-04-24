@@ -22,13 +22,12 @@ export function useAuthState() {
       }
     }
 
-    // Set up the auth state listener
+    // Critical: Set up the auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Auth state changed:', event);
-        }
+        console.log('Auth state changed:', event);
         
+        // Only update state with synchronous operations here
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -56,10 +55,18 @@ export function useAuthState() {
         }
         
         setLoading(false);
+        
+        // Use setTimeout for any async operations to prevent potential deadlocks
+        if (currentSession?.user) {
+          setTimeout(() => {
+            // Any additional data fetching after auth state change
+            console.log('Fetching additional user data after auth change');
+          }, 0);
+        }
       }
     );
 
-    // Then check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
@@ -73,6 +80,7 @@ export function useAuthState() {
     });
 
     return () => {
+      // Clean up subscription when component unmounts
       subscription.unsubscribe();
     };
   }, []);

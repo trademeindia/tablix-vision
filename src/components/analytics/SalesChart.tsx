@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,13 +20,13 @@ interface SalesChartProps {
   timeRange?: 'week' | 'month' | 'quarter' | 'year';
 }
 
-const SalesChart: React.FC<SalesChartProps> = ({ 
+const SalesChart = ({ 
   data, 
   isLoading,
   currency = 'INR',
   height = 300,
   timeRange = 'week'
-}) => {
+}: SalesChartProps) => {
   // Format the date for display based on time range
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

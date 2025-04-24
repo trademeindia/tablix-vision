@@ -11,12 +11,12 @@ interface OrderStatsProps {
   isLoading: boolean;
 }
 
-const OrderStats: React.FC<OrderStatsProps> = ({
+const OrderStats = ({
   weeklyOrders,
   monthlyOrders,
   yearlyOrders,
   isLoading
-}) => {
+}: OrderStatsProps) => {
   return (
     <Card>
       <CardContent className="pt-6">

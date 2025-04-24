@@ -1,39 +1,35 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { supabase, setupRealtimeListener } from '@/integrations/supabase/client';
 
+/**
+ * Enable realtime subscriptions for menu-related tables
+ */
 export const enableRealtimeForMenuTables = async () => {
   try {
-    // Enable realtime for menu-related tables
-    const { error } = await supabase.from('menu_items').select('count(*)', { count: 'exact', head: true });
+    console.log('Setting up realtime subscriptions for menu tables...');
     
-    if (error) {
-      console.error('Error connecting to Supabase:', error);
-      return false;
-    }
-    
-    console.log('Supabase connection verified for menu items');
-    
-    // Initialize a test channel to verify realtime is working
-    const channel = supabase.channel('realtime-test-channel');
-    await channel.subscribe((status) => {
-      console.log('Realtime subscription test status:', status);
-      
-      if (status === 'SUBSCRIBED') {
-        console.log('Realtime functionality is available and working');
-      } else if (status === 'CHANNEL_ERROR') {
-        console.warn('Realtime subscription failed:', status);
-        toast({
-          title: "Realtime functionality issue",
-          description: "Menu updates may not appear automatically. Please refresh manually if needed.",
-          variant: "destructive"
-        });
+    // Subscribe to menu categories changes
+    const categoriesChannel = setupRealtimeListener(
+      'menu_categories',
+      '*',
+      (payload) => {
+        console.log('Menu category changed:', payload);
       }
-    });
+    );
     
+    // Subscribe to menu items changes
+    const itemsChannel = setupRealtimeListener(
+      'menu_items',
+      '*',
+      (payload) => {
+        console.log('Menu item changed:', payload);
+      }
+    );
+    
+    console.log('Realtime subscriptions set up successfully');
     return true;
-  } catch (err) {
-    console.error('Error initializing Supabase realtime:', err);
+  } catch (error) {
+    console.error('Failed to set up realtime subscriptions:', error);
     return false;
   }
 };

@@ -1,10 +1,11 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import ItemForm from '@/components/menu/ItemForm';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import { useItemMutations } from '@/hooks/menu/use-item-mutations';
 import { toast } from '@/hooks/use-toast';
+import { ensureDemoRestaurantExists } from '@/services/menu/demoSetup';
 
 interface EditItemDialogProps {
   isOpen: boolean;
@@ -29,6 +30,22 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
 }) => {
   const { updateItemMutation } = useItemMutations(usingTestData);
   
+  // Ensure the demo restaurant exists when the component mounts
+  useEffect(() => {
+    const setupDemoRestaurant = async () => {
+      try {
+        // Only run this in demo/test mode
+        if (usingTestData || !restaurantId) {
+          await ensureDemoRestaurantExists();
+        }
+      } catch (error) {
+        console.error("Failed to setup demo restaurant:", error);
+      }
+    };
+    
+    setupDemoRestaurant();
+  }, [usingTestData, restaurantId]);
+  
   const handleUpdateItem = useCallback(async (data: Partial<MenuItem>) => {
     if (!selectedItem) {
       console.error("No item selected for update");
@@ -37,9 +54,10 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     
     try {
       // Ensure restaurant_id is included in the updates
+      const defaultRestaurantId = "00000000-0000-0000-0000-000000000000";
       const updateData = {
         ...data,
-        restaurant_id: restaurantId
+        restaurant_id: restaurantId || defaultRestaurantId
       };
       
       console.log("Updating menu item with data:", { id: selectedItem.id, updates: updateData });

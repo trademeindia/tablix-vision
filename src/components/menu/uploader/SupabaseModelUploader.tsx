@@ -1,11 +1,12 @@
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import FileSelector from './FileSelector';
 import UploadProgress from './UploadProgress';
 import UploadButton from './UploadButton';
 import { useSupabaseUpload } from '@/hooks/menu/use-supabase-upload';
 import { Card, CardContent } from '@/components/ui/card';
 import { Info } from 'lucide-react';
+import { initializeStorage } from '@/hooks/menu/use-create-storage-bucket';
 
 interface SupabaseModelUploaderProps {
   menuItemId?: string;
@@ -22,6 +23,21 @@ const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({
   className,
   allowedFileTypes
 }) => {
+  const [isStorageInitialized, setIsStorageInitialized] = useState(false);
+  
+  // Initialize storage bucket when component mounts
+  useEffect(() => {
+    const setupStorage = async () => {
+      const initialized = await initializeStorage();
+      setIsStorageInitialized(initialized);
+      if (!initialized) {
+        console.error('Failed to initialize storage bucket');
+      }
+    };
+    
+    setupStorage();
+  }, []);
+  
   const {
     isUploading,
     uploadProgress,
@@ -39,11 +55,20 @@ const SupabaseModelUploader: React.FC<SupabaseModelUploaderProps> = ({
   });
   
   const handleUpload = useCallback(async () => {
+    if (!isStorageInitialized) {
+      const initialized = await initializeStorage();
+      setIsStorageInitialized(initialized);
+      if (!initialized) {
+        console.error('Storage initialization failed. Please try again.');
+        return;
+      }
+    }
+    
     const result = await uploadFile();
     if (result) {
       onUploadComplete(result.path, result.url);
     }
-  }, [uploadFile, onUploadComplete]);
+  }, [uploadFile, onUploadComplete, isStorageInitialized]);
 
   return (
     <div className={`space-y-4 ${className || ''}`}>

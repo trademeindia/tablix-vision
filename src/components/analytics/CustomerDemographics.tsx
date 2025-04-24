@@ -9,7 +9,7 @@ interface CustomerDemographicsProps {
   isLoading: boolean;
 }
 
-const CustomerDemographics: React.FC<CustomerDemographicsProps> = ({ data, isLoading }) => {
+const CustomerDemographics = ({ data, isLoading }: CustomerDemographicsProps) => {
   return (
     <Card className="h-full">
       <CardContent className="pt-6">
@@ -42,7 +42,7 @@ const CustomerDemographics: React.FC<CustomerDemographicsProps> = ({ data, isLoa
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value) => [`${value} customers`, 'Count']}
+                  formatter={(value: any) => [`${value} customers`, 'Count']}
                 />
                 <Legend />
               </PieChart>

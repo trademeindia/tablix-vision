@@ -1,94 +1,145 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Upload, Trash2 } from 'lucide-react';
-import { useProfile } from '@/hooks/use-profile';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProfileImageUploadProps {
+  form: UseFormReturn<any>;
   currentImageUrl?: string;
-  onImageChange?: (url: string) => void;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
-  currentImageUrl,
-  onImageChange,
-  size = 'lg',
-}) => {
-  const { uploadProfileImage } = useProfile();
-  const [isUploading, setIsUploading] = useState(false);
-  
-  const imageSize = {
-    sm: 'h-20 w-20',
-    md: 'h-24 w-24',
-    lg: 'h-32 w-32',
-    xl: 'h-40 w-40',
-  }[size];
-  
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ form, currentImageUrl }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    try {
-      setIsUploading(true);
-      const { publicUrl, error } = await uploadProfileImage(file);
+  const setValue = form.setValue;
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    
+    if (file) {
+      setValue('profileImage', file);
       
-      if (error) throw error;
-      if (publicUrl && onImageChange) onImageChange(publicUrl);
-      
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    } finally {
-      setIsUploading(false);
+      // Generate a preview URL
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        if (e.target?.result) {
+          setPreviewUrl(e.target.result as string);
+        }
+      };
+      fileReader.readAsDataURL(file);
     }
   };
   
-  const getInitials = (name?: string): string => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
   };
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      {isUploading ? (
-        <Skeleton className={`rounded-full ${imageSize}`} />
-      ) : (
-        <Avatar className={`${imageSize} border-2 border-primary/10`}>
-          <AvatarImage src={currentImageUrl} />
-          <AvatarFallback className="bg-primary/10 text-primary">
-            {getInitials('User')}
-          </AvatarFallback>
-        </Avatar>
-      )}
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setValue('profileImage', file);
       
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1"
-          asChild
-        >
-          <label>
-            <Upload className="h-4 w-4" />
-            <span>Upload</span>
-            <input
-              type="file"
-              className="sr-only"
-              accept="image/*"
-              onChange={handleFileChange}
-              disabled={isUploading}
-            />
-          </label>
-        </Button>
-      </div>
-    </div>
+      // Generate a preview URL
+      const fileReader = new FileReader();
+      fileReader.onload = (evt) => {
+        if (evt.target?.result) {
+          setPreviewUrl(evt.target.result as string);
+        }
+      };
+      fileReader.readAsDataURL(file);
+    }
+  };
+  
+  const handleRemoveImage = () => {
+    setPreviewUrl(null);
+    setValue('profileImage', null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  return (
+    <FormField
+      control={form.control}
+      name="profileImage"
+      render={() => (
+        <FormItem className="flex flex-col items-center mb-6">
+          <FormLabel className="text-center mb-2">Profile Image</FormLabel>
+          <FormControl>
+            <div
+              className={`relative w-32 h-32 cursor-pointer ${isDragging ? 'ring-2 ring-primary' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={triggerFileInput}
+            >
+              <Avatar className="w-32 h-32 border-4 border-slate-100 shadow-md">
+                <AvatarImage 
+                  src={previewUrl || undefined} 
+                  alt="Profile preview" 
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-700 text-xl font-semibold">
+                  {/* Display initials or a default text */}
+                  SM
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 opacity-0 hover:opacity-100 rounded-full transition-opacity duration-200">
+                <Camera className="w-8 h-8 text-white" />
+              </div>
+              
+              {previewUrl && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveImage();
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </FormControl>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          
+          <p className="text-sm text-center text-muted-foreground mt-2">
+            Click or drag and drop to upload
+          </p>
+        </FormItem>
+      )}
+    />
   );
 };
 

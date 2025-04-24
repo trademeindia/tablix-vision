@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useQrGenerator } from '@/hooks/use-qr-generator';
+import { useQrGenerator } from '@/hooks/qr-code/use-qr-generator';
 import QRCodeForm from './QRCodeForm';
 import QRCodeDisplay from './QRCodeDisplay';
 

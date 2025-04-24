@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import QRCodeGenerator from '@/components/qrcode/QRCodeGenerator';
 import QRCodeList from '@/components/qrcode/QRCodeList';
+import DemoQRCode from '@/components/qrcode/DemoQRCode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,6 +88,7 @@ const QRCodePage = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="generate">Generate QR Codes</TabsTrigger>
           <TabsTrigger value="manage">Manage QR Codes</TabsTrigger>
+          <TabsTrigger value="demo">Demo QR Code</TabsTrigger>
         </TabsList>
         
         <TabsContent value="generate">
@@ -134,6 +136,47 @@ const QRCodePage = () => {
         
         <TabsContent value="manage">
           <QRCodeList restaurantId={restaurantId} isLoading={isLoading} />
+        </TabsContent>
+        
+        <TabsContent value="demo">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DemoQRCode />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>About 3D Menu QR Codes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="font-medium">Interactive 3D Menu Items</h3>
+                  <p className="text-sm text-slate-500">
+                    Showcase your dishes in 3D to give customers a better visual experience of what they're ordering.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Increase Customer Engagement</h3>
+                  <p className="text-sm text-slate-500">
+                    3D models are interactive - customers can rotate and zoom in on food items to see details from every angle.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Easy to Implement</h3>
+                  <p className="text-sm text-slate-500">
+                    Simply upload 3D models of your dishes in the Menu section and they'll automatically be included in your digital menu.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Try the Demo</h3>
+                  <p className="text-sm text-slate-500">
+                    Scan the demo QR code with your smartphone or click the "Test Scan" button to see how it works.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </DashboardLayout>

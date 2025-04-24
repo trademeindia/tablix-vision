@@ -1,11 +1,10 @@
 
-import React, { useState } from 'react';
+import * as React from 'react';
 import { Card, CardContent, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from '@/components/ui/badge';
 
 interface AIAnalyticsReportProps {
   restaurantId: string;
@@ -13,13 +12,13 @@ interface AIAnalyticsReportProps {
   isLoading?: boolean;
 }
 
-const AIAnalyticsReport: React.FC<AIAnalyticsReportProps> = ({ 
+const AIAnalyticsReport = ({ 
   restaurantId, 
   onGenerateReport,
   isLoading: initialLoading = false
-}) => {
-  const [report, setReport] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(initialLoading);
+}: AIAnalyticsReportProps) => {
+  const [report, setReport] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(initialLoading);
   const { toast } = useToast();
 
   const handleGenerateReport = async () => {
@@ -45,10 +44,10 @@ const AIAnalyticsReport: React.FC<AIAnalyticsReportProps> = ({
         <CardTitle className="flex items-center justify-between text-xl mb-4">
           <div className="flex items-center gap-2">
             <span>AI Business Insights</span>
-            <Badge className="bg-amber-500 hover:bg-amber-600">
+            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground">
               <Sparkles className="h-3 w-3 mr-1" />
               <span className="text-xs">Powered by AI</span>
-            </Badge>
+            </div>
           </div>
           <Sparkles className="h-5 w-5 text-amber-500" />
         </CardTitle>

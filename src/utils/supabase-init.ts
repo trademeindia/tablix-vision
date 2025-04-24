@@ -1,35 +1,31 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { initializeStorage } from '@/hooks/menu/use-create-storage-bucket';
 
-export const initializeSupabase = async () => {
+/**
+ * Initialize Supabase connection and create necessary buckets
+ */
+export const initializeSupabase = async (): Promise<boolean> => {
   try {
-    // Check if Supabase is available and properly configured
-    const { data, error } = await supabase.from('menu_items').select('count()', { count: 'exact' }).limit(1);
+    console.log('Initializing Supabase connection...');
+    
+    // Test connection by checking user session
+    const { data, error } = await supabase.auth.getSession();
     
     if (error) {
-      console.error('Error initializing Supabase:', error);
+      console.error('Error connecting to Supabase:', error);
       return false;
     }
     
-    console.log('Supabase successfully initialized');
+    console.log('Supabase connection successful');
     
-    // Test if realtime is working
-    try {
-      const channel = supabase.channel('test');
-      const status = await channel.subscribe();
-      console.log('Realtime subscription test status:', status);
-      
-      // Clean up test channel
-      supabase.removeChannel(channel);
-      
-      console.log('Realtime functionality is available and working');
-    } catch (realtimeError) {
-      console.warn('Realtime test encountered an error:', realtimeError);
-    }
+    // Initialize storage bucket for menu media
+    const storageInitialized = await initializeStorage();
+    console.log('Storage initialization:', storageInitialized ? 'successful' : 'failed');
     
     return true;
   } catch (err) {
-    console.error('Unexpected error initializing Supabase:', err);
+    console.error('Failed to initialize Supabase:', err);
     return false;
   }
 };

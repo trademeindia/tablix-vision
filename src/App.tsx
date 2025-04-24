@@ -1,5 +1,6 @@
+
+import * as React from 'react';
 import { getSupabaseUrl, supabase } from "./lib/supabaseClient";
-import React, { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { initializeSupabase } from './utils/supabase-init';
@@ -21,10 +22,10 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [tableNames, setTableNames] = useState<string[]>([]);
+  const [isInitializing, setIsInitializing] = React.useState(true);
+  const [tableNames, setTableNames] = React.useState<string[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const initialize = async () => {
       // Initialize Supabase connection
       const success = await initializeSupabase();
@@ -44,7 +45,7 @@ function App() {
     initialize();
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchTableNames = async () => {
       try {
         const { data, error } = await supabase
@@ -67,29 +68,35 @@ function App() {
     fetchTableNames();
   }, []);
 
+  React.useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const supabaseUrl = getSupabaseUrl();
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-        <AuthProvider>
-          <div>
-            Supabase URL: {supabaseUrl}
-            <h2>Table Names:</h2>
-            <ul>
-              {tableNames.map((name) => (
-                <li key={name}>{name}</li>
-              ))}
-            </ul>
-            <BrowserRouter>
-              <AppRoutes />
-              <Toaster />
-            </BrowserRouter>
-          </div>
-        </AuthProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            {isInitializing ? (
+              <LoadingScreen message="Initializing application..." />
+            ) : (
+              <div>
+                <AppRoutes />
+                <Toaster />
+              </div>
+            )}
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>
   );
+<<<<<<< HEAD
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log(session)
@@ -97,5 +104,8 @@ function App() {
 
     return () => subscription.unsubscribe()
   }, [])
+=======
+}
+>>>>>>> 5e235de32b8da2eb2956ba2126e7cfb7609f5f07
 
 export default App;

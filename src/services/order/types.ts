@@ -10,6 +10,8 @@ export interface OrderItem {
   quantity: number;
   special_instructions?: string;
   customizations?: any;
+  completed?: boolean;  // Add the completed field
+  restaurant_id?: string;
 }
 
 export interface Order {

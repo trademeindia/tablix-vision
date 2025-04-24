@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { MenuItem, parseAllergens } from '@/types/menu';
 import { toast } from '@/hooks/use-toast';
 

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,22 +11,18 @@ const Index = () => {
   const { user, userRoles, loading } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect authenticated users based on their roles
   useEffect(() => {
     if (!loading && user) {
-      // Check user roles and redirect accordingly
       if (userRoles.length > 0) {
         const primaryRole = userRoles[0];
         const redirectPath = getRedirectPathByRole(primaryRole);
         navigate(redirectPath);
       } else {
-        // Default to customer menu if no roles are found
         navigate('/customer/menu');
       }
     }
   }, [user, userRoles, loading, navigate]);
 
-  // For users who directly navigate to /index, redirect them to the root landing page
   useEffect(() => {
     if (!loading && !user) {
       navigate('/');

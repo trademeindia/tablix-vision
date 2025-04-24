@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { MenuCategory } from '@/types/menu';
 
 export function useRealtimeMenuCategories(restaurantId: string | undefined) {

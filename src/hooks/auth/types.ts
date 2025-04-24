@@ -12,3 +12,12 @@ export interface UseSessionReturn {
   resetPassword: (email: string) => Promise<{ error: any | null }>;
   updatePassword: (password: string) => Promise<{ error: any | null }>;
 }
+
+export type UserRole = 'owner' | 'manager' | 'waiter' | 'chef' | 'customer' | 'staff';
+
+export interface UseUserRoleReturn {
+  userRoles: UserRole[];
+  fetchUserRoles: (userId: string) => Promise<UserRole[]>;
+  loading: boolean;
+  error: Error | null;
+}

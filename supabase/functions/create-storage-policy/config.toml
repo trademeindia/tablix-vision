@@ -1,6 +1,2 @@
 
-# Whether the function is enabled
-enabled = true
-
-# Make it public
-verify_jwt = false
+project_id = "qofbpjdbmisyxysfcyeb"

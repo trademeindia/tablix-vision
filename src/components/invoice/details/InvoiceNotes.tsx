@@ -5,9 +5,7 @@ interface InvoiceNotesProps {
   notes?: string;
 }
 
-export const InvoiceNotes: React.FC<InvoiceNotesProps> = React.memo(({
-  notes,
-}) => {
+const InvoiceNotes: React.FC<InvoiceNotesProps> = ({ notes }) => {
   if (!notes) return null;
   
   return (
@@ -16,6 +14,6 @@ export const InvoiceNotes: React.FC<InvoiceNotesProps> = React.memo(({
       <p className="text-sm text-muted-foreground whitespace-pre-wrap">{notes}</p>
     </div>
   );
-});
+};
 
-InvoiceNotes.displayName = 'InvoiceNotes';
+export default InvoiceNotes;

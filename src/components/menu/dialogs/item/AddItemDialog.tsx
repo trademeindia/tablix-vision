@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import ItemForm from '@/components/menu/ItemForm';
 import { MenuCategory, MenuItem } from '@/types/menu';
 import { useItemMutations } from '@/hooks/menu/use-item-mutations';
 import { toast } from '@/hooks/use-toast';
+import { ensureDemoRestaurantExists } from '@/services/menu/demoSetup';
 
 interface AddItemDialogProps {
   isOpen: boolean;
@@ -26,6 +27,22 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
   const { createItemMutation } = useItemMutations(usingTestData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Ensure the demo restaurant exists when the component mounts
+  useEffect(() => {
+    const setupDemoRestaurant = async () => {
+      try {
+        // Only run this in demo/test mode
+        if (usingTestData || !restaurantId) {
+          await ensureDemoRestaurantExists();
+        }
+      } catch (error) {
+        console.error("Failed to setup demo restaurant:", error);
+      }
+    };
+    
+    setupDemoRestaurant();
+  }, [usingTestData, restaurantId]);
+  
   const handleAddItem = async (data: Partial<MenuItem>) => {
     try {
       // Prevent further processing if already submitting
@@ -37,10 +54,14 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({
       setIsSubmitting(true);
       
       // Ensure restaurant_id is included in the data
+      // If restaurantId is empty, use a default ID
+      const defaultRestaurantId = "00000000-0000-0000-0000-000000000000";
       const itemData = {
         ...data,
-        restaurant_id: restaurantId
+        restaurant_id: restaurantId || defaultRestaurantId
       };
+      
+      console.log("Using restaurant ID:", itemData.restaurant_id);
       
       // Validate required fields
       if (!itemData.name?.trim()) {
