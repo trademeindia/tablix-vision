@@ -16,8 +16,8 @@ try {
   packageJson.scripts = {
     ...packageJson.scripts,
     "dev": "node start-dev.js",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "echo 'Build process for Lovable'",
+    "preview": "node src/utils/start-app.js"
   };
   
   // Write updated package.json

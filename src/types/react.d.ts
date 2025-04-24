@@ -40,6 +40,8 @@ declare module 'react' {
   export type AnchorHTMLAttributes<T> = React.AnchorHTMLAttributes<T>;
   export type ImgHTMLAttributes<T> = React.ImgHTMLAttributes<T>;
   export type LabelHTMLAttributes<T> = React.LabelHTMLAttributes<T>;
+  export type TdHTMLAttributes<T> = React.HTMLAttributes<T>;
+  export type ThHTMLAttributes<T> = React.HTMLAttributes<T>;
   
   // Component props types
   export type DetailedHTMLProps<E extends HTMLAttributes<T>, T> = React.DetailedHTMLProps<E, T>;
@@ -50,6 +52,8 @@ declare module 'react' {
   
   // Misc types
   export type ReactNode = React.ReactNode;
+  export type ReactElement = React.ReactElement;
+  export type ComponentType<P = {}> = React.ComponentType<P>;
   export type FormEventHandler<T = Element> = (event: FormEvent<T>) => void;
   export type ChangeEventHandler<T = Element> = (event: ChangeEvent<T>) => void;
   export type MouseEventHandler<T = Element> = (event: MouseEvent<T>) => void;
@@ -59,6 +63,8 @@ declare module 'react' {
   export const Fragment: typeof React.Fragment;
   export const forwardRef: typeof React.forwardRef;
   export const createRef: typeof React.createRef;
+  export const createContext: typeof React.createContext;
+  export const useId: typeof React.useId;
   
   // Hooks
   export const useState: typeof React.useState;

@@ -1,5 +1,4 @@
 
-// Updated version of the ProfileImageUpload component
 import React, { useState, useRef } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';

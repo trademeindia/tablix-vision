@@ -6,7 +6,7 @@ import { InvoiceHeader } from './details/InvoiceHeader';
 import { InvoiceCustomerInfo } from './details/InvoiceCustomerInfo';
 import { InvoiceItemsTable } from './details/InvoiceItemsTable';
 import { InvoiceSummary } from './details/InvoiceSummary';
-import { InvoiceNotes } from './details/InvoiceNotes';
+import InvoiceNotes from './details/InvoiceNotes';
 import { InvoiceActions } from './details/InvoiceActions';
 
 interface InvoiceDetailsProps {
