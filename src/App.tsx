@@ -96,16 +96,6 @@ function App() {
       </ThemeProvider>
     </QueryClientProvider>
   );
-<<<<<<< HEAD
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-=======
 }
->>>>>>> 5e235de32b8da2eb2956ba2126e7cfb7609f5f07
 
 export default App;
