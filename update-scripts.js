@@ -4,27 +4,28 @@
 // Script to update package.json scripts
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 try {
   console.log('Updating package.json scripts...');
   
-  // Read package.json
-  const packageJsonPath = path.resolve(process.cwd(), 'package.json');
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  // Instead of directly modifying package.json, use npm commands
+  console.log('Setting up development command...');
+  execSync('npm pkg set "scripts.dev=node src/utils/start-app.js"', { stdio: 'inherit' });
   
-  // Update scripts
-  packageJson.scripts = {
-    ...packageJson.scripts,
-    "dev": "node src/utils/start-app.js",
-    "build": "echo 'Build process for Lovable'",
-    "preview": "node src/utils/start-app.js"
-  };
+  console.log('Setting up build command...');
+  execSync('npm pkg set "scripts.build=node src/utils/start-app.js"', { stdio: 'inherit' });
   
-  // Write updated package.json
-  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+  console.log('Setting up preview command...');
+  execSync('npm pkg set "scripts.preview=node src/utils/start-app.js"', { stdio: 'inherit' });
   
   console.log('Package.json scripts updated successfully!');
   console.log('You can now run "npm run dev" to start the development server.');
 } catch (error) {
   console.error('Error updating package.json:', error.message);
+  console.log('You may need to manually update your package.json scripts.');
+  console.log('Add the following to your package.json scripts:');
+  console.log('  "dev": "node src/utils/start-app.js",');
+  console.log('  "build": "node src/utils/start-app.js",');
+  console.log('  "preview": "node src/utils/start-app.js"');
 }
