@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
@@ -43,15 +44,19 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
       return;
     }
     
-    // console.log("Opening 3D model viewer with URL:", modelUrl);
     setSelectedModel(modelUrl);
     setModelViewerOpen(true);
   };
   
+  // Updated handleImageError function with correctly typed event
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.error("Image failed to load:", e.currentTarget.src);
-    e.currentTarget.classList.add('hidden');
-    e.currentTarget.parentElement?.classList.add('image-error');
+    // Use e.target instead of currentTarget
+    const img = e.target as HTMLImageElement;
+    img.classList.add('hidden');
+    // Safely access the parent element
+    if (img.parentElement) {
+      img.parentElement.classList.add('image-error');
+    }
   };
   
   return (

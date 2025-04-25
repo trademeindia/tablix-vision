@@ -15,7 +15,7 @@ declare module 'react' {
   export type FormHTMLAttributes<T> = React.DetailedHTMLProps<React.FormHTMLAttributes<T>, T>;
   
   // Enhanced SyntheticEvent with better target typing
-  export type SyntheticEvent<T = Element, E = Event> = {
+  export interface SyntheticEvent<T = Element, E = Event> {
     bubbles: boolean;
     cancelable: boolean;
     currentTarget: EventTarget & T;

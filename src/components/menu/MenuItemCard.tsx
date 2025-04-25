@@ -36,10 +36,15 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 }) => {
   const has3DModel = mediaType === '3d';
   
+  // Updated handleImageError function with corrected typing
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.error("Image failed to load:", e.currentTarget.src);
-    e.currentTarget.classList.add('hidden');
-    e.currentTarget.parentElement?.classList.add('image-error');
+    // Use e.target instead of currentTarget
+    const img = e.target as HTMLImageElement;
+    img.classList.add('hidden');
+    // Safely access parent element
+    if (img.parentElement) {
+      img.parentElement.classList.add('image-error');
+    }
   };
 
   return (

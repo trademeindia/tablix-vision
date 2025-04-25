@@ -39,7 +39,7 @@ declare module '@/components/ui/table' {
     children?: React.ReactNode;
   }
   
-  export interface TableRowProps extends React.TableRowHTMLAttributes<HTMLTableRowElement> {
+  export interface TableRowProps extends React.TableHTMLAttributes<HTMLTableRowElement> {
     children?: React.ReactNode;
     onClick?: (event: React.MouseEvent<HTMLTableRowElement>) => void;
   }
@@ -90,5 +90,11 @@ declare module '@/components/ui/sheet' {
 
 // React-helmet-async component type definitions
 declare module 'react-helmet-async' {
-  export class Helmet extends React.Component<any> {}
+  export interface HelmetProps {
+    [key: string]: any;
+    children?: React.ReactNode;
+  }
+
+  export class Helmet extends React.Component<HelmetProps> {}
+  export const HelmetProvider: React.FC<{children: React.ReactNode}>;
 }

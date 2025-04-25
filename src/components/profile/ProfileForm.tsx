@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -95,7 +94,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
       <CardContent>
         <div className="mb-6 flex justify-center">
           <ProfileImageUpload 
-            form={form} // Pass the form to the component
+            form={form}
             currentImageUrl={profile?.avatar_url}
           />
         </div>
