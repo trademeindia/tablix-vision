@@ -1,8 +1,9 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
-import {  enableRealtimeForMenuTables, cleanupRealtimeSubscriptions } from './utils/supabase-realtime';
+import { enableRealtimeForMenuTables, cleanupRealtimeSubscriptions } from './utils/supabase-realtime';
 import { supabase, getSupabaseUrl } from '@/lib/supabaseClient';
 import { initializeSupabase } from './utils/supabase-init';
 import { ThemeProviderWrapper as ThemeProvider } from '@/components/theme-provider';
@@ -10,7 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import LoadingScreen from '@/components/ui/loading-screen';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { useSupabaseAuthListener } from '@/hooks/use-supabase-auth-listener';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -23,7 +24,6 @@ const queryClient = new QueryClient({
 });
 
 const INITIALIZATION_DELAY = 800;
-const INITIALIZATION_ERROR_MESSAGE = 'Failed to initialize the application. Please try again.';
 
 function App() {
   const [isInitializing, setIsInitializing] = React.useState(true);
@@ -99,18 +99,20 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
-        <BrowserRouter>
-          <AuthProvider>
-            {isInitializing ? (
-              <LoadingScreen message="Initializing application..." />
-            ) : (
-              <div>
-                <AppRoutes />
-                <Toaster />
-              </div>
-            )}
-          </AuthProvider>
-        </BrowserRouter>
+        <HelmetProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              {isInitializing ? (
+                <LoadingScreen message="Initializing application..." />
+              ) : (
+                <div>
+                  <AppRoutes />
+                  <Toaster />
+                </div>
+              )}
+            </AuthProvider>
+          </BrowserRouter>
+        </HelmetProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
