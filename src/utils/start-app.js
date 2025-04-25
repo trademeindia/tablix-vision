@@ -24,15 +24,8 @@ const contentTypes = {
 
 console.log('Starting Lovable development server...');
 
-// Install dependencies if needed
-try {
-  if (!fs.existsSync(path.resolve(process.cwd(), 'node_modules'))) {
-    console.log('Installing dependencies first...');
-    execSync('npm install', { stdio: 'inherit' });
-  }
-} catch (e) {
-  console.error('Failed to check or install dependencies:', e);
-}
+// First ensure Vite is available
+require('./ensure-vite');
 
 // First, try to check if Vite is available
 try {

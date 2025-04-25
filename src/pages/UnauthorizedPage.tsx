@@ -24,8 +24,9 @@ const UnauthorizedPage = () => {
   const isGoogleAuth = user?.app_metadata?.provider === 'google' || false;
   
   useEffect(() => {
-    // Log debug information to help troubleshoot
-    // console.log("UnauthorizedPage mounted with state:", {
+    // For debugging, uncomment if needed
+    /* 
+    console.log("UnauthorizedPage mounted with state:", {
       fromPath,
       stateUserRoles,
       stateRequiredRoles,
@@ -34,6 +35,7 @@ const UnauthorizedPage = () => {
       user: user?.email,
       isGoogleAuth
     });
+    */
   }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, savedRole, user, isGoogleAuth]);
 
   const handleRefreshAccess = () => {

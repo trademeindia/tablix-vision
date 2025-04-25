@@ -539,6 +539,30 @@ export type Database = {
           },
         ]
       }
+      password_failed_verification_attempts: {
+        Row: {
+          created_at: string | null
+          id: number
+          last_failed_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          last_failed_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          last_failed_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -870,6 +894,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      todos: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          id: number
+          task: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          id?: never
+          task: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          id?: never
+          task?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       waiter_requests: {
         Row: {

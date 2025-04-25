@@ -1,4 +1,6 @@
 
+#!/usr/bin/env node
+
 // This script ensures that Vite is installed in development environments
 const { execSync } = require('child_process');
 const fs = require('fs');

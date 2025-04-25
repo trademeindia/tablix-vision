@@ -26,6 +26,7 @@ export function useIntegrations(restaurantId?: string) {
   } = useQuery({
     queryKey: ['integrations', restaurantId],
     queryFn: async () => {
+      // For logging, uncomment if needed
       // console.log('Fetching integrations for restaurant:', restaurantId);
       
       // For development/demo mode, use mock data
@@ -35,6 +36,7 @@ export function useIntegrations(restaurantId?: string) {
         
         // Get mock integrations
         const mockData = getMockIntegrations();
+        // For debugging, uncomment if needed
         // console.log('Using mock integrations data:', mockData);
         return mockData;
       } catch (err) {
@@ -47,7 +49,8 @@ export function useIntegrations(restaurantId?: string) {
 
   // Log state changes for debugging
   useEffect(() => {
-    // console.log('useIntegrations hook state:', { 
+    /* Uncomment if needed for debugging
+    console.log('useIntegrations hook state:', { 
       integrations, 
       integrationsCount: integrations?.length || 0,
       isLoading, 
@@ -55,6 +58,7 @@ export function useIntegrations(restaurantId?: string) {
       error,
       isSyncing 
     });
+    */
   }, [integrations, isLoading, error, isSyncing, isError]);
 
   // Wrap the sync function to manage local sync state
