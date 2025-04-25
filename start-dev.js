@@ -2,16 +2,12 @@
 #!/usr/bin/env node
 
 const { spawn } = require('child_process');
-const path = require('path');
-const fs = require('fs');
 
 console.log('Starting the development server with Rollup dependency workaround...');
 
-// Create a custom environment with NODE_OPTIONS to avoid Rollup native dependencies
 const customEnv = Object.assign({}, process.env);
-customEnv.NODE_OPTIONS = '--no-addons'; // Disable native addons to prevent Rollup issues
+customEnv.NODE_OPTIONS = '--no-addons';
 
-// Start Vite with the custom environment
 const viteProcess = spawn('npx', ['vite'], {
   stdio: 'inherit',
   env: customEnv,

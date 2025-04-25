@@ -1,5 +1,5 @@
 
-import React from 'react';
+import { Component } from 'react';
 
 declare module 'react-helmet-async' {
   export interface HelmetProps {
@@ -7,6 +7,6 @@ declare module 'react-helmet-async' {
     children?: React.ReactNode;
   }
 
-  export const Helmet: React.FC<HelmetProps>;
-  export const HelmetProvider: React.FC<{children: React.ReactNode}>;
+  export class Helmet extends Component<HelmetProps> {}
+  export class HelmetProvider extends Component<{ children: React.ReactNode }> {}
 }
