@@ -31,45 +31,55 @@ const env = {
 };
 
 let viteProcess;
-if (command === 'build') {
-  console.log('Building project...');
-  viteProcess = spawn(
-    'node',
-    ['node_modules/vite/bin/vite.js', 'build'],
-    { stdio: 'inherit', shell: true, env }
-  );
-} else if (command === 'preview') {
-  console.log('Starting preview server...');
-  viteProcess = spawn(
-    'node',
-    ['node_modules/vite/bin/vite.js', 'preview'],
-    { stdio: 'inherit', shell: true, env }
-  );
-} else {
-  console.log('Starting development server...');
-  viteProcess = spawn(
-    'node',
-    ['node_modules/vite/bin/vite.js'],
-    { stdio: 'inherit', shell: true, env }
-  );
+try {
+  if (command === 'build') {
+    console.log('Building project...');
+    viteProcess = spawn(
+      'npx',
+      ['vite', 'build'],
+      { stdio: 'inherit', shell: true, env }
+    );
+  } else if (command === 'preview') {
+    console.log('Starting preview server...');
+    viteProcess = spawn(
+      'npx',
+      ['vite', 'preview'],
+      { stdio: 'inherit', shell: true, env }
+    );
+  } else {
+    console.log('Starting development server...');
+    viteProcess = spawn(
+      'npx',
+      ['vite'],
+      { stdio: 'inherit', shell: true, env }
+    );
+  }
+} catch (error) {
+  console.error('Error starting application:', error);
+  process.exit(1);
 }
 
-viteProcess.on('error', (err) => {
-  console.error('Failed to start Vite:', err.message);
-  
-  // Try fallback to npx
-  console.log('Attempting fallback to npx vite...');
-  const npxProcess = spawn('npx', ['vite'], { stdio: 'inherit', shell: true, env });
-  
-  npxProcess.on('error', (npxErr) => {
-    console.error('Fallback also failed:', npxErr.message);
-    process.exit(1);
+if (viteProcess) {
+  viteProcess.on('error', (err) => {
+    console.error('Failed to start Vite:', err.message);
+    
+    console.log('Attempting fallback to direct node execution...');
+    const nodeProcess = spawn(
+      'node',
+      ['node_modules/vite/bin/vite.js'], 
+      { stdio: 'inherit', shell: true, env }
+    );
+    
+    nodeProcess.on('error', (nodeErr) => {
+      console.error('Fallback also failed:', nodeErr.message);
+      process.exit(1);
+    });
   });
-});
-
-viteProcess.on('close', (code) => {
-  if (code !== 0) {
-    console.log(`Vite process exited with code ${code}`);
-  }
-  process.exit(code);
-});
+  
+  viteProcess.on('close', (code) => {
+    if (code !== 0) {
+      console.log(`Vite process exited with code ${code}`);
+    }
+    process.exit(code);
+  });
+}

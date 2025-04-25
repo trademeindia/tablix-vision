@@ -8,5 +8,11 @@ declare module 'react-helmet-async' {
   }
 
   export const Helmet: React.FC<HelmetProps>;
-  export class HelmetProvider extends React.Component<{ children: React.ReactNode }> {}
+  
+  export interface HelmetProviderProps {
+    children?: React.ReactNode;
+    context?: any;
+  }
+  
+  export const HelmetProvider: React.FC<HelmetProviderProps>;
 }

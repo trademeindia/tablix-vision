@@ -4,17 +4,18 @@
 const fs = require('fs');
 const path = require('path');
 
-// List of files to make executable
-const files = [
-  'src/utils/start-app.js',
-  'start.js'
-];
+console.log('Ensuring scripts are executable...');
 
-console.log('Making scripts executable...');
+// Make necessary scripts executable
+const filesToMakeExecutable = [
+  'start.js',
+  'src/utils/start-app.js',
+  'src/utils/ensure-executable.js'
+];
 
 // Only needed on Unix-based systems
 if (process.platform !== 'win32') {
-  files.forEach(file => {
+  filesToMakeExecutable.forEach(file => {
     const filePath = path.resolve(process.cwd(), file);
     
     if (fs.existsSync(filePath)) {
@@ -30,4 +31,4 @@ if (process.platform !== 'win32') {
   });
 }
 
-console.log('Script execution complete');
+console.log('Scripts are now executable');
