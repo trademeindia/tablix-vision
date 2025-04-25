@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
+console.log('main.tsx is executing');
 import { initializeSupabase } from '@/utils/supabase-init';
 
 // Initialize Supabase when the app starts

@@ -13,17 +13,17 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles,
-}) => {
+}): JSX.Element | null => {
   const { user, userRoles, loading } = useAuth();
   const location = useLocation();
 
   // console.log('ProtectedRoute check -', {
-    path: location.pathname,
-    user: user?.email,
-    userRoles,
-    requiredRoles,
-    loading
-  });
+  //   path: location.pathname,
+  //   user: user?.email,
+  //   userRoles,
+  //   requiredRoles,
+  //   loading
+  // });
 
   // Show loading state while checking authentication
   if (loading) {
@@ -67,12 +67,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!hasRequiredRole) {
       // Save debugging information to help troubleshoot
       const debugInfo = {
-        requiredRoles,
-        userRoles,
+        requiredRoles: requiredRoles,
+        userRoles: userRoles,
         location: location.pathname,
-        isDemoAccount,
-        isGoogleAuth,
-        isDemoOverrideActive
+        isDemoAccount: isDemoAccount,
+        isGoogleAuth: isGoogleAuth,
+        isDemoOverrideActive: isDemoOverrideActive
       };
       // console.log("Access denied debugging info:", debugInfo);
       
