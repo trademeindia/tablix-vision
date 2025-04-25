@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Home, RefreshCw, LogIn } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import Helmet from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 
 const UnauthorizedPage = () => {

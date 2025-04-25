@@ -5,6 +5,7 @@ import * as React from "react";
 import { OTPInput, SlotProps } from "input-otp";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "./skeleton";
+import { InputOtpProps, InputOtpRootProps } from "@/types/input-otp-types";
 
 interface InputOtpSlotProps extends React.ComponentPropsWithoutRef<"div"> {
   char: string | null;
@@ -53,7 +54,7 @@ const InputOtpGroup = React.forwardRef<HTMLDivElement, InputOtpGroupProps>(
 InputOtpGroup.displayName = "InputOtpGroup";
 
 // Use InputOtpProps from the type definition
-const InputOtp = React.forwardRef<React.ElementRef<typeof OTPInput>, any>((props, ref) => {
+const InputOtp = React.forwardRef<React.ElementRef<typeof OTPInput>, InputOtpProps>((props, ref) => {
   const { className, ...rest } = props;
   return (
     <OTPInput
@@ -67,7 +68,7 @@ const InputOtp = React.forwardRef<React.ElementRef<typeof OTPInput>, any>((props
 InputOtp.displayName = "InputOtp";
 
 // Use InputOtpRootProps from the type definition
-const InputOtpRoot = React.forwardRef<React.ElementRef<typeof OTPInput>, any>((props, ref) => {
+const InputOtpRoot = React.forwardRef<React.ElementRef<typeof OTPInput>, InputOtpRootProps>((props, ref) => {
   const { className, containerClassName, ...rest } = props;
   return (
     <OTPInput

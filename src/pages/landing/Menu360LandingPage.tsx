@@ -11,7 +11,7 @@ import FinalCTASection from '@/components/landing/FinalCTASection';
 import LandingHeader from '@/components/landing/LandingHeader';
 import LandingFooter from '@/components/landing/LandingFooter';
 import PageTransition from '@/components/ui/page-transition';
-import { Helmet } from 'react-helmet-async';
+import Helmet from 'react-helmet-async';
 
 const Menu360LandingPage: React.FC = () => {
   // Add error boundary to catch rendering issues
