@@ -8,7 +8,7 @@ console.log('Starting the Menu360 application...');
 // Run setup
 try {
   console.log('Setting up environment...');
-  execSync('node src/utils/setup-environment.js', { stdio: 'inherit' });
+  execSync('node src/utils/ensure-executable.js', { stdio: 'inherit' });
   
   // Run the app
   console.log('Starting application server...');

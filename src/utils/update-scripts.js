@@ -1,14 +1,31 @@
 
 #!/usr/bin/env node
 
-// Update the package.json scripts without modifying the file directly
+// Script to update package.json scripts
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
-// First run the vite installation script
-require('./install-vite.js');
-
-// Now simply generate a command that the user can run to update scripts
-console.log('\n\nTo update your package.json scripts, run the following command:');
-console.log('\nnpm pkg set "scripts.dev=node src/utils/install-vite.js && vite" "scripts.build=vite build" "scripts.preview=vite preview"\n');
-console.log('After running this command, you should be able to start the development server with: npm run dev');
+try {
+  console.log('Updating package.json scripts...');
+  
+  // Instead of directly modifying package.json, use npm commands
+  console.log('Setting up development command...');
+  execSync('npm pkg set "scripts.dev=node src/utils/start-app.js"', { stdio: 'inherit' });
+  
+  console.log('Setting up build command...');
+  execSync('npm pkg set "scripts.build=node src/utils/start-app.js build"', { stdio: 'inherit' });
+  
+  console.log('Setting up preview command...');
+  execSync('npm pkg set "scripts.preview=node src/utils/start-app.js preview"', { stdio: 'inherit' });
+  
+  console.log('Package.json scripts updated successfully!');
+  console.log('You can now run "npm run dev" to start the development server.');
+} catch (error) {
+  console.error('Error updating package.json:', error.message);
+  console.log('You may need to manually update your package.json scripts.');
+  console.log('Add the following to your package.json scripts:');
+  console.log('  "dev": "node src/utils/start-app.js",');
+  console.log('  "build": "node src/utils/start-app.js build",');
+  console.log('  "preview": "node src/utils/start-app.js preview"');
+}
