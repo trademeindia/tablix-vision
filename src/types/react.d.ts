@@ -13,7 +13,23 @@ declare module 'react' {
   export type FormEvent<T = Element> = React.SyntheticEvent<T, Event>;
   export type ChangeEvent<T = Element> = React.SyntheticEvent<T, Event>;
   export type FormHTMLAttributes<T> = React.DetailedHTMLProps<React.FormHTMLAttributes<T>, T>;
-  export type SyntheticEvent<T = Element, E = Event> = React.SyntheticEvent<T, E>;
+  
+  // Enhanced SyntheticEvent with better target typing
+  export type SyntheticEvent<T = Element, E = Event> = {
+    bubbles: boolean;
+    cancelable: boolean;
+    currentTarget: EventTarget & T;
+    defaultPrevented: boolean;
+    eventPhase: number;
+    isTrusted: boolean;
+    nativeEvent: E;
+    preventDefault(): void;
+    stopPropagation(): void;
+    target: EventTarget & T;
+    timeStamp: number;
+    type: string;
+  };
+  
   export type MouseEvent<T = Element> = React.MouseEvent<T>;
   export type DragEvent<T = Element> = React.DragEvent<T>;
   export type RefObject<T> = React.RefObject<T>;
@@ -30,18 +46,48 @@ declare module 'react' {
   export type ClipboardEvent<T = Element> = React.ClipboardEvent<T>;
   export type CompositionEvent<T = Element> = React.CompositionEvent<T>;
   
-  // HTML attributes
-  export type HTMLAttributes<T> = React.HTMLAttributes<T>;
-  export type ButtonHTMLAttributes<T> = React.ButtonHTMLAttributes<T>;
-  export type InputHTMLAttributes<T> = React.InputHTMLAttributes<T>;
-  export type TextareaHTMLAttributes<T> = React.TextareaHTMLAttributes<T>;
-  export type SelectHTMLAttributes<T> = React.SelectHTMLAttributes<T>;
-  export type OptionHTMLAttributes<T> = React.OptionHTMLAttributes<T>;
-  export type AnchorHTMLAttributes<T> = React.AnchorHTMLAttributes<T>;
-  export type ImgHTMLAttributes<T> = React.ImgHTMLAttributes<T>;
-  export type LabelHTMLAttributes<T> = React.LabelHTMLAttributes<T>;
-  export type TdHTMLAttributes<T> = React.HTMLAttributes<T>;
-  export type ThHTMLAttributes<T> = React.HTMLAttributes<T>;
+  // HTML attributes with enhanced support for onClick, id, and other common props
+  export interface HTMLAttributes<T> extends React.HTMLAttributes<T> {
+    onClick?: (event: MouseEvent<T>) => void;
+    id?: string;
+    className?: string;
+    children?: React.ReactNode;
+  }
+  
+  export interface TableHTMLAttributes<T> extends HTMLAttributes<T> {
+    children?: React.ReactNode;
+    className?: string;
+  }
+  
+  export interface TableRowHTMLAttributes<T> extends HTMLAttributes<T> {
+    onClick?: (event: MouseEvent<T>) => void;
+    children?: React.ReactNode;
+    className?: string;
+  }
+  
+  export interface TdHTMLAttributes<T> extends HTMLAttributes<T> {
+    onClick?: (event: MouseEvent<T>) => void;
+    colSpan?: number;
+    className?: string;
+    children?: React.ReactNode;
+  }
+  
+  export interface ThHTMLAttributes<T> extends HTMLAttributes<T> {
+    colSpan?: number;
+    rowSpan?: number;
+    scope?: string;
+    className?: string;
+    children?: React.ReactNode;
+  }
+  
+  export interface ButtonHTMLAttributes<T> extends React.ButtonHTMLAttributes<T> {}
+  export interface InputHTMLAttributes<T> extends React.InputHTMLAttributes<T> {}
+  export interface TextareaHTMLAttributes<T> extends React.TextareaHTMLAttributes<T> {}
+  export interface SelectHTMLAttributes<T> extends React.SelectHTMLAttributes<T> {}
+  export interface OptionHTMLAttributes<T> extends React.OptionHTMLAttributes<T> {}
+  export interface AnchorHTMLAttributes<T> extends React.AnchorHTMLAttributes<T> {}
+  export interface ImgHTMLAttributes<T> extends React.ImgHTMLAttributes<T> {}
+  export interface LabelHTMLAttributes<T> extends React.LabelHTMLAttributes<T> {}
   
   // Component props types
   export type DetailedHTMLProps<E extends HTMLAttributes<T>, T> = React.DetailedHTMLProps<E, T>;

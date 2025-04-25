@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -36,8 +37,8 @@ function App() {
       try {
         // Initialize Supabase connection
         const success = await initializeSupabase();
-        setIsSupabaseReady(success);
-        // console.log('Supabase initialization:', success ? 'successful' : 'failed');
+        // Fix: Use proper boolean here instead of passing the supabase client
+        setIsSupabaseReady(success ? true : false);
 
         // Enable realtime for menu tables
         await enableRealtimeForMenuTables();
@@ -59,6 +60,7 @@ function App() {
       cleanupRealtimeSubscriptions();
     };
   }, []);
+  
   // Fetch table names for debugging
   React.useEffect(() => {
     const fetchTableNames = async () => {

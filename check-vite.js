@@ -113,8 +113,8 @@ try {
     // Provide next steps
     console.log('\n📋 RECOMMENDED STEPS:');
     console.log('1. Run: npm install vite@latest --save-dev');
-    console.log('2. Try the development server with: node start-dev.js');
-    console.log('3. Build the project with: node build.js');
+    console.log('2. Try the development server with: node src/utils/ensure-vite.js && npx vite');
+    console.log('3. Build the project with: node src/utils/ensure-vite.js && npx vite build');
     console.log('4. If issues persist:');
     console.log('   - Delete node_modules directory and package-lock.json');
     console.log('   - Run npm install again');

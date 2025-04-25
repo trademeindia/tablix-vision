@@ -9,7 +9,7 @@ try {
   require('./src/utils/ensure-vite');
   
   console.log('Starting development server...');
-  execSync('node src/utils/start-app.js', { stdio: 'inherit' });
+  execSync('npx vite', { stdio: 'inherit' });
 } catch (error) {
   console.error('Error running development server:', error.message);
   process.exit(1);

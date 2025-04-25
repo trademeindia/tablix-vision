@@ -27,6 +27,7 @@ const formSchema = z.object({
   address: z.string().optional(),
   bio: z.string().max(500, { message: "Bio cannot exceed 500 characters." }).optional().or(z.literal('')),
   website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  profileImage: z.any().optional(), // Added missing profileImage field for the form
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,6 +47,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
       address: profile?.address || "",
       bio: profile?.bio || "",
       website: profile?.website || "",
+      profileImage: null,
     },
   });
   
@@ -58,6 +60,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
         address: profile.address || "",
         bio: profile.bio || "",
         website: profile.website || "",
+        profileImage: null,
       });
     }
   }, [profile, form.reset]);
@@ -92,7 +95,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile }) => {
       <CardContent>
         <div className="mb-6 flex justify-center">
           <ProfileImageUpload 
-            currentImageUrl={profile?.avatar_url} 
+            form={form} // Pass the form to the component
+            currentImageUrl={profile?.avatar_url}
           />
         </div>
         

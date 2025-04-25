@@ -4,6 +4,7 @@ import React from 'react';
 // Card component type definitions
 declare module '@/components/ui/card' {
   export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+    id?: string;
     children?: React.ReactNode;
   }
   
@@ -38,8 +39,9 @@ declare module '@/components/ui/table' {
     children?: React.ReactNode;
   }
   
-  export interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  export interface TableRowProps extends React.TableRowHTMLAttributes<HTMLTableRowElement> {
     children?: React.ReactNode;
+    onClick?: (event: React.MouseEvent<HTMLTableRowElement>) => void;
   }
   
   export interface TableHeadProps extends React.ThHTMLAttributes<HTMLTableCellElement> {
@@ -48,6 +50,7 @@ declare module '@/components/ui/table' {
   
   export interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
     children?: React.ReactNode;
+    onClick?: (event: React.MouseEvent<HTMLTableCellElement>) => void;
   }
 }
 
@@ -83,4 +86,9 @@ declare module '@/components/ui/sheet' {
     onInteractOutside?: (event: React.SyntheticEvent) => void;
     forceMount?: boolean;
   }
+}
+
+// React-helmet-async component type definitions
+declare module 'react-helmet-async' {
+  export class Helmet extends React.Component<any> {}
 }

@@ -8,8 +8,7 @@ const { exec } = require('child_process');
 
 const files = [
   'start-dev.js',
-  'update-scripts.js',
-  'src/utils/start-app.js',
+  'check-vite.js',
   'src/utils/ensure-vite.js'
 ];
 

@@ -11,13 +11,8 @@ console.log('Current working directory:', process.cwd());
 
 // Ensure Vite is installed before attempting to build
 try {
-  const viteModulePath = path.resolve(process.cwd(), 'node_modules', 'vite');
-  const viteExists = fs.existsSync(viteModulePath);
-  
-  if (!viteExists) {
-    console.log('Vite not installed, installing now...');
-    require('./src/utils/ensure-vite.js');
-  }
+  console.log('Ensuring Vite is installed...');
+  require('./src/utils/ensure-vite');
   
   console.log('Building project with NPX for maximum compatibility');
   
