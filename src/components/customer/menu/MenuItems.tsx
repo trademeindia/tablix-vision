@@ -48,7 +48,8 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     setModelViewerOpen(true);
   };
   
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    // Cast event target to HTMLImageElement with a type assertion
     const img = e.target as HTMLImageElement;
     img.classList.add('hidden');
     if (img.parentElement) {
