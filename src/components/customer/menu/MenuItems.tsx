@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
@@ -47,7 +48,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     setModelViewerOpen(true);
   };
   
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const img = e.target as HTMLImageElement;
     img.classList.add('hidden');
     if (img.parentElement) {
@@ -65,7 +66,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
           return (
             <Card key={item.id} className="overflow-hidden h-full flex flex-col">
               <div className="relative h-40 bg-slate-100 overflow-hidden">
-                {hasImage ? (
+                {item.image_url ? (
                   <div className="relative w-full h-full">
                     <img 
                       src={item.image_url} 

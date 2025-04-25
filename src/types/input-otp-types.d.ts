@@ -1,11 +1,12 @@
 
 declare module 'input-otp' {
-  import { ComponentPropsWithoutRef } from 'react';
+  import { ComponentPropsWithoutRef, ForwardRefExoticComponent, RefAttributes } from 'react';
 
   export interface InputOtpProps extends ComponentPropsWithoutRef<'div'> {
     className?: string;
     containerClassName?: string;
     slots?: any[];
+    render?: (props: any) => React.ReactNode;
   }
 
   export interface InputOtpRootProps extends InputOtpProps {
@@ -20,5 +21,7 @@ declare module 'input-otp' {
     className?: string;
   }
 
-  export const OTPInput: React.FC<InputOtpProps>;
+  export interface OTPInputProps extends InputOtpProps, RefAttributes<HTMLDivElement> {}
+
+  export const OTPInput: ForwardRefExoticComponent<OTPInputProps>;
 }

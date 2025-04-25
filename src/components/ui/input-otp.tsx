@@ -52,42 +52,39 @@ const InputOtpGroup = React.forwardRef<HTMLDivElement, InputOtpGroupProps>(
 
 InputOtpGroup.displayName = "InputOtpGroup";
 
-interface InputOtpProps extends React.ComponentPropsWithoutRef<typeof OTPInput> {}
-
-const InputOtp = React.forwardRef<React.ElementRef<typeof OTPInput>, InputOtpProps>(
-  ({ className, ...props }, ref) => (
+// Use InputOtpProps from the type definition
+const InputOtp = React.forwardRef<React.ElementRef<typeof OTPInput>, any>((props, ref) => {
+  const { className, ...rest } = props;
+  return (
     <OTPInput
       ref={ref}
       containerClassName={cn("flex items-center gap-2", className)}
-      {...props}
+      {...rest}
     />
-  )
-);
+  );
+});
 
 InputOtp.displayName = "InputOtp";
 
-interface InputOtpRootProps extends React.ComponentPropsWithoutRef<typeof OTPInput> {
-  // Add custom props if needed
-}
-
-// Fixed type issue by properly handling the slots property
-const InputOtpRoot = React.forwardRef<React.ElementRef<typeof OTPInput>, InputOtpRootProps>(
-  ({ className, containerClassName, ...props }, ref) => (
+// Use InputOtpRootProps from the type definition
+const InputOtpRoot = React.forwardRef<React.ElementRef<typeof OTPInput>, any>((props, ref) => {
+  const { className, containerClassName, ...rest } = props;
+  return (
     <OTPInput
       ref={ref}
       containerClassName={cn("flex items-center gap-2", containerClassName)}
       className={className}
       render={({ slots = [] }) => (
         <InputOtpGroup>
-          {slots.map((slot, index) => (
+          {slots.map((slot: SlotProps, index: number) => (
             <InputOtpSlot key={index} {...slot} />
           ))}
         </InputOtpGroup>
       )}
-      {...props}
+      {...rest}
     />
-  )
-);
+  );
+});
 
 InputOtpRoot.displayName = "InputOtpRoot";
 
