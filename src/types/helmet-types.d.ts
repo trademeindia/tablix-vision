@@ -1,7 +1,7 @@
 
-import React from 'react';
-
 declare module 'react-helmet-async' {
+  import React from 'react';
+
   export interface HelmetProps {
     [key: string]: any;
     children?: React.ReactNode;
