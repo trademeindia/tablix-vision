@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,9 +35,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 }) => {
   const has3DModel = mediaType === '3d';
   
-  // Fix the event handler by using proper event types
-  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget;
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const img = event.currentTarget as HTMLImageElement;
     img.classList.add('hidden');
     if (img.parentElement) {
       img.parentElement.classList.add('image-error');

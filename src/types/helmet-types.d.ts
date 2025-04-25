@@ -1,17 +1,16 @@
 
 import * as React from 'react';
 
-interface HelmetProps {
-  [key: string]: any;
-  children?: React.ReactNode;
-}
-
-interface HelmetProviderProps {
-  children?: React.ReactNode;
-  context?: any;
-}
-
 declare module 'react-helmet-async' {
-  export const Helmet: React.FC<HelmetProps>;
-  export const HelmetProvider: React.FC<HelmetProviderProps>;
+  export const Helmet: React.FC<{
+    [key: string]: any;
+    children?: React.ReactNode;
+    title?: string;
+    meta?: React.ReactNode[];
+  }>;
+  
+  export const HelmetProvider: React.FC<{
+    children?: React.ReactNode;
+    context?: any;
+  }>;
 }

@@ -4,12 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Log that the Vite config is loading - helps with troubleshooting
-console.log('Loading Vite configuration...');
-
 export default defineConfig(({ mode }) => {
-  console.log(`Building for ${mode} mode`);
-  
   return {
     server: {
       host: "::",
@@ -21,7 +16,6 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       exclude: [
-        // Exclude ALL platform-specific rollup binaries to prevent build issues
         '@rollup/rollup-linux-x64-gnu',
         '@rollup/rollup-darwin-x64',
         '@rollup/rollup-darwin-arm64',
@@ -37,7 +31,6 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       commonjsOptions: {
-        // Also exclude platform-specific rollup binaries during build
         exclude: [
           '@rollup/rollup-linux-x64-gnu',
           '@rollup/rollup-darwin-x64',
@@ -52,14 +45,6 @@ export default defineConfig(({ mode }) => {
           '@rollup/rollup-linux-x64-musl'
         ],
       },
-      // Ensure meaningful build error messages
-      rollupOptions: {
-        onwarn(warning, warn) {
-          // Log warnings for debugging
-          console.log(`Rollup warning: ${warning.message}`);
-          warn(warning);
-        }
-      }
     },
     plugins: [
       react(),
@@ -70,7 +55,5 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    // Add better error logging
-    logLevel: 'info',
   };
 });
