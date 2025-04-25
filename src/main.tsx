@@ -13,6 +13,7 @@ window.addEventListener('error', (event) => {
     console.warn('Suppressed Chrome extension error:', event.message);
     event.stopPropagation();
     event.preventDefault();
+    return false;
   }
 });
 
@@ -29,5 +30,5 @@ window.addEventListener('error', (event) => {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
-// Create root with HelmetProvider for proper head management
+// Create root with App component
 createRoot(rootElement).render(<App />);

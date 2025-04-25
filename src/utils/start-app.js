@@ -3,7 +3,6 @@
 
 // This script starts the development or build process with workarounds for Rollup platform dependencies
 const { spawn } = require('child_process');
-const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -28,35 +27,44 @@ const env = {
   ...process.env,
   ROLLUP_SKIP_NORMALIZE: 'true', // Skip some rollup normalizations
   VITE_CJS_IGNORE_WARNING: 'true', // Reduce CJS warnings
+  NODE_OPTIONS: '--experimental-modules --no-warnings' // Additional Node.js options for better compatibility
 };
 
 let viteProcess;
 if (command === 'build') {
   console.log('Building project...');
   viteProcess = spawn(
-    'npx',
-    ['vite', 'build'],
+    'node',
+    ['node_modules/vite/bin/vite.js', 'build'],
     { stdio: 'inherit', shell: true, env }
   );
 } else if (command === 'preview') {
   console.log('Starting preview server...');
   viteProcess = spawn(
-    'npx',
-    ['vite', 'preview'],
+    'node',
+    ['node_modules/vite/bin/vite.js', 'preview'],
     { stdio: 'inherit', shell: true, env }
   );
 } else {
   console.log('Starting development server...');
   viteProcess = spawn(
-    'npx',
-    ['vite'],
+    'node',
+    ['node_modules/vite/bin/vite.js'],
     { stdio: 'inherit', shell: true, env }
   );
 }
 
 viteProcess.on('error', (err) => {
   console.error('Failed to start Vite:', err.message);
-  process.exit(1);
+  
+  // Try fallback to npx
+  console.log('Attempting fallback to npx vite...');
+  const npxProcess = spawn('npx', ['vite'], { stdio: 'inherit', shell: true, env });
+  
+  npxProcess.on('error', (npxErr) => {
+    console.error('Fallback also failed:', npxErr.message);
+    process.exit(1);
+  });
 });
 
 viteProcess.on('close', (code) => {

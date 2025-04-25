@@ -1,12 +1,12 @@
 
 declare module 'react-helmet-async' {
-  import React from 'react';
+  import * as React from 'react';
 
   export interface HelmetProps {
     [key: string]: any;
     children?: React.ReactNode;
   }
 
-  export class Helmet extends React.Component<HelmetProps> {}
+  export const Helmet: React.FC<HelmetProps>;
   export class HelmetProvider extends React.Component<{ children: React.ReactNode }> {}
 }

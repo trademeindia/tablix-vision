@@ -3,13 +3,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // List of files to make executable
 const files = [
   'src/utils/start-app.js',
-  'src/utils/update-scripts.js',
-  'src/utils/ensure-executable.js'
+  'start.js'
 ];
 
 console.log('Making scripts executable...');
