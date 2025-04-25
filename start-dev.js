@@ -1,16 +1,31 @@
 
 #!/usr/bin/env node
 
-// Run the node installation script and then start the server
-const { execSync } = require('child_process');
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 
-try {
-  console.log('Ensuring Vite is installed...');
-  require('./src/utils/ensure-vite');
-  
-  console.log('Starting development server...');
-  execSync('npx vite', { stdio: 'inherit' });
-} catch (error) {
-  console.error('Error running development server:', error.message);
+console.log('Starting the development server with Rollup dependency workaround...');
+
+// Create a custom environment with NODE_OPTIONS to avoid Rollup native dependencies
+const customEnv = Object.assign({}, process.env);
+customEnv.NODE_OPTIONS = '--no-addons'; // Disable native addons to prevent Rollup issues
+
+// Start Vite with the custom environment
+const viteProcess = spawn('npx', ['vite'], {
+  stdio: 'inherit',
+  env: customEnv,
+  shell: true
+});
+
+viteProcess.on('error', (err) => {
+  console.error('Failed to start Vite:', err);
   process.exit(1);
-}
+});
+
+viteProcess.on('close', (code) => {
+  if (code !== 0) {
+    console.error(`Vite process exited with code ${code}`);
+    process.exit(code);
+  }
+});

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -35,10 +34,9 @@ function App() {
   React.useEffect(() => {
     const initialize = async () => {
       try {
-        // Initialize Supabase connection
+        // Initialize Supabase connection - returns boolean instead of client
         const success = await initializeSupabase();
-        // Fix: Use proper boolean here instead of passing the supabase client
-        setIsSupabaseReady(success ? true : false);
+        setIsSupabaseReady(Boolean(success));
 
         // Enable realtime for menu tables
         await enableRealtimeForMenuTables();

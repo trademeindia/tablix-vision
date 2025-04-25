@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,12 +35,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 }) => {
   const has3DModel = mediaType === '3d';
   
-  // Updated handleImageError function with corrected typing
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    // Use e.target instead of currentTarget
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const img = e.target as HTMLImageElement;
     img.classList.add('hidden');
-    // Safely access parent element
     if (img.parentElement) {
       img.parentElement.classList.add('image-error');
     }
@@ -70,7 +66,6 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 </div>
               )}
               
-              {/* 3D rotate hint if it's a 3D model */}
               {has3DModel && (
                 <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center">
                   <RotateCw className="h-3 w-3 mr-1" />
@@ -80,7 +75,6 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             </div>
           ) : (
             <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500 relative">
-              {/* Show Box icon if there's a 3D model but no image, otherwise ImageOff */}
               {has3DModel ? (
                 <>
                   <Box className="h-8 w-8 text-primary/70" />

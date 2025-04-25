@@ -18,9 +18,11 @@ export async function initializeSupabase() {
           autoRefreshToken: true,
           persistSession: true,
         },
+        // Correctly typed realtime config
         realtime: {
-          // Enable or disable realtime subscriptions
-          enabled: true,
+          params: {
+            eventsPerSecond: 10
+          }
         },
       }
     );
@@ -41,11 +43,11 @@ export async function initializeSupabase() {
       // Start the channel
       channel.subscribe();
       
+      return true;
     } catch (realtimeError) {
       console.error('Failed to initialize realtime subscriptions:', realtimeError);
+      return false;
     }
-    
-    return supabase;
   } catch (error) {
     console.error('Error initializing Supabase client:', error);
     throw error;

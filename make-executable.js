@@ -1,42 +1,24 @@
 
 #!/usr/bin/env node
 
-// Script to make shell scripts executable
 const fs = require('fs');
-const path = require('path');
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 
-const files = [
-  'start-dev.js',
-  'check-vite.js',
-  'src/utils/ensure-vite.js'
-];
+console.log('Making start-dev.js executable...');
 
 try {
-  console.log('Making scripts executable...');
+  // First check if we're on Windows
+  const isWindows = process.platform === 'win32';
   
-  files.forEach(file => {
-    const filePath = path.resolve(process.cwd(), file);
-    
-    if (fs.existsSync(filePath)) {
-      if (process.platform !== 'win32') {
-        // For Unix-based systems, use chmod
-        exec(`chmod +x ${filePath}`, (error) => {
-          if (error) {
-            console.error(`Error making ${file} executable:`, error.message);
-          } else {
-            console.log(`Made ${file} executable.`);
-          }
-        });
-      } else {
-        console.log(`Skipping chmod for ${file} on Windows.`);
-      }
-    } else {
-      console.warn(`File not found: ${file}`);
-    }
-  });
-  
-  console.log('Script execution complete.');
+  if (!isWindows) {
+    // On Unix systems, make the file executable
+    fs.chmodSync('./start-dev.js', 0o755);
+    console.log('Successfully made start-dev.js executable.');
+  } else {
+    console.log('Running on Windows - no need to make script executable.');
+  }
 } catch (error) {
-  console.error('Error making scripts executable:', error.message);
+  console.error('Failed to make script executable:', error.message);
 }
+
+console.log('Done! You can now run "node start-dev.js" to start the development server.');

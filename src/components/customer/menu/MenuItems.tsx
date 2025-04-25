@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
@@ -48,12 +47,9 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     setModelViewerOpen(true);
   };
   
-  // Updated handleImageError function with correctly typed event
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    // Use e.target instead of currentTarget
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const img = e.target as HTMLImageElement;
     img.classList.add('hidden');
-    // Safely access the parent element
     if (img.parentElement) {
       img.parentElement.classList.add('image-error');
     }
@@ -63,14 +59,12 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredItems.map(item => {
-          // Determine if item has an image or 3D model
           const hasImage = !!item.image_url;
           const has3dModel = item.media_type === '3d' && !!item.model_url;
           
           return (
             <Card key={item.id} className="overflow-hidden h-full flex flex-col">
               <div className="relative h-40 bg-slate-100 overflow-hidden">
-                {/* Display Image if available */}
                 {hasImage ? (
                   <div className="relative w-full h-full">
                     <img 
@@ -85,14 +79,11 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
                     </div>
                   </div>
                 ) : ( 
-                  /* Placeholder if no image and no 3D model, or if 3D model exists but no image */
                   <div className="w-full h-full flex items-center justify-center text-slate-400">
-                    {/* Show Box icon if there's a 3D model but no image, otherwise ImageOff */}
                     {has3dModel ? <Box className="h-8 w-8" /> : <ImageOff className="h-8 w-8" />}
                   </div>
                 )}
                 
-                {/* Diet badges */}
                 <div className="absolute top-2 right-2 flex flex-wrap gap-1 z-10">
                   {item.allergens?.isVegetarian && (
                     <Badge variant="success" className="bg-green-100 text-green-800">Veg</Badge>
@@ -105,7 +96,6 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
                   )}
                 </div>
                 
-                {/* 3D model button */}
                 {has3dModel && (
                   <Button 
                     size="sm"
@@ -141,11 +131,9 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
         })}
       </div>
       
-      {/* 3D Model Viewer Dialog */}
       <Dialog 
         open={modelViewerOpen} 
         onOpenChange={(open) => {
-          // Only set if closing to avoid double state updates
           if (!open) setModelViewerOpen(false);
         }}
       >
@@ -168,7 +156,6 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
         </DialogContent>
       </Dialog>
 
-      {/* Add styles for image error handling */}
       <style>
         {`
           .image-error .image-error-fallback {
