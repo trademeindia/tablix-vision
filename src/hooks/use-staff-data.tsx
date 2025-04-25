@@ -12,8 +12,6 @@ export const useStaffData = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // // console.log('Fetching staff data from Supabase...');
-      
       // Get session data for restaurant ID
       const { data: sessionData } = await supabase.auth.getSession();
       let restaurantId: string | null = null;
@@ -21,7 +19,6 @@ export const useStaffData = () => {
       // If user is authenticated, try to get their restaurant ID
       if (sessionData && sessionData.session) {
         const userId = sessionData.session.user.id;
-        // // console.log('Authenticated user ID:', userId);
         
         const { data: profile } = await supabase
           .from('profiles')
@@ -31,7 +28,6 @@ export const useStaffData = () => {
           
         if (profile?.restaurant_id) {
           restaurantId = profile.restaurant_id;
-          // // console.log('Using restaurant ID from profile:', restaurantId);
         }
       }
       
@@ -51,16 +47,10 @@ export const useStaffData = () => {
       }
       
       if (supabaseData && supabaseData.length > 0) {
-        // // console.log('Successfully fetched staff data from Supabase:', supabaseData.length, 'records');
-        // // console.log('Sample staff data:', supabaseData[0]);
-        
         // Enhanced normalization and data handling with proper type handling
         const normalizedData = supabaseData.map((staff: any) => {
           // Make sure all image-related fields are properly normalized
           const imageUrl = staff.avatar_url || staff.avatar || staff.image || '';
-          
-          // Log the image URL for debugging
-          // // console.log(`Staff ${staff.name} image URL:`, imageUrl);
           
           // Create a properly typed staff member with safe type assertions
           const normalizedStaff: StaffMember = {
@@ -97,12 +87,7 @@ export const useStaffData = () => {
         setStaffData(normalizedData);
       } else {
         // Fallback to demo data if no data found in Supabase
-        // // console.log('No data found in Supabase, using demo data instead');
         const demoData = generateDemoStaffData(12);
-        // Add logging for demo data
-        // // console.log('Generated demo data with avatars:', 
-          demoData.map(staff => ({ name: staff.name, avatar: staff.avatar_url }))
-        );
         setStaffData(demoData);
       }
       
@@ -110,7 +95,6 @@ export const useStaffData = () => {
     } catch (err) {
       console.error('Error in staff data fetch:', err);
       // Fallback to demo data on error
-      // // console.log('Error occurred, falling back to demo data');
       const demoData = generateDemoStaffData(12);
       setStaffData(demoData);
       setError(err instanceof Error ? err : new Error('Unknown error'));
@@ -124,7 +108,6 @@ export const useStaffData = () => {
   }, []);
 
   const refetchStaff = () => {
-    // // console.log('Refetching staff data...');
     fetchData();
   };
 
