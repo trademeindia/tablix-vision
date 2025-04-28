@@ -14,10 +14,22 @@ try {
   console.warn('Could not run ensure-executable:', error.message);
 }
 
+// Environment variables to avoid Rollup platform-specific issues
+process.env.ROLLUP_SKIP_NORMALIZE = 'true';
+process.env.VITE_CJS_IGNORE_WARNING = 'true';
+process.env.NODE_OPTIONS = '--experimental-modules --no-warnings';
+
 // Start the application
 try {
   console.log('Starting with Rollup platform dependency workarounds...');
-  execSync('node src/utils/start-app.js', { stdio: 'inherit' });
+  execSync('npx vite', { 
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      ROLLUP_SKIP_NORMALIZE: 'true',
+      VITE_CJS_IGNORE_WARNING: 'true'
+    }
+  });
 } catch (error) {
   console.error('Error starting application:', error.message);
   console.log('Please check the errors above and try again.');

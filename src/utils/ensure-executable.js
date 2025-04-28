@@ -4,31 +4,33 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('Ensuring scripts are executable...');
-
-// Make necessary scripts executable
-const filesToMakeExecutable = [
-  'start.js',
-  'src/utils/start-app.js',
-  'src/utils/ensure-executable.js'
-];
-
-// Only needed on Unix-based systems
+// Only run on Unix-like systems where executable permissions matter
 if (process.platform !== 'win32') {
-  filesToMakeExecutable.forEach(file => {
-    const filePath = path.resolve(process.cwd(), file);
+  console.log('Ensuring scripts are executable...');
+  
+  const scripts = [
+    'start.js',
+    'start-dev.js',
+    'start-vite.js',
+    'build.js',
+    'make-executable.js',
+    'src/utils/start-app.js',
+    'src/utils/check-vite.js',
+    'src/utils/launch-vite.js',
+    'src/utils/update-scripts.js',
+    'src/utils/ensure-executable.js'
+  ];
+  
+  scripts.forEach(scriptPath => {
+    const fullPath = path.resolve(process.cwd(), scriptPath);
     
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.chmodSync(filePath, '755');
-        console.log(`Made ${file} executable`);
-      } catch (error) {
-        console.error(`Error making ${file} executable:`, error.message);
+    try {
+      if (fs.existsSync(fullPath)) {
+        fs.chmodSync(fullPath, '755');
+        console.log(`Made ${scriptPath} executable`);
       }
-    } else {
-      console.warn(`File not found: ${file}`);
+    } catch (err) {
+      console.warn(`Warning: Could not make ${scriptPath} executable:`, err.message);
     }
   });
 }
-
-console.log('Scripts are now executable');

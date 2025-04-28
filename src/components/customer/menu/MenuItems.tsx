@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MenuItem } from '@/types/menu';
 import { Card } from '@/components/ui/card';
@@ -47,8 +48,8 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
     setModelViewerOpen(true);
   };
   
-  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const img = event.currentTarget as HTMLImageElement;
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
     img.classList.add('hidden');
     if (img.parentElement) {
       img.parentElement.classList.add('image-error');
