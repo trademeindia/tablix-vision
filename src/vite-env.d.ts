@@ -21,4 +21,14 @@ declare module 'react' {
     timeStamp: number;
     type: string;
   }
+
+  // Add proper types for React components
+  type FC<P = {}> = FunctionComponent<P>;
+  interface FunctionComponent<P = {}> {
+    (props: P, context?: any): ReactElement<any, any> | null;
+    displayName?: string;
+    propTypes?: any;
+    contextTypes?: any;
+    defaultProps?: Partial<P>;
+  }
 }

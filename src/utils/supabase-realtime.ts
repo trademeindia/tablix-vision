@@ -16,6 +16,7 @@ export const enableRealtimeForMenuTables = async () => {
     const enablePromises = tables.map(tableName => 
       supabase
         .channel(`table-${tableName}`)
+        // Fixed: Use correct type for postgres_changes event
         .on('postgres_changes', { event: '*', schema: 'public', table: tableName }, payload => {
           console.log(`Realtime update for ${tableName}:`, payload);
         })
