@@ -4,6 +4,7 @@
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 
 console.log('Starting the application...');
 
@@ -26,7 +27,7 @@ process.on('uncaughtException', (error) => {
     
     try {
       // Try running with Node directly
-      execSync('node node_modules/vite/bin/vite.js', { 
+      const nodeProcess = spawn('node', ['node_modules/vite/bin/vite.js'], { 
         stdio: 'inherit',
         env: {
           ...process.env,
@@ -34,6 +35,11 @@ process.on('uncaughtException', (error) => {
           VITE_CJS_IGNORE_WARNING: 'true'
         }
       });
+      
+      nodeProcess.on('close', (code) => {
+        process.exit(code || 0);
+      });
+      
       return;
     } catch (fallbackError) {
       console.error('Fallback attempt failed:', fallbackError.message);
@@ -47,7 +53,8 @@ process.on('uncaughtException', (error) => {
 // Start the application
 try {
   console.log('Starting with Rollup platform dependency workarounds...');
-  execSync('npx vite', { 
+  
+  const viteProcess = spawn('npx', ['vite'], { 
     stdio: 'inherit',
     env: {
       ...process.env,
@@ -55,8 +62,33 @@ try {
       VITE_CJS_IGNORE_WARNING: 'true'
     }
   });
+  
+  viteProcess.on('error', (err) => {
+    console.error('Error starting application with npx vite:', err.message);
+    
+    console.log('Attempting fallback to direct Node execution...');
+    const nodeProcess = spawn('node', ['node_modules/vite/bin/vite.js'], { 
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        ROLLUP_SKIP_NORMALIZE: 'true',
+        VITE_CJS_IGNORE_WARNING: 'true'
+      }
+    });
+    
+    nodeProcess.on('error', (nodeErr) => {
+      console.error('All fallbacks failed:', nodeErr.message);
+      console.log('Please check the errors above and try again.');
+      process.exit(1);
+    });
+  });
+  
+  viteProcess.on('close', (code) => {
+    process.exit(code || 0);
+  });
+  
 } catch (error) {
-  console.error('Error starting application with npx vite:', error.message);
+  console.error('Error starting application:', error.message);
   
   try {
     console.log('Attempting fallback to direct Node execution...');

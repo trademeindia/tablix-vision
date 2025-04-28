@@ -4,24 +4,25 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// List of Rollup platform-specific dependencies to exclude
+// Extended list of Rollup platform-specific dependencies to exclude
 const rollupExcludes = [
   '@rollup/rollup-linux-x64-gnu',
+  '@rollup/rollup-linux-x64-musl',
   '@rollup/rollup-darwin-x64',
   '@rollup/rollup-darwin-arm64',
-  '@rollup/rollup-linux-arm64-gnu',
   '@rollup/rollup-win32-x64-msvc',
   '@rollup/rollup-win32-ia32-msvc',
+  '@rollup/rollup-win32-arm64-msvc',
+  '@rollup/rollup-linux-arm64-gnu',
+  '@rollup/rollup-linux-arm64-musl',
   '@rollup/rollup-linux-arm-gnueabihf',
   '@rollup/rollup-android-arm64',
-  '@rollup/rollup-freebsd-x64',
-  '@rollup/rollup-linux-arm64-musl',
-  '@rollup/rollup-linux-x64-musl',
   '@rollup/rollup-android-arm-eabi',
+  '@rollup/rollup-freebsd-x64',
   '@rollup/rollup-linux-ia32-gnu',
   '@rollup/rollup-linux-ia32-musl',
-  '@rollup/rollup-win32-arm64-msvc',
-  '@rollup/rollup-sunos-x64'
+  '@rollup/rollup-sunos-x64',
+  '@rollup/rollup-linux-riscv64-gnu'
 ];
 
 export default defineConfig(({ mode }) => {

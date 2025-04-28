@@ -3,7 +3,7 @@ import React from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import PageTransition from '@/components/ui/page-transition';
 import DashboardContent from '@/components/dashboard/DashboardContent';
-import Helmet from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 
 const DashboardPage = () => {
   return (

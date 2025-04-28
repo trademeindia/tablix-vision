@@ -33,6 +33,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return false;
     }
   });
+  
+  // Special handling for Solana extension errors
+  if (window.navigator && window.navigator.userAgent && window.navigator.userAgent.includes('Chrome')) {
+    // Create a patch for common Solana extension issues
+    const originalGetItem = localStorage.getItem;
+    localStorage.getItem = function(key) {
+      try {
+        return originalGetItem.call(localStorage, key);
+      } catch (err) {
+        console.warn('Suppressed localStorage error possibly from extension:', err);
+        return null;
+      }
+    };
+  }
 });
 
 // Initialize Supabase when the app starts

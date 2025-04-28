@@ -22,9 +22,9 @@ if (process.platform !== 'win32') {
   ];
   
   scripts.forEach(scriptPath => {
-    const fullPath = path.resolve(process.cwd(), scriptPath);
-    
     try {
+      const fullPath = path.resolve(process.cwd(), scriptPath);
+      
       if (fs.existsSync(fullPath)) {
         fs.chmodSync(fullPath, '755');
         console.log(`Made ${scriptPath} executable`);
@@ -34,3 +34,18 @@ if (process.platform !== 'win32') {
     }
   });
 }
+
+// Create this function to handle platform-specific Rollup dependencies
+function handleRollupDependencies() {
+  console.log('Setting up environment for Rollup...');
+  
+  // Set environment variables to avoid platform-specific issues
+  process.env.ROLLUP_SKIP_NORMALIZE = 'true';
+  process.env.VITE_CJS_IGNORE_WARNING = 'true';
+  
+  // Success message
+  console.log('Rollup environment prepared successfully');
+}
+
+// Run the function
+handleRollupDependencies();

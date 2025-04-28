@@ -49,7 +49,7 @@ const MenuItems: React.FC<MenuItemsProps> = ({ items, categoryId, onAddToOrder }
   };
   
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget as HTMLImageElement;
+    const img = event.currentTarget;
     img.classList.add('hidden');
     if (img.parentElement) {
       img.parentElement.classList.add('image-error');

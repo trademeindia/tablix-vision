@@ -7,6 +7,15 @@ declare module 'react-helmet-async' {
     children?: React.ReactNode;
     title?: string;
     meta?: React.ReactNode[];
+    defer?: boolean;
+    encodeSpecialCharacters?: boolean;
+    htmlAttributes?: any;
+    base?: any;
+    link?: any;
+    script?: any;
+    style?: any;
+    noscript?: any;
+    onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
   export class Helmet extends React.Component<HelmetProps> {}

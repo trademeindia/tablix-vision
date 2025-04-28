@@ -37,7 +37,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const has3DModel = mediaType === '3d';
   
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = event.currentTarget as HTMLImageElement;
+    const img = event.currentTarget;
     img.classList.add('hidden');
     if (img.parentElement) {
       img.parentElement.classList.add('image-error');
