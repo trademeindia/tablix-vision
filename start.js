@@ -19,6 +19,31 @@ process.env.ROLLUP_SKIP_NORMALIZE = 'true';
 process.env.VITE_CJS_IGNORE_WARNING = 'true';
 process.env.NODE_OPTIONS = '--experimental-modules --no-warnings';
 
+// Advanced error handling for Rollup
+process.on('uncaughtException', (error) => {
+  if (error.message && error.message.includes('rollup') && error.message.includes('Cannot find module')) {
+    console.error('Encountered Rollup platform dependency error. Attempting fallback...');
+    
+    try {
+      // Try running with Node directly
+      execSync('node node_modules/vite/bin/vite.js', { 
+        stdio: 'inherit',
+        env: {
+          ...process.env,
+          ROLLUP_SKIP_NORMALIZE: 'true',
+          VITE_CJS_IGNORE_WARNING: 'true'
+        }
+      });
+      return;
+    } catch (fallbackError) {
+      console.error('Fallback attempt failed:', fallbackError.message);
+    }
+  }
+  
+  console.error('Uncaught exception:', error);
+  process.exit(1);
+});
+
 // Start the application
 try {
   console.log('Starting with Rollup platform dependency workarounds...');
@@ -31,7 +56,21 @@ try {
     }
   });
 } catch (error) {
-  console.error('Error starting application:', error.message);
-  console.log('Please check the errors above and try again.');
-  process.exit(1);
+  console.error('Error starting application with npx vite:', error.message);
+  
+  try {
+    console.log('Attempting fallback to direct Node execution...');
+    execSync('node node_modules/vite/bin/vite.js', { 
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        ROLLUP_SKIP_NORMALIZE: 'true',
+        VITE_CJS_IGNORE_WARNING: 'true'
+      }
+    });
+  } catch (fallbackError) {
+    console.error('Fallback also failed:', fallbackError.message);
+    console.log('Please check the errors above and try again.');
+    process.exit(1);
+  }
 }

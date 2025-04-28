@@ -6,15 +6,33 @@ import './index.css';
 console.log('main.tsx is executing');
 import { initializeSupabase } from '@/utils/supabase-init';
 
-// Error handling to prevent Chrome extension errors from affecting our app
+// Enhanced error handling to prevent Chrome extension errors from affecting our app
 window.addEventListener('error', (event) => {
   // Check if the error is from a Chrome extension
   if (event.filename && event.filename.includes('chrome-extension://')) {
-    console.warn('Suppressed Chrome extension error:', event.message);
+    // Specifically look for Solana extension errors
+    if (event.filename.includes('solana.js') || event.message.includes('register') || event.message.includes('solana')) {
+      console.warn('Suppressed Solana extension error:', event.message);
+    } else {
+      console.warn('Suppressed Chrome extension error:', event.message);
+    }
     event.stopPropagation();
     event.preventDefault();
     return false;
   }
+});
+
+// Fix for potential extension script errors that might happen before our error handler is attached
+document.addEventListener('DOMContentLoaded', () => {
+  // Create a global error handler for unhandled promise rejections
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && event.reason.stack && event.reason.stack.includes('chrome-extension://')) {
+      console.warn('Suppressed unhandled Chrome extension promise rejection:', event.reason.message || 'Unknown error');
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  });
 });
 
 // Initialize Supabase when the app starts

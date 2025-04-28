@@ -9,12 +9,12 @@ declare module 'react-helmet-async' {
     meta?: React.ReactNode[];
   }
 
-  export const Helmet: React.ComponentType<HelmetProps>;
+  export class Helmet extends React.Component<HelmetProps> {}
   
   export interface HelmetProviderProps {
     children?: React.ReactNode;
     context?: any;
   }
   
-  export const HelmetProvider: React.ComponentType<HelmetProviderProps>;
+  export class HelmetProvider extends React.Component<HelmetProviderProps> {}
 }

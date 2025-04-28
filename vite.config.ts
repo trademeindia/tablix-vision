@@ -4,6 +4,26 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
+// List of Rollup platform-specific dependencies to exclude
+const rollupExcludes = [
+  '@rollup/rollup-linux-x64-gnu',
+  '@rollup/rollup-darwin-x64',
+  '@rollup/rollup-darwin-arm64',
+  '@rollup/rollup-linux-arm64-gnu',
+  '@rollup/rollup-win32-x64-msvc',
+  '@rollup/rollup-win32-ia32-msvc',
+  '@rollup/rollup-linux-arm-gnueabihf',
+  '@rollup/rollup-android-arm64',
+  '@rollup/rollup-freebsd-x64',
+  '@rollup/rollup-linux-arm64-musl',
+  '@rollup/rollup-linux-x64-musl',
+  '@rollup/rollup-android-arm-eabi',
+  '@rollup/rollup-linux-ia32-gnu',
+  '@rollup/rollup-linux-ia32-musl',
+  '@rollup/rollup-win32-arm64-msvc',
+  '@rollup/rollup-sunos-x64'
+];
+
 export default defineConfig(({ mode }) => {
   return {
     server: {
@@ -13,38 +33,20 @@ export default defineConfig(({ mode }) => {
         'localhost',
         '127.0.0.1',
       ],
+      fs: {
+        strict: true,
+      }
     },
     optimizeDeps: {
-      exclude: [
-        '@rollup/rollup-linux-x64-gnu',
-        '@rollup/rollup-darwin-x64',
-        '@rollup/rollup-darwin-arm64',
-        '@rollup/rollup-linux-arm64-gnu',
-        '@rollup/rollup-win32-x64-msvc',
-        '@rollup/rollup-win32-ia32-msvc',
-        '@rollup/rollup-linux-arm-gnueabihf',
-        '@rollup/rollup-android-arm64',
-        '@rollup/rollup-freebsd-x64',
-        '@rollup/rollup-linux-arm64-musl',
-        '@rollup/rollup-linux-x64-musl'
-      ],
+      exclude: rollupExcludes,
     },
     build: {
       commonjsOptions: {
-        exclude: [
-          '@rollup/rollup-linux-x64-gnu',
-          '@rollup/rollup-darwin-x64',
-          '@rollup/rollup-darwin-arm64',
-          '@rollup/rollup-linux-arm64-gnu',
-          '@rollup/rollup-win32-x64-msvc',
-          '@rollup/rollup-win32-ia32-msvc',
-          '@rollup/rollup-linux-arm-gnueabihf',
-          '@rollup/rollup-android-arm64',
-          '@rollup/rollup-freebsd-x64',
-          '@rollup/rollup-linux-arm64-musl',
-          '@rollup/rollup-linux-x64-musl'
-        ],
+        exclude: rollupExcludes,
       },
+      rollupOptions: {
+        external: rollupExcludes,
+      }
     },
     plugins: [
       react(),
