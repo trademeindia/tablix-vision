@@ -27,7 +27,7 @@ process.on('uncaughtException', (error) => {
     
     try {
       // Try running with Node directly
-      const nodeProcess = spawn('node', ['node_modules/vite/bin/vite.js'], { 
+      const nodeProcess = spawn('node', ['node_modules/vite/bin/vite.js', '--force'], { 
         stdio: 'inherit',
         env: {
           ...process.env,
@@ -54,12 +54,13 @@ process.on('uncaughtException', (error) => {
 try {
   console.log('Starting with Rollup platform dependency workarounds...');
   
-  const viteProcess = spawn('npx', ['vite'], { 
+  const viteProcess = spawn('npx', ['vite', '--force'], { 
     stdio: 'inherit',
     env: {
       ...process.env,
       ROLLUP_SKIP_NORMALIZE: 'true',
-      VITE_CJS_IGNORE_WARNING: 'true'
+      VITE_CJS_IGNORE_WARNING: 'true',
+      ROLLUP_WATCH_IGNORE: '@rollup/rollup-*'
     }
   });
   
@@ -67,12 +68,13 @@ try {
     console.error('Error starting application with npx vite:', err.message);
     
     console.log('Attempting fallback to direct Node execution...');
-    const nodeProcess = spawn('node', ['node_modules/vite/bin/vite.js'], { 
+    const nodeProcess = spawn('node', ['node_modules/vite/bin/vite.js', '--force'], { 
       stdio: 'inherit',
       env: {
         ...process.env,
         ROLLUP_SKIP_NORMALIZE: 'true',
-        VITE_CJS_IGNORE_WARNING: 'true'
+        VITE_CJS_IGNORE_WARNING: 'true',
+        ROLLUP_WATCH_IGNORE: '@rollup/rollup-*'
       }
     });
     
@@ -92,12 +94,13 @@ try {
   
   try {
     console.log('Attempting fallback to direct Node execution...');
-    execSync('node node_modules/vite/bin/vite.js', { 
+    execSync('node node_modules/vite/bin/vite.js --force', { 
       stdio: 'inherit',
       env: {
         ...process.env,
         ROLLUP_SKIP_NORMALIZE: 'true',
-        VITE_CJS_IGNORE_WARNING: 'true'
+        VITE_CJS_IGNORE_WARNING: 'true',
+        ROLLUP_WATCH_IGNORE: '@rollup/rollup-*'
       }
     });
   } catch (fallbackError) {

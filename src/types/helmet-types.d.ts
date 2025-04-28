@@ -1,5 +1,5 @@
 
-import * as React from 'react';
+import React from 'react';
 
 declare module 'react-helmet-async' {
   export interface HelmetProps {
@@ -18,12 +18,15 @@ declare module 'react-helmet-async' {
     onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
-  export class Helmet extends React.Component<HelmetProps> {}
+  export class Helmet extends React.Component<HelmetProps, any> {
+    static renderStatic(): any;
+    static canUseDOM: boolean;
+  }
   
   export interface HelmetProviderProps {
     children?: React.ReactNode;
     context?: any;
   }
   
-  export class HelmetProvider extends React.Component<HelmetProviderProps> {}
+  export class HelmetProvider extends React.Component<HelmetProviderProps, any> {}
 }

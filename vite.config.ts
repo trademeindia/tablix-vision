@@ -47,6 +47,15 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         external: rollupExcludes,
+        onwarn(warning, warn) {
+          if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || 
+              warning.message.includes('Use of eval') ||
+              warning.message.includes('rollup-plugin') ||
+              warning.message.includes('@rollup/')) {
+            return;
+          }
+          warn(warning);
+        }
       }
     },
     plugins: [

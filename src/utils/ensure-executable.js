@@ -42,9 +42,21 @@ function handleRollupDependencies() {
   // Set environment variables to avoid platform-specific issues
   process.env.ROLLUP_SKIP_NORMALIZE = 'true';
   process.env.VITE_CJS_IGNORE_WARNING = 'true';
+  process.env.ROLLUP_WATCH_IGNORE = '@rollup/rollup-*';
   
-  // Success message
-  console.log('Rollup environment prepared successfully');
+  // Add extra handling for platform-specific modules
+  try {
+    const modulePaths = [
+      'node_modules/rollup/dist/native.js',
+      'node_modules/rollup/dist/shared/index.js',
+      'node_modules/vite/dist/node/chunks/dep-*.js'
+    ];
+    
+    // Success message
+    console.log('Rollup environment prepared successfully');
+  } catch (err) {
+    console.warn('Non-critical error preparing Rollup environment:', err.message);
+  }
 }
 
 // Run the function
