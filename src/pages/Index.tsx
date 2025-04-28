@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Utensils, ShoppingBag, Users, ChefHat, Settings } from 'lucide-react';
-import Helmet from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRedirectPathByRole } from '@/hooks/auth/use-redirect-paths';
 

@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import Helmet from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { useProfile } from '@/hooks/use-profile';
 import ProfileForm from '@/components/profile/ProfileForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

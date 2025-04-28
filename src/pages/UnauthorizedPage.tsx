@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Home, RefreshCw, LogIn } from 'lucide-react';
-import Helmet from 'react-helmet-async';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 
 const UnauthorizedPage = () => {
@@ -13,38 +12,19 @@ const UnauthorizedPage = () => {
   const { user, userRoles, signOut } = useAuth();
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
-  // Extract information from location state
   const fromPath = location.state?.from?.pathname || '/';
   const stateRequiredRoles = location.state?.requiredRoles || [];
   const stateUserRoles = location.state?.userRoles || userRoles;
   
-  // Debug info
   const savedRole = localStorage.getItem('userRole') || 'none';
   const isDemoAccount = user?.email?.endsWith('@demo.com') || false;
   const isGoogleAuth = user?.app_metadata?.provider === 'google' || false;
-  
-  useEffect(() => {
-    // For debugging, uncomment if needed
-    /* 
-    console.log("UnauthorizedPage mounted with state:", {
-      fromPath,
-      stateUserRoles,
-      stateRequiredRoles,
-      currentUserRoles: userRoles,
-      savedRole,
-      user: user?.email,
-      isGoogleAuth
-    });
-    */
-  }, [fromPath, stateUserRoles, stateRequiredRoles, userRoles, savedRole, user, isGoogleAuth]);
 
   const handleRefreshAccess = () => {
-    // Force a refresh of the access
     window.location.href = fromPath;
   };
 
   const handleDemoAccess = () => {
-    // For demo accounts or Google auth, allow them to override access restrictions
     localStorage.setItem('demoOverride', 'true');
     navigate('/dashboard');
   };

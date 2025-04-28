@@ -1,116 +1,91 @@
 
 import { supabase } from '@/lib/supabaseClient';
-import { RealtimeChannel } from '@supabase/supabase-js';
 
-// Store active channels for proper cleanup
-const activeChannels: RealtimeChannel[] = [];
+// Store active channel subscriptions to allow cleanup
+let activeChannels: any[] = [];
 
 /**
- * Enable realtime subscriptions for menu-related tables with proper filters
+ * Enable realtime updates for specific tables
  */
 export const enableRealtimeForMenuTables = async () => {
   try {
-    console.log('Setting up realtime subscriptions for menu tables...');
+    // Enable realtime for menu-related tables
+    const tables = ['orders', 'order_items', 'menu_items', 'menu_categories', 'tables'];
     
-    // Get current restaurant ID if available (for proper filtering)
-    let restaurantId = null;
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('restaurant_id')
-          .eq('id', session.user.id)
-          .single();
-          
-        restaurantId = profile?.restaurant_id;
-      }
-    } catch (error) {
-      console.log('No active restaurant context found for realtime filtering');
-    }
+    // Create a promise for each table to enable realtime
+    const enablePromises = tables.map(tableName => 
+      supabase
+        .channel(`table-${tableName}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: tableName }, payload => {
+          console.log(`Realtime update for ${tableName}:`, payload);
+        })
+        .subscribe(status => {
+          if (status === 'SUBSCRIBED') {
+            console.log(`Realtime enabled for ${tableName}`);
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error(`Failed to enable realtime for ${tableName}`);
+          }
+        })
+    );
     
-    // Clean up any existing channels first
-    cleanupRealtimeSubscriptions();
+    // Store the channels for later cleanup
+    activeChannels = await Promise.all(enablePromises);
     
-    // Subscribe to menu categories changes
-    const categoriesFilter = restaurantId ? `restaurant_id=eq.${restaurantId}` : undefined;
-    const categoriesChannel = supabase.channel('menu_categories_changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'menu_categories',
-          filter: categoriesFilter
-        },
-        (payload) => {
-          console.log('Menu category changed:', payload);
-          // Trigger UI refresh or state update here
-        }
-      )
-      .subscribe((status) => {
-        console.log(`Realtime subscription status for menu_categories: ${status}`);
-      });
-      
-    activeChannels.push(categoriesChannel);
-    
-    // Subscribe to menu items changes
-    const itemsChannel = supabase.channel('menu_items_changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'menu_items',
-          filter: restaurantId ? `restaurant_id=eq.${restaurantId}` : undefined
-        },
-        (payload) => {
-          console.log('Menu item changed:', payload);
-          // Trigger UI refresh or state update here
-        }
-      )
-      .subscribe((status) => {
-        console.log(`Realtime subscription status for menu_items: ${status}`);
-      });
-      
-    activeChannels.push(itemsChannel);
-    
-    // Subscribe to orders changes for real-time updates
-    const ordersChannel = supabase.channel('orders_changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'orders',
-          filter: restaurantId ? `restaurant_id=eq.${restaurantId}` : undefined
-        },
-        (payload) => {
-          console.log('Order changed:', payload);
-          // Trigger UI refresh or state update here
-        }
-      )
-      .subscribe((status) => {
-        console.log(`Realtime subscription status for orders: ${status}`);
-      });
-      
-    activeChannels.push(ordersChannel);
-    
-    console.log('Realtime subscriptions set up successfully');
     return true;
   } catch (error) {
-    console.error('Failed to set up realtime subscriptions:', error);
+    console.error('Error setting up realtime:', error);
     return false;
   }
 };
 
 /**
- * Clean up all active realtime subscriptions
+ * Clean up all realtime subscriptions
  */
 export const cleanupRealtimeSubscriptions = () => {
-  activeChannels.forEach(channel => {
-    supabase.removeChannel(channel);
-  });
-  activeChannels.length = 0;
-  console.log('Cleaned up all realtime subscriptions');
+  try {
+    activeChannels.forEach(channel => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    });
+    activeChannels = [];
+    console.log('Removed all realtime subscriptions');
+  } catch (error) {
+    console.error('Error cleaning up realtime subscriptions:', error);
+  }
+};
+
+/**
+ * Subscribe to a specific table with filters
+ */
+export const subscribeToTable = (
+  tableName: string,
+  filter?: Record<string, any>,
+  callback?: (payload: any) => void
+) => {
+  try {
+    const channelName = `table-${tableName}-${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: tableName,
+          filter: filter || undefined
+        },
+        (payload) => {
+          console.log(`Realtime update for ${tableName}:`, payload);
+          if (callback) callback(payload);
+        }
+      )
+      .subscribe();
+    
+    activeChannels.push(channel);
+    return channel;
+  } catch (error) {
+    console.error(`Error subscribing to ${tableName}:`, error);
+    return null;
+  }
 };

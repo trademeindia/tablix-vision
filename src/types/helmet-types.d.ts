@@ -18,15 +18,15 @@ declare module 'react-helmet-async' {
     onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
-  export class Helmet extends React.Component<HelmetProps, any> {
-    static renderStatic(): any;
-    static canUseDOM: boolean;
-  }
+  export const Helmet: React.FC<HelmetProps> & {
+    renderStatic(): any;
+    canUseDOM: boolean;
+  };
   
   export interface HelmetProviderProps {
     children?: React.ReactNode;
     context?: any;
   }
   
-  export class HelmetProvider extends React.Component<HelmetProviderProps, any> {}
+  export const HelmetProvider: React.FC<HelmetProviderProps>;
 }
