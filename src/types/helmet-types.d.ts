@@ -18,8 +18,8 @@ declare module 'react-helmet-async' {
     onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
-  // Fixed: Export Helmet as a React FunctionComponent
-  export const Helmet: React.FC<HelmetProps> & {
+  // Define Helmet as a proper React component
+  export const Helmet: React.ComponentType<HelmetProps> & {
     renderStatic(): any;
     canUseDOM: boolean;
   };
@@ -29,6 +29,6 @@ declare module 'react-helmet-async' {
     context?: any;
   }
   
-  // Fixed: Export HelmetProvider as a React FunctionComponent
-  export const HelmetProvider: React.FC<HelmetProviderProps>;
+  // Define HelmetProvider as a proper React component
+  export const HelmetProvider: React.ComponentType<HelmetProviderProps>;
 }

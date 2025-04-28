@@ -13,21 +13,28 @@ export const enableRealtimeForMenuTables = async () => {
     const tables = ['orders', 'order_items', 'menu_items', 'menu_categories', 'tables'];
     
     // Create a promise for each table to enable realtime
-    const enablePromises = tables.map(tableName => 
-      supabase
-        .channel(`table-${tableName}`)
-        // Fixed: Use correct type for postgres_changes event
-        .on('postgres_changes', { event: '*', schema: 'public', table: tableName }, payload => {
+    const enablePromises = tables.map(tableName => {
+      // Create a channel for this specific table
+      const channel = supabase.channel(`table-${tableName}`);
+      
+      // Set up postgres changes listener with proper typing
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: tableName },
+        payload => {
           console.log(`Realtime update for ${tableName}:`, payload);
-        })
-        .subscribe(status => {
-          if (status === 'SUBSCRIBED') {
-            console.log(`Realtime enabled for ${tableName}`);
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error(`Failed to enable realtime for ${tableName}`);
-          }
-        })
-    );
+        }
+      )
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`Realtime enabled for ${tableName}`);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error(`Failed to enable realtime for ${tableName}`);
+        }
+      });
+      
+      return channel;
+    });
     
     // Store the channels for later cleanup
     activeChannels = await Promise.all(enablePromises);

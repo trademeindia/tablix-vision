@@ -40,6 +40,9 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       exclude: rollupExcludes,
+      esbuildOptions: {
+        target: 'es2020'
+      }
     },
     build: {
       commonjsOptions: {
