@@ -18,7 +18,7 @@ declare module 'react-helmet-async' {
     onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
-  // For proper JSX usage
-  export const Helmet: React.FC<HelmetProps>;
-  export const HelmetProvider: React.FC<{context?: any; children?: React.ReactNode}>;
+  // For proper JSX usage - fixed to use React.ComponentType instead of React.FC
+  export const Helmet: React.ComponentType<HelmetProps>;
+  export const HelmetProvider: React.ComponentType<{context?: any; children?: React.ReactNode}>;
 }
