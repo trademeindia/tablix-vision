@@ -9,8 +9,8 @@ import { createInvoiceFromOrder } from '@/services/invoice';
 
 interface GenerateInvoiceButtonProps {
   order: Order;
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: "default" | "sm" | "lg" | "icon";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   onSuccess?: (invoiceId: string) => void;
   className?: string;
 }

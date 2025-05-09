@@ -2,8 +2,8 @@
 #!/usr/bin/env node
 
 /**
- * This script creates symbolic links for missing Rollup platform dependencies.
- * It helps work around the issue with "@rollup/rollup-linux-x64-gnu" and other platform-specific packages.
+ * This script creates dummy packages for missing Rollup platform dependencies
+ * to avoid the "Cannot find module @rollup/rollup-linux-x64-gnu" error
  */
 
 const fs = require('fs');
@@ -72,7 +72,7 @@ function createDummyRollupPlatformFiles() {
     try {
       fs.writeFileSync(pkgJsonPath, JSON.stringify({
         name: `@rollup/${pkg}`,
-        version: '0.0.1',
+        version: '4.6.0', // Match typical Rollup version
         description: 'Dummy package to satisfy Rollup dependencies',
         main: 'index.js'
       }, null, 2));
@@ -96,6 +96,7 @@ module.exports = {
   }
   
   console.log('Rollup platform dependency workaround setup complete.');
+  return true;
 }
 
 // Run the function if this script is executed directly

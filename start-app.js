@@ -8,6 +8,14 @@ const fs = require('fs');
 
 console.log('Starting application with platform dependency workarounds...');
 
+// First, run the rollup workaround script
+try {
+  require('./src/utils/rollup-workaround').createDummyRollupPlatformFiles();
+  console.log('Rollup workarounds applied successfully');
+} catch (err) {
+  console.warn('Could not set up Rollup workarounds:', err.message);
+}
+
 // Ensure our scripts are executable (Unix only)
 if (process.platform !== 'win32') {
   try {
@@ -15,8 +23,9 @@ if (process.platform !== 'win32') {
     console.log('Made this script executable');
     
     const scriptPaths = [
-      path.join(__dirname, 'src/utils/install-vite.js'),
+      path.join(__dirname, 'src/utils/rollup-workaround.js'),
       path.join(__dirname, 'src/utils/ensure-vite.js'),
+      path.join(__dirname, 'src/utils/install-vite.js'),
     ];
     
     scriptPaths.forEach(scriptPath => {
@@ -27,18 +36,6 @@ if (process.platform !== 'win32') {
     });
   } catch (err) {
     console.warn('Warning: Could not make scripts executable:', err.message);
-  }
-}
-
-// First, ensure Vite is installed
-try {
-  require('./src/utils/ensure-vite');
-} catch (err) {
-  console.warn('Error running ensure-vite.js:', err.message);
-  try {
-    require('./src/utils/install-vite');
-  } catch (installErr) {
-    console.error('Could not ensure Vite is installed:', installErr.message);
   }
 }
 
@@ -55,10 +52,11 @@ const env = {
 const args = process.argv.slice(2);
 const command = args.length > 0 ? args[0] : 'dev';
 
+console.log(`Running vite in '${command}' mode...`);
+
 // Try multiple approaches to run Vite, starting with the most direct ones
+// Define the runVite function
 const runVite = () => {
-  console.log(`Running vite in '${command}' mode...`);
-  
   // Try using the local vite binary directly first
   const localVitePath = path.join(__dirname, 'node_modules', '.bin', 
     process.platform === 'win32' ? 'vite.cmd' : 'vite');
@@ -100,7 +98,7 @@ const runVite = () => {
   fallbackToNpx();
 };
 
-// Fallback to using npx if direct methods fail
+// Define the fallback function
 const fallbackToNpx = (err) => {
   if (err) {
     console.error('Failed to start Vite directly:', err.message);

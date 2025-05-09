@@ -18,14 +18,7 @@ declare module 'react-helmet-async' {
     onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
-  // Define Helmet as a class component to fix TypeScript errors
-  export class Helmet extends React.Component<HelmetProps> {}
-  
-  export interface HelmetProviderProps {
-    children?: React.ReactNode;
-    context?: any;
-  }
-  
-  // Define HelmetProvider as a class component
-  export class HelmetProvider extends React.Component<HelmetProviderProps> {}
+  // Use FunctionComponent instead of class definitions
+  export const Helmet: React.FC<HelmetProps>;
+  export const HelmetProvider: React.FC<{context?: any; children?: React.ReactNode}>;
 }

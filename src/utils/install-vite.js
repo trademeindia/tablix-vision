@@ -6,7 +6,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('Checking Vite installation...');
+console.log('Installing Vite...');
 
 // Ensure we're in the project root directory
 const projectRoot = process.cwd();
@@ -23,28 +23,21 @@ try {
 }
 
 try {
-  // Check if vite is available in node_modules
-  try {
-    require.resolve('vite');
-    console.log('Vite is installed correctly.');
-  } catch (err) {
-    console.log('Vite not found in node_modules, attempting to install...');
-    
-    // Try to install vite and related packages
-    execSync('npm install --no-save vite@4.5.1 @vitejs/plugin-react-swc@3.3.2', {
-      stdio: 'inherit',
-      env: {
-        ...process.env,
-        ROLLUP_SKIP_NORMALIZE: 'true',
-        VITE_CJS_IGNORE_WARNING: 'true'
-      }
-    });
-    
-    console.log('Vite installed successfully');
-  }
+  // Try to install vite and related packages
+  execSync('npm install --no-save vite@4.5.1 @vitejs/plugin-react-swc@3.3.2', {
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      ROLLUP_SKIP_NORMALIZE: 'true',
+      VITE_CJS_IGNORE_WARNING: 'true'
+    }
+  });
+  
+  console.log('Vite installed successfully');
 } catch (error) {
-  console.error('Error while checking/installing Vite:', error.message);
+  console.error('Error while installing Vite:', error.message);
   console.log('You may need to manually install Vite by running: npm install vite@4.5.1 @vitejs/plugin-react-swc@3.3.2');
+  process.exit(1);
 }
 
 // Export success indication for other scripts that might import this

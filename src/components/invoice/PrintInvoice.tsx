@@ -11,8 +11,8 @@ interface PrintInvoiceProps {
   restaurantName?: string;
   restaurantAddress?: string;
   buttonLabel?: string;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
   onPrintComplete?: () => void;
   className?: string;
 }

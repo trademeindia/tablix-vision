@@ -9,6 +9,14 @@ const fs = require('fs');
 // Log current working directory for debugging
 console.log('Current working directory:', process.cwd());
 
+// First, apply the Rollup workarounds
+try {
+  require('./src/utils/rollup-workaround').createDummyRollupPlatformFiles();
+  console.log('Rollup workarounds applied successfully');
+} catch (err) {
+  console.warn('Could not set up Rollup workarounds:', err.message);
+}
+
 // Set up environment variables to bypass platform-specific Rollup issues
 const env = {
   ...process.env,
