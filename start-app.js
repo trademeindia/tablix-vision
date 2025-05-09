@@ -30,11 +30,16 @@ if (process.platform !== 'win32') {
   }
 }
 
-// Run the Vite installation script to ensure Vite is available
+// First, ensure Vite is installed
 try {
-  require('./src/utils/install-vite.js');
+  require('./src/utils/ensure-vite');
 } catch (err) {
-  console.warn('Error running install-vite.js:', err.message);
+  console.warn('Error running ensure-vite.js:', err.message);
+  try {
+    require('./src/utils/install-vite');
+  } catch (installErr) {
+    console.error('Could not ensure Vite is installed:', installErr.message);
+  }
 }
 
 // Set up environment variables to bypass platform-specific Rollup issues
@@ -42,48 +47,80 @@ const env = {
   ...process.env,
   ROLLUP_SKIP_NORMALIZE: 'true',
   VITE_CJS_IGNORE_WARNING: 'true',
-  NODE_OPTIONS: '--no-warnings'
+  NODE_OPTIONS: '--no-warnings',
+  ROLLUP_WATCH_IGNORE: '@rollup/rollup-linux-x64-gnu,@rollup/rollup-linux-x64-musl,@rollup/rollup-darwin-x64,@rollup/rollup-darwin-arm64,@rollup/rollup-win32-x64-msvc,@rollup/rollup-win32-ia32-msvc,@rollup/rollup-win32-arm64-msvc,@rollup/rollup-linux-arm64-gnu,@rollup/rollup-linux-arm64-musl,@rollup/rollup-linux-arm-gnueabihf,@rollup/rollup-android-arm64,@rollup/rollup-android-arm-eabi,@rollup/rollup-freebsd-x64,@rollup/rollup-linux-ia32-gnu,@rollup/rollup-linux-ia32-musl,@rollup/rollup-sunos-x64,@rollup/rollup-linux-riscv64-gnu'
 };
 
 // Determine which command to run based on arguments
-const command = process.argv[2] || 'dev';
+const args = process.argv.slice(2);
+const command = args.length > 0 ? args[0] : 'dev';
 
-let viteArgs = ['vite'];
-if (command === 'build') {
-  viteArgs.push('build');
-} else if (command === 'preview') {
-  viteArgs.push('preview');
-}
-
-console.log(`Running vite in '${command}' mode...`);
-
-// Try to start Vite using npx for maximum compatibility
-const viteProcess = spawn('npx', viteArgs, {
-  stdio: 'inherit',
-  shell: true,
-  env
-});
-
-viteProcess.on('error', (err) => {
-  console.error('Failed to start Vite with npx:', err.message);
+// Try multiple approaches to run Vite, starting with the most direct ones
+const runVite = () => {
+  console.log(`Running vite in '${command}' mode...`);
   
-  // Fallback to direct node execution
-  console.log('Attempting fallback to direct execution...');
-  const nodeProcess = spawn(
-    'node',
-    ['node_modules/vite/bin/vite.js', ...(command !== 'dev' ? [command] : [])],
+  // Try using the local vite binary directly first
+  const localVitePath = path.join(__dirname, 'node_modules', '.bin', 
+    process.platform === 'win32' ? 'vite.cmd' : 'vite');
+  
+  if (fs.existsSync(localVitePath)) {
+    console.log('Using local Vite binary:', localVitePath);
+    
+    const viteProcess = spawn(
+      localVitePath,
+      command !== 'dev' ? [command] : [],
+      { stdio: 'inherit', shell: true, env }
+    );
+    
+    viteProcess.on('error', fallbackToNpx);
+    viteProcess.on('close', (code) => process.exit(code || 0));
+    
+    return;
+  }
+  
+  // Try using node to run Vite directly
+  const viteJsPath = path.join(__dirname, 'node_modules', 'vite', 'bin', 'vite.js');
+  
+  if (fs.existsSync(viteJsPath)) {
+    console.log('Using Vite JS file directly:', viteJsPath);
+    
+    const nodeProcess = spawn(
+      'node',
+      [viteJsPath, ...(command !== 'dev' ? [command] : [])],
+      { stdio: 'inherit', shell: true, env }
+    );
+    
+    nodeProcess.on('error', fallbackToNpx);
+    nodeProcess.on('close', (code) => process.exit(code || 0));
+    
+    return;
+  }
+  
+  // If direct approaches failed, try npx
+  fallbackToNpx();
+};
+
+// Fallback to using npx if direct methods fail
+const fallbackToNpx = (err) => {
+  if (err) {
+    console.error('Failed to start Vite directly:', err.message);
+  }
+  
+  console.log('Falling back to npx vite...');
+  
+  const npxProcess = spawn(
+    'npx',
+    ['vite', ...(command !== 'dev' ? [command] : [])],
     { stdio: 'inherit', shell: true, env }
   );
   
-  nodeProcess.on('error', (nodeErr) => {
-    console.error('All attempts to run Vite failed:', nodeErr.message);
+  npxProcess.on('error', (npxErr) => {
+    console.error('All attempts to run Vite failed:', npxErr.message);
     process.exit(1);
   });
-});
+  
+  npxProcess.on('close', (code) => process.exit(code || 0));
+};
 
-viteProcess.on('close', (code) => {
-  if (code !== 0) {
-    console.log(`Vite process exited with code ${code}`);
-  }
-  process.exit(code);
-});
+// Start Vite using our strategy
+runVite();

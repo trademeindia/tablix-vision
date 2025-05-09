@@ -88,7 +88,9 @@ export const subscribeToTable = (
           if (callback) callback(payload);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Channel ${channelName} status: ${status}`);
+      });
     
     activeChannels.push(channel);
     return channel;

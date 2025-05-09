@@ -15,6 +15,13 @@ const projectRoot = process.cwd();
 process.env.ROLLUP_SKIP_NORMALIZE = 'true';
 process.env.VITE_CJS_IGNORE_WARNING = 'true';
 
+// First, try to create workarounds for the Rollup platform dependencies issue
+try {
+  require('./rollup-workaround').createDummyRollupPlatformFiles();
+} catch (err) {
+  console.warn('Could not set up Rollup workarounds:', err.message);
+}
+
 try {
   // Check if vite is available in node_modules
   try {

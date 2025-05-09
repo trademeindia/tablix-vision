@@ -3,6 +3,14 @@
 
 // Helper script to ensure Vite is installed correctly
 try {
+  // First, try to create workarounds for the Rollup platform dependencies issue
+  try {
+    require('./rollup-workaround').createDummyRollupPlatformFiles();
+  } catch (err) {
+    console.warn('Could not set up Rollup workarounds:', err.message);
+  }
+  
+  // Check if Vite is available
   require.resolve('vite');
   console.log('Vite is installed correctly');
   process.exit(0);
