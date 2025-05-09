@@ -14,6 +14,7 @@ interface PrintInvoiceProps {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   onPrintComplete?: () => void;
+  className?: string;
 }
 
 const PrintInvoice: React.FC<PrintInvoiceProps> = ({
@@ -23,7 +24,8 @@ const PrintInvoice: React.FC<PrintInvoiceProps> = ({
   buttonLabel = 'Print Invoice',
   variant = 'outline',
   size = 'default',
-  onPrintComplete
+  onPrintComplete,
+  className
 }) => {
   const componentRef = useRef<HTMLDivElement>(null);
   
@@ -35,7 +37,7 @@ const PrintInvoice: React.FC<PrintInvoiceProps> = ({
   
   return (
     <>
-      <Button onClick={handlePrint} variant={variant} size={size}>
+      <Button onClick={handlePrint} variant={variant} size={size} className={className}>
         <Printer className="h-4 w-4 mr-2" />
         {buttonLabel}
       </Button>
