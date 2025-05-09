@@ -22,7 +22,7 @@ function createDummyRollupPlatformFiles() {
       fs.mkdirSync(rollupDir, { recursive: true });
     } catch (err) {
       console.error('Failed to create @rollup directory:', err.message);
-      return;
+      return false;
     }
   }
   

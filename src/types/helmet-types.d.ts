@@ -6,7 +6,6 @@ declare module 'react-helmet-async' {
     [key: string]: any;
     children?: React.ReactNode;
     title?: string;
-    meta?: React.ReactNode[];
     defer?: boolean;
     encodeSpecialCharacters?: boolean;
     htmlAttributes?: any;
@@ -14,11 +13,11 @@ declare module 'react-helmet-async' {
     link?: any;
     script?: any;
     style?: any;
+    meta?: Array<any>;
     noscript?: any;
     onChangeClientState?: (newState: any, addedTags: any, removedTags: any) => void;
   }
 
-  // Use FunctionComponent instead of class definitions
-  export const Helmet: React.FC<HelmetProps>;
-  export const HelmetProvider: React.FC<{context?: any; children?: React.ReactNode}>;
+  export class Helmet extends React.Component<HelmetProps> {}
+  export class HelmetProvider extends React.Component<{context?: any; children?: React.ReactNode}> {}
 }

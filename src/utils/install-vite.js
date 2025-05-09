@@ -18,6 +18,7 @@ process.env.VITE_CJS_IGNORE_WARNING = 'true';
 // First, try to create workarounds for the Rollup platform dependencies issue
 try {
   require('./rollup-workaround').createDummyRollupPlatformFiles();
+  console.log('Rollup workarounds applied successfully');
 } catch (err) {
   console.warn('Could not set up Rollup workarounds:', err.message);
 }

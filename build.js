@@ -28,9 +28,6 @@ const env = {
 
 // Ensure Vite is installed before attempting to build
 try {
-  console.log('Ensuring Vite is installed...');
-  require('./src/utils/ensure-vite');
-  
   console.log('Building project...');
   
   // Try using the local vite binary directly first
